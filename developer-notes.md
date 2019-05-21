@@ -21,6 +21,7 @@
         * connect each BMVert with an edge if the two bricks are connected
     * (EASY) New animation types (loop, boomerang, etc)
         * this would be implemented in the `handle_animation` function
+    * apply modifier to bricker model group instead of each object (requires Blender 2.81)
 * Fixes
     * when brickified model's parent is rotated, bricks drawn by customizing model are often not rotated correctly
 

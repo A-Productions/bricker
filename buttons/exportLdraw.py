@@ -60,6 +60,7 @@ class BRICKER_OT_export_ldraw(Operator):
         legalBricks = getLegalBricks()
         absMatProperties = bpy.props.abs_mat_properties if hasattr(bpy.props, "abs_mat_properties") else None
         transWeight = cm.transparentWeight
+        materialType = cm.materialType
         for frame in range(cm.startFrame, cm.stopFrame + 1) if cm.animated else [-1]:
             path, errorMsg = getExportPath(n, ".ldr", cm.exportPath, frame=frame, subfolder=cm.animated)
             if errorMsg is not None:
@@ -107,7 +108,7 @@ class BRICKER_OT_export_ldraw(Operator):
                     # get coordinate for brick in Ldraw units
                     co = self.blendToLdrawUnits(cm, bricksDict, cm.zStep, key, idx)
                     # get color code of brick
-                    mat = getMaterial(bricksDict, key, size, cm.zStep, cm.materialType, cm.customMat.name if cm.customMat is not None else "z", cm.randomMatSeed, cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty, seedKeys, brick_mats=getBrickMats(cm.materialType, cm.id))
+                    mat = getMaterial(bricksDict, key, size, cm.zStep, materialType, cm.customMat.name if cm.customMat is not None else "z", cm.randomMatSeed, cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty, seedKeys, brick_mats=getBrickMats(materialType, cm.id))
                     mat_name = "" if mat is None else mat.name
                     rgba = bricksDict[key]["rgba"]
                     color = 0
@@ -129,7 +130,6 @@ class BRICKER_OT_export_ldraw(Operator):
                     co = Vector((round_nearest(co.x, 10), round_nearest(co.y, 8), round_nearest(co.z, 10)))
                     # write line to file for brick
                     f.write("1 {color} {x} {y} {z} {matrix} {brickFile}\n".format(color=color, x=co.x, y=co.y, z=co.z, matrix=matrix, brickFile=brickFile))
-                    i += 1
                 f.write("0 STEP\n")
             f.close()
             if not cm.lastLegalBricksOnly:

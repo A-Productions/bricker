@@ -24,6 +24,7 @@ import bmesh
 
 # Blender imports
 import bpy
+import addon_utils
 from mathutils import Vector, Euler, Matrix
 from bpy.types import Object
 
@@ -128,7 +129,12 @@ def getShortType(brickD, targetType=None):
 
 
 def brick_materials_installed():
-    return hasattr(bpy.ops, "abs") and hasattr(bpy.ops.abs, "append_materials")
+    """ checks that 'ABS Plastic Materials' addon is installed and enabled """
+    # return hasattr(bpy.props, "abs_mats_common") or hasattr(bpy.props, "abs_plastic_materials")
+    for mod in addon_utils.modules():
+        if mod.bl_info["name"] == "ABS Plastic Materials":
+            return addon_utils.check(mod.__name__)[1]
+    return False
 
 
 def getABSMatNames(all:bool=True):
@@ -147,7 +153,7 @@ def getABSMatNames(all:bool=True):
     return materials
 
 
-def brick_materials_loaded():
+def brick_materials_imported():
     scn = bpy.context.scene
     # make sure abs_plastic_materials addon is installed
     if not brick_materials_installed():

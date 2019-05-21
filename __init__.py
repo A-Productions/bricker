@@ -63,7 +63,7 @@ def register():
     bpy.props.bricker_version = str(bl_info["version"])[1:-1].replace(", ", ".")
 
     bpy.props.bricker_initialized = b280()  # automatically initialized (uses timer) in b280
-    bpy.props.bricker_updating_undo_states = False
+    bpy.props.bricker_updating_undo_state = False
     bpy.props.Bricker_developer_mode = developer_mode
     bpy.props.running_bricksculpt_tool = False
     bpy.props.bricker_last_selected = []
@@ -190,7 +190,7 @@ def unregister():
     del bpy.props.bricker_last_selected
     del bpy.props.running_bricksculpt_tool
     del bpy.props.Bricker_developer_mode
-    del bpy.props.bricker_updating_undo_states
+    del bpy.props.bricker_updating_undo_state
     del bpy.props.bricker_initialized
     del bpy.props.bricker_version
     del bpy.props.bricker_module_name

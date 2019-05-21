@@ -308,9 +308,17 @@ def insertKeyframes(objs, keyframeType:str, frame:int, if_needed:bool=False):
         inserted = obj.keyframe_insert(data_path=keyframeType, frame=frame, options=options)
 
 
-def apply_modifiers(obj:Object, calc_undeformed:bool=False):
+@blender_version_wrapper("<=", "2.79")
+def new_mesh_from_object(obj:Object):
+    return bpy.data.meshes.new_from_object(bpy.context.scene, obj, apply_modifiers=True, settings="PREVIEW")
+@blender_version_wrapper(">=", "2.80")
+def new_mesh_from_object(obj:Object):
+    return bpy.data.meshes.new_from_object(obj)
+
+
+def apply_modifiers(obj:Object):
     """ apply modifiers to object """
-    m = obj.to_mesh(bpy.context.depsgraph if b280() else bpy.context.scene, True, calc_undeformed=calc_undeformed)
+    m = new_mesh_from_object(obj)
     obj.modifiers.clear()
     obj.data = m
 
@@ -443,6 +451,14 @@ def smoothMeshFaces(faces:iter):
 
 
 #################### OTHER ####################
+
+
+@blender_version_wrapper('<=','2.79')
+def update_depsgraph():
+    bpy.context.scene.update()
+@blender_version_wrapper('>=','2.80')
+def update_depsgraph():
+    bpy.context.view_layer.depsgraph.update()
 
 
 def getItemByID(collection:bpy.types.CollectionProperty, id:int):

@@ -217,7 +217,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                         # row.label(text=str(percentage) + "% completed")
                     else:
                         row.active = brickifyShouldRun(cm)
-                        row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
+                        row.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
                     if createdWithUnsupportedVersion(cm):
                         col = layout.column(align=True)
                         col.scale_y = 0.7
@@ -753,7 +753,7 @@ class VIEW3D_PT_bricker_materials(Panel):
             col = layout.column(align=True)
             row = col.row(align=True)
             row.prop(cm, "customMat", text="")
-            if brick_materials_installed() and not brick_materials_loaded():
+            if brick_materials_installed() and not brick_materials_imported():
                 row = col.row(align=True)
                 row.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
             if cm.modelCreated or cm.animated:
@@ -834,7 +834,7 @@ class VIEW3D_PT_bricker_materials(Panel):
                     col1 = split.column(align=True)
                     col1.operator("bricker.mat_list_action", icon='REMOVE' if b280() else 'ZOOMOUT', text="").action = 'REMOVE'
                     col1.scale_y = 1 + rows
-                    if not brick_materials_loaded():
+                    if not brick_materials_imported():
                         col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
                     else:
                         col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ADD" if b280() else "ZOOMIN")

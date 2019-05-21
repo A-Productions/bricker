@@ -425,15 +425,11 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 parent_clear(sourceDup)
             # send to new mesh
             if not cm.isSmoke:
-                if b280():
-                    # TODO: use view layer with smoke, not just the first view layer
-                    sourceDup.data = self.source.to_mesh(bpy.context.depsgraph, True)
-                else:
-                    sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
+                sourceDup.data = new_mesh_from_object(self.source)
             # apply transformation data
             apply_transform(sourceDup)
             sourceDup.animation_data_clear()
-            scn.update()
+            update_depsgraph()
         else:
             # get previously created source duplicate
             sourceDup = bpy.data.objects.get(n + "__dup__")
@@ -443,7 +439,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # link sourceDup if it isn't in scene
         if sourceDup.name not in scn.objects.keys():
             safeLink(sourceDup)
-            scn.update()
+            update_depsgraph()
 
         # get parent object
         Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
@@ -583,7 +579,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # get source info to update
         if inBackground and scn not in source.users_scene:
             safeLink(source)
-            scn.update()
+            update_depsgraph()
 
         # get source_details and dimensions
         source_details, dimensions = getDetailsAndBounds(source)
@@ -804,7 +800,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         if b280() and self.action in ("CREATE", "ANIMATE"):
             # ensure source is on current view layer
-            if bpy.context.depsgraph.objects.get(source.name) is None:
+            if bpy.context.view_layer.depsgraph.objects.get(source.name) is None:
                 self.report({"WARNING"}, "Source object could not be found in current view layer depsgraph")
                 return False
 
@@ -976,11 +972,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             sourceDup.matrix_world = self.source.matrix_world
             sourceDup.animation_data_clear()
             # send to new mesh
-            if not cm.isSmoke:
-                if b280():
-                    sourceDup.data = self.source.to_mesh(bpy.context.depsgraph, True)
-                else:
-                    sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
+            if not cm.isSmoke: sourceDup.data = new_mesh_from_object(self.source)
             # apply transform data
             apply_transform(sourceDup)
             duplicates[curFrame] = sourceDup
@@ -991,7 +983,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # update progress bar
         update_progress("Applying Modifiers", 1)
         scn.frame_set(origFrame)
-        scn.update()
+        update_depsgraph()
         return duplicates
 
     def shouldBrickifyInBackground(self, cm, r):

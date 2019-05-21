@@ -59,7 +59,7 @@ def newObjFromBmesh(layer, bme, meshName, objName=None, loc=(0,0,0), edgeSplit=T
     ob.location = loc
     # link and select object
     link_object(ob)
-    scn.update()
+    depsgraph_update()
 
     # send bmesh data to object data
     bme.to_mesh(me)
