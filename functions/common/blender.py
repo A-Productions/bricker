@@ -313,7 +313,9 @@ def new_mesh_from_object(obj:Object):
     return bpy.data.meshes.new_from_object(bpy.context.scene, obj, apply_modifiers=True, settings="PREVIEW")
 @blender_version_wrapper(">=", "2.80")
 def new_mesh_from_object(obj:Object):
-    return bpy.data.meshes.new_from_object(obj)
+    depsgraph = bpy.context.view_layer.depsgraph
+    obj_eval = depsgraph.objects.get(obj.name, None)
+    return bpy.data.meshes.new_from_object(obj_eval)
 
 
 def apply_modifiers(obj:Object):

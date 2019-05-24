@@ -120,16 +120,14 @@ def register():
 
     # register app handlers
     bpy.app.handlers.frame_change_pre.append(handle_animation)
-    if b280():
-        bpy.app.handlers.load_post.append(register_bricker_timers)
-    else:
-        bpy.app.handlers.scene_update_pre.append(handle_selections)
+    if not bpy.app.background:
+        if b280():
+            bpy.app.handlers.load_post.append(register_bricker_timers)
+        else:
+            bpy.app.handlers.scene_update_pre.append(handle_selections)
     bpy.app.handlers.load_pre.append(clear_bfm_cache)
     bpy.app.handlers.load_post.append(handle_loading_to_light_cache)
     bpy.app.handlers.save_pre.append(handle_storing_to_deep_cache)
-    bpy.app.handlers.save_pre.append(safe_link_parent)
-    bpy.app.handlers.save_post.append(safe_unlink_parent)
-    bpy.app.handlers.load_post.append(safe_unlink_parent)
     bpy.app.handlers.load_post.append(handle_upconversion)
     bpy.app.handlers.load_post.append(reset_undo_stack)
 
@@ -144,9 +142,6 @@ def unregister():
     # unregister app handlers
     bpy.app.handlers.load_post.remove(reset_undo_stack)
     bpy.app.handlers.load_post.remove(handle_upconversion)
-    bpy.app.handlers.load_post.remove(safe_unlink_parent)
-    bpy.app.handlers.save_post.remove(safe_unlink_parent)
-    bpy.app.handlers.save_pre.remove(safe_link_parent)
     bpy.app.handlers.save_pre.remove(handle_storing_to_deep_cache)
     bpy.app.handlers.load_post.remove(handle_loading_to_light_cache)
     bpy.app.handlers.load_pre.remove(clear_bfm_cache)
@@ -155,8 +150,9 @@ def unregister():
             bpy.app.timers.unregister(handle_selections)
         if bpy.app.timers.is_registered(handle_undo_stack):
             bpy.app.timers.unregister(handle_undo_stack)
-        bpy.app.handlers.load_post.remove(register_bricker_timers)
-    else:
+        if not bpy.app.background:
+            bpy.app.handlers.load_post.remove(register_bricker_timers)
+    elif not bpy.app.background:
         bpy.app.handlers.scene_update_pre.remove(handle_selections)
     bpy.app.handlers.frame_change_pre.remove(handle_animation)
 

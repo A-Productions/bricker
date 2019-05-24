@@ -114,10 +114,9 @@ def clear_bfm_cache(dummy):
         bricker_bfm_cache[key] = None
 
 
-# pull dicts from deep cache to light cache on load
+# reset undo stack on load
 @persistent
 def reset_undo_stack(scene):
-    # reset undo stack
     undo_stack = UndoStack.get_instance(reset=True)
 
 
@@ -143,25 +142,6 @@ def handle_loading_to_light_cache(dummy):
 @persistent
 def handle_storing_to_deep_cache(dummy):
     lightToDeepCache(bricker_bfm_cache)
-
-
-# send parent object to scene for linking scene in other file
-@persistent
-def safe_link_parent(dummy):
-    for scn in bpy.data.scenes:
-        for cm in scn.cmlist:
-            if cm.parent_obj is not None and (cm.modelCreated or cm.animated) and not cm.exposeParent:
-                safeLink(cm.parent_obj)
-
-
-# send parent object to scene for linking scene in other file
-@persistent
-def safe_unlink_parent(dummy):
-    for scn in bpy.data.scenes:
-        for cm in scn.cmlist:
-            p = cm.parent_obj
-            if p is not None and (cm.modelCreated or cm.animated) and not cm.exposeParent:
-                safeUnlink(p)
 
 
 # @persistent
