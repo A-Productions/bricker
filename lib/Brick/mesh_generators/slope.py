@@ -30,7 +30,7 @@ from .generator_utils import *
 from ....functions import *
 
 
-def makeSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bool, direction:str=None, circleVerts:int=None, detail:str="LOW", stud:bool=True, bme:bmesh=None):
+def makeSlope(dimensions:dict, brickSize:list, brickType:str, direction:str=None, circleVerts:int=None, detail:str="LOW", stud:bool=True, bme:bmesh=None):
     """
     create slope brick with bmesh
 
@@ -40,7 +40,6 @@ def makeSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bool, dire
         dimensions  -- dictionary containing brick dimensions
         brickSize   -- size of brick (e.g. 2x3 slope -> [2, 3, 3])
         brickType   -- cm.brickType
-        loopCut     -- loop cut cylinders so bevels can be cleaner
         direction   -- direction slant faces in ("X+", "X-", "Y+", "Y-")
         circleVerts -- number of vertices per circle of cylinders
         detail      -- level of brick detail (options: ("FLAT", "LOW", "MEDIUM", "HIGH"))
@@ -86,7 +85,7 @@ def makeSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bool, dire
         # add face to opposite side from slope
         bme.faces.new((v1, v5, v8, v2))
         # create stud
-        if stud: addStuds(dimensions, height, [1] + adjustedBrickSize[1:], "CONE", circleVerts, bme, edgeXp=[v7, v6], edgeXn=[v8, v5], edgeYp=[v7, v8], edgeYn=[v6, v5], hollow=brickSize[2] > 3, loopCut=loopCut)
+        if stud: addStuds(dimensions, height, [1] + adjustedBrickSize[1:], "CONE", circleVerts, bme, edgeXp=[v7, v6], edgeXn=[v8, v5], edgeYp=[v7, v8], edgeYn=[v6, v5], hollow=brickSize[2] > 3)
 
     # make square at end of slope
     coord1 = Vector((d.x * scalar.x, -d.y, -d.z + (dimensions["slit_height"] if max(brickSize[:2]) == 1 else 0)))
@@ -209,14 +208,14 @@ def makeSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bool, dire
         bme.faces.new((v1, v2, v20, v19))
 
         # add supports
-        addSupports(dimensions, height, adjustedBrickSize, brickType, loopCut, circleVerts, "SLOPE", detail, d, scalar, thick, bme, add_beams=False, hollow=brickSize[:2] not in ([1, 2], [2, 1]))
+        addSupports(dimensions, height, adjustedBrickSize, brickType, circleVerts, "SLOPE", detail, d, scalar, thick, bme, add_beams=False, hollow=brickSize[:2] not in ([1, 2], [2, 1]))
         # add inner cylinders
         if detail in ("MEDIUM", "HIGH"):
             edgeXp = [v34 if addBlockSupports else v25, v31 if addBlockSupports else v24]
             edgeXn = [v26, v23]
             edgeYp = [v34 if addBlockSupports else v25, v26]
             edgeYn = [v31 if addBlockSupports else v24, v23]
-            addInnerCylinders(dimensions, [1] + adjustedBrickSize[1:], circleVerts, d, edgeXp, edgeXn, edgeYp, edgeYn, bme, loopCut=loopCut)
+            addInnerCylinders(dimensions, [1] + adjustedBrickSize[1:], circleVerts, d, edgeXp, edgeXn, edgeYp, edgeYn, bme)
 
 
     # translate slope to adjust for flipped brick

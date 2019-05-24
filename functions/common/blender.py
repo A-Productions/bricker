@@ -138,14 +138,14 @@ def selectAll():
     select(bpy.context.scene.objects)
 
 
-def selectVerts(vertList, only:bool=False):
-    """ selects verts in list and deselects the rest """
+def selectGeom(geom, only:bool=False):
+    """ selects verts/edges/faces in list and deselects the rest """
     # confirm vertList is a list of vertices
-    vertList = confirmList(vertList)
+    geom = confirmList(geom)
     # deselect all if selection is exclusive
     if only: deselectAll()
     # select vertices in list
-    for v in vertList:
+    for v in geom:
         if v is not None and not v.select:
             v.select = True
 

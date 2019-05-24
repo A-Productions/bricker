@@ -32,15 +32,15 @@ from ...functions import *
 
 class Bricks:
     @staticmethod
-    def new_mesh(dimensions:list, brickType:str, size:list=[1,1,3], type:str="BRICK", flip:bool=False, rotate90:bool=False, loopCut:bool=False, logo=False, logoType="NONE", logoScale=1, logoInset=None, all_vars=False, logo_details=None, undersideDetail:str="FLAT", stud:bool=True, circleVerts:int=16):
+    def new_mesh(dimensions:list, brickType:str, size:list=[1,1,3], type:str="BRICK", flip:bool=False, rotate90:bool=False, logo=False, logoType="NONE", logoScale=1, logoInset=None, all_vars=False, logo_details=None, undersideDetail:str="FLAT", stud:bool=True, circleVerts:int=16):
         """ create unlinked Brick at origin """
         # create brick mesh
         if type in ("BRICK", "PLATE") or "CUSTOM" in type:
-            brickBM = makeStandardBrick(dimensions, size, type, brickType, loopCut, circleVerts=circleVerts, detail=undersideDetail, stud=stud)
+            brickBM = makeStandardBrick(dimensions, size, type, brickType, circleVerts=circleVerts, detail=undersideDetail, stud=stud)
         elif type in getRoundBrickTypes():
-            brickBM = makeRound1x1(dimensions, brickType, loopCut, circleVerts=circleVerts, type=type, detail=undersideDetail)
+            brickBM = makeRound1x1(dimensions, brickType, circleVerts=circleVerts, type=type, detail=undersideDetail)
         elif type in ("TILE", "TILE_GRILL"):
-            brickBM = makeTile(dimensions, brickType, loopCut, brickSize=size, circleVerts=circleVerts, type=type, detail=undersideDetail)
+            brickBM = makeTile(dimensions, brickType, brickSize=size, circleVerts=circleVerts, type=type, detail=undersideDetail)
         elif type in ("SLOPE", "SLOPE_INVERTED", "TALL_SLOPE"):
             # determine brick direction
             directions = ["X+", "Y+", "X-", "Y-"]
@@ -49,9 +49,9 @@ class Bricks:
             maxIdx += 1 if rotate90 else 0
             # make slope brick bmesh
             if type == "SLOPE_INVERTED":
-                brickBM = makeInvertedSlope(dimensions, size, brickType, loopCut, circleVerts=circleVerts, direction=directions[maxIdx], detail=undersideDetail, stud=stud)
+                brickBM = makeInvertedSlope(dimensions, size, brickType, circleVerts=circleVerts, direction=directions[maxIdx], detail=undersideDetail, stud=stud)
             else:
-                brickBM = makeSlope(dimensions, size, brickType, loopCut, circleVerts=circleVerts, direction=directions[maxIdx], detail=undersideDetail, stud=stud)
+                brickBM = makeSlope(dimensions, size, brickType, circleVerts=circleVerts, direction=directions[maxIdx], detail=undersideDetail, stud=stud)
         else:
             raise ValueError("'new_mesh' function received unrecognized value for parameter 'type': '" + str(type) + "'")
 

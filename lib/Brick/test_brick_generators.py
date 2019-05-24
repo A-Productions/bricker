@@ -121,10 +121,10 @@ def test_brick_generators():
         for posNeg in ("+", "-"):
             for j in (-1, 1):
                 direction = ("X" if j == 1 else "Y") + posNeg
-                newObjFromBmesh(16 + i, makeInvertedSlope(dimensions, brickSize=[2,1][::j] + [3], brickType=cm.brickType, loopCut=cm.loopCut, direction=direction, circleVerts=16, detail=detail), "2x1 Inverted Slope "  + detail, loc=[-3,   offset][::j]              + [0])
-                newObjFromBmesh(16 + i, makeInvertedSlope(dimensions, brickSize=[3,1][::j] + [3], brickType=cm.brickType, loopCut=cm.loopCut, direction=direction, circleVerts=16, detail=detail), "3x1 Inverted Slope "  + detail, loc=[-1.5, offset][::j]              + [0])
-                newObjFromBmesh(16 + i, makeInvertedSlope(dimensions, brickSize=[2,2][::j] + [3], brickType=cm.brickType, loopCut=cm.loopCut, direction=direction, circleVerts=16, detail=detail), "2x2 Inverted Slope "  + detail, loc=[0.25, offset * 1.5 - 0.25][::j] + [0])
-                newObjFromBmesh(16 + i, makeInvertedSlope(dimensions, brickSize=[3,2][::j] + [3], brickType=cm.brickType, loopCut=cm.loopCut, direction=direction, circleVerts=16, detail=detail), "3x2 Inverted Slope "  + detail, loc=[1.75, offset * 1.5 - 0.25][::j] + [0])
+                newObjFromBmesh(16 + i, makeInvertedSlope(dimensions, brickSize=[2,1][::j] + [3], brickType=cm.brickType, direction=direction, circleVerts=16, detail=detail), "2x1 Inverted Slope "  + detail, loc=[-3,   offset][::j]              + [0])
+                newObjFromBmesh(16 + i, makeInvertedSlope(dimensions, brickSize=[3,1][::j] + [3], brickType=cm.brickType, direction=direction, circleVerts=16, detail=detail), "3x1 Inverted Slope "  + detail, loc=[-1.5, offset][::j]              + [0])
+                newObjFromBmesh(16 + i, makeInvertedSlope(dimensions, brickSize=[2,2][::j] + [3], brickType=cm.brickType, direction=direction, circleVerts=16, detail=detail), "2x2 Inverted Slope "  + detail, loc=[0.25, offset * 1.5 - 0.25][::j] + [0])
+                newObjFromBmesh(16 + i, makeInvertedSlope(dimensions, brickSize=[3,2][::j] + [3], brickType=cm.brickType, direction=direction, circleVerts=16, detail=detail), "3x2 Inverted Slope "  + detail, loc=[1.75, offset * 1.5 - 0.25][::j] + [0])
                 i += 1
         # # TILES
         # newObjFromBmesh(7, makeTile(dimensions, brickSize=[1,2,1], circleVerts=16, type="TILE", detail=detail), "1x2 Tile "  + detail, loc=(offset, 6.4, 0))

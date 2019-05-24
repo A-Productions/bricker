@@ -29,7 +29,7 @@ from .generator_utils import *
 from ....functions import *
 
 
-def makeStandardBrick(dimensions:dict, brickSize:list, type:str, brickType:str, loopCut:bool, circleVerts:int=16, detail:str="LOW", logo:Object=None, stud:bool=True, bme:bmesh=None):
+def makeStandardBrick(dimensions:dict, brickSize:list, type:str, brickType:str, circleVerts:int=16, detail:str="LOW", logo:Object=None, stud:bool=True, bme:bmesh=None):
     """
     create brick with bmesh
 
@@ -38,7 +38,6 @@ def makeStandardBrick(dimensions:dict, brickSize:list, type:str, brickType:str, 
         brickSize   -- size of brick (e.g. standard 2x4 -> [2, 4, 3])
         type        -- type of brick (e.g. BRICK, PLATE, CUSTOM)
         brickType   -- cm.brickType
-        loopCut     -- loop cut cylinders so bevels can be cleaner
         circleVerts -- number of vertices per circle of cylinders
         detail      -- level of brick detail (options: ["FLAT", "LOW", "MEDIUM", "HIGH"])
         logo        -- logo object to create on top of studs
@@ -69,7 +68,7 @@ def makeStandardBrick(dimensions:dict, brickSize:list, type:str, brickType:str, 
     v1, v2, v3, v4, v5, v6, v7, v8 = makeCube(coord1, coord2, [0 if stud else 1, 1 if detail == "FLAT" else 0, 1, 1, 1, 1], seams=True, bme=bme)
 
     # add studs
-    if stud: addStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=[v7, v6], edgeXn=[v8, v5], edgeYp=[v7, v8], edgeYn=[v6, v5], hollow=brickSize[2] > 3 or "HOLES" in type, loopCut=loopCut)
+    if stud: addStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=[v7, v6], edgeXn=[v8, v5], edgeYp=[v7, v8], edgeYn=[v6, v5], hollow=brickSize[2] > 3 or "HOLES" in type)
 
     # add details
     if detail != "FLAT":
@@ -92,14 +91,14 @@ def makeStandardBrick(dimensions:dict, brickSize:list, type:str, brickType:str, 
 
         # add supports
         if max(brickSize[:2]) > 1:
-            addSupports(dimensions, height, brickSize, brickType, loopCut, circleVerts, type, detail, d, scalar, thick, bme)
+            addSupports(dimensions, height, brickSize, brickType, circleVerts, type, detail, d, scalar, thick, bme)
         # add small inner cylinders inside brick
         if detail in ("MEDIUM", "HIGH"):
             edgeXp = [v15] + (bottomVerts["X+"][::-1] if drawTickMarks else []) + [v14]
             edgeXn = [v16] + (bottomVerts["X-"][::-1] if drawTickMarks else []) + [v13]
             edgeYp = [v15] + (bottomVerts["Y+"][::-1] if drawTickMarks else []) + [v16]
             edgeYn = [v14] + (bottomVerts["Y-"][::-1] if drawTickMarks else []) + [v13]
-            addInnerCylinders(dimensions, brickSize, circleVerts, d, edgeXp, edgeXn, edgeYp, edgeYn, bme, loopCut=loopCut)
+            addInnerCylinders(dimensions, brickSize, circleVerts, d, edgeXp, edgeXn, edgeYp, edgeYn, bme)
 
     # transform final mesh
     gap = Vector([dimensions["gap"]] * 2)

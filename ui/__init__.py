@@ -953,10 +953,8 @@ class VIEW3D_PT_bricker_detailing(Panel):
         row.label(text="Cylinders:")
         row = col.row(align=True)
         row.prop(cm, "circleVerts")
-        row = col.row(align=True)
-        row.prop(cm, "loopCut")
-        row.active = not (cm.studDetail == "NONE" and cm.exposedUndersideDetail == "FLAT" and cm.hiddenUndersideDetail == "FLAT")
 
+        col = layout.column(align=True)
         row = col.row(align=True)
         split = layout_split(row, factor=0.5)
         col1 = split.column(align=True)

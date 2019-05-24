@@ -101,7 +101,6 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     logoInset = cm.logoInset
     logoResolution = cm.logoResolution
     logoDecimate = cm.logoDecimate
-    loopCut = False if tempBrick else cm.loopCut
     maxWidth = cm.maxWidth
     maxDepth = cm.maxDepth
     mergeInternalsH = cm.mergeInternals in ["BOTH", "HORIZONTAL"]
@@ -251,7 +250,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                 continue
             loc = getDictLoc(bricksDict, k2)
             # create brick based on the current brick info
-            drawBrick(cm_id, bricksDict, k2, loc, seedKeys, parent, dimensions, zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, customObject1, customObject2, customObject3, matDirty, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, customMat, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, instanceBricks, randS1, randS2, randS3)
+            drawBrick(cm_id, bricksDict, k2, loc, seedKeys, parent, dimensions, zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, customObject1, customObject2, customObject3, matDirty, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, buildIsDirty, materialType, customMat, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, instanceBricks, randS1, randS2, randS3)
             # print status to terminal and cursor
             old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict.keys()), old_percent, "Building")
 
@@ -274,13 +273,11 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             # get brick
             name = bricksDict[key]["name"]
             brick = bpy.data.objects.get(name)
-            # create vert group for bevel mod (assuming only logo verts are selected):
-            vg = brick.vertex_groups.get("%(name)s_bvl" % locals())
-            if vg:
-                brick.vertex_groups.remove(vg)
-            vg = brick.vertex_groups.new(name="%(name)s_bvl" % locals())
-            vertList = [v.index for v in brick.data.vertices if not v.select]
-            vg.add(vertList, 1, "ADD")
+            # set bevel weights
+            brick.data.use_customdata_edge_bevel = True
+            for e in brick.data.edges:
+                if not e.select:
+                    e.bevel_weight = 1.0
             # set up remaining brick info if brick object just created
             if clearExistingCollection or brick.name not in bColl.objects.keys():
                 bColl.objects.link(brick)
@@ -305,13 +302,11 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             if brickType != "CUSTOM":
                 addEdgeSplitMod(allBricksObj)
         if brickType != "CUSTOM":
-            # create vert group for bevel mod (assuming only logo verts are selected):
-            vg = allBricksObj.vertex_groups.get("%(name)s_bvl" % locals())
-            if vg:
-                allBricksObj.vertex_groups.remove(vg)
-            vg = allBricksObj.vertex_groups.new(name="%(name)s_bvl" % locals())
-            vertList = [v.index for v in allBricksObj.data.vertices if not v.select]
-            vg.add(vertList, 1, "ADD")
+            # set bevel weights
+            allBricksObj.data.use_customdata_edge_bevel = True
+            for e in allBricksObj.data.edges:
+                if not e.select:
+                    e.bevel_weight = 1.0
         if materialType in ("CUSTOM", "NONE"):
             setMaterial(allBricksObj, customMat)
         elif materialType == "SOURCE" or (materialType == "RANDOM" and len(brick_mats) > 0):

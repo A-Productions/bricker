@@ -209,7 +209,6 @@ def getCMProps():
             "hiddenUndersideDetail",
             "exposedUndersideDetail",
             "circleVerts",
-            "loopCut",
             "gap",
             "mergeSeed",
             "connectThresh",

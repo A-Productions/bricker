@@ -505,11 +505,6 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=updateCircleVerts,
         min=4, soft_max=64,
         default=16)
-    loopCut = BoolProperty(
-        name="Loop Cut Cylinders",
-        description="Make loop cut on cylinders so that bevel operation can bevel base of studs",
-        update=dirtyBricks,
-        default=False)
     # BEVEL SETTINGS
     bevelAdded = BoolProperty(
         name="Bevel Bricks",
