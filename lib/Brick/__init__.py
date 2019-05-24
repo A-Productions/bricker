@@ -61,11 +61,19 @@ class Bricks:
         else:
             bms = [bmesh.new()]
 
-        # add brick mesh to bm mesh
+        # send brick mesh to junk edit mesh
         junkMesh = bpy.data.meshes.get('Bricker_junkMesh')
         if junkMesh is None:
             junkMesh = bpy.data.meshes.new('Bricker_junkMesh')
         brickBM.to_mesh(junkMesh)
+
+        # set bevel weights
+        junkMesh.use_customdata_edge_bevel = True
+        for e in junkMesh.edges:
+            if not e.select:
+                e.bevel_weight = 1.0
+
+        # add brick mesh to bm meshes
         for bm in bms:
             bm.from_mesh(junkMesh)
 

@@ -273,11 +273,6 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             # get brick
             name = bricksDict[key]["name"]
             brick = bpy.data.objects.get(name)
-            # set bevel weights
-            brick.data.use_customdata_edge_bevel = True
-            for e in brick.data.edges:
-                if not e.select:
-                    e.bevel_weight = 1.0
             # set up remaining brick info if brick object just created
             if clearExistingCollection or brick.name not in bColl.objects.keys():
                 bColl.objects.link(brick)
@@ -301,12 +296,6 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             # add edge split modifier
             if brickType != "CUSTOM":
                 addEdgeSplitMod(allBricksObj)
-        if brickType != "CUSTOM":
-            # set bevel weights
-            allBricksObj.data.use_customdata_edge_bevel = True
-            for e in allBricksObj.data.edges:
-                if not e.select:
-                    e.bevel_weight = 1.0
         if materialType in ("CUSTOM", "NONE"):
             setMaterial(allBricksObj, customMat)
         elif materialType == "SOURCE" or (materialType == "RANDOM" and len(brick_mats) > 0):
