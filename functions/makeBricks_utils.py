@@ -236,9 +236,10 @@ def prepareLogoAndGetDetails(scn, logo, detail, scale, dimensions):
     # get logo details
     logo_details = bounds(logo)
     m = logo.data
-    # select all verts in logo
-    for v in m.vertices:
-        v.select = True
+    # set bevel weight for logo
+    m.use_customdata_edge_bevel = True
+    for e in m.edges:
+        e.bevel_weight = 0.0
     # create transform and scale matrices
     t_mat = Matrix.Translation(-logo_details.mid)
     distMax = max(logo_details.dist.xy)

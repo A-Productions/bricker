@@ -55,12 +55,6 @@ class Bricks:
         else:
             raise ValueError("'new_mesh' function received unrecognized value for parameter 'type': '" + str(type) + "'")
 
-        # create list of brick bmesh variations
-        if logo and stud and (type in ("BRICK", "PLATE", "STUD", "SLOPE_INVERTED") or type == "SLOPE" and max(size[:2]) != 1):
-            bms = makeLogoVariations(dimensions, size, brickType, directions[maxIdx] if type.startswith("SLOPE") else "", all_vars, logo, logo_details, logoInset, logoType, logoScale)
-        else:
-            bms = [bmesh.new()]
-
         # send brick mesh to junk edit mesh
         junkMesh = bpy.data.meshes.get('Bricker_junkMesh')
         if junkMesh is None:
@@ -70,10 +64,16 @@ class Bricks:
         # set bevel weights
         junkMesh.use_customdata_edge_bevel = True
         for e in junkMesh.edges:
-            if not e.select:
-                e.bevel_weight = 1.0
+            e.bevel_weight = 0.0 if e.select else 1.0
+        # print(len([e for e in junkMesh.edges if e.bevel_weight == 1.0]))
 
-        # add brick mesh to bm meshes
+        # create list of bmesh variations (logo only, for now)
+        if logo and stud and (type in ("BRICK", "PLATE", "STUD", "SLOPE_INVERTED") or type == "SLOPE" and max(size[:2]) != 1):
+            bms = makeLogoVariations(dimensions, size, brickType, directions[maxIdx] if type.startswith("SLOPE") else "", all_vars, logo, logo_details, logoInset, logoType, logoScale)
+        else:
+            bms = [bmesh.new()]
+
+        # append brick mesh to each bmesh variation
         for bm in bms:
             bm.from_mesh(junkMesh)
 
