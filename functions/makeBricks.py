@@ -244,6 +244,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
 
     # draw merged bricks
     seedKeys = sorted(list(bricksDict.keys())) if materialType == "RANDOM" else None
+    denom2 = len(bricksDict.keys())
     for z in sorted(keysDict.keys()):
         for k2 in keysDict[z]:
             if bricksDict[k2]["parent"] != "self" or not bricksDict[k2]["draw"]:
@@ -252,7 +253,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             # create brick based on the current brick info
             drawBrick(cm_id, bricksDict, k2, loc, seedKeys, parent, dimensions, zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, customObject1, customObject2, customObject3, matDirty, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, buildIsDirty, materialType, customMat, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, instanceBricks, randS1, randS2, randS3)
             # print status to terminal and cursor
-            old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict.keys()), old_percent, "Building")
+            old_percent = updateProgressBars(printStatus, cursorStatus, i/denom2, old_percent, "Building")
 
     # end progress bars
     updateProgressBars(printStatus, cursorStatus, 1, 0, "Building", end=True)
@@ -269,7 +270,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             if bricksDict[key]["parent"] != "self" or not bricksDict[key]["draw"]:
                 continue
             # print status to terminal and cursor
-            old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict), old_percent, "Linking to Scene")
+            old_percent = updateProgressBars(printStatus, cursorStatus, i/denom2, old_percent, "Linking to Scene")
             # get brick
             name = bricksDict[key]["name"]
             brick = bpy.data.objects.get(name)

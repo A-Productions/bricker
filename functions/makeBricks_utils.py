@@ -69,7 +69,7 @@ def drawBrick(cm_id, bricksDict, key, loc, seedKeys, parent, dimensions, zStep, 
     # apply random rotation to edit mesh according to parameters
     randomRotMatrix = getRandomRotMatrix(randomRot, randS2, brickSize) if randomRot > 0 else None
     # get brick location
-    locOffset = getRandomLoc(randomLoc, randS2, dimensions["width"], dimensions["height"]) if randomLoc > 0 else Vector((0, 0, 0))
+    locOffset = getRandomLoc(randomLoc, randS2, dimensions["half_width"], dimensions["half_height"]) if randomLoc > 0 else Vector((0, 0, 0))
     brickLoc = getBrickCenter(bricksDict, key, zStep, loc) + locOffset
 
     if split:
@@ -108,8 +108,9 @@ def drawBrick(cm_id, bricksDict, key, loc, seedKeys, parent, dimensions, zStep, 
         # append to bricksCreated
         bricksCreated.append(brick)
     else:
-        # duplicates mesh – prevents crashes (TODO: test without this line in 2.8)
-        m = m.copy()
+        # duplicates mesh – prevents crashes in 2.79 (may need to add back if experiencing crashes in b280)
+        if not b280():
+            m = m.copy()
         # apply rotation matrices to edit mesh
         if randomRotMatrix is not None:
             m.transform(randomRotMatrix)
@@ -141,19 +142,21 @@ def drawBrick(cm_id, bricksDict, key, loc, seedKeys, parent, dimensions, zStep, 
         # append mesh to allMeshes bmesh object
         allMeshes.from_mesh(m)
 
-        # remove duplicated mesh (TODO: test without this line in 2.8)
-        bpy.data.meshes.remove(m)
+        # remove mesh in 2.79 (mesh was duplicated above to prevent crashes)
+        if not b280():
+            bpy.data.meshes.remove(m)
         # NOTE: The following lines clean up the mesh if not duplicated
-        # # reset polygon material mapping
-        # if mat is not None:
-        #     for p in m.polygons:
-        #         p.material_index = 0
-        #
-        # # reset transformations for reference mesh
-        # m.transform(Matrix.Translation(-brickLoc))
-        # if randomRotMatrix is not None:
-        #     randomRotMatrix.invert()
-        #     m.transform(randomRotMatrix)
+        else:
+            # reset polygon material mapping
+            if mat is not None:
+                for p in m.polygons:
+                    p.material_index = 0
+
+            # reset transformations for reference mesh
+            m.transform(Matrix.Translation(-brickLoc))
+            if randomRotMatrix is not None:
+                randomRotMatrix.invert()
+                m.transform(randomRotMatrix)
 
     return bricksDict
 
@@ -195,11 +198,11 @@ def skipThisRow(timeThrough, lowestZ, z, offsetBrickLayers):
     return False
 
 
-def getRandomLoc(randomLoc, rand, width, height):
+def getRandomLoc(randomLoc, rand, half_width, half_height):
     """ get random location between (0,0,0) and (width/2, width/2, height/2) """
     loc = Vector((0,0,0))
-    loc.xy = [rand.uniform(-(width/2) * randomLoc, (width/2) * randomLoc)]*2
-    loc.z = rand.uniform(-(height/2) * randomLoc, (height/2) * randomLoc)
+    loc.xy = [rand.uniform(-half_width * randomLoc, half_width * randomLoc)]*2
+    loc.z = rand.uniform(-half_height * randomLoc, half_height * randomLoc)
     return loc
 
 

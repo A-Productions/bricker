@@ -52,7 +52,7 @@ def makeStandardBrick(dimensions:dict, brickSize:list, type:str, brickType:str, 
     height = dimensions["height"] * (3 if bAndPBrick else 1)
 
     # get halfScale
-    d = Vector((dimensions["width"] / 2, dimensions["width"] / 2, dimensions["height"] / 2))
+    d = Vector((dimensions["half_width"], dimensions["half_width"], dimensions["half_height"]))
     d.z = d.z * (brickSize[2] if flatBrickType(brickType) else 1)
     # get scalar for d in positive xyz directions
     scalar = Vector((brickSize[0] * 2 - 1,
