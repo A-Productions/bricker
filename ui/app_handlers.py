@@ -273,11 +273,6 @@ def handle_upconversion(dummy):
                     if cm.collection is None: cm.collection = coll
                     dup = bpy.data.objects.get(n + "_duplicate")
                     if dup is not None: dup.name = n + "__dup__"
-                # convert from v1_6 to v1_7
-                if int(cm.version[2]) < 7:
-                    cm.gap = cm.gap * 100
-                    cm.logoScale = cm.logoScale * 100
-                    cm.logoInset = cm.logoInset * 100
             # ensure parent object has no users
             if cm.parent_obj is not None:
                 # TODO: replace with this line when the function is fixed in 2.8
