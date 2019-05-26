@@ -61,6 +61,20 @@ def parent_clear(objs, apply_transform:bool=True):
             obj.parent = None
 
 
+def set_parent(obj:Object, parent:Object, keep_transform:bool=False):
+    # select(objs, active=True, only=True)
+    # bpy.ops.object.parent_set(type='OBJECT', keep_transform=keep_transform)
+
+    # objs = confirmIter(objs)
+    # for obj in objs:
+
+    # obj_mx = obj.matrix_world.copy()
+
+    obj.parent = parent
+    # if keep_transform:
+    #     obj.matrix_world = obj_mx
+
+
 def getBoundsBF(obj:Object):
     """ brute force method for obtaining object bounding box """
     # initialize min and max

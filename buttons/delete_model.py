@@ -262,6 +262,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         p = cm.parent_obj
         if p is None:
             return brickLoc, brickRot, brickScl
+        p.parent = None
         if preservedFrames is None:
             if modelType == "ANIMATION" or cm.lastSplitModel:
                 # store transform data of transformation parent object

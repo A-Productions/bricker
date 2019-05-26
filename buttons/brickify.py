@@ -446,12 +446,13 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         parent = bpy.data.objects.get(Bricker_parent_on)
         # if parent doesn't exist, get parent with new location
         sourceDup_details = bounds(sourceDup)
-        parentLoc = sourceDup_details.mid
+        parentLoc = sourceDup_details.mid - self.source.matrix_world.to_translation()
         if parent is None:
             parent = self.getNewParent(Bricker_parent_on, parentLoc)
             cm.parent_name = parent.name
         cm.parent_obj = parent
-        parent["loc_diff"] = self.source.location - parentLoc
+        # parent["loc_diff"] = self.source.location - parentLoc
+        parent.parent = self.source
         self.createdObjects.append(parent.name)
 
         # create, transform, and bevel bricks
