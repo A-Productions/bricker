@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-def get_brick_dimensions(height=1, zScale=1, gap_percentage=0.01):
+def get_brick_dimensions(height=1, zScale=1, gap_percentage=1.0):
     """
     returns the dimensions of a brick in Blender units
 
@@ -28,8 +28,10 @@ def get_brick_dimensions(height=1, zScale=1, gap_percentage=0.01):
     scale = height/9.6
     dimensions = {}
     dimensions["height"] = scale*9.6*(zScale/3)
+    dimensions["half_height"] = dimensions["height"] / 2
     dimensions["width"] = scale*8
-    dimensions["gap"] = scale*9.6*gap_percentage
+    dimensions["half_width"] = dimensions["width"] / 2
+    dimensions["gap"] = scale*9.6*(gap_percentage / 100)
     dimensions["stud_height"] = scale*1.8
     dimensions["stud_radius"] = scale*2.4
     dimensions["thickness"] = scale*1.6
@@ -48,7 +50,7 @@ def get_brick_dimensions(height=1, zScale=1, gap_percentage=0.01):
     dimensions["oblong_support_dist"] = scale
     dimensions["oblong_support_radius"] = scale*0.6
     dimensions["support_height_triple"] = (dimensions["height"]*3)*0.65
-    dimensions["logo_offset"] = (dimensions["height"] / 2) + (dimensions["stud_height"])
+    dimensions["logo_offset"] = dimensions["half_height"] + dimensions["stud_height"]
     # round all values in dimensions
     for k in dimensions:
         dimensions[k] = round(dimensions[k], 8)

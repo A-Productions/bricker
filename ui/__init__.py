@@ -217,7 +217,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                         # row.label(text=str(percentage) + "% completed")
                     else:
                         row.active = brickifyShouldRun(cm)
-                        row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
+                        row.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
                     if createdWithUnsupportedVersion(cm):
                         col = layout.column(align=True)
                         col.scale_y = 0.7
@@ -753,20 +753,9 @@ class VIEW3D_PT_bricker_materials(Panel):
             col = layout.column(align=True)
             row = col.row(align=True)
             row.prop(cm, "customMat", text="")
-            if brick_materials_installed():
-                if bpy.context.scene.render.engine not in ("CYCLES", "BLENDER_EEVEE"):
-                    row = col.row(align=True)
-                    row.label(text="Switch to 'Cycles' or 'Eevee' for Brick materials")
-                elif not brick_materials_loaded():
-                    row = col.row(align=True)
-                    row.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
-                    # import settings
-                    if hasattr(bpy.props, "abs_mats_common"): # checks that ABS plastic mats are at least v2.1
-                        col = layout.column(align=True)
-                        row = col.row(align=True)
-                        row.prop(scn, "include_transparent")
-                        row = col.row(align=True)
-                        row.prop(scn, "include_uncommon")
+            if brick_materials_installed() and not brick_materials_imported():
+                row = col.row(align=True)
+                row.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
             if cm.modelCreated or cm.animated:
                 col = layout.column(align=True)
                 row = col.row(align=True)
@@ -789,7 +778,7 @@ class VIEW3D_PT_bricker_materials(Panel):
             col = layout.column(align=True)
             col.active = len(obj.data.uv_layers) > 0
             row = col.row(align=True)
-            row.prop(cm, "useUVMap", text="UV Map")
+            row.prop(cm, "useUVMap", text="Use UV Map")
             if cm.useUVMap:
                 split = layout_split(row, factor=0.75)
                 split.prop(cm, "uvImage", text="")
@@ -825,8 +814,6 @@ class VIEW3D_PT_bricker_materials(Panel):
             if cm.colorSnap == "ABS":
                 row = col.row(align=True)
                 row.prop(cm, "transparentWeight", text="Transparent Weight")
-                if hasattr(bpy.props, "abs_mats_common"): # checks that ABS plastic mats are at least v2.1
-                    row.active = False if not brick_materials_installed() else scn.include_transparent
 
         if cm.materialType == "RANDOM" or (cm.materialType == "SOURCE" and cm.colorSnap == "ABS"):
             matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
@@ -847,12 +834,12 @@ class VIEW3D_PT_bricker_materials(Panel):
                     col1 = split.column(align=True)
                     col1.operator("bricker.mat_list_action", icon='REMOVE' if b280() else 'ZOOMOUT', text="").action = 'REMOVE'
                     col1.scale_y = 1 + rows
-                    if not brick_materials_loaded():
+                    if not brick_materials_imported():
                         col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
                     else:
                         col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ADD" if b280() else "ZOOMIN")
-                    # import settings
-                    if hasattr(bpy.props, "abs_mats_common"): # checks that ABS plastic mats are at least v2.1
+                    # settings for adding materials
+                    if hasattr(bpy.props, "abs_mats_common"):  # checks that ABS plastic mats are at least v2.1
                         col = layout.column(align=True)
                         row = col.row(align=True)
                         row.prop(scn, "include_transparent")
@@ -966,10 +953,8 @@ class VIEW3D_PT_bricker_detailing(Panel):
         row.label(text="Cylinders:")
         row = col.row(align=True)
         row.prop(cm, "circleVerts")
-        row = col.row(align=True)
-        row.prop(cm, "loopCut")
-        row.active = not (cm.studDetail == "NONE" and cm.exposedUndersideDetail == "FLAT" and cm.hiddenUndersideDetail == "FLAT")
 
+        col = layout.column(align=True)
         row = col.row(align=True)
         split = layout_split(row, factor=0.5)
         col1 = split.column(align=True)
@@ -1108,7 +1093,7 @@ class VIEW3D_PT_bricker_matrix_details(Panel):
 
     @classmethod
     def poll(self, context):
-        if bpy.props.Bricker_developer_mode < 1:
+        if bpy.props.Bricker_developer_mode == 0:
             return False
         if not settingsCanBeDrawn():
             return False

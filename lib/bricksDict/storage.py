@@ -34,7 +34,7 @@ def getBricksDict(cm, dType="MODEL", curFrame=None):
     # if bricksDict can be pulled from cache
     if not matrixReallyIsDirty(cm) and cacheExists(cm) and not (cm.animIsDirty and "ANIM" in dType):
         # try getting bricksDict from light cache, then deep cache
-        bricksDict = bricker_bfm_cache.get(cm.id) or json.loads(cm.BFMCache)
+        bricksDict = bricker_bfm_cache.get(cm.id) or json.loads(decompress_str(cm.BFMCache))
         # if animated, index into that dict
         if "ANIM" in dType:
             adjusted_frame_current = getAnimAdjustedFrame(curFrame, cm.lastStartFrame, cm.lastStopFrame)
@@ -53,7 +53,7 @@ def lightToDeepCache(bricker_bfm_cache):
         if not cm:
             continue
         # save last cache to cm.BFMCache
-        cm.BFMCache = json.dumps(bricker_bfm_cache[cm_id])
+        cm.BFMCache = compress_str(json.dumps(bricker_bfm_cache[cm_id]))
         numPushedIDs += 1
     if numPushedIDs > 0:
         print("[Bricker] pushed {numKeys} {pluralized_dicts} from light cache to deep cache".format(numKeys=numPushedIDs, pluralized_dicts="dict" if numPushedIDs == 1 else "dicts"))
@@ -67,7 +67,7 @@ def deepToLightCache(bricker_bfm_cache):
         if cm.BFMCache == "":
             continue
         try:
-            bricksDict = json.loads(cm.BFMCache)
+            bricksDict = json.loads(decompress_str(cm.BFMCache))
             bricker_bfm_cache[cm.id] = bricksDict
             numPulledIDs += 1
         except Exception as e:

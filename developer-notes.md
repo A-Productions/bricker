@@ -6,11 +6,18 @@
     * Add more brick types
     * Improve brick topology for 3D printing
     * Use shader-based bevel as opposed to geometry-based bevel
-    * improve intelligence of 'getFirstImgTexNodes' function to choose prominent textures
+    * improve intelligence of `getFirstImgTexNodes` function
+        * choose prominent textures
+        * ignore normal/bump textures
+    * improve speed of `getFirstNode` function
+        * store first nodes of materials so it doesn't have to recalculate every time
     * Custom UV unwrapper designed specifically for LEGO bricks
-    * (EASY) add 'show bevel in viewport' toggle
+    * Improve model connectivity
+        * Store each brick parent as a BMVert, with vert.co being the dictLoc
+        * connect each BMVert with an edge if the two bricks are connected
     * (EASY) New animation types (loop, boomerang, etc)
-      * this would be implemented in the `handle_animation` function
+        * this would be implemented in the `handle_animation` function
+    * apply modifier to bricker model group instead of each object (requires Blender 2.81)
 * Fixes
     * when brickified model's parent is rotated, bricks drawn by customizing model are often not rotated correctly
 
@@ -29,4 +36,4 @@
 
 [UI Design](https://wiki.blender.org/wiki/Reference/Release_Notes/2.80/Python_API/UI_DESIGN)
 
-[Update Addons with both Blender 2.8 and 2.7 Supoport | Moo-Ack!](https://theduckcow.com/2019/update-addons-both-blender-28-and-27-support/)
+[Update Addons with both Blender 2.8 and 2.7 Support | Moo-Ack!](https://theduckcow.com/2019/update-addons-both-blender-28-and-27-support/)

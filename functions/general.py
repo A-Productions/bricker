@@ -24,6 +24,7 @@ import bmesh
 
 # Blender imports
 import bpy
+import addon_utils
 from mathutils import Vector, Euler, Matrix
 from bpy.types import Object
 
@@ -118,41 +119,49 @@ def mergableBrickType(typ, up=False):
 
 
 def getTallType(brickD, targetType=None):
-    return targetType if targetType in getBrickTypes(height=3) else (brickD["type"] if brickD["type"] in getBrickTypes(height=3) else "BRICK")
+    tallTypes = getBrickTypes(height=3)
+    return targetType if targetType in tallTypes else (brickD["type"] if brickD["type"] in tallTypes else "BRICK")
 
 
 def getShortType(brickD, targetType=None):
-    return targetType if targetType in getBrickTypes(height=1) else (brickD["type"] if brickD["type"] in getBrickTypes(height=1) else "PLATE")
+    shortTypes = getBrickTypes(height=1)
+    return targetType if targetType in shortTypes else (brickD["type"] if brickD["type"] in shortTypes else "PLATE")
 
 
 def brick_materials_installed():
-    return hasattr(bpy.ops, "abs") and hasattr(bpy.ops.abs, "append_materials")
+    """ checks that 'ABS Plastic Materials' addon is installed and enabled """
+    # return hasattr(bpy.props, "abs_mats_common") or hasattr(bpy.props, "abs_plastic_materials")
+    for mod in addon_utils.modules():
+        if mod.bl_info["name"] == "ABS Plastic Materials":
+            return addon_utils.check(mod.__name__)[1]
+    return False
 
 
-def getABSPlasticMats():
-    """ returns list of abs plastic materials (under different names for different versions) """
-    return bpy.props.abs_mats_common if hasattr(bpy.props, "abs_mats_common") else bpy.props.abs_plastic_materials
-
-
-def getMatNames(all=False):
+def getABSMatNames(all:bool=True):
+    """ returns list of ABS Plastic Material names """
+    if not brick_materials_installed():
+        return []
     scn = bpy.context.scene
-    materials = getABSPlasticMats().copy()
-    if scn.include_transparent or all:
+    materials = list()
+    # get common names (different properties for different versions)
+    materials += bpy.props.abs_mats_common if hasattr(bpy.props, "abs_mats_common") else bpy.props.abs_plastic_materials
+    # get transparent/uncommon names
+    if all or scn.include_transparent:
         materials += bpy.props.abs_mats_transparent
-    if scn.include_uncommon or all:
+    if all or scn.include_uncommon:
         materials += bpy.props.abs_mats_uncommon
     return materials
 
 
-def brick_materials_loaded():
+def brick_materials_imported():
     scn = bpy.context.scene
     # make sure abs_plastic_materials addon is installed
     if not brick_materials_installed():
         return False
     # check if any of the colors haven't been loaded
     mats = bpy.data.materials.keys()
-    for color in getMatNames():
-        if color not in mats:
+    for mat_name in getABSMatNames():
+        if mat_name not in mats:
             return False
     return True
 
@@ -161,7 +170,7 @@ def getMatrixSettings(cm=None):
     cm = cm or getActiveContextInfo()[1]
     # TODO: Maybe remove custom objects from this?
     regularSettings = [round(cm.brickHeight, 6),
-                       round(cm.gap, 6),
+                       round(cm.gap, 4),
                        cm.brickType,
                        cm.distOffset[0],
                        cm.distOffset[1],
@@ -248,13 +257,14 @@ def createdWithNewerVersion(cm):
     return (int(modelVersion[0]) > int(brickerVersion[0])) or (int(modelVersion[0]) == int(brickerVersion[0]) and int(modelVersion[1]) > int(brickerVersion[1]))
 
 
-def getLocsInBrick(bricksDict, size, zStep, key, loc=None):
+# loc is more efficient than key, but one or the other must be passed
+def getLocsInBrick(bricksDict, size, zStep, loc:list=None, key:str=None):
     x0, y0, z0 = loc or getDictLoc(bricksDict, key)
     return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
 
 
+# loc is more efficient than key, but one or the other must be passed
 def getKeysInBrick(bricksDict, size, zStep:int, loc:list=None, key:str=None):
-    assert key is not None or loc is not None
     x0, y0, z0 = loc or getDictLoc(bricksDict, key)
     return [listToStr((x0 + x, y0 + y, z0 + z)) for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
 

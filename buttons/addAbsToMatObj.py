@@ -23,7 +23,6 @@ import bpy
 
 # Addon imports
 from ..functions import *
-from ..lib.abs_plastic_materials import getAbsPlasticMaterialNames
 
 
 class BRICKER_OT_add_abs_to_mat_obj(bpy.types.Operator):
@@ -48,7 +47,7 @@ class BRICKER_OT_add_abs_to_mat_obj(bpy.types.Operator):
             scn, cm, _ = getActiveContextInfo()
             matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
             cm.materialIsDirty = True
-            for mat_name in getMatNames():
+            for mat_name in getABSMatNames(all=False):
                 mat = bpy.data.materials.get(mat_name)
                 if mat is not None and mat_name not in matObj.data.materials:
                     matObj.data.materials.append(mat)

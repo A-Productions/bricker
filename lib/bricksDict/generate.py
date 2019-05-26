@@ -111,11 +111,11 @@ def rayObjIntersections(scn, point, direction, miniDist:Vector, edgeLen, obj, us
     noMoreChecks = False
     outsideL = []
     if b280():
-        depsgraph = bpy.context.depsgraph
+        depsgraph = bpy.context.view_layer.depsgraph
         # try:
         #     depsgraph = obj.users_scene[0].view_layers[0].depsgraph
         # except Exception as e:
-        #     depsgraph = bpy.context.depsgraph
+        #     depsgraph = bpy.context.view_layer.depsgraph
         obj_eval = depsgraph.objects.get(obj.name, None)
     else:
         obj_eval = obj

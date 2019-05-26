@@ -68,12 +68,12 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     animAction = "ANIM" in self.action
                     frame = int(job.split("__")[-1]) if animAction else None
                     objFrameStr = "_f_%(frame)s" % locals() if animAction else ""
-                    self.JobManager.process_job(job, debug_level=0, overwrite_data=True)
+                    self.JobManager.process_job(job, debug_level=self.debug_level, overwrite_data=True)
                     if self.JobManager.job_complete(job):
                         if animAction: self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
                         # cache bricksDict
                         retrieved_data = self.JobManager.get_retrieved_python_data(job)
-                        bricksDict = None if retrieved_data["bricksDict"] in ("", "null") else json.loads(retrieved_data["bricksDict"])
+                        bricksDict = None if retrieved_data["bricksDict"] in ("", "null") else json.loads(decompress_str(retrieved_data["bricksDict"]))
                         cm.brickSizesUsed = retrieved_data["brickSizesUsed"]
                         cm.brickTypesUsed = retrieved_data["brickTypesUsed"]
                         if bricksDict is not None: cacheBricksDict(self.action, cm, bricksDict[str(frame)] if animAction else bricksDict, curFrame=frame)
@@ -255,8 +255,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.JobManager.timeout = cm.backProcTimeout
         self.JobManager.max_workers = cm.maxWorkers
         self.JobManager.max_attempts = 1
+        self.debug_level = 0 if "ANIM" in self.action or bpy.props.Bricker_developer_mode == 0 else 1
         self.completed_frames = []
-        self.brickerAddonPath = dirname(dirname(abspath(__file__)))
+        self.brickerAddonPath = get_addon_directory()
         self.jobs = list()
         self.cm = cm
         # set up model dimensions variables sX, sY, and sZ
@@ -424,15 +425,11 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 parent_clear(sourceDup)
             # send to new mesh
             if not cm.isSmoke:
-                if b280():
-                    # TODO: use view layer with smoke, not just the first view layer
-                    sourceDup.data = self.source.to_mesh(bpy.context.depsgraph, True)
-                else:
-                    sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
+                sourceDup.data = new_mesh_from_object(self.source)
             # apply transformation data
             apply_transform(sourceDup)
             sourceDup.animation_data_clear()
-            scn.update()
+            update_depsgraph()
         else:
             # get previously created source duplicate
             sourceDup = bpy.data.objects.get(n + "__dup__")
@@ -442,7 +439,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # link sourceDup if it isn't in scene
         if sourceDup.name not in scn.objects.keys():
             safeLink(sourceDup)
-            scn.update()
+            update_depsgraph()
 
         # get parent object
         Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
@@ -582,7 +579,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # get source info to update
         if inBackground and scn not in source.users_scene:
             safeLink(source)
-            scn.update()
+            update_depsgraph()
 
         # get source_details and dimensions
         source_details, dimensions = getDetailsAndBounds(source)
@@ -789,6 +786,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if not brick_materials_installed():
                 self.report({"WARNING"}, "ABS Plastic Materials must be installed from Blender Market")
                 return False
+            # ensure ABS Plastic materials is updated to latest version
+            if not hasattr(bpy.props, "abs_mat_properties"):
+                self.report({"WARNING"}, "Requires ABS Plastic Materials v2.1.1 or later – please update via the addon preferences")
+                return False
             # ensure ABS Plastic materials UI list is populated
             matObj = getMatObject(cm.id, typ="ABS")
             if matObj is None:
@@ -799,7 +800,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         if b280() and self.action in ("CREATE", "ANIMATE"):
             # ensure source is on current view layer
-            if bpy.context.depsgraph.objects.get(source.name) is None:
+            if bpy.context.view_layer.depsgraph.objects.get(source.name) is None:
                 self.report({"WARNING"}, "Source object could not be found in current view layer depsgraph")
                 return False
 
@@ -971,11 +972,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             sourceDup.matrix_world = self.source.matrix_world
             sourceDup.animation_data_clear()
             # send to new mesh
-            if not cm.isSmoke:
-                if b280():
-                    sourceDup.data = self.source.to_mesh(bpy.context.depsgraph, True)
-                else:
-                    sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
+            if not cm.isSmoke: sourceDup.data = new_mesh_from_object(self.source)
             # apply transform data
             apply_transform(sourceDup)
             duplicates[curFrame] = sourceDup
@@ -986,7 +983,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # update progress bar
         update_progress("Applying Modifiers", 1)
         scn.frame_set(origFrame)
-        scn.update()
+        update_depsgraph()
         return duplicates
 
     def shouldBrickifyInBackground(self, cm, r):

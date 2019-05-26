@@ -92,6 +92,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     backProcTimeout = FloatProperty(
         name="Timeout",
         description="Max seconds allowed for each frame's model to calculate (0 for infinite; cancels process if time exceeded)",
+        subtype="TIME",
         precision=0, min=0,
         update=updateJobManagerProperties,
         default=0)
@@ -101,29 +102,31 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Brick Height",
         description="Height of the bricks in the final Brick Model",
         update=dirtyMatrix,
+        subtype="DISTANCE",
         step=1,
         precision=3,
-        min=0.001, max=10,
+        soft_min=0.001, soft_max=10,
         default=0.1)
     gap = FloatProperty(
         name="Gap Between Bricks",
         description="Distance between bricks",
         update=dirtyMatrix,
+        subtype="PERCENTAGE",
         step=1,
-        precision=3,
-        min=0, max=1,
-        default=0.005)
+        precision=1,
+        min=0.0, max=100.0,
+        default=0.5)
     mergeSeed = IntProperty(
         name="Random Seed",
         description="Random seed for brick merging calculations",
         update=dirtyBuild,
-        min=-1, max=5000,
+        min=0,
         default=1000)
     connectThresh = IntProperty(
         name="Connectivity",
         description="Quality of the model's brick connectivity (higher numbers are slower but bricks will be more interconnected)",
         update=dirtyBuild,
-        min=1, max=100,
+        min=1, soft_max=100,
         default=1)
     smokeDensity = FloatProperty(
         name="Smoke Density",
@@ -135,19 +138,19 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Smoke Quality",
         description="Amount of data to analyze for density and color of brickified smoke",
         update=dirtyMatrix,
-        min=1, max=100,
+        min=1, soft_max=100,
         default=1)
     smokeBrightness = FloatProperty(
         name="Smoke Brightness",
         description="Add brightness to smoke colors read from smoke data",
         update=dirtyMatrix,
-        min=-4, max=100,
+        soft_min=0, soft_max=100,
         default=1)
     smokeSaturation = FloatProperty(
         name="Smoke Saturation",
         description="Change saturation level of smoke colors read from smoke data",
         update=dirtyMatrix,
-        min=0, max=100,
+        min=0, soft_max=100,
         default=1)
     flameColor = FloatVectorProperty(
         name="Hex Value",
@@ -158,7 +161,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Flame Intensity",
         description="Intensity of the flames",
         update=dirtyMatrix,
-        min=1, max=50,
+        min=1, soft_max=50,
         default=4)
     splitModel = BoolProperty(
         name="Split Model",
@@ -171,7 +174,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirtyModel,
         step=1,
         precision=3,
-        min=0, max=1,
+        min=0, soft_max=1,
         default=0.01)
     randomRot = FloatProperty(
         name="Random Rotation",
@@ -179,7 +182,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirtyModel,
         step=1,
         precision=3,
-        min=0, max=1,
+        min=0, soft_max=1,
         default=0.025)
     brickShell = EnumProperty(
         name="Brick Shell",
@@ -241,14 +244,14 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="Maximum brick width in studs",
         update=dirtyBuild,
         step=1,
-        min=1, max=1000,
+        min=1, soft_max=100,
         default=2)
     maxDepth = IntProperty(
         name="Max Depth",
         description="Maximum brick depth in studs",
         update=dirtyBuild,
         step=1,
-        min=1, max=1000,
+        min=1, soft_max=100,
         default=10)
     mergeType = EnumProperty(
         name="Merge Type",
@@ -284,7 +287,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         step=1,
         precision=3,
         subtype="TRANSLATION",
-        min=0.001, max=2,
+        min=0.001, soft_max=2.0,
         default=(1, 1, 1))
 
     # CUSTOMIZE SETTINGS
@@ -335,7 +338,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     randomMatSeed = IntProperty(
         name="Random Seed",
         description="Random seed for material assignment",
-        min=-1, max=5000,
+        min=0,
         default=1000)
     useUVMap = BoolProperty(
         name="Use UV Map",
@@ -358,6 +361,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     colorSnapAmount = FloatProperty(
         name="Color Snap Amount",
         description="Threshold for combining colors together (higher numbers for fewer unique materials generated)",
+        subtype="FACTOR",
         precision=3,
         min=0.00001, max=1.0,
         default=0.001,
@@ -365,43 +369,48 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     colorSnapSpecular = FloatProperty(
         name="Specular",
         description="Specular value for the created materials",
+        subtype="FACTOR",
         precision=3,
-        min=0.0, max=1.0,
+        min=0.0, soft_max=1.0,
         default=0.5,
         update=dirtyMaterial)
     colorSnapRoughness = FloatProperty(
         name="Roughness",
         description="Roughness value for the created materials",
+        subtype="FACTOR",
         precision=3,
-        min=0.0, max=1.0,
+        min=0.0, soft_max=1.0,
         default=0.5,
         update=dirtyMaterial)
     colorSnapSubsurface = FloatProperty(
         name="Subsurface Sattering",
         description="Subsurface scattering value for the created materials",
+        subtype="FACTOR",
         precision=3,
-        min=0.0, max=1.0,
+        min=0.0, soft_max=1.0,
         default=0.0,
         update=dirtyMaterial)
     colorSnapSubsurfaceSaturation = FloatProperty(
         name="SSS Saturation",
         description="Saturation of the subsurface scattering for the created materials (relative to base color value)",
+        subtype="FACTOR",
         precision=3,
-        min=0.0, max=10.0,
+        min=0.0, soft_max=1.0,
         default=1.0,
         update=dirtyMaterial)
     colorSnapIOR = FloatProperty(
         name="IOR",
         description="IOR value for the created materials",
         precision=3,
-        min=0.0, max=1000.0,
+        min=0.0, soft_max=1000.0,
         default=1.45,
         update=dirtyMaterial)
     colorSnapTransmission = FloatProperty(
         name="Transmission",
         description="Transmission value for the created materials",
+        subtype="FACTOR",
         precision=3,
-        min=0.0, max=1.0,
+        min=0.0, soft_max=1.0,
         default=0.0,
         update=dirtyMaterial)
     includeTransparency = BoolProperty(
@@ -412,8 +421,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     transparentWeight = FloatProperty(
         name="Transparency Weight",
         description="How much affect the original material's alpha value has on chosen ABS color",
-        precision=3,
-        min=0, max=2,
+        precision=1,
+        min=0, soft_max=2,
         default=1,
         update=dirtyMaterial)
     targetMaterial = StringProperty(
@@ -443,13 +452,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Resolution",
         description="Resolution of the brick logo",
         update=dirtyBricks,
-        min=1, max=10,
-        default=1)
-    logoResolution = IntProperty(
-        name="Resolution",
-        description="Resolution of the brick logo",
-        update=dirtyBricks,
-        min=1, max=10,
+        min=1, soft_max=10,
         default=2)
     logoDecimate = FloatProperty(
         name="Decimate",
@@ -466,19 +469,21 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     logoScale = FloatProperty(
         name="Logo Scale",
         description="Logo scale relative to stud scale",
+        subtype="PERCENTAGE",
         step=1,
         update=dirtyBricks,
-        precision=2,
-        min=0.000001, max=2,
-        default=0.78)
+        precision=1,
+        min=0.0001, soft_max=100.0,
+        default=78.0)
     logoInset = FloatProperty(
         name="Logo Inset",
-        description="How far to inset logo to stud (0: none, 1: fully inset)",
+        description="How far to inset logo to stud",
+        subtype="PERCENTAGE",
         step=1,
         update=dirtyBricks,
-        precision=2,
-        min=0.0, max=1.0,
-        default=0.5)
+        precision=1,
+        soft_min=0.0, soft_max=100.0,
+        default=50.0)
     hiddenUndersideDetail = EnumProperty(
         name="Underside Detailing of Obstructed Bricks",
         description="Level of detail on underside of bricks with obstructed undersides",
@@ -501,13 +506,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Num Verts",
         description="Number of vertices in each circle in brick mesh",
         update=updateCircleVerts,
-        min=4, max=64,
+        min=4, soft_max=64,
         default=16)
-    loopCut = BoolProperty(
-        name="Loop Cut Cylinders",
-        description="Make loop cut on cylinders so that bevel operation can bevel base of studs",
-        update=dirtyBricks,
-        default=False)
     # BEVEL SETTINGS
     bevelAdded = BoolProperty(
         name="Bevel Bricks",
@@ -515,38 +515,40 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default=False)
     bevelShowRender = BoolProperty(
         name="Render",
-        description="Use modifier during render.",
+        description="Use modifier during render",
         default=True,
         update=updateBevelRender)
     bevelShowViewport = BoolProperty(
         name="Realtime",
-        description="Display modifier in viewport.",
+        description="Display modifier in viewport",
         default=True,
         update=updateBevelViewport)
     bevelShowEditmode = BoolProperty(
         name="Edit Mode",
-        description="Display modifier in Edit mode.",
+        description="Display modifier in Edit mode",
         default=True,
         update=updateBevelEditMode)
     bevelWidth = FloatProperty(
         name="Bevel Width",
         description="Bevel amount (relative to Brick Height)",
+        subtype="DISTANCE",
         step=1,
-        min=0.000001, max=10,
+        min=0.0, soft_max=10,
         default=0.01,
         update=updateBevel)
     bevelSegments = IntProperty(
         name="Bevel Resolution",
         description="Number of segments for round edges/verts",
         step=1,
-        min=1, max=10,
+        min=1, max=100,
         default=1,
         update=updateBevel)
     bevelProfile = FloatProperty(
         name="Bevel Profile",
         description="The profile shape (0.5 = round)",
+        subtype="FACTOR",
         step=1,
-        min=0, max=1,
+        min=0.0, max=1.0,
         default=0.7,
         update=updateBevel)
 
@@ -564,14 +566,14 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="Distance between cross-beams",
         update=dirtyInternal,
         step=1,
-        min=2, max=25,
+        min=2, soft_max=100,
         default=4)
     latticeHeight = IntProperty(
         name="Height",
         description="Height of the cross-beams",
         update=dirtyInternal,
         step=1,
-        min=1, max=3,
+        min=1, soft_max=100,
         default=1)
     alternateXY = BoolProperty(
         name="Alternate X and Y",
@@ -582,14 +584,14 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Thickness",
         description="Thickness of the columns",
         update=dirtyInternal,
-        min=1, max=25,
+        min=1, soft_max=100,
         default=2)
     colStep = IntProperty(
         name="Step",
         description="Distance between columns",
         update=dirtyInternal,
         step=1,
-        min=1, max=25,
+        min=1, soft_max=100,
         default=2)
 
     # ADVANCED SETTINGS
@@ -624,7 +626,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default=False)
     instanceBricks = BoolProperty(
         name="Instance Brick Data",
-        description="Use Instanced brick mesh data for split models to save on memory and render times",
+        description="Use instanced brick mesh data when Split Model is enabled to save on memory and render times",
         update=dirtyBuild,
         default=True)
     # EXPORT SETTINGS

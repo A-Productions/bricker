@@ -30,8 +30,7 @@ from .generator_utils import *
 from ....functions import *
 
 
-def makeInvertedSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bool, direction:str=None, circleVerts:int=None, detail:str="LOW", stud:bool=True, bme:bmesh=None):
-    # TODO: Add support for loopCut
+def makeInvertedSlope(dimensions:dict, brickSize:list, brickType:str, direction:str=None, circleVerts:int=None, detail:str="LOW", stud:bool=True, bme:bmesh=None):
     """
     create slope brick with bmesh
 
@@ -41,7 +40,6 @@ def makeInvertedSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bo
         dimensions  -- dictionary containing brick dimensions
         brickSize   -- size of brick (e.g. 2x3 slope -> [2, 3, 3])
         brickType   -- cm.brickType
-        loopCut     -- loop cut cylinders so bevels can be cleaner
         direction   -- direction slant faces in ("X+", "X-", "Y+", "Y-")
         circleVerts -- number of vertices per circle of cylinders
         detail      -- level of brick detail (options: ("FLAT", "LOW", "MEDIUM", "HIGH"))
@@ -115,11 +113,11 @@ def makeInvertedSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bo
             bme.faces.new((v18, v17, v5, v12))
             bme.faces.new((v19, v18, v12, v11))
             bme.faces.new((v20, v19, v11, v8))
-            addSlopeStuds(dimensions, height, adjustedBrickSize, brickType, circleVerts, bme, edgeXp=[v14, v13], edgeXn=[v16, v15], edgeYp=[v13, v16], edgeYn=[v15, v14], loopCut=loopCut)
+            addSlopeStuds(dimensions, height, adjustedBrickSize, brickType, circleVerts, bme, edgeXp=[v14, v13], edgeXn=[v16, v15], edgeYp=[v13, v16], edgeYn=[v15, v14])
         else:
             v17, v20 = v6, v7
 
-        addStuds(dimensions, height, [1, adjustedBrickSize[1], adjustedBrickSize[2]], brickType, circleVerts, bme, edgeXp=[v20, v17], edgeXn=[v8, v5], edgeYp=[v20, v8], edgeYn=[v17, v5], hollow=False, loopCut=loopCut)
+        addStuds(dimensions, height, [1, adjustedBrickSize[1], adjustedBrickSize[2]], brickType, circleVerts, bme, edgeXp=[v20, v17], edgeXn=[v8, v5], edgeYp=[v20, v8], edgeYn=[v17, v5], hollow=False)
         pass
 
     # add details underneath
@@ -144,17 +142,16 @@ def makeInvertedSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bo
 
         # add supports
         if detail in ("MEDIUM", "HIGH") and min(adjustedBrickSize[:2]) == 2:
-            addOblongSupport(dimensions, height, loopCut, circleVerts, "SLOPE_INVERTED", detail, d, scalar, thick, bme) # [v27] + bottomVerts + [v26], [v28, v25], [v27, v28], [v26, v25], bme)
+            addOblongSupport(dimensions, height, circleVerts, "SLOPE_INVERTED", detail, d, scalar, thick, bme) # [v27] + bottomVerts + [v26], [v28, v25], [v27, v28], [v26, v25], bme)
 
         # add small inner cylinders inside brick
         if detail in ("MEDIUM", "HIGH"):
-            addInnerCylinders(dimensions, [1, min(adjustedBrickSize[:2]), adjustedBrickSize[2]], circleVerts, d, [v27] + bottomVerts + [v26], [v28, v25], [v27, v28], [v26, v25], bme, loopCut=loopCut)
+            addInnerCylinders(dimensions, [1, min(adjustedBrickSize[:2]), adjustedBrickSize[2]], circleVerts, d, [v27] + bottomVerts + [v26], [v28, v25], [v27, v28], [v26, v25], bme)
 
         # add half-cylinder insets on slope underside
         if detail in ("MEDIUM", "HIGH") and max(adjustedBrickSize[:2]) == 3:
             # TODO: Rewrite this as dedicated function
-            # TODO: Add loopCut functionality for half-cylinder insets
-            addSlopeStuds(dimensions, height, [2, min(adjustedBrickSize[:2]), adjustedBrickSize[2]], brickType, circleVerts, bme, edgeXp=[v3, v4], edgeXn=[v9, v10], edgeYp=[v4, v9], edgeYn=[v10, v3], underside=True, loopCut=loopCut)
+            addSlopeStuds(dimensions, height, [2, min(adjustedBrickSize[:2]), adjustedBrickSize[2]], brickType, circleVerts, bme, edgeXp=[v3, v4], edgeXn=[v9, v10], edgeYp=[v4, v9], edgeYn=[v10, v3], underside=True)
 
     # translate slope to adjust for flipped brick
     for v in bme.verts:

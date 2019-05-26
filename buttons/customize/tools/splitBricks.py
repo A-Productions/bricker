@@ -109,12 +109,12 @@ class BRICKER_OT_split_bricks(Operator):
 
     # properties
     vertical = bpy.props.BoolProperty(
-        name="Vertical",
-        description="Split brick(s) horizontally",
+        name="Vertical (plates)",
+        description="Split bricks into plates",
         default=False)
     horizontal = bpy.props.BoolProperty(
         name="Horizontal",
-        description="Split brick(s) vertically",
+        description="Split bricks into smaller bricks with minimum width and depth",
         default=False)
 
     #############################################
@@ -135,7 +135,7 @@ class BRICKER_OT_split_bricks(Operator):
                 cm = getItemByID(scn.cmlist, cm_id)
                 self.undo_stack.iterateStates(cm)
                 bricksDict = json.loads(self.cached_bfm[cm_id]) if deepCopyMatrix else self.bricksDicts[cm_id]
-                keysToUpdate = []
+                keysToUpdate = set()
                 cm.customized = True
 
                 # iterate through names of selected objects
@@ -156,12 +156,12 @@ class BRICKER_OT_split_bricks(Operator):
                         # split the bricks in the matrix and set size of active brick's bricksDict entries to 1x1x[lastZSize]
                         splitKeys = Bricks.split(bricksDict, dictKey, cm.zStep, cm.brickType, loc=dictLoc, v=self.vertical, h=self.horizontal)
                         # append new splitKeys to keysToUpdate
-                        keysToUpdate += splitKeys
+                        keysToUpdate |= set(splitKeys)
                     else:
-                        keysToUpdate.append(dictKey)
+                        keysToUpdate.add(dictKey)
 
                 # draw modified bricks
-                drawUpdatedBricks(cm, bricksDict, uniquify1(keysToUpdate))
+                drawUpdatedBricks(cm, bricksDict, list(keysToUpdate))
 
                 # add selected objects to objects to select at the end
                 objsToSelect += bpy.context.selected_objects

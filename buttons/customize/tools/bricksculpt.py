@@ -110,7 +110,7 @@ class BRICKER_OT_bricksculpt(Operator, bricksculpt_framework, bricksculpt_tools,
         # initialize vars
         self.addedBricks = []
         self.addedBricksFromDelete = []
-        self.parentKeysToMergeOnRelease = []
+        self.parentLocsToMergeOnRelease = []
         self.keysToMergeOnRelease = []
         self.allUpdatedKeys = []
         self.dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)

@@ -158,7 +158,7 @@ class BRICKER_OT_change_brick_type(Operator):
             self.undo_stack.iterateStates(cm)
             # initialize vars
             bricksDict = deepcopy(self.bricksDicts[cm_id])
-            keysToUpdate = []
+            keysToUpdate = set()
             updateHasCustomObjs(cm, targetBrickType)
             cm.customized = True
             brickType = cm.brickType
@@ -176,10 +176,10 @@ class BRICKER_OT_change_brick_type(Operator):
                 typ = bricksDict[dictKey]["type"]
 
                 # skip bricks that are already of type self.brickType
-                if (typ == targetBrickType and
-                    (not typ.startswith("SLOPE") or
-                     bricksDict[dictKey]["flipped"] == self.flipBrick and
-                     bricksDict[dictKey]["rotated"] == self.rotateBrick)):
+                if (typ == targetBrickType
+                    and (not typ.startswith("SLOPE")
+                         or (bricksDict[dictKey]["flipped"] == self.flipBrick
+                             and bricksDict[dictKey]["rotated"] == self.rotateBrick))):
                     continue
                 # skip bricks that can't be turned into the chosen brick type
                 if size[:2] not in legalBrickSizes[3 if targetBrickType in getBrickTypes(height=3) else 1][targetBrickType]:
@@ -211,15 +211,14 @@ class BRICKER_OT_change_brick_type(Operator):
                 bAndPBrick = flatBrickType(brickType) and size[2] == 3
 
                 # verify exposure above and below
-                brickLocs = getLocsInBrick(bricksDict, size, cm.zStep, dictKey, dictLoc)
+                brickLocs = getLocsInBrick(bricksDict, size, cm.zStep, dictLoc)
                 for curLoc in brickLocs:
                     bricksDict = verifyBrickExposureAboveAndBelow(scn, cm.zStep, curLoc, bricksDict, decriment=3 if bAndPBrick else 1)
                     # add bricks to keysToUpdate
-                    keysToUpdate += [getParentKey(bricksDict, listToStr((x0 + x, y0 + y, z0 + z))) for z in (-1, 0, 3 if bAndPBrick else 1) for y in range(size[1]) for x in range(size[0])]
+                    keysToUpdate |= set([getParentKey(bricksDict, listToStr((x0 + x, y0 + y, z0 + z))) for z in (-1, 0, 3 if bAndPBrick else 1) for y in range(size[1]) for x in range(size[0])])
                 objNamesToSelect += [bricksDict[listToStr(loc)]["name"] for loc in brickLocs]
 
-            # uniquify keysToUpdate and remove null keys
-            keysToUpdate = uniquify1(keysToUpdate)
+            # remove null keys
             keysToUpdate = [x for x in keysToUpdate if x != None]
             # if something was updated, set bricksWereGenerated
             bricksWereGenerated = bricksWereGenerated or len(keysToUpdate) > 0

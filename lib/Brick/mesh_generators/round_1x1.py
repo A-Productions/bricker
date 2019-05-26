@@ -30,14 +30,13 @@ from .generator_utils import *
 from ....functions import *
 
 
-def makeRound1x1(dimensions:dict, brickType:str, loopCut:bool, circleVerts:int=None, type:str="CYLINDER", detail:str="LOW", bme:bmesh=None):
+def makeRound1x1(dimensions:dict, brickType:str, circleVerts:int=None, type:str="CYLINDER", detail:str="LOW", bme:bmesh=None):
     """
     create round 1x1 brick with bmesh
 
     Keyword Arguments:
         dimensions  -- dictionary containing brick dimensions
         brickType   -- cm.brickType
-        loopCut     -- loop cut cylinders so bevels can be cleaner
         circleVerts -- number of vertices per circle of cylinders
         type        -- type of round 1x1 brick in ("CONE", "CYLINDER", "STUD", "STUD_HOLLOW")
         detail      -- level of brick detail (options: ("FLAT", "LOW", "MEDIUM", "HIGH"))
@@ -68,20 +67,13 @@ def makeRound1x1(dimensions:dict, brickType:str, loopCut:bool, circleVerts:int=N
     r = dimensions["width"] / 2
     h = height - dimensions["stud_height"]
     z = dimensions["stud_height"] / 2
-    bme, vertsOuterCylinder = makeCylinder(r, h, circleVerts, co=Vector((0, 0, z)), botFace=False, topFace=False, loopCut=loopCut, bme=bme)
+    bme, vertsOuterCylinder = makeCylinder(r, h, circleVerts, co=Vector((0, 0, z)), botFace=False, topFace=False, bme=bme)
     # update upper cylinder verts for cone shape
     if type == "CONE":
         new_radius = dimensions["stud_radius"] * 1.075
         factor = new_radius / (dimensions["width"] / 2)
         for vert in vertsOuterCylinder["top"]:
             vert.co.xy = vec_mult(vert.co.xy, [factor]*2)
-        if loopCut:
-            new_radius0 = new_radius * (dimensions["width"] / (new_radius * 4) + 0.5)
-            factor0 = new_radius0 / (dimensions["width"] / 2)
-            for vert in vertsOuterCylinder["mid"]:
-                vert.co.xy = vec_mult(vert.co.xy, [factor0]*2)
-    # select verts for exclusion from vert group
-    selectVerts(vertsOuterCylinder["mid" if loopCut else "bottom"])
 
     # create lower cylinder
     r = dimensions["stud_radius"]
@@ -89,21 +81,17 @@ def makeRound1x1(dimensions:dict, brickType:str, loopCut:bool, circleVerts:int=N
     t = (dimensions["width"] / 2 - r) / 2
     z = - (height / 2) + (dimensions["stud_height"] / 2)
     if detail == "FLAT":
-        bme, lowerCylinderVerts = makeCylinder(r + t, h, circleVerts, co=Vector((0, 0, z)), topFace=False, loopCut=loopCut, bme=bme)
-        # select verts for exclusion from vert group
-        selectVerts(lowerCylinderVerts["mid" if loopCut else "top"])
+        bme, lowerCylinderVerts = makeCylinder(r + t, h, circleVerts, co=Vector((0, 0, z)), topFace=False, bme=bme)
     else:
-        bme, lowerTubeVerts = makeTube(r, h, t, circleVerts, co=Vector((0, 0, z)), topFace=False, loopCut=loopCut, bme=bme)
+        bme, lowerTubeVerts = makeTube(r, h, t, circleVerts, co=Vector((0, 0, z)), topFace=False, bme=bme)
         # remove unnecessary upper inner verts from tube
         for vert in lowerTubeVerts["inner"]["top"]:
             bme.verts.remove(vert)
         lowerTubeVerts["inner"]["top"] = []
-        # select verts for exclusion from vert group
-        selectVerts(lowerTubeVerts["outer"]["mid" if loopCut else "top"] + lowerTubeVerts["inner"]["mid" if loopCut else "top"])
 
     # add stud
-    # studVerts = addStuds(dimensions, height, [1, 1, 1], type, circleVerts, bme, hollow=detail in ("MEDIUM", "HIGH"), loopCut=False)
-    studVerts = addStuds(dimensions, height, [1, 1, 1], type, circleVerts, bme, hollow=detail in ("MEDIUM", "HIGH"), botFace=not loopCut, loopCut=loopCut)
+    # studVerts = addStuds(dimensions, height, [1, 1, 1], type, circleVerts, bme, hollow=detail in ("MEDIUM", "HIGH"))
+    studVerts = addStuds(dimensions, height, [1, 1, 1], type, circleVerts, bme, hollow=detail in ("MEDIUM", "HIGH"), botFace=True)
 
     # make pointers to appropriate vertex lists
     studVertsOuter = studVerts if detail in ("FLAT", "LOW") else studVerts["outer"]
@@ -111,16 +99,17 @@ def makeRound1x1(dimensions:dict, brickType:str, loopCut:bool, circleVerts:int=N
     lowerTubeVertsOuter = lowerCylinderVerts if detail == "FLAT" else lowerTubeVerts["outer"]
 
     # create faces connecting bottom of stud to top of outer cylinder
-    connectCircles(vertsOuterCylinder["top"], studVertsOuter["bottom"][::-1], bme)
+    connectCircles(vertsOuterCylinder["top"], studVertsOuter["bottom"][::-1], bme, select=False)
 
     # create faces connecting bottom of outer cylinder with top of lower tube
-    connectCircles(lowerTubeVertsOuter["top"], vertsOuterCylinder["bottom"][::-1], bme)
+    connectCircles(lowerTubeVertsOuter["top"], vertsOuterCylinder["bottom"][::-1], bme, select=False)
 
     # add detailing inside brick
     if detail != "FLAT":
         # create faces for cylinder inside brick
-        botOutStudVerts = [bme.verts.new(v.co) for v in studVertsOuter["bottom"]] if loopCut else studVertsOuter["bottom"]
-        _,faces = connectCircles(lowerTubeVerts["inner"]["mid" if loopCut else "bottom"][::-1 if loopCut else 1], botOutStudVerts, bme)
+        _,faces = connectCircles(lowerTubeVerts["inner"]["bottom"], studVertsOuter["bottom"], bme)
+        for f in faces:
+            f.edges[1].select = True
         smoothBMFaces(faces)
         # create small inner cylinder inside stud for medium/high detail
         if type == "STUD" and origDetail in ("MEDIUM", "HIGH"):
@@ -130,13 +119,9 @@ def makeRound1x1(dimensions:dict, brickType:str, loopCut:bool, circleVerts:int=N
             z = thick.z + h / 2
             bme, innerCylinderVerts = makeCylinder(r, h, circleVerts, co=Vector((0, 0, z)), botFace=False, flipNormals=True, bme=bme)
             # create faces connecting bottom of inner cylinder with bottom of stud
-            botInStudVerts = [bme.verts.new(v.co) for v in studVertsInner["bottom"]] if loopCut else studVertsInner["bottom"]
-            connectCircles(botInStudVerts, innerCylinderVerts["bottom"], bme, offset=circleVerts // 2)
+            connectCircles(studVertsInner["bottom"], innerCylinderVerts["bottom"], bme, offset=circleVerts // 2)
         # create face at top of cylinder inside brick
         elif detail == "LOW":
-            bme.faces.new(botOutStudVerts)
-        # connect bottom of inner hollow stud
-        elif loopCut:
-            connectCircles(botOutStudVerts, studVertsInner["bottom"], bme)
+            bme.faces.new(studVertsOuter["bottom"])
 
     return bme

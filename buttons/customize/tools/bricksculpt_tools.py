@@ -119,15 +119,15 @@ class bricksculpt_tools:
     def mergeBrick(self, cm, source_name, curKey=None, curLoc=None, objSize=None, mode="DRAW", state="DRAG"):
         if state == "DRAG":
             # TODO: Light up bricks as they are selected to be merged
-            self.parentKeysToMergeOnRelease.append(curKey)
+            self.parentLocsToMergeOnRelease.append(curLoc)
             self.addedBricks.append(self.bricksDict[curKey]["name"])
             select(self.obj)
         elif state == "RELEASE":
             # assemble keysToMergeOnRelease
-            for pk in self.parentKeysToMergeOnRelease:
-                brickKeys = getKeysInBrick(self.bricksDict, self.bricksDict[pk]["size"], cm.zStep, key=pk)
+            for pl in self.parentLocsToMergeOnRelease:
+                brickKeys = getKeysInBrick(self.bricksDict, self.bricksDict[pk]["size"], cm.zStep, loc=pl)
                 self.keysToMergeOnRelease += brickKeys
-            self.parentKeysToMergeOnRelease = []
+            self.parentLocsToMergeOnRelease = []
             self.keysToMergeOnRelease = uniquify(self.keysToMergeOnRelease)
             # merge those keys
             if len(self.keysToMergeOnRelease) > 1:

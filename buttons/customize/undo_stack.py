@@ -70,12 +70,12 @@ class UndoStack():
         """ iterate undo states """
         scn = bpy.context.scene
         global python_undo_state
-        bpy.props.bricker_undoUpdating = True
+        bpy.props.bricker_updating_undo_state = True
         if cm.id not in python_undo_state:
             python_undo_state[cm.id] = 0
         python_undo_state[cm.id] += 1
         cm.blender_undo_state += 1
-        bpy.props.bricker_undoUpdating = False
+        bpy.props.bricker_updating_undo_state = False
 
     def matchPythonToBlenderState(self):
         scn = bpy.context.scene
@@ -84,7 +84,7 @@ class UndoStack():
 
     def getLength(self): return len(self.undo)
 
-    def isUpdating(self): return bpy.props.bricker_undoUpdating
+    def isUpdating(self): return bpy.props.bricker_updating_undo_state
 
     def _create_state(self, action, bfm_cache):
         return {
@@ -97,10 +97,12 @@ class UndoStack():
         for key in state['bfm_cache'].keys():
             bricker_bfm_cache[key] = json.loads(state['bfm_cache'][key])
 
-    def appendState(self, action, stack, stackType, affected_ids="ALL"):
-        new_bfm_cache = {}
-        bfm_cached = stack[-1]["bfm_cache"] if len(stack) > 0 else {}
+    def appendState(self, action, stackType, affected_ids="ALL"):
         global bricker_bfm_cache
+        stack = getattr(self, stackType)
+        bfm_cached = stack[-1]["bfm_cache"] if len(stack) > 0 else {}
+        # perform append state in active Blender session
+        new_bfm_cache = {}
         for cm_id in bricker_bfm_cache:
             if affected_ids != "ALL" and cm_id not in affected_ids and cm_id in bfm_cached:
                 new_bfm_cache[cm_id] = bfm_cached[cm_id]
@@ -116,7 +118,7 @@ class UndoStack():
         # skip pushing to undo if bricker not initialized
         if not bpy.props.bricker_initialized:
             return
-        new_bfm_cache = self.appendState(action, self.undo, 'undo', affected_ids=affected_ids)
+        new_bfm_cache = self.appendState(action, 'undo', affected_ids=affected_ids)
         while len(self.undo) > self.undo_depth:
             self.undo.pop(0)  # limit stack size
         self.redo.clear()
@@ -126,7 +128,7 @@ class UndoStack():
     def undo_pop(self):
         if not self.undo:
             return
-        self.appendState('undo', self.redo, 'redo')
+        self.appendState('undo', 'redo')
         self._restore_state(self.undo.pop())
         self.instrument_write('undo')
         # iterate undo states
@@ -146,7 +148,7 @@ class UndoStack():
     def redo_pop(self):
         if not self.redo:
             return
-        self.appendState('redo', self.undo, 'undo')
+        self.appendState('redo', 'undo')
         self._restore_state(self.redo.pop())
         self.instrument_write('redo')
         # iterate undo states

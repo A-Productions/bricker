@@ -56,7 +56,7 @@ class BRICKER_OT_export_model_data(Operator):
             modelInfoStrings = ["# Model Name:  " + cm.name,
                                 "# Bricker Version:  " + cm.version,
                                 "# Brick Height:  " + str(round(cm.brickHeight, 3)),
-                                "# Gap Between Bricks:  " + str(round(cm.gap, 3)) + "\n",
+                                "# Gap Between Bricks:  " + str(round(cm.gap, 1)) + "%\n",
                                 "# Number of %(bType)s:  %(numBs)s" % locals(),
                                 ""]
             # get bricksDict and separate into strings

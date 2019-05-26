@@ -52,7 +52,8 @@ class BRICKER_OT_brickify_in_background(bpy.types.Operator):
         else:
             BRICKER_OT_brickify.brickifyActiveFrame(self.action)
         # save last cache to cm.BFMCache
-        cm.BFMCache = json.dumps(bricker_bfm_cache[cm.id])
+        bfm_cache_str = json.dumps(bricker_bfm_cache[cm.id])
+        cm.BFMCache = compress_str(bfm_cache_str)
         return {"FINISHED"}
 
     ################################################
