@@ -111,10 +111,11 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Gap Between Bricks",
         description="Distance between bricks",
         update=dirtyMatrix,
+        subtype="PERCENTAGE",
         step=1,
-        precision=3,
-        min=0, max=1,
-        default=0.005)
+        precision=1,
+        min=0.0, max=100.0,
+        default=0.5)
     mergeSeed = IntProperty(
         name="Random Seed",
         description="Random seed for brick merging calculations",
@@ -468,19 +469,21 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     logoScale = FloatProperty(
         name="Logo Scale",
         description="Logo scale relative to stud scale",
+        subtype="PERCENTAGE",
         step=1,
         update=dirtyBricks,
-        precision=2,
-        min=0.000001, soft_max=1.0,
-        default=0.78)
+        precision=1,
+        min=0.0001, soft_max=100.0,
+        default=78.0)
     logoInset = FloatProperty(
         name="Logo Inset",
-        description="How far to inset logo to stud (0: none, 1: fully inset)",
+        description="How far to inset logo to stud",
+        subtype="PERCENTAGE",
         step=1,
         update=dirtyBricks,
-        precision=2,
-        soft_min=0.0, soft_max=1.0,
-        default=0.5)
+        precision=1,
+        soft_min=0.0, soft_max=100.0,
+        default=50.0)
     hiddenUndersideDetail = EnumProperty(
         name="Underside Detailing of Obstructed Bricks",
         description="Level of detail on underside of bricks with obstructed undersides",

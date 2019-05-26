@@ -170,7 +170,7 @@ def getMatrixSettings(cm=None):
     cm = cm or getActiveContextInfo()[1]
     # TODO: Maybe remove custom objects from this?
     regularSettings = [round(cm.brickHeight, 6),
-                       round(cm.gap, 6),
+                       round(cm.gap, 4),
                        cm.brickType,
                        cm.distOffset[0],
                        cm.distOffset[1],

@@ -32,7 +32,7 @@ from ...functions import *
 
 class Bricks:
     @staticmethod
-    def new_mesh(dimensions:list, brickType:str, size:list=[1,1,3], type:str="BRICK", flip:bool=False, rotate90:bool=False, logo=False, logoType="NONE", logoScale=1, logoInset=None, all_vars=False, logo_details=None, undersideDetail:str="FLAT", stud:bool=True, circleVerts:int=16):
+    def new_mesh(dimensions:list, brickType:str, size:list=[1,1,3], type:str="BRICK", flip:bool=False, rotate90:bool=False, logo=False, logoType="NONE", logoScale=100, logoInset=None, all_vars=False, logo_details=None, undersideDetail:str="FLAT", stud:bool=True, circleVerts:int=16):
         """ create unlinked Brick at origin """
         # create brick mesh
         if type in ("BRICK", "PLATE") or "CUSTOM" in type:
@@ -161,9 +161,9 @@ def makeLogoVariations(dimensions, size, brickType, direction, all_vars, logo, l
     bms = [bmesh.new() for zRot in zRots]
     # get loc offsets
     zOffset = dimensions["logo_offset"] + (dimensions["height"] if flatBrickType(brickType) and size[2] == 3 else 0)
-    lw = dimensions["logo_width"] * (0.78 if logoType == "LEGO" else logoScale)
+    lw = dimensions["logo_width"] * (0.78 if logoType == "LEGO" else (logoScale / 100))
     distMax = max(logo_details.dist.xy)
-    zOffset += ((logo_details.dist.z * (lw / distMax)) / 2) * (1 - logoInset * 2)
+    zOffset += ((logo_details.dist.z * (lw / distMax)) / 2) * (1 - logoInset / 50)
     xyOffset = dimensions["width"] + dimensions["gap"]
     # cap x/y ranges so logos aren't created over slopes
     xR0 = size[0] - 1 if direction == "X-" else 0
