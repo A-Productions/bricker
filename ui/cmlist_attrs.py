@@ -282,12 +282,12 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=verifyCustomObject3)
     distOffset = FloatVectorProperty(
         name="Offset Distance",
-        description="Offset of custom bricks (1.0 = side-by-side)",
+        description="Offset distance between custom bricks (1.0 = side-by-side)",
         update=dirtyMatrix,
         step=1,
         precision=3,
         subtype="TRANSLATION",
-        min=0.001, soft_max=2.0,
+        min=0.001, soft_max=1.0,
         default=(0.9, 0.9, 0.9))
 
     # CUSTOMIZE SETTINGS

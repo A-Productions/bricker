@@ -260,7 +260,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.JobManager.timeout = cm.backProcTimeout
         self.JobManager.max_workers = cm.maxWorkers
         self.JobManager.max_attempts = 1
-        self.debug_level = 0 if "ANIM" in self.action or bpy.props.Bricker_developer_mode == 0 else 1
+        self.debug_level = 0 if "ANIM" in self.action else 1 # or bpy.props.Bricker_developer_mode == 0 else 1
         self.completed_frames = []
         self.brickerAddonPath = get_addon_directory()
         self.jobs = list()
@@ -849,12 +849,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 self.report({"WARNING"}, "No ABS Plastic Materials found in Materials to be used")
                 return False
 
-        if b280() and self.action in ("CREATE", "ANIMATE"):
-            # ensure source is on current view layer
-            if bpy.context.view_layer.depsgraph.objects.get(source.name) is None:
-                self.report({"WARNING"}, "Source object could not be found in current view layer depsgraph")
-                return False
-
         brick_coll_name = "Bricker_%(source_name)s_bricks" % locals()
         if self.action in ("CREATE", "ANIMATE"):
             # verify function can run
@@ -1059,6 +1053,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     len(self.source.data.vertices)**(1/20)) >= (20000 if matrixDirty else 40000)) or
                   # no logos
                   cm.logoType != "NONE" or
+                  # accounts for intricacy of custom object
+                  (cm.brickType == "CUSTOM" and (not b280() or len(cm.customObject1.evaluated_get(bpy.context.view_layer.depsgraph).data.vertices) > 50)) or
                   # low exposed underside detail
                   cm.exposedUndersideDetail not in ("FLAT", "LOW") or
                   # no hidden underside detail
@@ -1099,11 +1095,12 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if customObj and customObj.type == "MESH":
                 custom_details = bounds(customObj)
                 if 0 not in custom_details.dist.to_tuple():
-                    mult = (cm.brickHeight / custom_details.dist.z)
+                    mult = cm.brickHeight / custom_details.dist.z
                     full_d = Vector((custom_details.dist.x * mult,
                                      custom_details.dist.y * mult,
                                      cm.brickHeight))
-                    res = vec_div(s, full_d)
+                    full_d_offset = vec_mult(full_d, cm.distOffset)
+                    res = vec_div(s, full_d_offset)
         return res
 
     #############################################
