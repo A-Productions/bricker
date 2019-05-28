@@ -218,7 +218,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="Type of brick used to build the model",
         items=[("STUD_HOLLOWS", "Hollow Studs", description),
                ("STUDS", "Studs", description),
-               ("SLOPES", "Slopes (fast)", description),
+               # ("SLOPES", "Slopes (fast)", description),
                ("PLATES", "Plates", description),
                ("CYLINDERS", "Cylinders", description),
                ("CUSTOM", "Custom", "Use custom object to build the model"),
@@ -444,7 +444,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Logo Type",
         description="Choose logo type to draw on brick studs",
         items=[("CUSTOM", "Custom Logo", "Choose a mesh object to use as the brick stud logo"),
-               ("LEGO", "LEGO Logo", "Include a LEGO logo on each stud"),
+               # ("LEGO", "LEGO Logo", "Include a LEGO logo on each stud"),
                ("NONE", "None", "Don't include Brick Logo on bricks")],
         update=dirtyBricks,
         default="NONE")
