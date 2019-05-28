@@ -221,16 +221,15 @@ class BRICKER_OT_draw_adjacent(Operator):
 
     @staticmethod
     def getNewCoord(cm, bricksDict, origKey, origLoc, newKey, newLoc, dimensions):
-        full_d = [dimensions["width"], dimensions["width"], dimensions["height"]]
+        full_d = Vector((dimensions["width"], dimensions["width"], dimensions["height"]))
+        if cm.brickType == "CUSTOM": full_d = vec_mult(full_d, cm.distOffset)
         cur_co = bricksDict[origKey]["co"]
         new_co = Vector(cur_co)
-        loc_diff = (newLoc[0] - origLoc[0], newLoc[1] - origLoc[1], newLoc[2] - origLoc[2])
-        new_co.x += full_d[0] * loc_diff[0]
-        new_co.y += full_d[1] * loc_diff[1]
-        new_co.z += full_d[2] * loc_diff[2]
-        new_co.x += dimensions["gap"] * (loc_diff[0] - (0 if loc_diff[0] == 0 else 1)) + (0 if loc_diff[0] == 0 else dimensions["gap"])
-        new_co.y += dimensions["gap"] * (loc_diff[1] - (0 if loc_diff[1] == 0 else 1)) + (0 if loc_diff[1] == 0 else dimensions["gap"])
-        new_co.z += dimensions["gap"] * (loc_diff[2] - (0 if loc_diff[2] == 0 else 1)) + (0 if loc_diff[2] == 0 else dimensions["gap"])
+        loc_diff = Vector((newLoc[0] - origLoc[0], newLoc[1] - origLoc[1], newLoc[2] - origLoc[2]))
+        new_co += vec_mult(full_d, loc_diff)
+        new_co.x += dimensions["gap"] * (loc_diff.x - (0 if loc_diff.x == 0 else 1)) + (0 if loc_diff.x == 0 else dimensions["gap"])
+        new_co.y += dimensions["gap"] * (loc_diff.y - (0 if loc_diff.y == 0 else 1)) + (0 if loc_diff.y == 0 else dimensions["gap"])
+        new_co.z += dimensions["gap"] * (loc_diff.z - (0 if loc_diff.z == 0 else 1)) + (0 if loc_diff.z == 0 else dimensions["gap"])
         return tuple(new_co)
 
     @staticmethod

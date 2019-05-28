@@ -112,11 +112,7 @@ def rayObjIntersections(scn, point, direction, miniDist:Vector, edgeLen, obj, us
     outsideL = []
     if b280():
         depsgraph = bpy.context.view_layer.depsgraph
-        # try:
-        #     depsgraph = obj.users_scene[0].view_layers[0].depsgraph
-        # except Exception as e:
-        #     depsgraph = bpy.context.view_layer.depsgraph
-        obj_eval = depsgraph.objects.get(obj.name, None)
+        obj_eval = obj.evaluated_get(depsgraph)
     else:
         obj_eval = obj
     # set axis of direction
