@@ -85,23 +85,33 @@ def getUVLayerData(obj):
     return active_uv.data
 
 
-def getFirstImgTexNodes(obj):
-    """ return first image texture found in object's material slots """
-    imgs = list()
-    for mat_slot in obj.material_slots:
-        mat = mat_slot.material
-        if mat is None or not mat.use_nodes:
+def getFirstImgTexNodes(obj, mat_slot_idx):
+    """ return first image texture found in a material slot """
+    mat = obj.material_slots[mat_slot_idx].material
+    if mat is None or not mat.use_nodes:
+        return None
+    nodes_to_check = list(mat.node_tree.nodes)
+    active_node = mat.node_tree.nodes.active
+    if active_node is not None: nodes_to_check.insert(0, active_node)
+    img = None
+    for node in nodes_to_check:
+        if node.type != "TEX_IMAGE":
             continue
-        active_node = mat.node_tree.nodes.active
-        nodes_to_check = [active_node] + list(mat.node_tree.nodes)
-        img = None
-        for node in nodes_to_check:
-            if node and node.type == "TEX_IMAGE":
-                img = verifyImg(node.image)
-                if img is not None:
-                    imgs.append(img)
-                    break
-    return imgs
+        img = verifyImg(node.image)
+        if img is not None:
+            break
+    return img
+
+
+def getAllFirstImgTexNodes(obj):
+    """ return set of first image textures found in all material slots """
+    images = set()
+    for idx in range(len(obj.material_slots)):
+        img = getFirstImgTexNodes(obj, idx)
+        if img is not None:
+            images.add(img)
+    return images
+
 
 
 # reference: https://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts/addons/uv_bake_texture_to_vcols.py
@@ -111,13 +121,12 @@ def getUVImages(obj):
     # get list of images to store
     if b280():
         # TODO: Reinstate this 2.79 functionality
-        images = []
+        images = set()
     else:
         uv_tex_data = getUVLayerData(obj)
-        images = [uv_tex.image for uv_tex in uv_tex_data if uv_tex.image is not None] if uv_tex_data else []
-    images.append(cm.uvImage)
-    images += getFirstImgTexNodes(obj)
-    images = uniquify1(images)
+        images = set([uv_tex.image for uv_tex in uv_tex_data if uv_tex.image is not None]) if uv_tex_data else set()
+    images.add(cm.uvImage)
+    images |= getAllFirstImgTexNodes(obj)
     # store images
     uv_images = {}
     for img in images:
@@ -160,7 +169,7 @@ def getFirstNode(mat, types:list=None):
     if types is None:
         # get material type(s) based on render engine
         if scn.render.engine in ("CYCLES", "BLENDER_EEVEE"):
-            types = ("BSDF_DIFFUSE", "BSDF_PRINCIPLED")
+            types = ("BSDF_PRINCIPLED", "BSDF_DIFFUSE")
         elif scn.render.engine == "octane":
             types = ("OCT_DIFFUSE_MAT")
         # elif scn.render.engine == "LUXCORE":
@@ -172,6 +181,12 @@ def getFirstNode(mat, types:list=None):
     for node in mat_nodes:
         if node.type in types:
             return node
+    # get first node of any BSDF type
+    for node in mat_nodes:
+        if len(node.inputs) > 0 and node.inputs[0].type == "RGBA":
+            return node
+    # no valid node was found
+    return None
 
 
 def createNewMaterial(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, colorSnap, colorSnapAmount, includeTransparency, curFrame=None):
@@ -306,10 +321,12 @@ def getUVImage(scn, obj, face_idx, uvImage):
     if image is None:
         try:
             mat_idx = obj.data.polygons[face_idx].material_index
-            image = verifyImg(getFirstImgTexNodes(obj)[mat_idx])
+            image = verifyImg(getFirstImgTexNodes(obj, mat_idx))
         except IndexError:
-            imgs = getFirstImgTexNodes(obj)
-            image = verifyImg(imgs[0]) if len(imgs) > 0 else None
+            mat_idx = 0
+            while image is None and mat_idx < len(obj.material_slots):
+                image = verifyImg(getFirstImgTexNodes(obj, mat_idx))
+                mat_idx += 1
     return image
 
 
@@ -339,7 +356,13 @@ def getMaterialColor(matName):
         node = getFirstNode(mat)
         if not node:
             return None
-        r, g, b, a = node.inputs[0].default_value
+        r, g, b = node.inputs[0].default_value[:3]
+        if node.type in ("BSDF_GLASS", "BSDF_TRANSPARENT", "BSDF_REFRACTION"):
+            a = 0.25
+        elif node.type in ("VOLUME_SCATTER", "VOLUME_ABSORPTION", "PRINCIPLED_VOLUME"):
+            a = node.inputs["Density"].default_value
+        else:
+            a = node.inputs[0].default_value[3]
     else:
         if b280():
             r, g, b, a = mat.diffuse_color
@@ -358,9 +381,10 @@ def getBrickRGBA(scn, obj, face_idx, point, uv_images, uvImage=None):
     if face_idx is None:
         return None, None
     # get material based on rgba value of UV image at face index
-    if uv_images:
+    image = getUVImage(scn, obj, face_idx, uvImage)
+    if image is not None:
         origMatName = ""
-        rgba = getUVPixelColor(scn, obj, face_idx, point, uv_images, uvImage)
+        rgba = getUVPixelColor(scn, obj, face_idx, point, uv_images, image)
     else:
         # get closest material using material slot of face
         origMatName = getMatAtFaceIdx(obj, face_idx)

@@ -29,7 +29,7 @@ from .generator_utils import *
 from ....functions import *
 
 
-def addSupports(dimensions, height, brickSize, brickType, loopCut, circleVerts, type, detail, d, scalar, thick, bme, hollow=None, add_beams=None):
+def addSupports(dimensions, height, brickSize, brickType, circleVerts, type, detail, d, scalar, thick, bme, hollow=None, add_beams=None):
     # initialize vars
     if hollow is None:
         add_beams = brickSize[2] == 3 and (sum(brickSize[:2]) > 4 or min(brickSize[:2]) == 1 and max(brickSize[:2]) == 3) and detail in ("MEDIUM", "HIGH")
@@ -58,12 +58,10 @@ def addSupports(dimensions, height, brickSize, brickType, loopCut, circleVerts, 
             tubeX = (xNum * d.x * 2) + d.x * (2 if brickSize[0] == 1 else 1)
             tubeY = (yNum * d.y * 2) + d.y * (2 if brickSize[1] == 1 else 1)
             if hollow:
-                bme, tubeVerts = makeTube(r, h, t, circleVerts, co=Vector((tubeX, tubeY, tubeZ)), botFace=True, topFace=False, loopCutTop=loopCut, bme=bme)
-                selectVerts(tubeVerts["outer"]["top"] + tubeVerts["inner"]["top"])
+                bme, tubeVerts = makeTube(r, h, t, circleVerts, co=Vector((tubeX, tubeY, tubeZ)), botFace=True, topFace=False, bme=bme)
                 allTopVerts += tubeVerts["outer"]["top"] + tubeVerts["inner"]["top"]
             else:
                 bme, tubeVerts = makeCylinder(r, h, circleVerts, co=Vector((tubeX, tubeY, tubeZ)), botFace=True, topFace=False, bme=bme)
-                selectVerts(tubeVerts["top"])
                 allTopVerts += tubeVerts["top"]
             # add support beams next to odd tubes
             if not add_beams:
@@ -112,7 +110,7 @@ def addSupports(dimensions, height, brickSize, brickType, loopCut, circleVerts, 
         cutVerts(dimensions, height, brickSize, allTopVerts, d, scalar, thick, bme)
 
 
-def addOblongSupport(dimensions, height, loopCut, circleVerts, type, detail, d, scalar, thick, bme):
+def addOblongSupport(dimensions, height, circleVerts, type, detail, d, scalar, thick, bme):
     # round circleVerts to multiple of 4
     circleVerts = round_up(circleVerts, 4)
     # initialize innerVerts
@@ -125,11 +123,10 @@ def addOblongSupport(dimensions, height, loopCut, circleVerts, type, detail, d, 
     r = dimensions["oblong_support_radius"]
     h = height - (thick.z + dimensions["slit_depth"])
     # generate parallel cylinders
-    bme, tubeVerts1 = makeCylinder(r, h, circleVerts, co=Vector((tubeX, tubeY1, tubeZ)), botFace=True, topFace=False, loopCut=loopCut, bme=bme)
-    bme, tubeVerts2 = makeCylinder(r, h, circleVerts, co=Vector((tubeX, tubeY2, tubeZ)), botFace=True, topFace=False, loopCut=loopCut, bme=bme)
-    selectVerts((tubeVerts1["mid"] + tubeVerts2["mid"]) if loopCut else (tubeVerts1["top"] + tubeVerts2["top"]))
+    bme, tubeVerts1 = makeCylinder(r, h, circleVerts, co=Vector((tubeX, tubeY1, tubeZ)), botFace=True, topFace=False, bme=bme)
+    bme, tubeVerts2 = makeCylinder(r, h, circleVerts, co=Vector((tubeX, tubeY2, tubeZ)), botFace=True, topFace=False, bme=bme)
     # remove half of cylinders and populate 'innerVerts'
-    for side in ["top", "bottom"] + (["mid"] if loopCut else []):
+    for side in ["top", "bottom"]:
         halfCircs1 = []
         halfCircs2 = []
         for v in tubeVerts1[side]:
@@ -151,14 +148,8 @@ def addOblongSupport(dimensions, height, loopCut, circleVerts, type, detail, d, 
         if side == "bottom":
             bme.faces.new(sorted(halfCircs1, key=lambda x: -x.co.x) + sorted(halfCircs2, key=lambda x: x.co.x))
     # connect half-cylinders
-    if loopCut:
-        bme.faces.new((innerVerts["top"]["+"][0], innerVerts["top"]["-"][0], innerVerts["mid"]["-"][0], innerVerts["mid"]["+"][0]))
-        bme.faces.new((innerVerts["top"]["-"][1], innerVerts["top"]["+"][1], innerVerts["mid"]["+"][1], innerVerts["mid"]["-"][1]))
-        bme.faces.new((innerVerts["mid"]["+"][0], innerVerts["mid"]["-"][0], innerVerts["bottom"]["-"][1], innerVerts["bottom"]["+"][1]))
-        bme.faces.new((innerVerts["mid"]["-"][1], innerVerts["mid"]["+"][1], innerVerts["bottom"]["+"][0], innerVerts["bottom"]["-"][0]))
-    else:
-        bme.faces.new((innerVerts["top"]["+"][0], innerVerts["top"]["-"][0], innerVerts["bottom"]["-"][1], innerVerts["bottom"]["+"][1]))
-        bme.faces.new((innerVerts["top"]["-"][1], innerVerts["top"]["+"][1], innerVerts["bottom"]["+"][0], innerVerts["bottom"]["-"][0]))
+    bme.faces.new((innerVerts["top"]["+"][0], innerVerts["top"]["-"][0], innerVerts["bottom"]["-"][1], innerVerts["bottom"]["+"][1]))
+    bme.faces.new((innerVerts["top"]["-"][1], innerVerts["top"]["+"][1], innerVerts["bottom"]["+"][0], innerVerts["bottom"]["-"][0]))
     # add low beam next to oblong support
     support_width = dimensions["slope_support_width"]
     support_height = dimensions["slope_support_height"]
@@ -173,7 +164,7 @@ def addOblongSupport(dimensions, height, loopCut, circleVerts, type, detail, d, 
 
 
 
-def addSlopeStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=None, edgeXn=None, edgeYp=None, edgeYn=None, underside=False, loopCut=False):
+def addSlopeStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=None, edgeXn=None, edgeYp=None, edgeYn=None, underside=False):
     r = dimensions["stud_radius"] if underside else dimensions["bar_radius"]
     h = dimensions["stud_height"]
     t = dimensions["stud_radius"] - dimensions["bar_radius"]
@@ -230,7 +221,7 @@ def addSlopeStuds(dimensions, height, brickSize, brickType, circleVerts, bme, ed
                         curRatio = (v.co.x - sMin.x) / sDistX
                         v.co.z = sMin.z + sDistZ * curRatio
                 if edgeXp is not None: bme.faces.new(studVerts["inner"]["bottom"][::1 if underside else -1])
-                selectVerts(studVerts["inner"]["mid" if loopCut else "bottom"] + studVerts["outer"]["mid" if loopCut else "bottom"])
+                selectGeom(studVerts["inner"]["bottom"] + studVerts["outer"]["bottom"])
                 if edgeXp is not None:
                     adjXNum = xNum - 1
                     topVertsD = createVertListDict2(studVerts["bottom"] if underside else studVerts["outer"]["bottom"])
@@ -254,7 +245,7 @@ def cutVerts(dimensions, height, brickSize, verts, d, scalar, thick, bme):
         v.co.z = fac * minZ + (1-fac) * v.co.z
 
 
-def addInnerCylinders(dimensions, brickSize, circleVerts, d, edgeXp, edgeXn, edgeYp, edgeYn, bme, loopCut=False):
+def addInnerCylinders(dimensions, brickSize, circleVerts, d, edgeXp, edgeXn, edgeYp, edgeYn, bme):
     thickZ = dimensions["thickness"]
     # make small cylinders
     botVertsDofDs = {}
@@ -263,15 +254,13 @@ def addInnerCylinders(dimensions, brickSize, circleVerts, d, edgeXp, edgeXn, edg
     h = thickZ * 0.99
     for xNum in range(brickSize[0]):
         for yNum in range(brickSize[1]):
-            bme, innerCylinderVerts = makeCylinder(r, h, N, co=Vector((xNum*d.x*2,yNum*d.y*2,d.z - thickZ + h/2)), loopCut=loopCut, botFace=False, flipNormals=True, bme=bme)
-            if loopCut:
-                selectVerts(innerCylinderVerts["mid"])
+            bme, innerCylinderVerts = makeCylinder(r, h, N, co=Vector((xNum*d.x*2,yNum*d.y*2,d.z - thickZ + h/2)), botFace=False, flipNormals=True, bme=bme)
             botVertsD = createVertListDict(innerCylinderVerts["bottom"])
             botVertsDofDs["%(xNum)s,%(yNum)s" % locals()] = botVertsD
     connectCirclesToSquare(dimensions, brickSize, circleVerts, edgeXp, edgeXn, edgeYp, edgeYn, botVertsDofDs, xNum, yNum, bme)
 
 
-def addStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=None, edgeXn=None, edgeYp=None, edgeYn=None, hollow=False, botFace=True, loopCut=False):
+def addStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=None, edgeXn=None, edgeYp=None, edgeYn=None, hollow=False, botFace=True):
     r = dimensions["bar_radius" if hollow else "stud_radius"]
     h = dimensions["stud_height"]
     t = dimensions["stud_radius"] - dimensions["bar_radius"]
@@ -283,13 +272,11 @@ def addStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=
             x = dimensions["width"] * xNum
             y = dimensions["width"] * yNum
             if hollow:
-                _, studVerts = makeTube(r, h, t, circleVerts, co=Vector((0, 0, z)), loopCut=loopCut, botFace=botFace, bme=bme)
+                _, studVerts = makeTube(r, h, t, circleVerts, co=Vector((0, 0, z)), botFace=botFace, bme=bme)
                 if edgeXp is not None: bme.faces.new(studVerts["inner"]["bottom"])
-                selectVerts(studVerts["inner"]["mid" if loopCut else "bottom"] + studVerts["outer"]["mid" if loopCut else "bottom"])
             else:
                 # split stud at center by creating cylinder and circle and joining them (allows Bevel to work correctly)
-                _, studVerts = makeCylinder(r, h, circleVerts, co=Vector((x, y, z)), botFace=False, loopCut=loopCut, bme=bme)
-                selectVerts(studVerts["mid" if loopCut else "bottom"])
+                _, studVerts = makeCylinder(r, h, circleVerts, co=Vector((x, y, z)), botFace=False, bme=bme)
             if edgeXp is not None:
                 topVertsD = createVertListDict2(studVerts["outer"]["bottom"] if hollow else studVerts["bottom"])
                 topVertsDofDs["%(xNum)s,%(yNum)s" % locals()] = topVertsD

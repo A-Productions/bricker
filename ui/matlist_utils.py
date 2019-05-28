@@ -23,7 +23,6 @@ import bpy
 
 # Addon imports
 from ..functions import *
-from ..lib.abs_plastic_materials import *
 
 def addMaterialToList(self, context):
     scn, cm, n = getActiveContextInfo()
@@ -35,7 +34,7 @@ def addMaterialToList(self, context):
         return
     elif mat.name in matObj.data.materials.keys():
         cm.targetMaterial = "Already in list!"
-    elif typ == "ABS" and brick_materials_installed() and mat.name not in getAbsPlasticMaterialNames():
+    elif typ == "ABS" and mat.name not in getABSMatNames():
         cm.targetMaterial = "Not ABS Plastic material"
     elif matObj is not None:
         matObj.data.materials.append(mat)

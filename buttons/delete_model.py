@@ -177,7 +177,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 last_co = source.data.vertices[0].co.to_tuple()
                 source.data.vertices[0].co = (0, 0, 0)
                 # set source origin to rotation point for transformed brick object
-                scn.update()
+                update_depsgraph()
                 setObjOrigin(source, pivot_point)
                 # rotate source
                 if cm.useLocalOrient and not cm.useAnimation:
@@ -188,7 +188,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                     #     # TODO: convert rotateBy to local with respect to source's parent
                     source.rotation_euler.rotate(rotateBy)
                 # set source origin back to original point (tracked by last vert)
-                scn.update()
+                update_depsgraph()
                 setObjOrigin(source, mathutils_mult(source.matrix_world, source.data.vertices[0].co))
                 source.data.vertices[0].co = last_co
                 source.rotation_mode = lastMode
@@ -211,7 +211,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
 
         # reset frame (for proper update), update scene and redraw 3D view
         scn.frame_set(origFrame)
-        scn.update()
+        update_depsgraph()
         tag_redraw_areas("VIEW_3D")
 
     @classmethod
@@ -274,7 +274,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 bricks = getBricks()
                 if len(bricks) > 0:
                     b = bricks[0]
-                    scn.update()
+                    update_depsgraph()
                     brickLoc = b.matrix_world.to_translation().copy()
                     brickRot = b.matrix_world.to_euler().copy()
                     brickScl = b.matrix_world.to_scale().copy()  # currently unused

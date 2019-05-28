@@ -72,7 +72,7 @@ class BRICKER_OT_change_brick_material(Operator):
                 self.undo_stack.iterateStates(cm)
                 # initialize vars
                 bricksDict = json.loads(self.cached_bfm[cm_id])
-                keysToUpdate = []
+                keysToUpdate = set()
                 cm.customized = True
 
                 # iterate through cm_ids of selected objects
@@ -84,10 +84,10 @@ class BRICKER_OT_change_brick_material(Operator):
                         bricksDict[k]["mat_name"] = targetMatName
                         bricksDict[k]["custom_mat_name"] = True
                     # delete the object that was split
-                    keysToUpdate.append(dictKey)
+                    keysToUpdate.add(dictKey)
 
                 # draw modified bricks
-                drawUpdatedBricks(cm, bricksDict, uniquify1(keysToUpdate))
+                drawUpdatedBricks(cm, bricksDict, list(keysToUpdate))
 
                 # add selected objects to objects to select at the end
                 objsToSelect += bpy.context.selected_objects

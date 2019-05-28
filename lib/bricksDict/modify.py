@@ -73,13 +73,17 @@ def updateMaterials(bricksDict, source, uv_images, keys, curFrame=None):
 
         if materialType == "SOURCE":
             # get material with snapped RGBA value
-            matObj = getMatObject(cm_id, typ="ABS")
             if rgba is None and useUVMap:
                 matName = ""
-            elif rgba is None and matName in getColors().keys():
-                pass
-            elif colorSnap == "ABS" and len(matObj.data.materials) > 0:
-                matName = findNearestBrickColorName(rgba, transWeight, matObj=matObj)
+            elif colorSnap == "ABS":
+                # if original material was ABS plastic, keep it
+                if rgba is None and matName in getColors().keys():
+                    pass
+                # otherwise, find nearest ABS plastic material to rgba value
+                else:
+                    matObj = getMatObject(cm_id, typ="ABS")
+                    assert len(matObj.data.materials) > 0
+                    matName = findNearestBrickColorName(rgba, transWeight, matObj=matObj)
             elif colorSnap == "RGB" or isSmoke or useUVMap:
                 matName = createNewMaterial(n, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, colorSnap, colorSnapAmount, includeTransparency, curFrame)
             if rgba is not None:
@@ -90,7 +94,7 @@ def updateMaterials(bricksDict, source, uv_images, keys, curFrame=None):
     return bricksDict
 
 
-def updateBrickSizes(bricksDict, key, availableKeys, loc, brickSizes, zStep, maxL, height3Only, legalBricksOnly, mergeInternals, materialType, mergeInconsistentMats=False, mergeVertical=False, tallType="BRICK", shortType="PLATE"):
+def updateBrickSizes(bricksDict, key, availableKeys, loc, brickSizes, zStep, maxL, height3Only, legalBricksOnly, mergeInternalsH, mergeInternalsV, materialType, mergeInconsistentMats=False, mergeVertical=False, tallType="BRICK", shortType="PLATE"):
     """ update 'brickSizes' with available brick sizes surrounding bricksDict[key] """
     if not mergeVertical:
         maxL[2] = 1
@@ -98,13 +102,15 @@ def updateBrickSizes(bricksDict, key, availableKeys, loc, brickSizes, zStep, max
     newMax2 = maxL[2]
     breakOuter1 = False
     breakOuter2 = False
+    # iterate in x direction
     for i in range(maxL[0]):
+        # iterate in y direction
         for j in range(maxL[1]):
             # break case 1
             if j >= newMax1: break
             # break case 2
             key1 = listToStr((loc[0] + i, loc[1] + j, loc[2]))
-            if not brickAvail(bricksDict, key, key1, mergeInternals in ["BOTH, HORIZONTAL"], materialType, mergeInconsistentMats) or key1 not in availableKeys:
+            if not brickAvail(bricksDict, key, key1, mergeInternalsH, materialType, mergeInconsistentMats) or key1 not in availableKeys:
                 if j == 0: breakOuter2 = True
                 else:      newMax1 = j
                 break
@@ -114,7 +120,7 @@ def updateBrickSizes(bricksDict, key, availableKeys, loc, brickSizes, zStep, max
                 if k >= newMax2: break
                 # break case 2
                 key2 = listToStr((loc[0] + i, loc[1] + j, loc[2] + k))
-                if not brickAvail(bricksDict, key, key2, mergeInternals  in ["BOTH, VERTICAL"], materialType, mergeInconsistentMats) or key2 not in availableKeys:
+                if not brickAvail(bricksDict, key, key2, mergeInternalsV, materialType, mergeInconsistentMats) or key2 not in availableKeys:
                     if k == 0: breakOuter1 = True
                     else:      newMax2 = k
                     break
@@ -132,10 +138,10 @@ def updateBrickSizes(bricksDict, key, availableKeys, loc, brickSizes, zStep, max
         if breakOuter2: break
 
 
-def attemptMerge(bricksDict, key, availableKeys, defaultSize, zStep, randState, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInternals, materialType, mergeInconsistentMats=False, preferLargest=False, mergeVertical=True, targetType=None, height3Only=False):
+def attemptMerge(bricksDict, key, availableKeys, defaultSize, zStep, randState, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInternalsH, mergeInternalsV, materialType, loc=None, mergeInconsistentMats=False, preferLargest=False, mergeVertical=True, targetType=None, height3Only=False):
     """ attempt to merge bricksDict[key] with adjacent bricks """
     # get loc from key
-    loc = getDictLoc(bricksDict, key)
+    loc = loc or getDictLoc(bricksDict, key)
     brickSizes = [defaultSize]
     tallType = getTallType(bricksDict[key], targetType)
     shortType = getShortType(bricksDict[key], targetType)
@@ -144,7 +150,7 @@ def attemptMerge(bricksDict, key, availableKeys, defaultSize, zStep, randState, 
         # check width-depth and depth-width
         for i in (1, -1) if maxWidth != maxDepth else [1]:
             # iterate through adjacent locs to find available brick sizes
-            updateBrickSizes(bricksDict, key, availableKeys, loc, brickSizes, zStep, [maxWidth, maxDepth][::i] + [3], height3Only, legalBricksOnly, mergeInternals, materialType, mergeInconsistentMats, mergeVertical=mergeVertical and "PLATES" in brickType, tallType=tallType, shortType=shortType)
+            updateBrickSizes(bricksDict, key, availableKeys, loc, brickSizes, zStep, [maxWidth, maxDepth][::i] + [3], height3Only, legalBricksOnly, mergeInternalsH, mergeInternalsV, materialType, mergeInconsistentMats, mergeVertical=mergeVertical, tallType=tallType, shortType=shortType)
         # sort brick types from smallest to largest
         order = randState.randint(0,2)
         brickSizes.sort(key=lambda x: (x[0] * x[1] * x[2]) if preferLargest else (x[2], x[order], x[(order+1)%2]))
@@ -166,12 +172,12 @@ def attemptMerge(bricksDict, key, availableKeys, defaultSize, zStep, randState, 
     if bricksDict[key]["type"] == "SLOPE" and brickType == "SLOPES":
         setBrickTypeForSlope(bricksDict, key, keysInBrick)
 
-    return brickSize
+    return brickSize, keysInBrick
 
 
 def getNumAlignedEdges(bricksDict, size, key, loc, bricksAndPlates=False):
     numAlignedEdges = 0
-    locs = getLocsInBrick(bricksDict, size, 1, key, loc)
+    locs = getLocsInBrick(bricksDict, size, 1, loc)
     gotOne = False
 
     for l in locs:
@@ -192,26 +198,27 @@ def getNumAlignedEdges(bricksDict, size, key, loc, bricksAndPlates=False):
         l[2] -= 1
         k = listToStr(l)
         try:
-            p_brick = bricksDict[k]["parent"]
+            p_brick_key = bricksDict[k]["parent"]
         except KeyError:
             continue
-        if p_brick == "self":
-            p_brick = k
-        if p_brick is None:
+        if p_brick_key == "self":
+            p_brick_key = k
+        if p_brick_key is None:
             continue
         gotOne = True
-        p_brick_sz = bricksDict[p_brick]["size"]
+        p_brick_sz = bricksDict[p_brick_key]["size"]
+        p_brick_loc = getDictLoc(bricksDict, p_brick_key)
         # -X side
-        if l[0] == loc[0] and strToList(p_brick)[0] == l[0]:
+        if l[0] == loc[0] and p_brick_loc[0] == l[0]:
             numAlignedEdges += 1
         # -Y side
-        if l[1] == loc[1] and strToList(p_brick)[1] == l[1]:
+        if l[1] == loc[1] and p_brick_loc[1] == l[1]:
             numAlignedEdges += 1
         # +X side
-        if l[0] == loc[0] + size[0] - 1 and strToList(p_brick)[0] + p_brick_sz[0] - 1 == l[0]:
+        if l[0] == loc[0] + size[0] - 1 and p_brick_loc[0] + p_brick_sz[0] - 1 == l[0]:
             numAlignedEdges += 1
         # +Y side
-        if l[1] == loc[1] + size[1] - 1 and strToList(p_brick)[1] + p_brick_sz[1] - 1 == l[1]:
+        if l[1] == loc[1] + size[1] - 1 and p_brick_loc[1] + p_brick_sz[1] - 1 == l[1]:
             numAlignedEdges += 1
 
     if not gotOne:
@@ -220,16 +227,16 @@ def getNumAlignedEdges(bricksDict, size, key, loc, bricksAndPlates=False):
     return numAlignedEdges
 
 
-def brickAvail(bricksDict, sourceKey, targetKey, mergeWithInternals, materialType, mergeInconsistentMats=False):
+def brickAvail(bricksDict, sourceKey, targetKey, mergeWithInternals, materialType, mergeInconsistentMats):
     """ check brick is available to merge """
     brick = bricksDict.get(targetKey)
     if brick is None:
         return False
     sourceBrick = bricksDict[sourceKey]
     # checks if brick materials can be merged (same material or one of the mats is "" (internal)
-    matsMergable = (mergeWithInternals and "" in (sourceBrick["mat_name"], brick["mat_name"])) or sourceBrick["mat_name"] == brick["mat_name"] or mergeInconsistentMats
+    matsMergable = sourceBrick["mat_name"] == brick["mat_name"] or (mergeWithInternals and "" in (sourceBrick["mat_name"], brick["mat_name"])) or mergeInconsistentMats
     # returns True if brick is present, brick isn't drawn already, and brick materials can be merged
-    return brick["draw"] and mergableBrickType(brick["type"], up=False) and not brick["attempted_merge"] and matsMergable
+    return brick["draw"] and not brick["attempted_merge"] and matsMergable and mergableBrickType(brick["type"], up=False)
 
 
 def getMostCommonDir(i_s, i_e, norms):

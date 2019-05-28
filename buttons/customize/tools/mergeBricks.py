@@ -133,11 +133,12 @@ class BRICKER_OT_merge_bricks(Operator):
         maxWidth = cm.maxWidth
         maxDepth = cm.maxDepth
         legalBricksOnly = cm.legalBricksOnly
-        mergeInternals = cm.mergeInternals
+        mergeInternalsH = cm.mergeInternals in ["BOTH", "HORIZONTAL"]
+        mergeInternalsV = cm.mergeInternals in ["BOTH", "VERTICAL"]
         materialType = cm.materialType
         randState = np.random.RandomState(cm.mergeSeed)
-        mergeVertical = targetType in getBrickTypes(height=3)
-        height3Only = "PLATES" in cm.brickType and mergeVertical and not anyHeight
+        mergeVertical = targetType in getBrickTypes(height=3) and "PLATES" in brickType
+        height3Only = mergeVertical and not anyHeight
 
         # sort keys
         keys.sort(key=lambda k: (strToList(k)[0] * strToList(k)[1] * strToList(k)[2]))
@@ -147,7 +148,7 @@ class BRICKER_OT_merge_bricks(Operator):
             if bricksDict[key]["parent"] not in (None, "self"):
                 continue
             # attempt to merge current brick with other bricks in keys, according to available brick types
-            brickSize = attemptMerge(bricksDict, key, keys, bricksDict[key]["size"], cm.zStep, randState, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInternals, materialType, mergeInconsistentMats=mergeInconsistentMats, preferLargest=True, mergeVertical=mergeVertical, targetType=targetType, height3Only=height3Only)
+            brickSize,_ = attemptMerge(bricksDict, key, keys, bricksDict[key]["size"], cm.zStep, randState, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInternalsH, mergeInternalsV, materialType, mergeInconsistentMats=mergeInconsistentMats, preferLargest=True, mergeVertical=mergeVertical, targetType=targetType, height3Only=height3Only)
             updatedKeys.append(key)
         return updatedKeys
 

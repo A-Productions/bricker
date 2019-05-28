@@ -29,7 +29,6 @@ props = bpy.props
 
 # Addon imports
 from ..functions import *
-from ..lib.abs_plastic_materials import getAbsPlasticMaterialNames
 
 
 class BRICKER_OT_apply_material(bpy.types.Operator):

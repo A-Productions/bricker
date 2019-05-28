@@ -18,7 +18,7 @@
 bl_info = {
     "name"        : "Bricker",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
-    "version"     : (1, 6, 2),
+    "version"     : (1, 6, 3),
     "blender"     : (2, 80, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
@@ -27,7 +27,7 @@ bl_info = {
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}
 
-developer_mode = 0  # NOTE: Set to 0 for release, 1 for exposed dictionary, 2 for 'BRICKER_OT_test_brick_generators' button
+developer_mode = 1  # NOTE: Set to 0 for release, 1 for exposed dictionary
 # NOTE: Disable "LEGO Logo" for releases
 # NOTE: Disable "Slopes" brick type for releases
 
@@ -63,7 +63,7 @@ def register():
     bpy.props.bricker_version = str(bl_info["version"])[1:-1].replace(", ", ".")
 
     bpy.props.bricker_initialized = b280()  # automatically initialized (uses timer) in b280
-    bpy.props.bricker_undoUpdating = False
+    bpy.props.bricker_updating_undo_state = False
     bpy.props.Bricker_developer_mode = developer_mode
     bpy.props.running_bricksculpt_tool = False
     bpy.props.bricker_last_selected = []
@@ -92,10 +92,14 @@ def register():
     # Add attribute for Bricker Instructions addon
     Scene.isBrickerInstalled = BoolProperty(default=True)
 
-    if not hasattr(Scene, "include_transparent"):
-        Scene.include_transparent = False
-    if not hasattr(Scene, "include_uncommon"):
-        Scene.include_uncommon = False
+    Scene.include_transparent = BoolProperty(
+        name="Include Transparent",
+        description="Include transparent ABS Plastic materials",
+        default=False)
+    Scene.include_uncommon = BoolProperty(
+        name="Include Uncommon",
+        description="Include uncommon ABS Plastic materials",
+        default=False)
 
     # Scene.Bricker_snapping = BoolProperty(
     #     name="Bricker Snap",
@@ -116,17 +120,14 @@ def register():
 
     # register app handlers
     bpy.app.handlers.frame_change_pre.append(handle_animation)
-    if b280():
-        bpy.app.handlers.load_post.append(register_bricker_timers)
-        bpy.app.timers.register(handle_selections)
-    else:
-        bpy.app.handlers.scene_update_pre.append(handle_selections)
+    if not bpy.app.background:
+        if b280():
+            bpy.app.handlers.load_post.append(register_bricker_timers)
+        else:
+            bpy.app.handlers.scene_update_pre.append(handle_selections)
     bpy.app.handlers.load_pre.append(clear_bfm_cache)
     bpy.app.handlers.load_post.append(handle_loading_to_light_cache)
     bpy.app.handlers.save_pre.append(handle_storing_to_deep_cache)
-    bpy.app.handlers.save_pre.append(safe_link_parent)
-    bpy.app.handlers.save_post.append(safe_unlink_parent)
-    bpy.app.handlers.load_post.append(safe_unlink_parent)
     bpy.app.handlers.load_post.append(handle_upconversion)
     bpy.app.handlers.load_post.append(reset_undo_stack)
 
@@ -141,17 +142,17 @@ def unregister():
     # unregister app handlers
     bpy.app.handlers.load_post.remove(reset_undo_stack)
     bpy.app.handlers.load_post.remove(handle_upconversion)
-    bpy.app.handlers.load_post.remove(safe_unlink_parent)
-    bpy.app.handlers.save_post.remove(safe_unlink_parent)
-    bpy.app.handlers.save_pre.remove(safe_link_parent)
     bpy.app.handlers.save_pre.remove(handle_storing_to_deep_cache)
     bpy.app.handlers.load_post.remove(handle_loading_to_light_cache)
     bpy.app.handlers.load_pre.remove(clear_bfm_cache)
     if b280():
         if bpy.app.timers.is_registered(handle_selections):
             bpy.app.timers.unregister(handle_selections)
-        bpy.app.handlers.load_post.remove(register_bricker_timers)
-    else:
+        if bpy.app.timers.is_registered(handle_undo_stack):
+            bpy.app.timers.unregister(handle_undo_stack)
+        if not bpy.app.background:
+            bpy.app.handlers.load_post.remove(register_bricker_timers)
+    elif not bpy.app.background:
         bpy.app.handlers.scene_update_pre.remove(handle_selections)
     bpy.app.handlers.frame_change_pre.remove(handle_animation)
 
@@ -165,6 +166,8 @@ def unregister():
     del Scene.cmlist
     # bpy.types.VIEW3D_HT_header.remove(Bricker_snap_button)
     # del Scene.Bricker_snapping
+    del Scene.include_uncommon
+    del Scene.include_transparent
     del Scene.isBrickerInstalled
     del Scene.Bricker_copy_from_id
     del Scene.Bricker_last_active_object_name
@@ -183,7 +186,7 @@ def unregister():
     del bpy.props.bricker_last_selected
     del bpy.props.running_bricksculpt_tool
     del bpy.props.Bricker_developer_mode
-    del bpy.props.bricker_undoUpdating
+    del bpy.props.bricker_updating_undo_state
     del bpy.props.bricker_initialized
     del bpy.props.bricker_version
     del bpy.props.bricker_module_name
