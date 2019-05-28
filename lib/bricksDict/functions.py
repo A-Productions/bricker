@@ -420,10 +420,6 @@ def getArgumentsForBricksDict(cm, source=None, dimensions=None, brickSize=[1, 1,
                 customObj0.data = m
             else:
                 customObj0 = bpy.data.objects.new(customObjName, m)
-            # remove UV layers if not split (for massive performance improvement when combining meshes in `drawBrick` fn)
-            if b280() and not splitModel:
-                for uv_layer in m.uv_layers:
-                    m.uv_layers.remove(uv_layer)
             # apply transformation to custom object
             safeLink(customObj0)
             apply_transform(customObj0)

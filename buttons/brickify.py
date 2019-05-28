@@ -1053,8 +1053,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     len(self.source.data.vertices)**(1/20)) >= (20000 if matrixDirty else 40000)) or
                   # no logos
                   cm.logoType != "NONE" or
-                  # accounts for intricacy of custom object
-                  (cm.brickType == "CUSTOM" and (not b280() or len(cm.customObject1.evaluated_get(bpy.context.view_layer.depsgraph).data.vertices) > 50)) or
                   # low exposed underside detail
                   cm.exposedUndersideDetail not in ("FLAT", "LOW") or
                   # no hidden underside detail
