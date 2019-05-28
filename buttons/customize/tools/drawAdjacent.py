@@ -71,7 +71,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             # push to undo stack
             if self.orig_undo_stack_length == self.undo_stack.getLength():
                 self.undo_stack.undo_push('draw_adjacent', affected_ids=[cm.id])
-            update_depsgraph()
+            if not b280(): scn.update()
             self.undo_stack.iterateStates(cm)
             # get fresh copy of self.bricksDict
             self.bricksDict = getBricksDict(cm)
