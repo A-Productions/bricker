@@ -192,7 +192,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 setObjOrigin(source, mathutils_mult(source.matrix_world, source.data.vertices[0].co))
                 source.data.vertices[0].co = last_co
                 source.rotation_mode = lastMode
-            # adjust source loc to account for local_orient_offset applied in BRICKER_OT_brickify.transformBricks
+            # adjust source loc to account for local_orient_offset applied in transformBricks()
             if cm.useLocalOrient and not cm.useAnimation:
                 try:
                     source.location -= Vector(source["local_orient_offset"])

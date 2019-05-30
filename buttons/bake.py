@@ -25,6 +25,7 @@ import bpy
 # Addon imports
 from ..functions import *
 from ..ui.cmlist_actions import *
+from ..ui.app_handlers import handle_animation
 
 
 class BRICKER_OT_bake_model(bpy.types.Operator):
@@ -43,12 +44,13 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
             scn, cm, n = getActiveContextInfo()
         except IndexError:
             return False
-        if cm.modelCreated:
+        if (cm.modelCreated or cm.animated) and not cm.brickifyingInBackground:
             return True
         return False
 
     def execute(self, context):
         scn, cm, n = getActiveContextInfo()
+        cur_f = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
         # set isBrick/isBrickifiedObject to False
         bricks = getBricks()
         # apply object transformation
@@ -58,12 +60,19 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
                 brick.isBrick = False
                 brick.name = brick.name[8:]
         else:
-            bricks[0].isBrickifiedObject = False
-            bricks[0].name = "%(n)s_bricks" % locals()
+            active_brick = bricks[0] if cm.modelCreated else bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(cur_f)s" % locals())
+            active_brick.isBrickifiedObject = False
+            active_brick.name = "%(n)s_bricks" % locals()
         # delete parent/source/dup
-        objsToDelete = [bpy.data.objects.get("Bricker_%(n)s_parent" % locals()),
-                        cm.source_obj,
-                        bpy.data.objects.get("%(n)s__dup__" % locals())]
+        objsToDelete = [bpy.data.objects.get("Bricker_%(n)s_parent" % locals()), cm.source_obj]
+        if cm.modelCreated:
+            objsToDelete.append(bpy.data.objects.get("Bricker_%(n)s_parent" % locals()))
+        else:
+            for f in range(cm.lastStartFrame, cm.lastStopFrame + 1):
+                objsToDelete.append(bpy.data.objects.get("Bricker_%(n)s_f_%(f)s" % locals()))
+                objsToDelete.append(bpy.data.objects.get("Bricker_%(n)s_parent_f_%(f)s" % locals()))
+                if f != cur_f:
+                    objsToDelete.append(bricks.pop(0 if f < cur_f else 1))
         for obj in objsToDelete:
             bpy.data.objects.remove(obj, do_unlink=True)
         # delete brick collection
@@ -76,6 +85,7 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
             bpy_collections().remove(brickColl, do_unlink=True)
         # remove current cmlist index
         cm.modelCreated = False
+        cm.animated = False
         CMLIST_OT_list_action.removeItem(self, scn.cmlist_index)
         scn.cmlist_index = -1
         return{"FINISHED"}

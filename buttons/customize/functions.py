@@ -24,6 +24,7 @@ from bpy.types import Operator
 
 # Addon imports
 from ...functions import *
+from ...functions.brickify_utils import createNewBricks, getLogo
 from ..brickify import *
 from ..brickify import *
 from ...lib.bricksDict.functions import getDictKey
@@ -41,10 +42,10 @@ def drawUpdatedBricks(cm, bricksDict, keysToUpdate, action="redrawing", selectCr
     source_details, dimensions = getDetailsAndBounds(source, cm)
     n = source.name
     parent = cm.parent_obj
-    logo_details, refLogo = [None, None] if tempBrick else BRICKER_OT_brickify.getLogo(bpy.context.scene, cm, dimensions)
+    logo_details, refLogo = [None, None] if tempBrick else getLogo(bpy.context.scene, cm, dimensions)
     action = "UPDATE_MODEL"
     # actually draw the bricks
-    _, bricksCreated = BRICKER_OT_brickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, cm=cm, bricksDict=bricksDict, keys=keysToUpdate, clearExistingCollection=False, selectCreated=selectCreated, printStatus=False, tempBrick=tempBrick, redraw=True)
+    _, bricksCreated = createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, cm=cm, bricksDict=bricksDict, keys=keysToUpdate, clearExistingCollection=False, selectCreated=selectCreated, printStatus=False, tempBrick=tempBrick, redraw=True)
     # link new bricks to scene
     if not b280():
         for brick in bricksCreated:

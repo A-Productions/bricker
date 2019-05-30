@@ -39,6 +39,7 @@ from ..buttons.revertSettings import *
 from ..buttons.brickify import *
 from ..buttons.customize.tools.bricksculpt import *
 from ..functions import *
+from ..functions.brickify_utils import getModelResolution
 from .. import addon_updater_ops
 if b280():
     from .other_property_groups import *
@@ -245,10 +246,6 @@ class VIEW3D_PT_bricker_brick_models(Panel):
             row.operator("bricker.close_report_error", text="", icon="PANEL_CLOSE")
 
 
-def is_baked(mod):
-    return mod.point_cache.is_baked is not False
-
-
 class VIEW3D_PT_bricker_animation(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "UI" if b280() else "TOOLS"
@@ -381,7 +378,7 @@ class VIEW3D_PT_bricker_model_settings(Panel):
         col = layout.column(align=True)
         # draw Brick Model dimensions to UI
         if source:
-            r = BRICKER_OT_brickify.getModelResolution(source, cm)
+            r = getModelResolution(source, cm)
             if cm.brickType == "CUSTOM" and r is None:
                 col.label(text="[Custom object not found]")
             else:
@@ -1185,7 +1182,7 @@ class VIEW3D_PT_bricker_export(Panel):
         scn, cm, _ = getActiveContextInfo()
 
         col = layout.column(align=True)
-        col.operator("bricker.bake_model", icon="OBJECT_DATA")
+        col.operator("bricker.bake_model", text="Bake Model" if cm.modelCreated else "Bake Current Frame", icon="OBJECT_DATA")
         col = layout.column(align=True)
         col.prop(cm, "exportPath", text="")
         col = layout.column(align=True)

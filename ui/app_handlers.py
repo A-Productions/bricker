@@ -25,6 +25,7 @@ from mathutils import Vector, Euler
 
 # Addon imports
 from ..functions import *
+from ..functions.brickify_utils import finishAnimation
 from ..lib.bricksDict import lightToDeepCache, deepToLightCache, getDictKey
 from ..lib.caches import bricker_bfm_cache
 from ..buttons.customize.tools import *
@@ -267,7 +268,7 @@ def handle_upconversion(dummy):
                     if cm.parent_obj is None: cm.parent_obj = bpy.data.objects.get(cm.parent_name)
                     n = getSourceName(cm)
                     if cm.animated:
-                        coll = BRICKER_OT_brickify.finishAnimation(cm)
+                        coll = finishAnimation(cm)
                     else:
                         coll = bpy_collections().get("Bricker_%(n)s_bricks" % locals())
                     if cm.collection is None: cm.collection = coll

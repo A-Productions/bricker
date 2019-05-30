@@ -27,6 +27,7 @@ props = bpy.props
 from .customize.undo_stack import *
 from ..lib.caches import *
 from ..functions import *
+from ..functions.brickify_utils import *
 
 
 class BRICKER_OT_clear_cache(bpy.types.Operator):
@@ -46,10 +47,14 @@ class BRICKER_OT_clear_cache(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            scn, cm, _ = getActiveContextInfo()
+            scn, cm, n = getActiveContextInfo()
             self.undo_stack.iterateStates(cm)
             cm.matrixIsDirty = True
             self.clearCaches()
+            # clear source duplicate objects
+            dupNameBase = "Bricker_%(n)s_f_" % locals()
+            dupes = bpy.data.objects.get("%(n)s__dup__" % locals()) if cm.modelCreated else [bpy.data.objects.get(dupNameBase + str(cf)) for cf in range(cm.lastStartFrame, cm.lastStopFrame + 1)]
+            delete(dupes)
         except:
             bricker_handle_exception()
 
