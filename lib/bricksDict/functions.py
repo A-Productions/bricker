@@ -299,7 +299,7 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sat_mat, specular, rough
             # make sure 'use_nodes' is enabled
             mat.use_nodes = True
             # get first node
-            first_node = getFirstNode(mat, types=["BSDF_PRINCIPLED" if b280() else "BSDF_DIFFUSE"])
+            first_node = getFirstNode(mat, types=("BSDF_PRINCIPLED", "BSDF_DIFFUSE"))
             # update first node's color
             if first_node:
                 rgba1 = first_node.inputs[0].default_value
