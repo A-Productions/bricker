@@ -255,36 +255,36 @@ def prepareLogoAndGetDetails(scn, logo, detail, scale, dimensions):
 
 
 def getBrickData(brickD, rand, dimensions, brickSize, brickType, brickHeight, logoResolution, logoDecimate, circleVerts, undersideDetail, logoToUse, logoType, logo_details, logoScale, logoInset, useStud):
-    # get bm_cache_key
-    bm_cache_key = ""
+    # get bm_cache_string
+    bm_cache_string = ""
     if "CUSTOM" not in brickType:
         custom_logo_used = logoToUse is not None and logoType == "CUSTOM"
-        bm_cache_key = marshal.dumps((brickHeight, brickSize, undersideDetail,
-                                      logoResolution if logoToUse is not None else None,
-                                      logoDecimate if logoToUse is not None else None,
-                                      logoInset if logoToUse is not None else None,
-                                      hash_object(logoToUse) if custom_logo_used else None,
-                                      logoScale if custom_logo_used else None,
-                                      logoType, useStud, circleVerts,
-                                      brickD["type"], dimensions["gap"],
-                                      brickD["flipped"] if brickD["type"] in ("SLOPE", "SLOPE_INVERTED") else None,
-                                      brickD["rotated"] if brickD["type"] in ("SLOPE", "SLOPE_INVERTED") else None))
+        bm_cache_string = marshal.dumps((brickHeight, brickSize, undersideDetail,
+                                         logoResolution if logoToUse is not None else None,
+                                         logoDecimate if logoToUse is not None else None,
+                                         logoInset if logoToUse is not None else None,
+                                         hash_object(logoToUse) if custom_logo_used else None,
+                                         logoScale if custom_logo_used else None,
+                                         logoType, useStud, circleVerts,
+                                         brickD["type"], dimensions["gap"],
+                                         brickD["flipped"] if brickD["type"] in ("SLOPE", "SLOPE_INVERTED") else None,
+                                         brickD["rotated"] if brickD["type"] in ("SLOPE", "SLOPE_INVERTED") else None)).hex()
 
     # NOTE: Stable implementation for Blender 2.79
     # check for bmesh in cache
-    bms = bricker_mesh_cache.get(bm_cache_key)
+    bms = bricker_mesh_cache.get(bm_cache_string)
     # if not found create new brick mesh(es) and store to cache
     if bms is None:
         # create new brick bmeshes
         bms = Bricks.new_mesh(dimensions, brickType, size=brickSize, type=brickD["type"], flip=brickD["flipped"], rotate90=brickD["rotated"], logo=logoToUse, logoType=logoType, logoScale=logoScale, logoInset=logoInset, all_vars=logoToUse is not None, logo_details=logo_details, undersideDetail=undersideDetail, stud=useStud, circleVerts=circleVerts)
         # store newly created meshes to cache
         if brickType != "CUSTOM":
-            bricker_mesh_cache[bm_cache_key] = bms
+            bricker_mesh_cache[bm_cache_string] = bms
     # create edit mesh for each bmesh
     meshes = []
     for i,bm in enumerate(bms):
         # check for existing edit mesh in blendfile data
-        bmcs_hash = bm_cache_key.hex()
+        bmcs_hash = hash_str(bm_cache_string)
         meshName = "%(bmcs_hash)s_%(i)s" % locals()
         m = bpy.data.meshes.get(meshName)
         # create new edit mesh and send bmesh data to it
@@ -302,7 +302,7 @@ def getBrickData(brickD, rand, dimensions, brickSize, brickType, brickHeight, lo
     # #     Enable 'Update Model' button by clicking on and off of 'Gap Between Bricks'
     # #     Press 'Update Model'
     # # check for bmesh in cache
-    # meshes = bricker_mesh_cache.get(bm_cache_key)
+    # meshes = bricker_mesh_cache.get(bm_cache_string)
     # # if not found create new brick mesh(es) and store to cache
     # if meshes is None:
     #     # create new brick bmeshes
@@ -311,7 +311,7 @@ def getBrickData(brickD, rand, dimensions, brickSize, brickType, brickHeight, lo
     #     meshes = []
     #     for i,bm in enumerate(bms):
     #         # check for existing edit mesh in blendfile data
-    #         bmcs_hash = bm_cache_key.hex()
+    #         bmcs_hash = hash_str(bm_cache_string)
     #         meshName = "%(bmcs_hash)s_%(i)s" % locals()
     #         m = bpy.data.meshes.get(meshName)
     #         # create new edit mesh and send bmesh data to it
@@ -323,7 +323,7 @@ def getBrickData(brickD, rand, dimensions, brickSize, brickType, brickHeight, lo
     #         meshes.append(m)
     #     # store newly created meshes to cache
     #     if brickType != "CUSTOM":
-    #         bricker_mesh_cache[bm_cache_key] = meshes
+    #         bricker_mesh_cache[bm_cache_string] = meshes
 
     # pick edit mesh randomly from options
     m0 = meshes[rand.randint(0, len(meshes))] if len(meshes) > 1 else meshes[0]
