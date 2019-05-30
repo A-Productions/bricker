@@ -51,10 +51,11 @@ class BRICKER_OT_clear_cache(bpy.types.Operator):
             self.undo_stack.iterateStates(cm)
             cm.matrixIsDirty = True
             self.clearCaches()
-            # clear source duplicate objects
-            dupNameBase = "Bricker_%(n)s_f_" % locals()
-            dupes = bpy.data.objects.get("%(n)s__dup__" % locals()) if cm.modelCreated else [bpy.data.objects.get(dupNameBase + str(cf)) for cf in range(cm.lastStartFrame, cm.lastStopFrame + 1)]
-            delete(dupes)
+            # clear all duplicated sources for brickified animations
+            if cm.animated:
+                dupNameBase = "Bricker_%(n)s_f_" % locals()
+                dupes = [bpy.data.objects.get(dupNameBase + str(cf)) for cf in range(cm.lastStartFrame, cm.lastStopFrame + 1)]
+                delete(dupes)
         except:
             bricker_handle_exception()
 
