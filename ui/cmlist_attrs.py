@@ -188,8 +188,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Brick Shell",
         description="Choose whether the outer shell of bricks will be inside or outside the source mesh",
         items=[("INSIDE", "Inside Mesh (recommended)", "Draw brick shell inside source mesh (Recommended)"),
-               ("OUTSIDE", "Outside Mesh", "Draw brick shell outside source mesh"),
-               ("INSIDE AND OUTSIDE", "Inside and Outside", "Draw brick shell inside and outside source mesh (two layers)")],
+               ("OUTSIDE", "Outside Mesh", "Draw brick shell outside source mesh")],
         update=dirtyMatrix,
         default="INSIDE")
     calculationAxes = EnumProperty(
@@ -415,8 +414,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirtyMaterial)
     includeTransparency = BoolProperty(
         name="Include Transparency",
-        description="Mix in a transparency node to represent alpha value of original material color",
-        default=False,
+        description="Include alpha value of original material color",
+        default=True,
         update=dirtyMatrix)
     transparentWeight = FloatProperty(
         name="Transparency Weight",
@@ -444,7 +443,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Logo Type",
         description="Choose logo type to draw on brick studs",
         items=[("CUSTOM", "Custom Logo", "Choose a mesh object to use as the brick stud logo"),
-               # ("LEGO", "LEGO Logo", "Include a LEGO logo on each stud"),
+               ("LEGO", "LEGO Logo", "Include a LEGO logo on each stud"),
                ("NONE", "None", "Don't include Brick Logo on bricks")],
         update=dirtyBricks,
         default="NONE")

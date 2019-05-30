@@ -168,7 +168,7 @@ def getFirstNode(mat, types:list=None):
     scn = bpy.context.scene
     if types is None:
         # get material type(s) based on render engine
-        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE"):
+        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "BLENDER_WORKBENCH"):
             types = ("BSDF_PRINCIPLED", "BSDF_DIFFUSE")
         elif scn.render.engine == "octane":
             types = ("OCT_DIFFUSE_MAT")
@@ -245,17 +245,20 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sat_mat, specular, rough
                 principled.inputs[14].default_value = ior
                 principled.inputs[15].default_value = transmission
                 if includeTransparency:
-                    # a new material node tree already has a diffuse and material output node
-                    output = mat_nodes['Material Output']
-                    # create transparent and mix nodes
-                    transparent = mat_nodes.new("ShaderNodeBsdfTransparent")
-                    mix = mat_nodes.new("ShaderNodeMixShader")
-                    # link these nodes together
-                    mat_links.new(principled.outputs['BSDF'], mix.inputs[1])
-                    mat_links.new(transparent.outputs['BSDF'], mix.inputs[2])
-                    mat_links.new(mix.outputs['Shader'], output.inputs["Surface"])
-                    # set mix factor to 1 - alpha
-                    mix.inputs[0].default_value = 1 - rgba[3]
+                    if b280():
+                        principled.inputs[18].default_value = 1 - rgba[3]
+                    else:
+                        # a new material node tree already has a diffuse and material output node
+                        output = mat_nodes['Material Output']
+                        # create transparent and mix nodes
+                        transparent = mat_nodes.new("ShaderNodeBsdfTransparent")
+                        mix = mat_nodes.new("ShaderNodeMixShader")
+                        # link these nodes together
+                        mat_links.new(principled.outputs['BSDF'], mix.inputs[1])
+                        mat_links.new(transparent.outputs['BSDF'], mix.inputs[2])
+                        mat_links.new(mix.outputs['Shader'], output.inputs["Surface"])
+                        # set mix factor to 1 - alpha
+                        mix.inputs[0].default_value = 1 - rgba[3]
             elif scn.render.engine == "octane":
                 # a new material node tree already has a diffuse and material output node
                 output = mat_nodes['Material Output']
@@ -296,7 +299,7 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sat_mat, specular, rough
             # make sure 'use_nodes' is enabled
             mat.use_nodes = True
             # get first node
-            first_node = getFirstNode(mat)
+            first_node = getFirstNode(mat, types=["BSDF_PRINCIPLED" if b280() else "BSDF_DIFFUSE"])
             # update first node's color
             if first_node:
                 rgba1 = first_node.inputs[0].default_value

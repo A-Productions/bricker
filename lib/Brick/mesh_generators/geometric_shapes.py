@@ -165,7 +165,6 @@ def makeCylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), botFace:boo
     bme = bme or bmesh.new()
     topVerts = []
     botVerts = []
-    midVerts = []
     sideFaces = []
 
     # create upper and lower circles
@@ -200,7 +199,7 @@ def makeCylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), botFace:boo
         bme.faces.new(botVerts[::-1] if not flipNormals else botVerts)
 
     # return bme & dictionary with lists of top and bottom vertices
-    return bme, {"bottom":botVerts[::-1], "top":topVerts, "mid":midVerts}
+    return bme, {"bottom":botVerts[::-1], "top":topVerts}
 
 
 def makeTube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), topFace:bool=True, botFace:bool=True, topFaceInner:bool=False, botFaceInner:bool=False, flipNormals:bool=False, seams:bool=True, bme:bmesh=None):

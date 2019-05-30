@@ -262,7 +262,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.cm = cm
         # set up model dimensions variables sX, sY, and sZ
         r = self.getModelResolution(self.source, cm)
-        if get_addon_preferences().brickifyInBackground == "AUTO":
+        if get_addon_preferences().brickifyInBackground == "AUTO" and r is not None:
             self.brickifyInBackground = self.shouldBrickifyInBackground(cm, r)
         else:
             self.brickifyInBackground = get_addon_preferences().brickifyInBackground == "ON"

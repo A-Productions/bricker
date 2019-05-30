@@ -172,13 +172,13 @@ def updateBFMatrix(scn, x0, y0, z0, coordMatrix, faceIdxMatrix, brickFreqMatrix,
         # define brick as inside shell
         brickFreqMatrix[x0][y0][z0] = -1
     if edgeIntersects:
-        if (brickShell == "INSIDE" and origInside) or (brickShell == "OUTSIDE" and not origInside) or brickShell == "INSIDE AND OUTSIDE":
+        if (brickShell == "INSIDE" and origInside) or (brickShell == "OUTSIDE" and not origInside):
             # define brick as part of shell
             brickFreqMatrix[x0][y0][z0] = 1
             # set or update nearest face to brick
             if type(faceIdxMatrix[x0][y0][z0]) != dict or faceIdxMatrix[x0][y0][z0]["dist"] > firstIntersection["dist"]:
                 faceIdxMatrix[x0][y0][z0] = firstIntersection
-        if (brickShell == "INSIDE" and not origInside) or (brickShell == "OUTSIDE" and origInside) or brickShell == "INSIDE AND OUTSIDE":
+        if (brickShell == "INSIDE" and not origInside) or (brickShell == "OUTSIDE" and origInside):
             # define brick as part of shell
             brickFreqMatrix[x1][y1][z1] = 1
             # set or update nearest face to brick

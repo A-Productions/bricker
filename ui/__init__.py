@@ -304,14 +304,6 @@ class VIEW3D_PT_bricker_animation(Panel):
                         if totalSkipped > 0:
                             row = col1.row(align=True)
                             row.label(text="Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
-            if get_addon_preferences().brickifyInBackground != "OFF":
-                col = layout.column(align=True)
-                row = col.row(align=True)
-                row.label(text="Background Processing:")
-                row = col.row(align=True)
-                row.prop(cm, "maxWorkers")
-                row = col.row(align=True)
-                row.prop(cm, "backProcTimeout")
 
 
 class VIEW3D_PT_bricker_model_transform(Panel):
@@ -672,8 +664,11 @@ class VIEW3D_PT_bricker_brick_types(Panel):
                     col.label(text="Distance Offset:")
                     row = col.row(align=True)
                     row.prop(cm, "distOffset", text="")
-                    col = layout.column(align=True)
-                    col.label(text="Other Objects:")
+                    if cm.lastSplitModel:
+                        col = layout.column(align=True)
+                        col.label(text="Other Objects:")
+                    else:
+                        break
                 split = layout_split(col, factor=0.825)
                 col1 = split.column(align=True)
                 col1.prop_search(cm, prop, scn, "objects", text="")
@@ -712,9 +707,10 @@ class VIEW3D_PT_bricker_merge_settings(Panel):
             row.prop(cm, "mergeSeed")
             row = col.row(align=True)
             row.prop(cm, "connectThresh")
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.prop(cm, "mergeInternals")
+        if cm.shellThickness > 1:
+            col = layout.column(align=True)
+            row = col.row(align=True)
+            row.prop(cm, "mergeInternals")
         if cm.brickType == "BRICKS AND PLATES":
             row = col.row(align=True)
             row.prop(cm, "alignBricks")
@@ -858,15 +854,7 @@ class VIEW3D_PT_bricker_materials(Panel):
             if noUV:
                 col = layout.column(align=True)
                 col.scale_y = 0.5
-                col.label(text="Based on RGB value of first")
-                col.separator()
-                if scn.render.engine == "octane":
-                    nodeNamesStr = "'Octane Diffuse' node"
-                elif scn.render.engine == "LUXCORE":
-                    nodeNamesStr = "'Matte Material' node"
-                else:
-                    nodeNamesStr = "'Diffuse' or 'Principled' node"
-                col.label(text=nodeNamesStr)
+                col.label(text="Based on RGB value of first shader node")
             if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
                 if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
                     col = layout.column(align=True)
@@ -959,7 +947,7 @@ class VIEW3D_PT_bricker_detailing(Panel):
         split = layout_split(row, factor=0.5)
         col1 = split.column(align=True)
         col1.label(text="Bevel:")
-        if not (cm.modelCreated or cm.animated):
+        if not (cm.modelCreated or cm.animated) or cm.brickifyingInBackground:
             row = col.row(align=True)
             row.prop(cm, "bevelAdded", text="Bevel Bricks")
             return
@@ -1070,11 +1058,19 @@ class VIEW3D_PT_bricker_advanced(Panel):
         row.label(text="Meshes:")
         row = col.row(align=True)
         row.prop(cm, "instanceBricks")
+        # model orientation preferences
         if not cm.useAnimation and not (cm.modelCreated or cm.animated):
             row = col.row(align=True)
             row.label(text="Model Orientation:")
             row = col.row(align=True)
             row.prop(cm, "useLocalOrient", text="Use Source Local")
+        # background processing preferences
+        if cm.useAnimation and get_addon_preferences().brickifyInBackground != "OFF":
+            col = layout.column(align=True)
+            row = col.row(align=True)
+            row.label(text="Background Processing:")
+            row = col.row(align=True)
+            row.prop(cm, "maxWorkers")
         # draw test brick generator button (for testing purposes only)
         if BRICKER_OT_test_brick_generators.drawUIButton():
             col = layout.column(align=True)
