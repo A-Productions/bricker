@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-# NONE!
+import marshal
 
 # Blender imports
 import bpy
@@ -67,7 +67,7 @@ class BRICKER_OT_set_exposure(Operator):
             for cm_id in self.objNamesD.keys():
                 cm = getItemByID(scn.cmlist, cm_id)
                 self.undo_stack.iterateStates(cm)
-                bricksDict = json.loads(self.cached_bfm[cm_id])
+                bricksDict = marshal.loads(self.cached_bfm[cm_id])
                 keysToUpdate = []
                 cm.customized = True
                 zStep = cm.zStep

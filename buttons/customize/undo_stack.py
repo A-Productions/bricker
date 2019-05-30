@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-# NONE!
+import marshal
 
 # Blender imports
 import bpy
@@ -95,7 +95,7 @@ class UndoStack():
     def _restore_state(self, state):
         global bricker_bfm_cache
         for key in state['bfm_cache'].keys():
-            bricker_bfm_cache[key] = json.loads(state['bfm_cache'][key])
+            bricker_bfm_cache[key] = marshal.loads(state['bfm_cache'][key])
 
     def appendState(self, action, stackType, affected_ids="ALL"):
         global bricker_bfm_cache
@@ -107,7 +107,7 @@ class UndoStack():
             if affected_ids != "ALL" and cm_id not in affected_ids and cm_id in bfm_cached:
                 new_bfm_cache[cm_id] = bfm_cached[cm_id]
             else:
-                new_bfm_cache[cm_id] = json.dumps(bricker_bfm_cache[cm_id])
+                new_bfm_cache[cm_id] = marshal.dumps(bricker_bfm_cache[cm_id])
         stack.append(self._create_state(action, new_bfm_cache))
         return new_bfm_cache
 

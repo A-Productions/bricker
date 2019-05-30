@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-# NONE!
+import marshal
 
 # Blender imports
 import bpy
@@ -71,7 +71,7 @@ class BRICKER_OT_change_brick_material(Operator):
                 cm = getItemByID(scn.cmlist, cm_id)
                 self.undo_stack.iterateStates(cm)
                 # initialize vars
-                bricksDict = json.loads(self.cached_bfm[cm_id])
+                bricksDict = marshal.loads(self.cached_bfm[cm_id])
                 keysToUpdate = set()
                 cm.customized = True
 

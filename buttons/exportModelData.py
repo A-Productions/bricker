@@ -58,15 +58,9 @@ class BRICKER_OT_export_model_data(Operator):
                                 "# Brick Height:  " + str(round(cm.brickHeight, 3)),
                                 "# Gap Between Bricks:  " + str(round(cm.gap, 1)) + "%\n",
                                 "# Number of %(bType)s:  %(numBs)s" % locals(),
-                                ""]
-            # get bricksDict and separate into strings
-            bricksDictStrings = json.dumps(bricksDict).split("}, ")
-            for i,string in enumerate(bricksDictStrings):
-                whitespace = " " if string.startswith("\"") else ""
-                bricksDictStrings[i] = "%(whitespace)s%(string)s}," % locals()
-            strings = modelInfoStrings + bricksDictStrings
+                                "# BricksDict hex:" + marshal.dumps(bricksDict).hex()]
             # write these strings to the specified filepath
-            self.writeToFile(strings, path)
+            self.writeToFile(modelInfoStrings, path)
             self.report({"INFO"}, "Model data saved to '%(path)s'" % locals())
         except:
             bricker_handle_exception()
