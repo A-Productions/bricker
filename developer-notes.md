@@ -18,6 +18,9 @@
     * (EASY) New animation types (loop, boomerang, etc)
         * this would be implemented in the `handle_animation` function
     * apply modifier to bricker model group instead of each object (requires Blender 2.81)
+    * switch `use_blend_file` to `False` for backproc calls (saves memory and time)
+        * Use `cmlist_to_dict.py` code to convert cmlist item to dictionaries
+        * Figure out a way to maintain physics cache, parented matrix_world info, etc. for objects appended to background blender instance
 * Fixes
     * when brickified model's parent is rotated, bricks drawn by customizing model are often not rotated correctly
 
