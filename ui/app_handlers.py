@@ -39,6 +39,8 @@ def brickerRunningBlockingOp():
 
 @persistent
 def handle_animation(scn):
+    if brickerRunningBlockingOp():
+        return
     for i, cm in enumerate(scn.cmlist):
         if not cm.animated:
             continue

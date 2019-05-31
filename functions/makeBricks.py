@@ -150,7 +150,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                 setBrickTypeForSlope(bricksDict, key, [key])
     else:
         # initialize progress bar around cursor
-        old_percent = updateProgressBars(printStatus, cursorStatus, 0, -1, "Merging")
+        old_percent = updateProgressBars(printStatus, cursorStatus, 0.0, -1, "Merging")
         # run merge operations (twice if flat brick type)
         for timeThrough in range(numIters):
             # iterate through z locations in bricksDict (bottom to top)
@@ -240,7 +240,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         updateProgressBars(printStatus, cursorStatus, 1, 0, "Merging", end=True)
 
     # begin 'Building' progress bar
-    old_percent = updateProgressBars(printStatus, cursorStatus, 0, -1, "Building")
+    old_percent = updateProgressBars(printStatus, cursorStatus, 0.0, -1, "Building")
 
     # draw merged bricks
     seedKeys = sorted(list(bricksDict.keys())) if materialType == "RANDOM" else None

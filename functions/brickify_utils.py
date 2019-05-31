@@ -96,7 +96,7 @@ def getDuplicateObjects(scn, cm, action, startFrame, stopFrame):
             scn.frame_set(curFrame)
 
     denom = stopFrame - startFrame
-    update_progress("Applying Modifiers", 0)
+    update_progress("Applying Modifiers", 0.0)
 
     duplicates = {}
     for curFrame in range(startFrame, stopFrame + 1):
@@ -131,13 +131,13 @@ def getDuplicateObjects(scn, cm, action, startFrame, stopFrame):
         apply_transform(sourceDup)
         duplicates[curFrame] = sourceDup
         # update progress bar
-        percent = (curFrame - startFrame) / (denom + 1)
+        percent = (curFrame - startFrame + 1) / (denom + 2)
         if percent < 1:
             update_progress("Applying Modifiers", percent)
     # update progress bar
-    update_progress("Applying Modifiers", 1)
     scn.frame_set(origFrame)
     update_depsgraph()
+    update_progress("Applying Modifiers", 1)
     return duplicates
 
 
