@@ -270,6 +270,8 @@ class VIEW3D_PT_bricker_animation(Panel):
 
         if not cm.animated:
             col = layout.column(align=True)
+            col.use_property_split = True
+            col.use_property_decorate = False
             col.prop(cm, "useAnimation")
         if cm.useAnimation:
             col1 = layout.column(align=True)
@@ -394,6 +396,13 @@ class VIEW3D_PT_bricker_model_settings(Panel):
         row.prop(cm, "gap")
 
         row = col.row(align=True)
+        if not cm.useAnimation:
+            row = col.row(align=True)
+            row.use_property_split = True
+            row.use_property_decorate = False
+            row.prop(cm, "splitModel")
+
+        row = col.row(align=True)
         row.label(text="Randomize:")
         row = col.row(align=True)
         split = layout_split(row, factor=0.5)
@@ -403,11 +412,6 @@ class VIEW3D_PT_bricker_model_settings(Panel):
         col2.prop(cm, "randomRot", text="Rot")
 
         col = layout.column(align=True)
-        row = col.row(align=True)
-        if not cm.useAnimation:
-            row = col.row(align=True)
-            row.prop(cm, "splitModel")
-
         row = col.row(align=True)
         row.label(text="Brick Shell:")
         row = col.row(align=True)
@@ -648,6 +652,8 @@ class VIEW3D_PT_bricker_brick_types(Panel):
             row.prop(cm, "maxDepth", text="Depth")
             col = layout.column(align=True)
             row = col.row(align=True)
+            row.use_property_split = True
+            row.use_property_decorate = False
             row.prop(cm, "legalBricksOnly")
 
         if cm.brickType == "CUSTOM":
@@ -772,17 +778,17 @@ class VIEW3D_PT_bricker_materials(Panel):
             col.active = len(obj.data.uv_layers) > 0
             row = col.row(align=True)
             row.prop(cm, "useUVMap", text="Use UV Map")
-            if cm.useUVMap:
-                split = layout_split(row, factor=0.75)
-                split.prop(cm, "uvImage", text="")
-                split.operator("image.open", icon="FILEBROWSER" if b280() else "FILESEL", text="")
+            split = layout_split(row, factor=0.75)
+            split.active = cm.useUVMap
+            split.prop(cm, "uvImage", text="")
+            split.operator("image.open", icon="FILEBROWSER" if b280() else "FILESEL", text="")
             if len(obj.data.vertex_colors) > 0:
                 col = layout.column(align=True)
                 col.scale_y = 0.7
                 col.label(text="(Vertex colors not supported)")
             if cm.shellThickness > 1 or cm.internalSupports != "NONE":
-                if len(obj.data.uv_layers) <= 0 or len(obj.data.vertex_colors) > 0:
-                    col = layout.column(align=True)
+                # if len(obj.data.uv_layers) <= 0 or len(obj.data.vertex_colors) > 0:
+                col = layout.column(align=True)
                 row = col.row(align=True)
                 row.label(text="Internal Material:")
                 row = col.row(align=True)
@@ -834,6 +840,8 @@ class VIEW3D_PT_bricker_materials(Panel):
                     # settings for adding materials
                     if hasattr(bpy.props, "abs_mats_common"):  # checks that ABS plastic mats are at least v2.1
                         col = layout.column(align=True)
+                        col.use_property_split = True
+                        col.use_property_decorate = False
                         row = col.row(align=True)
                         row.prop(scn, "include_transparent")
                         row = col.row(align=True)
@@ -871,6 +879,8 @@ class VIEW3D_PT_bricker_materials(Panel):
                     row.prop(cm, "colorSnapTransmission")
                 if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
                     row = col.row(align=True)
+                    row.use_property_split = True
+                    row.use_property_decorate = False
                     row.prop(cm, "includeTransparency")
                 col = layout.column(align=False)
                 col.scale_y = 0.5
@@ -912,6 +922,7 @@ class VIEW3D_PT_bricker_detailing(Panel):
         row.label(text="Studs:")
         row = col.row(align=True)
         row.prop(cm, "studDetail", text="")
+        col = layout.column(align=True)
         row = col.row(align=True)
         row.label(text="Logo:")
         row = col.row(align=True)
@@ -929,11 +940,13 @@ class VIEW3D_PT_bricker_detailing(Panel):
                 row.prop(cm, "logoScale", text="Scale")
             row.prop(cm, "logoInset", text="Inset")
             col = layout.column(align=True)
+        col = layout.column(align=True)
         row = col.row(align=True)
         row.label(text="Underside:")
         row = col.row(align=True)
         row.prop(cm, "hiddenUndersideDetail", text="")
         row.prop(cm, "exposedUndersideDetail", text="")
+        col = layout.column(align=True)
         row = col.row(align=True)
         row.label(text="Cylinders:")
         row = col.row(align=True)
@@ -946,7 +959,7 @@ class VIEW3D_PT_bricker_detailing(Panel):
         col1.label(text="Bevel:")
         if not (cm.modelCreated or cm.animated) or cm.brickifyingInBackground:
             row = col.row(align=True)
-            row.prop(cm, "bevelAdded", text="Bevel Bricks")
+            row.prop(cm, "bevelAdded", text="Use Bevel", toggle=True, icon="MOD_BEVEL")
             return
         try:
             testBrick = getBricks()[0]
@@ -999,6 +1012,8 @@ class VIEW3D_PT_bricker_supports(Panel):
             row.active == cm.latticeStep > 1
             row.prop(cm, "latticeHeight")
             row = col.row(align=True)
+            row.use_property_split = True
+            row.use_property_decorate = False
             row.prop(cm, "alternateXY")
         elif cm.internalSupports == "COLUMNS":
             row.prop(cm, "colThickness")
@@ -1041,8 +1056,9 @@ class VIEW3D_PT_bricker_advanced(Panel):
         col = layout.column(align=True)
         row = col.row(align=True)
         row.operator("bricker.clear_cache", text="Clear Cache")
+        col = layout.column(align=True)
         row = col.row(align=True)
-        row.label(text="Insideness:")
+        row.label(text="Ray Casting:")
         row = col.row(align=True)
         row.prop(cm, "insidenessRayCastDir", text="")
         row = col.row(align=True)
@@ -1051,12 +1067,14 @@ class VIEW3D_PT_bricker_advanced(Panel):
         row.prop(cm, "useNormals")
         row = col.row(align=True)
         row.prop(cm, "verifyExposure")
+        col = layout.column(align=True)
         row = col.row(align=True)
         row.label(text="Meshes:")
         row = col.row(align=True)
         row.prop(cm, "instanceBricks")
         # model orientation preferences
         if not cm.useAnimation and not (cm.modelCreated or cm.animated):
+            col = layout.column(align=True)
             row = col.row(align=True)
             row.label(text="Model Orientation:")
             row = col.row(align=True)

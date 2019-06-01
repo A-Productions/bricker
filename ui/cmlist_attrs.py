@@ -187,7 +187,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     brickShell = EnumProperty(
         name="Brick Shell",
         description="Choose whether the outer shell of bricks will be inside or outside the source mesh",
-        items=[("INSIDE", "Inside Mesh (recommended)", "Draw brick shell inside source mesh (Recommended)"),
+        items=[("INSIDE", "Inside Mesh (recommended)", "Draw brick shell inside source mesh (recommended)"),
                ("OUTSIDE", "Outside Mesh", "Draw brick shell outside source mesh")],
         update=dirtyMatrix,
         default="INSIDE")
@@ -485,7 +485,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default=50.0)
     hiddenUndersideDetail = EnumProperty(
         name="Underside Detailing of Obstructed Bricks",
-        description="Level of detail on underside of bricks with obstructed undersides",
+        description="Obstructed: Level of detail on underside of bricks with obstructed undersides",
         items=[("FLAT", "Flat", "draw single face on brick underside"),
                ("LOW", "Low", "Hollow out brick underside and draw tube supports"),
                ("MEDIUM", "Medium", "Draw inset tubes below studs and support beams"),
@@ -494,7 +494,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default="FLAT")
     exposedUndersideDetail = EnumProperty(
         name="Underside Detailing of Exposed Bricks",
-        description="Level of detail on underside of bricks with exposed undersides",
+        description="Exposed: Level of detail on underside of bricks with exposed undersides",
         items=[("FLAT", "Flat", "draw single face on brick underside"),
                ("LOW", "Low", "Hollow out brick underside and draw tube supports"),
                ("MEDIUM", "Medium", "Draw inset tubes below studs and support beams"),
