@@ -472,6 +472,15 @@ def update_depsgraph():
     bpy.context.view_layer.depsgraph.update()
 
 
+@blender_version_wrapper('<=','2.79')
+def right_align(layout_item):
+    pass
+@blender_version_wrapper('>=','2.80')
+def right_align(layout_item):
+    layout_item.use_property_split = True
+    layout_item.use_property_decorate = False
+
+
 def getItemByID(collection:bpy.types.CollectionProperty, id:int):
     """ get UIlist item from collection with given id """
     success = False

@@ -75,6 +75,8 @@ classes = [
     VIEW3D_PT_bricker_merge_settings,
     VIEW3D_PT_bricker_customize,
     VIEW3D_PT_bricker_materials,
+    VIEW3D_PT_bricker_included_materials,
+    VIEW3D_PT_bricker_material_properties,
     VIEW3D_PT_bricker_detailing,
     VIEW3D_PT_bricker_supports,
     VIEW3D_PT_bricker_advanced,

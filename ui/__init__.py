@@ -270,8 +270,7 @@ class VIEW3D_PT_bricker_animation(Panel):
 
         if not cm.animated:
             col = layout.column(align=True)
-            col.use_property_split = True
-            col.use_property_decorate = False
+            right_align(col)
             col.prop(cm, "useAnimation")
         if cm.useAnimation:
             col1 = layout.column(align=True)
@@ -328,6 +327,7 @@ class VIEW3D_PT_bricker_model_transform(Panel):
         scn, cm, n = getActiveContextInfo()
 
         col = layout.column(align=True)
+        right_align(col)
         row = col.row(align=True)
 
         if not (cm.animated or cm.lastSplitModel):
@@ -398,8 +398,7 @@ class VIEW3D_PT_bricker_model_settings(Panel):
         row = col.row(align=True)
         if not cm.useAnimation:
             row = col.row(align=True)
-            row.use_property_split = True
-            row.use_property_decorate = False
+            right_align(row)
             row.prop(cm, "splitModel")
 
         row = col.row(align=True)
@@ -418,7 +417,7 @@ class VIEW3D_PT_bricker_model_settings(Panel):
         row.prop(cm, "brickShell", text="")
         if cm.brickShell != "INSIDE":
             row = col.row(align=True)
-            row.prop(cm, "calculationAxes", text="")
+            row.prop(cm, "calculationAxes")
         row = col.row(align=True)
         row.prop(cm, "shellThickness", text="Thickness")
         obj = cm.source_obj
@@ -563,8 +562,8 @@ class VIEW3D_PT_bricker_customize(Panel):
         row = col1.row(align=True)
         row.operator("bricker.change_brick_material", text="Change Material")
         # additional controls
-        col = layout.column(align=True)
-        row = col.row(align=True)
+        row = col1.row(align=True)
+        right_align(row)
         row.prop(cm, "autoUpdateOnDelete")
         # row = col.row(align=True)
         # row.operator("bricker.redraw_bricks")
@@ -652,8 +651,7 @@ class VIEW3D_PT_bricker_brick_types(Panel):
             row.prop(cm, "maxDepth", text="Depth")
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.use_property_split = True
-            row.use_property_decorate = False
+            right_align(row)
             row.prop(cm, "legalBricksOnly")
 
         if cm.brickType == "CUSTOM":
@@ -704,7 +702,7 @@ class VIEW3D_PT_bricker_merge_settings(Panel):
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.prop(cm, "mergeType", text="")
+        row.prop(cm, "mergeType", expand=True)
         if cm.mergeType == "RANDOM":
             row = col.row(align=True)
             row.prop(cm, "mergeSeed")
@@ -730,7 +728,6 @@ class VIEW3D_PT_bricker_materials(Panel):
     bl_idname      = "VIEW3D_PT_bricker_materials"
     bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
-    # COMPAT_ENGINES = {"CYCLES", "BLENDER_RENDER"}
 
     @classmethod
     def poll(self, context):
@@ -772,7 +769,6 @@ class VIEW3D_PT_bricker_materials(Panel):
                     col = layout.column(align=True)
                     row = col.row(align=True)
                     row.operator("bricker.apply_material", icon="FILE_TICK")
-            col = layout.column(align=True)
         elif cm.materialType == "SOURCE" and obj:
             col = layout.column(align=True)
             col.active = len(obj.data.uv_layers) > 0
@@ -814,80 +810,128 @@ class VIEW3D_PT_bricker_materials(Panel):
                 row = col.row(align=True)
                 row.prop(cm, "transparentWeight", text="Transparent Weight")
 
-        if cm.materialType == "RANDOM" or (cm.materialType == "SOURCE" and cm.colorSnap == "ABS"):
-            matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
-            if matObj is None:
-                createNewMatObjs(cm.id)
-            else:
-                if not brick_materials_installed():
-                    col.label(text="'ABS Plastic Materials' not installed")
-                elif scn.render.engine not in ('CYCLES', 'BLENDER_EEVEE'):
-                    col.label(text="Switch to 'Cycles' or 'Eevee' for Brick Materials")
-                else:
-                    # draw materials UI list and list actions
-                    numMats = len(matObj.data.materials)
-                    rows = 5 if numMats > 5 else (numMats if numMats > 2 else 2)
-                    split = layout_split(col, factor=0.85)
-                    col1 = split.column(align=True)
-                    col1.template_list("MATERIAL_UL_matslots", "", matObj, "material_slots", matObj, "active_material_index", rows=rows)
-                    col1 = split.column(align=True)
-                    col1.operator("bricker.mat_list_action", icon='REMOVE' if b280() else 'ZOOMOUT', text="").action = 'REMOVE'
-                    col1.scale_y = 1 + rows
-                    if not brick_materials_imported():
-                        col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
-                    else:
-                        col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ADD" if b280() else "ZOOMIN")
-                    # settings for adding materials
-                    if hasattr(bpy.props, "abs_mats_common"):  # checks that ABS plastic mats are at least v2.1
-                        col = layout.column(align=True)
-                        col.use_property_split = True
-                        col.use_property_decorate = False
-                        row = col.row(align=True)
-                        row.prop(scn, "include_transparent")
-                        row = col.row(align=True)
-                        row.prop(scn, "include_uncommon")
-
-                    col = layout.column(align=True)
-                    split = layout_split(col, factor=0.25)
-                    col = split.column(align=True)
-                    col.label(text="Add:")
-                    col = split.column(align=True)
-                    col.prop_search(cm, "targetMaterial", bpy.data, "materials", text="")
-
         if cm.materialType == "SOURCE" and obj:
             noUV = scn.render.engine in ("CYCLES", "BLENDER_EEVEE") and cm.colorSnap != "NONE" and (not cm.useUVMap or len(obj.data.uv_layers) == 0)
             if noUV:
                 col = layout.column(align=True)
                 col.scale_y = 0.5
                 col.label(text="Based on RGB value of first shader node")
-            if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
-                if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
-                    col = layout.column(align=True)
-                    col.label(text="Material Properties:")
-                    row = col.row(align=True)
-                    row.prop(cm, "colorSnapSpecular")
-                    row = col.row(align=True)
-                    row.prop(cm, "colorSnapRoughness")
-                    row = col.row(align=True)
-                    row.prop(cm, "colorSnapIOR")
-                if scn.render.engine in ("CYCLES", "BLENDER_EEVEE"):
-                    row = col.row(align=True)
-                    row.prop(cm, "colorSnapSubsurface")
-                    row = col.row(align=True)
-                    row.prop(cm, "colorSnapSubsurfaceSaturation")
-                    row = col.row(align=True)
-                    row.prop(cm, "colorSnapTransmission")
-                if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
-                    row = col.row(align=True)
-                    row.use_property_split = True
-                    row.use_property_decorate = False
-                    row.prop(cm, "includeTransparency")
-                col = layout.column(align=False)
-                col.scale_y = 0.5
-                col.separator()
-            elif noUV:
-                col.separator()
 
+
+class VIEW3D_PT_bricker_included_materials(Panel):
+    bl_space_type  = "VIEW_3D"
+    bl_region_type = "UI" if b280() else "TOOLS"
+    bl_category    = "Bricker"
+    bl_label       = "Included Materials"
+    bl_parent_id   = "VIEW3D_PT_bricker_materials"
+    bl_idname      = "VIEW3D_PT_bricker_included_materials"
+    bl_context     = "objectmode"
+
+    @classmethod
+    def poll(self, context):
+        """ ensures operator can execute (if not, returns false) """
+        if not settingsCanBeDrawn():
+            return False
+        scn, cm, _ = getActiveContextInfo()
+        print(1)
+        if cm.materialType == "RANDOM" or (cm.materialType == "SOURCE" and cm.colorSnap == "ABS"):
+            print(2)
+            return True
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+        scn, cm, _ = getActiveContextInfo()
+        print(1)
+
+        matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
+        if matObj is None:
+            print(2)
+            createNewMatObjs(cm.id)
+        else:
+            print(3)
+            col = layout.column(align=True)
+            if not brick_materials_installed():
+                col.label(text="'ABS Plastic Materials' not installed")
+            elif scn.render.engine not in ('CYCLES', 'BLENDER_EEVEE'):
+                col.label(text="Switch to 'Cycles' or 'Eevee' for Brick Materials")
+            else:
+                # draw materials UI list and list actions
+                numMats = len(matObj.data.materials)
+                rows = 5 if numMats > 5 else (numMats if numMats > 2 else 2)
+                split = layout_split(col, factor=0.85)
+                col1 = split.column(align=True)
+                col1.template_list("MATERIAL_UL_matslots", "", matObj, "material_slots", matObj, "active_material_index", rows=rows)
+                col1 = split.column(align=True)
+                col1.operator("bricker.mat_list_action", icon='REMOVE' if b280() else 'ZOOMOUT', text="").action = 'REMOVE'
+                col1.scale_y = 1 + rows
+                if not brick_materials_imported():
+                    col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
+                else:
+                    col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ADD" if b280() else "ZOOMIN")
+                # settings for adding materials
+                if hasattr(bpy.props, "abs_mats_common"):  # checks that ABS plastic mats are at least v2.1
+                    col = layout.column(align=True)
+                    right_align(col)
+                    row = col.row(align=True)
+                    row.prop(scn, "include_transparent")
+                    row = col.row(align=True)
+                    row.prop(scn, "include_uncommon")
+
+                col = layout.column(align=True)
+                split = layout_split(col, factor=0.25)
+                col = split.column(align=True)
+                col.label(text="Add:")
+                col = split.column(align=True)
+                col.prop_search(cm, "targetMaterial", bpy.data, "materials", text="")
+
+
+class VIEW3D_PT_bricker_material_properties(Panel):
+    bl_space_type  = "VIEW_3D"
+    bl_region_type = "UI" if b280() else "TOOLS"
+    bl_category    = "Bricker"
+    bl_label       = "Material Properties"
+    bl_idname      = "VIEW3D_PT_bricker_material_properties"
+    bl_parent_id   = "VIEW3D_PT_bricker_materials"
+    bl_context     = "objectmode"
+    bl_options     = {"DEFAULT_CLOSED"}
+
+    @classmethod
+    def poll(self, context):
+        """ ensures operator can execute (if not, returns false) """
+        if not settingsCanBeDrawn():
+            return False
+        scn, cm, _ = getActiveContextInfo()
+        obj = cm.source_obj
+        if cm.materialType == "SOURCE" and obj:
+            if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
+                return True
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+        scn, cm, _ = getActiveContextInfo()
+        obj = cm.source_obj
+
+        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
+            col = layout.column(align=True)
+            row = col.row(align=True)
+            row.prop(cm, "colorSnapSpecular")
+            row = col.row(align=True)
+            row.prop(cm, "colorSnapRoughness")
+            row = col.row(align=True)
+            row.prop(cm, "colorSnapIOR")
+        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE"):
+            row = col.row(align=True)
+            row.prop(cm, "colorSnapSubsurface")
+            row = col.row(align=True)
+            row.prop(cm, "colorSnapSubsurfaceSaturation")
+            row = col.row(align=True)
+            row.prop(cm, "colorSnapTransmission")
+        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
+            row = col.row(align=True)
+            right_align(row)
+            row.prop(cm, "includeTransparency")
 
 
 class VIEW3D_PT_bricker_detailing(Panel):
@@ -913,9 +957,7 @@ class VIEW3D_PT_bricker_detailing(Panel):
             col = layout.column(align=True)
             col.scale_y = 0.7
             row = col.row(align=True)
-            row.label(text="(not applied to custom")
-            row = col.row(align=True)
-            row.label(text="brick types)")
+            row.label(text="(ignored for custom brick types)")
             layout.separator()
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -1012,8 +1054,7 @@ class VIEW3D_PT_bricker_supports(Panel):
             row.active == cm.latticeStep > 1
             row.prop(cm, "latticeHeight")
             row = col.row(align=True)
-            row.use_property_split = True
-            row.use_property_decorate = False
+            right_align(row)
             row.prop(cm, "alternateXY")
         elif cm.internalSupports == "COLUMNS":
             row.prop(cm, "colThickness")

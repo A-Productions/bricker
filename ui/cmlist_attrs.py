@@ -78,7 +78,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         min=0, max=500000,
         default=1)
     stopFrame = IntProperty(
-        name="Stop Frame",
+        name="End Frame",
         description="Stop frame of Brick animation",
         update=dirtyAnim,
         min=0, max=500000,
@@ -256,7 +256,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Merge Type",
         description="Type of algorithm used for merging bricks together",
         items=[("GREEDY", "Greedy", "Creates fewest amount of bricks possible"),
-               ("RANDOM", "Random", "Merges randomly for realistic build")],
+               ("RANDOM", "Random", "Merges randomly for realistic build"),],
         update=dirtyBuild,
         default="RANDOM")
     legalBricksOnly = BoolProperty(
