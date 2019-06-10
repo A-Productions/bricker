@@ -72,14 +72,14 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="Create Brick Model for each frame, from start to stop frame (WARNING: Calculation takes time, and may result in large blend file )",
         default=False)
     startFrame = IntProperty(
-        name="Start Frame",
-        description="Start frame of Brick animation",
+        name="Start",
+        description="Start frame of the brick animation",
         update=dirtyAnim,
         min=0, max=500000,
         default=1)
     stopFrame = IntProperty(
-        name="End Frame",
-        description="Stop frame of Brick animation",
+        name="End",
+        description="Stop frame of the rick animation",
         update=dirtyAnim,
         min=0, max=500000,
         default=10)
@@ -109,7 +109,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default=0.1)
     gap = FloatProperty(
         name="Gap Between Bricks",
-        description="Distance between bricks",
+        description="Distance between bricks (relative to brick height)",
         update=dirtyMatrix,
         subtype="PERCENTAGE",
         step=1,
@@ -187,7 +187,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     brickShell = EnumProperty(
         name="Brick Shell",
         description="Choose whether the outer shell of bricks will be inside or outside the source mesh",
-        items=[("INSIDE", "Inside Mesh (recommended)", "Draw brick shell inside source mesh (recommended)"),
+        items=[("INSIDE", "Inside Mesh", "Draw brick shell inside source mesh (recommended)"),
                ("OUTSIDE", "Outside Mesh", "Draw brick shell outside source mesh")],
         update=dirtyMatrix,
         default="INSIDE")
@@ -341,7 +341,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default=1000)
     useUVMap = BoolProperty(
         name="Use UV Map",
-        description="Transfer colors from source UV map (source must be unwrapped)",
+        description="Transfer colors from UV map (if disabled or no UV map found, brick color will be based on RGB of first shader node)",
         default=True,
         update=dirtyMaterial)
     uvImage = PointerProperty(
@@ -358,7 +358,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirtyMaterial,
         default="RGB")
     colorSnapAmount = FloatProperty(
-        name="Color Snap Amount",
+        name="Snap Threshold",
         description="Threshold for combining colors together (higher numbers for fewer unique materials generated)",
         subtype="FACTOR",
         precision=3,
@@ -434,9 +434,9 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     studDetail = EnumProperty(
         name="Stud Detailing",
         description="Choose where to draw brick studs",
-        items=[("ALL", "On All Bricks", "Include Brick Logo only on bricks with studs exposed"),
-               ("EXPOSED", "On Exposed Bricks", "Include Brick Logo only on bricks with studs exposed"),
-               ("NONE", "None", "Don't include Brick Logo on bricks")],
+        items=[("ALL", "All Bricks", "Include brick studs/logos only on bricks with the top exposed"),
+               ("EXPOSED", "Exposed Bricks", "Include brick studs/logos only on bricks with the top exposed"),
+               ("NONE", "None", "Don't include brick studs/logos on bricks")],
         update=dirtyBricks,
         default="EXPOSED")
     logoType = EnumProperty(
@@ -485,7 +485,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default=50.0)
     hiddenUndersideDetail = EnumProperty(
         name="Underside Detailing of Obstructed Bricks",
-        description="Obstructed: Level of detail on underside of bricks with obstructed undersides",
+        description="Level of detail on underside of bricks with obstructed undersides",
         items=[("FLAT", "Flat", "draw single face on brick underside"),
                ("LOW", "Low", "Hollow out brick underside and draw tube supports"),
                ("MEDIUM", "Medium", "Draw inset tubes below studs and support beams"),
@@ -494,7 +494,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default="FLAT")
     exposedUndersideDetail = EnumProperty(
         name="Underside Detailing of Exposed Bricks",
-        description="Exposed: Level of detail on underside of bricks with exposed undersides",
+        description="Level of detail on underside of bricks with exposed undersides",
         items=[("FLAT", "Flat", "draw single face on brick underside"),
                ("LOW", "Low", "Hollow out brick underside and draw tube supports"),
                ("MEDIUM", "Medium", "Draw inset tubes below studs and support beams"),
@@ -502,7 +502,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirtyBricks,
         default="FLAT")
     circleVerts = IntProperty(
-        name="Num Verts",
+        name="Vertices",
         description="Number of vertices in each circle in brick mesh",
         update=updateCircleVerts,
         min=4, soft_max=64,

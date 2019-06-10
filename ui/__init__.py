@@ -264,44 +264,44 @@ class VIEW3D_PT_bricker_animation(Panel):
             return False
         return True
 
+    def draw_header(self, context):
+        scn, cm, _ = getActiveContextInfo()
+        if not cm.animated:
+            self.layout.prop(cm, "useAnimation", text="")
+
     def draw(self, context):
         layout = self.layout
         scn, cm, _ = getActiveContextInfo()
 
-        if not cm.animated:
-            col = layout.column(align=True)
-            right_align(col)
-            col.prop(cm, "useAnimation")
-        if cm.useAnimation:
-            col1 = layout.column(align=True)
-            col1.active = cm.animated or cm.useAnimation
-            col1.scale_y = 0.85
-            row = col1.row(align=True)
-            split = layout_split(row, factor=0.5)
-            col = split.column(align=True)
-            col.prop(cm, "startFrame")
-            col = split.column(align=True)
-            col.prop(cm, "stopFrame")
-            source = cm.source_obj
-            self.appliedMods = False
-            if source:
-                for mod in source.modifiers:
-                    if mod.type in ("CLOTH", "SOFT_BODY") and mod.show_viewport:
-                        self.appliedMods = True
-                        t = mod.type
-                        if mod.point_cache.frame_end < cm.stopFrame:
-                            s = str(max([mod.point_cache.frame_end+1, cm.startFrame]))
-                            e = str(cm.stopFrame)
-                        elif mod.point_cache.frame_start > cm.startFrame:
-                            s = str(cm.startFrame)
-                            e = str(min([mod.point_cache.frame_start-1, cm.stopFrame]))
-                        else:
-                            s = "0"
-                            e = "-1"
-                        totalSkipped = int(e) - int(s) + 1
-                        if totalSkipped > 0:
-                            row = col1.row(align=True)
-                            row.label(text="Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
+        col1 = layout.column(align=True)
+        col1.active = cm.animated or cm.useAnimation
+        col1.scale_y = 0.85
+        row = col1.row(align=True)
+        split = layout_split(row, factor=0.5)
+        col = split.column(align=True)
+        col.prop(cm, "startFrame")
+        col = split.column(align=True)
+        col.prop(cm, "stopFrame")
+        source = cm.source_obj
+        self.appliedMods = False
+        if source:
+            for mod in source.modifiers:
+                if mod.type in ("CLOTH", "SOFT_BODY") and mod.show_viewport:
+                    self.appliedMods = True
+                    t = mod.type
+                    if mod.point_cache.frame_end < cm.stopFrame:
+                        s = str(max([mod.point_cache.frame_end+1, cm.startFrame]))
+                        e = str(cm.stopFrame)
+                    elif mod.point_cache.frame_start > cm.startFrame:
+                        s = str(cm.startFrame)
+                        e = str(min([mod.point_cache.frame_start-1, cm.stopFrame]))
+                    else:
+                        s = "0"
+                        e = "-1"
+                    totalSkipped = int(e) - int(s) + 1
+                    if totalSkipped > 0:
+                        row = col1.row(align=True)
+                        row.label(text="Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
 
 
 class VIEW3D_PT_bricker_model_transform(Panel):
@@ -396,11 +396,18 @@ class VIEW3D_PT_bricker_model_settings(Panel):
         row.prop(cm, "gap")
 
         row = col.row(align=True)
-        if not cm.useAnimation:
-            row = col.row(align=True)
-            right_align(row)
-            row.prop(cm, "splitModel")
+        # if not cm.useAnimation:
+        col = layout.column()
+        row = col.row(align=True)
+        right_align(row)
+        row.active = not cm.useAnimation
+        row.prop(cm, "splitModel")
 
+        col = layout.column()
+        row = col.row(align=True)
+        row.prop(cm, "shellThickness")
+
+        col = layout.column()
         row = col.row(align=True)
         row.label(text="Randomize:")
         row = col.row(align=True)
@@ -410,16 +417,6 @@ class VIEW3D_PT_bricker_model_settings(Panel):
         col2 = split.column(align=True)
         col2.prop(cm, "randomRot", text="Rot")
 
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.label(text="Brick Shell:")
-        row = col.row(align=True)
-        row.prop(cm, "brickShell", text="")
-        if cm.brickShell != "INSIDE":
-            row = col.row(align=True)
-            row.prop(cm, "calculationAxes")
-        row = col.row(align=True)
-        row.prop(cm, "shellThickness", text="Thickness")
         obj = cm.source_obj
         # if obj and not cm.isWaterTight:
         #     row = col.row(align=True)
@@ -775,13 +772,16 @@ class VIEW3D_PT_bricker_materials(Panel):
             row = col.row(align=True)
             row.prop(cm, "useUVMap", text="Use UV Map")
             split = layout_split(row, factor=0.75)
-            split.active = cm.useUVMap
-            split.prop(cm, "uvImage", text="")
-            split.operator("image.open", icon="FILEBROWSER" if b280() else "FILESEL", text="")
+            # split.active = cm.useUVMap
+            if cm.useUVMap:
+                split.prop(cm, "uvImage", text="")
+                split.operator("image.open", icon="FILEBROWSER" if b280() else "FILESEL", text="")
             if len(obj.data.vertex_colors) > 0:
                 col = layout.column(align=True)
                 col.scale_y = 0.7
                 col.label(text="(Vertex colors not supported)")
+
+            # internal material info
             if cm.shellThickness > 1 or cm.internalSupports != "NONE":
                 # if len(obj.data.uv_layers) <= 0 or len(obj.data.vertex_colors) > 0:
                 col = layout.column(align=True)
@@ -798,6 +798,7 @@ class VIEW3D_PT_bricker_materials(Panel):
                     else:
                         row.label(text="Run 'Update Model' to apply changes")
 
+            # color snapping info
             col = layout.column(align=True)
             row = col.row(align=True)
             row.label(text="Color Snapping:")
@@ -809,13 +810,6 @@ class VIEW3D_PT_bricker_materials(Panel):
             if cm.colorSnap == "ABS":
                 row = col.row(align=True)
                 row.prop(cm, "transparentWeight", text="Transparent Weight")
-
-        if cm.materialType == "SOURCE" and obj:
-            noUV = scn.render.engine in ("CYCLES", "BLENDER_EEVEE") and cm.colorSnap != "NONE" and (not cm.useUVMap or len(obj.data.uv_layers) == 0)
-            if noUV:
-                col = layout.column(align=True)
-                col.scale_y = 0.5
-                col.label(text="Based on RGB value of first shader node")
 
 
 class VIEW3D_PT_bricker_included_materials(Panel):
@@ -833,23 +827,18 @@ class VIEW3D_PT_bricker_included_materials(Panel):
         if not settingsCanBeDrawn():
             return False
         scn, cm, _ = getActiveContextInfo()
-        print(1)
         if cm.materialType == "RANDOM" or (cm.materialType == "SOURCE" and cm.colorSnap == "ABS"):
-            print(2)
             return True
         return False
 
     def draw(self, context):
         layout = self.layout
         scn, cm, _ = getActiveContextInfo()
-        print(1)
 
         matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
         if matObj is None:
-            print(2)
             createNewMatObjs(cm.id)
         else:
-            print(3)
             col = layout.column(align=True)
             if not brick_materials_installed():
                 col.label(text="'ABS Plastic Materials' not installed")
@@ -958,12 +947,15 @@ class VIEW3D_PT_bricker_detailing(Panel):
             col.scale_y = 0.7
             row = col.row(align=True)
             row.label(text="(ignored for custom brick types)")
+            layout.active = False
             layout.separator()
+
         col = layout.column(align=True)
         row = col.row(align=True)
         row.label(text="Studs:")
         row = col.row(align=True)
         row.prop(cm, "studDetail", text="")
+
         col = layout.column(align=True)
         row = col.row(align=True)
         row.label(text="Logo:")
@@ -982,17 +974,20 @@ class VIEW3D_PT_bricker_detailing(Panel):
                 row.prop(cm, "logoScale", text="Scale")
             row.prop(cm, "logoInset", text="Inset")
             col = layout.column(align=True)
+
         col = layout.column(align=True)
         row = col.row(align=True)
         row.label(text="Underside:")
         row = col.row(align=True)
         row.prop(cm, "hiddenUndersideDetail", text="")
+        # row = col2.row(align=True)
         row.prop(cm, "exposedUndersideDetail", text="")
+
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.label(text="Cylinders:")
+        row.label(text="Circles:")
         row = col.row(align=True)
-        row.prop(cm, "circleVerts")
+        row.prop(cm, "circleVerts", text="Vertices")
 
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -1001,7 +996,8 @@ class VIEW3D_PT_bricker_detailing(Panel):
         col1.label(text="Bevel:")
         if not (cm.modelCreated or cm.animated) or cm.brickifyingInBackground:
             row = col.row(align=True)
-            row.prop(cm, "bevelAdded", text="Use Bevel", toggle=True, icon="MOD_BEVEL")
+            # right_align(row)
+            row.prop(cm, "bevelAdded", text="Bevel Bricks")
             return
         try:
             testBrick = getBricks()[0]
@@ -1046,9 +1042,9 @@ class VIEW3D_PT_bricker_supports(Panel):
         col = layout.column(align=True)
         row = col.row(align=True)
         row.prop(cm, "internalSupports", text="")
-        col = layout.column(align=True)
-        row = col.row(align=True)
         if cm.internalSupports == "LATTICE":
+            col = layout.column(align=True)
+            row = col.row(align=True)
             row.prop(cm, "latticeStep")
             row = col.row(align=True)
             row.active == cm.latticeStep > 1
@@ -1057,6 +1053,8 @@ class VIEW3D_PT_bricker_supports(Panel):
             right_align(row)
             row.prop(cm, "alternateXY")
         elif cm.internalSupports == "COLUMNS":
+            col = layout.column(align=True)
+            row = col.row(align=True)
             row.prop(cm, "colThickness")
             row = col.row(align=True)
             row.prop(cm, "colStep")
@@ -1108,11 +1106,18 @@ class VIEW3D_PT_bricker_advanced(Panel):
         row.prop(cm, "useNormals")
         row = col.row(align=True)
         row.prop(cm, "verifyExposure")
+        row = col.row(align=True)
+        row.prop(cm, "brickShell", text="Shell")
+        if cm.brickShell != "INSIDE":
+            row = col.row(align=True)
+            row.prop(cm, "calculationAxes", text="")
+
         col = layout.column(align=True)
         row = col.row(align=True)
         row.label(text="Meshes:")
         row = col.row(align=True)
         row.prop(cm, "instanceBricks")
+
         # model orientation preferences
         if not cm.useAnimation and not (cm.modelCreated or cm.animated):
             col = layout.column(align=True)
@@ -1120,6 +1125,7 @@ class VIEW3D_PT_bricker_advanced(Panel):
             row.label(text="Model Orientation:")
             row = col.row(align=True)
             row.prop(cm, "useLocalOrient", text="Use Source Local")
+
         # background processing preferences
         if cm.useAnimation and get_addon_preferences().brickifyInBackground != "OFF":
             col = layout.column(align=True)
@@ -1127,6 +1133,7 @@ class VIEW3D_PT_bricker_advanced(Panel):
             row.label(text="Background Processing:")
             row = col.row(align=True)
             row.prop(cm, "maxWorkers")
+
         # draw test brick generator button (for testing purposes only)
         if BRICKER_OT_test_brick_generators.drawUIButton():
             col = layout.column(align=True)

@@ -162,6 +162,9 @@ class CMLIST_OT_list_action(bpy.types.Operator):
             scn.cmlist.remove(idx)
             if scn.cmlist_index == -1 and len(scn.cmlist) > 0:
                 scn.cmlist_index = 0
+            else:
+                # run update function of the property
+                scn.cmlist_index = scn.cmlist_index
         else:
             cls.report({"WARNING"}, 'Please delete the Brickified model before attempting to remove this item.' % locals())
 

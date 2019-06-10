@@ -73,47 +73,8 @@ def handle_selections(junk=None):
     #                     break
     #         if not setIndex:
     #             scn.cmlist_index = -1
-    # if scn.cmlist_index changes, select and make source or Brick Model active
-    if scn.Bricker_last_cmlist_index != scn.cmlist_index and scn.cmlist_index != -1:
-        scn.Bricker_last_cmlist_index = scn.cmlist_index
-        cm, n = getActiveContextInfo()[1:]
-        source = cm.source_obj
-        if source and cm.version[:3] != "1_0":
-            if cm.modelCreated:
-                bricks = getBricks()
-                if bricks and len(bricks) > 0:
-                    select(bricks, active=True, only=True)
-                    scn.Bricker_last_active_object_name = obj.name if obj is not None else ""
-            elif cm.animated:
-                cf = scn.frame_current
-                if cf > cm.lastStopFrame:
-                    cf = cm.lastStopFrame
-                elif cf < cm.lastStartFrame:
-                    cf = cm.lastStartFrame
-                if b280():
-                    cn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
-                    if len(bpy.data.collections[cn].objects) > 0:
-                        select(list(bpy.data.collections[cn].objects), active=True, only=True)
-                        scn.Bricker_last_active_object_name = obj.name if obj is not None else ""
-                else:
-                    g = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
-                    if g is not None and len(g.objects) > 0:
-                        select(list(g.objects), active=True, only=True)
-                        scn.Bricker_last_active_object_name = bpy.context.active_object.name
-                    else:
-                        scn.objects.active = None
-                        deselectAll()
-                        scn.Bricker_last_active_object_name = ""
-            else:
-                select(source, active=True, only=True)
-                scn.Bricker_last_active_object_name = source.name
-        else:
-            for i,cm0 in enumerate(scn.cmlist):
-                if getSourceName(cm0) == scn.Bricker_active_object_name:
-                    deselectAll()
-                    break
     # if active object changes, open Brick Model settings for active object
-    elif obj and scn.Bricker_last_active_object_name != obj.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and obj.type == "MESH":
+    if obj and scn.Bricker_last_active_object_name != obj.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and obj.type == "MESH":
         scn.Bricker_last_active_object_name = obj.name
         beginningString = "Bricker_"
         if obj.name.startswith(beginningString):
@@ -132,7 +93,6 @@ def handle_selections(junk=None):
             if createdWithUnsupportedVersion(cm) or getSourceName(cm) != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
                 continue
             scn.cmlist_index = i
-            scn.Bricker_last_cmlist_index = scn.cmlist_index
             if obj.isBrick:
                 # adjust scn.active_brick_detail based on active brick
                 x0, y0, z0 = strToList(getDictKey(obj.name))

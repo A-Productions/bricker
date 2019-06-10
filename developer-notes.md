@@ -22,6 +22,7 @@
         * Use `cmlist_to_dict.py` code to convert cmlist item to dictionaries
         * Figure out a way to maintain physics cache, parented matrix_world info, etc. for objects appended to background blender instance
     * Switch `calculationAxes` property to expanded bools in user interface
+    * Fix material panel subpanels for blender 2.79
 * Fixes
     * when brickified model's parent is rotated, bricks drawn by customizing model are often not rotated correctly
 

@@ -509,3 +509,45 @@ def updateCanRun(type):
             return commonNeedsUpdate or (cm.materialType != "CUSTOM" and cm.materialIsDirty)
         elif type == "MODEL":
             return commonNeedsUpdate or (cm.collection is not None and len(cm.collection.objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3
+
+def select_source_model(self, context):
+    """ if scn.cmlist_index changes, select and make source or Brick Model active """
+    scn = bpy.context.scene
+    obj = bpy.context.view_layer.objects.active if b280() else scn.objects.active
+    if scn.cmlist_index != -1:
+        cm, n = getActiveContextInfo()[1:]
+        source = cm.source_obj
+        if source and cm.version[:3] != "1_0":
+            if cm.modelCreated:
+                bricks = getBricks()
+                if bricks and len(bricks) > 0:
+                    select(bricks, active=True, only=True)
+                    scn.Bricker_last_active_object_name = obj.name if obj is not None else ""
+            elif cm.animated:
+                cf = scn.frame_current
+                if cf > cm.lastStopFrame:
+                    cf = cm.lastStopFrame
+                elif cf < cm.lastStartFrame:
+                    cf = cm.lastStartFrame
+                if b280():
+                    cn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
+                    if len(bpy.data.collections[cn].objects) > 0:
+                        select(list(bpy.data.collections[cn].objects), active=True, only=True)
+                        scn.Bricker_last_active_object_name = obj.name if obj is not None else ""
+                else:
+                    g = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
+                    if g is not None and len(g.objects) > 0:
+                        select(list(g.objects), active=True, only=True)
+                        scn.Bricker_last_active_object_name = bpy.context.active_object.name
+                    else:
+                        scn.objects.active = None
+                        deselectAll()
+                        scn.Bricker_last_active_object_name = ""
+            else:
+                select(source, active=True, only=True)
+                scn.Bricker_last_active_object_name = source.name
+        else:
+            for i,cm0 in enumerate(scn.cmlist):
+                if getSourceName(cm0) == scn.Bricker_active_object_name:
+                    deselectAll()
+                    break

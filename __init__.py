@@ -42,6 +42,7 @@ from bpy.utils import register_class, unregister_class
 
 # Addon imports
 from .ui import *
+from .functions.general import *
 from .buttons import *
 from .buttons.customize import *
 from .lib import keymaps, preferences, classesToRegister
@@ -81,7 +82,6 @@ def register():
     WindowManager.Bricker_runningBlockingOperation = BoolProperty(default=False)
 
     Scene.Bricker_last_layers = StringProperty(default="")
-    Scene.Bricker_last_cmlist_index = IntProperty(default=-2)
     Scene.Bricker_active_object_name = StringProperty(default="")
     Scene.Bricker_last_active_object_name = StringProperty(default="")
 
@@ -110,7 +110,7 @@ def register():
 
     # other things (UI List)
     Scene.cmlist = CollectionProperty(type=CreatedModelProperties)
-    Scene.cmlist_index = IntProperty(default=-1)
+    Scene.cmlist_index = IntProperty(default=-1, update=select_source_model)
 
     # handle the keymaps
     wm = bpy.context.window_manager
@@ -173,7 +173,6 @@ def unregister():
     del Scene.Bricker_copy_from_id
     del Scene.Bricker_last_active_object_name
     del Scene.Bricker_active_object_name
-    del Scene.Bricker_last_cmlist_index
     del Scene.Bricker_last_layers
     del WindowManager.Bricker_runningBlockingOperation
     del Material.num_averaged
