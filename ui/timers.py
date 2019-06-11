@@ -92,7 +92,8 @@ def handle_selections(junk=None):
         for i,cm in enumerate(scn.cmlist):
             if createdWithUnsupportedVersion(cm) or getSourceName(cm) != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
                 continue
-            scn.cmlist_index = i
+            if scn.cmlist_index != i:
+                scn.cmlist_index = i
             if obj.isBrick:
                 # adjust scn.active_brick_detail based on active brick
                 x0, y0, z0 = strToList(getDictKey(obj.name))

@@ -84,7 +84,7 @@ def updateMaterials(bricksDict, source, uv_images, keys, curFrame=None):
                     matObj = getMatObject(cm_id, typ="ABS")
                     assert len(matObj.data.materials) > 0
                     matName = findNearestBrickColorName(rgba, transWeight, matObj=matObj)
-            elif colorSnap == "RGB" or isSmoke or useUVMap:
+            elif colorSnap == "RGB" or isSmoke:# or useUVMap:
                 matName = createNewMaterial(n, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, colorSnap, colorSnapAmount, includeTransparency, curFrame)
             if rgba is not None:
                 rgba_vals.append(rgba)

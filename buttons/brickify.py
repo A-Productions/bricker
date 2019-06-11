@@ -694,7 +694,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             return False
         # ensure custom material exists
         if cm.materialType == "CUSTOM" and cm.customMat is None:
-            self.report({"WARNING"}, "Please choose a custom material in the 'Bricker > Materials' tab")
+            self.report({"WARNING"}, "Please choose a material in the 'Bricker > Materials' tab")
             return False
         if cm.materialType == "SOURCE" and cm.colorSnap == "ABS":
             # ensure ABS Plastic materials are installed

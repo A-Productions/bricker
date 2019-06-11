@@ -215,15 +215,15 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     brickType = EnumProperty(
         name="Brick Type",
         description="Type of brick used to build the model",
-        items=[("STUD_HOLLOWS", "Hollow Studs", description),
-               ("STUDS", "Studs", description),
-               # ("SLOPES", "Slopes (fast)", description),
-               ("PLATES", "Plates", description),
-               ("CYLINDERS", "Cylinders", description),
-               ("CUSTOM", "Custom", "Use custom object to build the model"),
-               ("CONES", "Cones", description),
+        items=[("BRICKS", "Bricks (fast)", description),
                ("BRICKS AND PLATES", "Bricks and Plates", description),
-               ("BRICKS", "Bricks (fast)", description)],
+               ("CONES", "Cones", description),
+               ("CUSTOM", "Custom", "Use custom object to build the model"),
+               ("CYLINDERS", "Cylinders", description),
+               ("PLATES", "Plates", description),
+               # ("SLOPES", "Slopes (fast)", description),
+               ("STUDS", "Studs", description),
+               ("STUD_HOLLOWS", "Hollow Studs", description)],
         update=updateBrickType,
         default="BRICKS")
     alignBricks = BoolProperty(
@@ -304,8 +304,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Material Type",
         description="Choose what materials will be applied to model",
         items=[("NONE", "None", "No material applied to bricks"),
+               ("CUSTOM", "Single Material", "Choose one material to apply to all generated bricks"),
                ("RANDOM", "Random", "Apply a random material from Brick materials to each generated brick"),
-               ("CUSTOM", "Custom", "Choose a custom material to apply to all generated bricks"),
                ("SOURCE", "Use Source Materials", "Apply material based on closest intersecting face")],
         update=dirtyMaterial,
         default="NONE")
@@ -328,10 +328,10 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     mergeInternals = EnumProperty(
         name="Merge Shell with Internals",
         description="Merge bricks on shell with internal bricks",
-        items=[("BOTH", "Horizontal & Vertical", "Merge shell bricks with internals in both directions"),
+        items=[("NEITHER", "Neither", "Don't merge shell bricks with internals in either direction"),
                ("HORIZONTAL", "Horizontal", "Merge shell bricks with internals horizontally, but not vertically"),
                ("VERTICAL", "Vertical", "Merge shell bricks with internals vertically, but not horizontally"),
-               ("NEITHER", "Neither", "Don't merge shell bricks with internals in either direction")],
+               ("BOTH", "Horizontal & Vertical", "Merge shell bricks with internals in both directions")],
         default="BOTH",
         update=dirtyBuild)
     randomMatSeed = IntProperty(
@@ -350,11 +350,11 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="UV Image to use for UV Map color transfer (defaults to active UV if left blank)",
         update=dirtyBuild)
     colorSnap = EnumProperty(
-        name="Color Snaping",
-        description="Snap nearest source materials",
-        items=[("NONE", "None", "Use source materials as is"),
-               ("ABS", "ABS Plastic", "Use ABS Plastic Materials"),
-               ("RGB", "RGB Average", "Use average RGB value of snapped colors")],
+        name="Color Mapping",
+        description="Method for mapping source material(s)/texture(s) to new materials",
+        items=[("NONE", "None", "Use source materials"),
+               ("RGB", "RGB", "Map RGB values to new materials (similar materials will merge into one material based on threshold)"),
+               ("ABS", "ABS", "Map RGB values to nearest ABS Plastic Materials")],
         update=dirtyMaterial,
         default="RGB")
     colorSnapAmount = FloatProperty(
@@ -434,17 +434,17 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     studDetail = EnumProperty(
         name="Stud Detailing",
         description="Choose where to draw brick studs",
-        items=[("ALL", "All Bricks", "Include brick studs/logos only on bricks with the top exposed"),
+        items=[("NONE", "None", "Don't include brick studs/logos on bricks"),
                ("EXPOSED", "Exposed Bricks", "Include brick studs/logos only on bricks with the top exposed"),
-               ("NONE", "None", "Don't include brick studs/logos on bricks")],
+               ("ALL", "All Bricks", "Include brick studs/logos only on bricks with the top exposed")],
         update=dirtyBricks,
         default="EXPOSED")
     logoType = EnumProperty(
         name="Logo Type",
         description="Choose logo type to draw on brick studs",
-        items=[("CUSTOM", "Custom Logo", "Choose a mesh object to use as the brick stud logo"),
+        items=[("NONE", "None", "Don't include Brick Logo on bricks"),
                ("LEGO", "LEGO Logo", "Include a LEGO logo on each stud"),
-               ("NONE", "None", "Don't include Brick Logo on bricks")],
+               ("CUSTOM", "Custom Logo", "Choose a mesh object to use as the brick stud logo")],
         update=dirtyBricks,
         default="NONE")
     logoResolution = IntProperty(
@@ -556,8 +556,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Internal Supports",
         description="Choose what type of brick support structure to use inside your model",
         items=[("NONE", "None", "No internal supports"),
-               ("LATTICE", "Lattice", "Use latice inside model"),
-               ("COLUMNS", "Columns", "Use columns inside model")],
+               ("COLUMNS", "Columns", "Use columns inside model"),
+               ("LATTICE", "Lattice", "Use latice inside model")],
         update=dirtyInternal,
         default="NONE")
     latticeStep = IntProperty(

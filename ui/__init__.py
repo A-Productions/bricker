@@ -767,20 +767,6 @@ class VIEW3D_PT_bricker_materials(Panel):
                     row = col.row(align=True)
                     row.operator("bricker.apply_material", icon="FILE_TICK")
         elif cm.materialType == "SOURCE" and obj:
-            col = layout.column(align=True)
-            col.active = len(obj.data.uv_layers) > 0
-            row = col.row(align=True)
-            row.prop(cm, "useUVMap", text="Use UV Map")
-            split = layout_split(row, factor=0.75)
-            # split.active = cm.useUVMap
-            if cm.useUVMap:
-                split.prop(cm, "uvImage", text="")
-                split.operator("image.open", icon="FILEBROWSER" if b280() else "FILESEL", text="")
-            if len(obj.data.vertex_colors) > 0:
-                col = layout.column(align=True)
-                col.scale_y = 0.7
-                col.label(text="(Vertex colors not supported)")
-
             # internal material info
             if cm.shellThickness > 1 or cm.internalSupports != "NONE":
                 # if len(obj.data.uv_layers) <= 0 or len(obj.data.vertex_colors) > 0:
@@ -801,15 +787,66 @@ class VIEW3D_PT_bricker_materials(Panel):
             # color snapping info
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.label(text="Color Snapping:")
+            row.label(text="Color Mapping:")
             row = col.row(align=True)
-            row.prop(cm, "colorSnap", text="")
+            row.prop(cm, "colorSnap", expand=True)
             if cm.colorSnap == "RGB":
                 row = col.row(align=True)
                 row.prop(cm, "colorSnapAmount")
             if cm.colorSnap == "ABS":
                 row = col.row(align=True)
                 row.prop(cm, "transparentWeight", text="Transparent Weight")
+
+            if not b280() and cm.colorSnap != "NONE":
+                col = layout.column(align=True)
+                col.active = len(obj.data.uv_layers) > 0
+                row = col.row(align=True)
+                row.prop(cm, "useUVMap", text="Use UV Map")
+                split = layout_split(row, factor=0.75)
+                # split.active = cm.useUVMap
+                if cm.useUVMap:
+                    split.prop(cm, "uvImage", text="")
+                    split.operator("image.open", icon="FILEBROWSER" if b280() else "FILESEL", text="")
+                if len(obj.data.vertex_colors) > 0:
+                    col = layout.column(align=True)
+                    col.scale_y = 0.7
+                    col.label(text="(Vertex colors not supported)")
+
+
+class VIEW3D_PT_bricker_use_uv_map(Panel):
+    bl_space_type  = "VIEW_3D"
+    bl_region_type = "UI" if b280() else "TOOLS"
+    bl_category    = "Bricker"
+    bl_label       = "Use UV Map"
+    bl_parent_id   = "VIEW3D_PT_bricker_materials"
+    bl_idname      = "VIEW3D_PT_bricker_use_uv_map"
+    bl_context     = "objectmode"
+    bl_options     = {"DEFAULT_CLOSED"}
+
+    @classmethod
+    def poll(self, context):
+        """ ensures operator can execute (if not, returns false) """
+        if not settingsCanBeDrawn() or not b280():
+            return False
+        scn, cm, _ = getActiveContextInfo()
+        obj = cm.source_obj
+        if len(obj.data.uv_layers) > 0 and cm.materialType == "SOURCE" and obj and cm.colorSnap != "NONE":
+            return True
+        return False
+
+    def draw_header(self, context):
+        scn, cm, _ = getActiveContextInfo()
+        self.layout.prop(cm, "useUVMap", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        scn, cm, _ = getActiveContextInfo()
+        obj = cm.source_obj
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(cm, "uvImage", text="Tex")
+        row.operator("image.open", icon="FILEBROWSER" if b280() else "FILESEL", text="")
 
 
 class VIEW3D_PT_bricker_included_materials(Panel):
