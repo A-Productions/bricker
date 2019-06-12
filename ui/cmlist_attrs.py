@@ -189,8 +189,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="Choose whether the outer shell of bricks will be inside or outside the source mesh",
         items=[("INSIDE", "Inside Mesh", "Draw brick shell inside source mesh (recommended)"),
                ("OUTSIDE", "Outside Mesh", "Draw brick shell outside source mesh"),
-               ("CONSISTENT", "Consistent", "Draw brick shell on a consistent side of the source mesh topology (may fix noisy brick model if source mesh is not water-tight)")],
-        update=dirtyMatrix,
+               ("CONSISTENT", "Consistent", "Draw brick shell on a consistent side of the source mesh topology (may fix noisy model if source mesh is not water-tight; in most situations, enable 'Verify Exposure' when using this setting)")],
+        update=updateBrickShell,
         default="INSIDE")
     calculationAxes = EnumProperty(
         name="Expanded Axes",
@@ -617,7 +617,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirtyMatrix)
     verifyExposure = BoolProperty(
         name="Verify Exposure",
-        description="Run insideness calculations on every brick location (slower, but may fix issue where row(s)/column(s) of extra bricks are drawn)",
+        description="Run additional insideness calculations (slower, but fixes issue where row(s)/column(s) of extra bricks are drawn)",
         default=False,
         update=dirtyMatrix)
     useLocalOrient = BoolProperty(

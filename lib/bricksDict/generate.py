@@ -49,7 +49,7 @@ def VectorRound(vec, dec, roundType="ROUND"):
 def castRays(obj_eval:Object, point:Vector, direction:Vector, miniDist:float, roundType:str="CEILING", edgeLen:int=0):
     """
     obj_eval  -- source object to test intersections for
-    point     -- origin point for ray casting
+    point     -- starting point for ray casting
     direction -- cast ray in this direction
     miniDist  -- Vector with miniscule amount to add after intersection
     roundType -- round final intersection location Vector with this type
@@ -62,11 +62,11 @@ def castRays(obj_eval:Object, point:Vector, direction:Vector, miniDist:float, ro
     lastIntersection = None
     edgeIntersects = False
     edgeLen2 = edgeLen*1.00001
-    orig = point
+    starting_point = point
     intersections = 0
     # cast rays until no more rays to cast
     while True:
-        _,location,normal,index = obj_eval.ray_cast(orig, direction)#distance=edgeLen*1.00000000001)
+        _,location,normal,index = obj_eval.ray_cast(starting_point, direction)#distance=edgeLen*1.00000000001)
         if index == -1: break
         if intersections == 0:
             firstDirection = direction.dot(normal)
@@ -84,7 +84,7 @@ def castRays(obj_eval:Object, point:Vector, direction:Vector, miniDist:float, ro
                 nextIntersection = location.copy()
         intersections += 1
         location = VectorRound(location, 5, roundType=roundType)
-        orig = location + miniDist
+        starting_point = location + miniDist
 
     if edgeLen != 0:
         return intersections, firstDirection, firstIntersection, nextIntersection, lastIntersection, edgeIntersects
@@ -171,18 +171,18 @@ def updateBFMatrix(scn, x0, y0, z0, coordMatrix, ray, edgeLen, faceIdxMatrix, br
     except IndexError:
         return -1, None, True
 
-    origInside, edgeIntersects, intersections, nextIntersection, firstIntersection, lastIntersection = rayObjIntersections(scn, point, ray, miniDist, edgeLen, source, useNormals, insidenessRayCastDir, castDoubleCheckRays, brickShell)
-    if origInside and brickFreqMatrix[x0][y0][z0] == 0:
+    pointInside, edgeIntersects, intersections, nextIntersection, firstIntersection, lastIntersection = rayObjIntersections(scn, point, ray, miniDist, edgeLen, source, useNormals, insidenessRayCastDir, castDoubleCheckRays, brickShell)
+    if pointInside and brickFreqMatrix[x0][y0][z0] == 0:
         # define brick as inside shell
         brickFreqMatrix[x0][y0][z0] = -1
     if edgeIntersects:
-        if (brickShell in ("INSIDE", "CONSISTENT") and origInside) or (brickShell == "OUTSIDE" and not origInside):
+        if (brickShell in ("INSIDE", "CONSISTENT") and pointInside) or (brickShell == "OUTSIDE" and not pointInside):
             # define brick as part of shell
             brickFreqMatrix[x0][y0][z0] = 1
             # set or update nearest face to brick
             if type(faceIdxMatrix[x0][y0][z0]) != dict or faceIdxMatrix[x0][y0][z0]["dist"] > firstIntersection["dist"]:
                 faceIdxMatrix[x0][y0][z0] = firstIntersection
-        if (brickShell in ("INSIDE", "CONSISTENT") and not origInside) or (brickShell == "OUTSIDE" and origInside):
+        if (brickShell in ("INSIDE", "CONSISTENT") and not pointInside) or (brickShell == "OUTSIDE" and pointInside):
             # define brick as part of shell
             brickFreqMatrix[x1][y1][z1] = 1
             # set or update nearest face to brick
@@ -258,8 +258,9 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
     brickFreqMatrix = deepcopy(faceIdxMatrix)
     axes = axes.lower()
     dist = coordMatrix[1][1][1] - coordMatrix[0][0][0]
-    highEfficiency = cm.insidenessRayCastDir in ("HIGH EFFICIENCY", "XYZ") and not cm.verifyExposure
+    highEfficiency = cm.insidenessRayCastDir in ("HIGH EFFICIENCY", "XYZ")
     # runs update functions only once
+    verifyExposure = cm.verifyExposure
     useNormals = cm.useNormals
     insidenessRayCastDir = cm.insidenessRayCastDir
     castDoubleCheckRays = cm.castDoubleCheckRays
@@ -316,7 +317,7 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
                 i = 0
                 for y in range(yL):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
-                    if i == 2 and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].y + dist.y + yMiniDist.y < nextIntersection.y:
+                    if i == (3 if verifyExposure else 2) and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].y + dist.y + yMiniDist.y < nextIntersection.y:
                         if brickFreqMatrix[x][y][z] == 0:
                             brickFreqMatrix[x][y][z] = val
                         if brickFreqMatrix[x][y][z] == val:
@@ -340,7 +341,7 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
                 i = 0
                 for z in range(zL):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
-                    if i == 2 and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].z + dist.z + zMiniDist.z < nextIntersection.z:
+                    if i == (3 if verifyExposure else 2) and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].z + dist.z + zMiniDist.z < nextIntersection.z:
                         if brickFreqMatrix[x][y][z] == 0:
                             brickFreqMatrix[x][y][z] = val
                         if brickFreqMatrix[x][y][z] == val:

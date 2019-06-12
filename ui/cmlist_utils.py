@@ -128,6 +128,13 @@ def updateJobManagerProperties(self, context):
     curJobManager.max_workers = cm.maxWorkers
 
 
+def updateBrickShell(self, context):
+    scn, cm, _ = getActiveContextInfo()
+    if cm.brickShell == "CONSISTENT":
+        cm.verifyExposure = True
+    cm.matrixIsDirty = True
+
+
 def dirtyAnim(self, context):
     scn, cm, _ = getActiveContextInfo()
     cm.animIsDirty = True
@@ -168,7 +175,7 @@ def dirtyBricks(self, context):
 def updateBrickType(self, context):
     scn, cm, _ = getActiveContextInfo()
     cm.zStep = getZStep(cm)
-    dirtyMatrix(self, context)
+    cm.matrixIsDirty = True
 
 
 def updateBevelRender(self, context):
