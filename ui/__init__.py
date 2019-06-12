@@ -1145,7 +1145,7 @@ class VIEW3D_PT_bricker_advanced(Panel):
         row.prop(cm, "verifyExposure")
         row = col.row(align=True)
         row.prop(cm, "brickShell", text="Shell")
-        if cm.brickShell != "INSIDE":
+        if cm.brickShell == "OUTSIDE":
             row = col.row(align=True)
             row.prop(cm, "calculationAxes", text="")
 

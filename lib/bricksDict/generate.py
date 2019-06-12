@@ -92,7 +92,7 @@ def castRays(obj_eval:Object, point:Vector, direction:Vector, miniDist:float, ro
         return intersections, firstDirection
 
 
-def rayObjIntersections(scn, point, direction, miniDist:Vector, edgeLen, obj, useNormals, insidenessRayCastDir, castDoubleCheckRays):
+def rayObjIntersections(scn, point, direction, miniDist:Vector, edgeLen, obj, useNormals, insidenessRayCastDir, castDoubleCheckRays, brickShell):
     """
     cast ray(s) from point in direction to determine insideness and whether edge intersects obj within edgeLen
 
@@ -119,66 +119,70 @@ def rayObjIntersections(scn, point, direction, miniDist:Vector, edgeLen, obj, us
     axes = "XYZ" if direction[0] > 0 else ("YZX" if direction[1] > 0 else "ZXY")
     # run initial intersection check
     intersections, firstDirection, firstIntersection, nextIntersection, lastIntersection, edgeIntersects = castRays(obj_eval, point, direction, miniDist, edgeLen=edgeLen)
-    if insidenessRayCastDir == "HIGH EFFICIENCY" or axes[0] in insidenessRayCastDir:
-        outsideL.append(0)
-        if intersections%2 == 0 and not (useNormals and firstDirection > 0):
-            outsideL[0] = 1
-        elif castDoubleCheckRays:
-            # double check vert is inside mesh
-            count, firstDirection = castRays(obj_eval, point, -direction, -miniDist, roundType="FLOOR")
-            if count%2 == 0 and not (useNormals and firstDirection > 0):
-                outsideL[0] = 1
 
-    # run more checks
-    if insidenessRayCastDir != "HIGH EFFICIENCY":
-        dir0 = Vector((direction[2], direction[0], direction[1]))
-        dir1 = Vector((direction[1], direction[2], direction[0]))
-        miniDist0 = Vector((miniDist[2], miniDist[0], miniDist[1]))
-        miniDist1 = Vector((miniDist[1], miniDist[2], miniDist[0]))
-        dirs = ((dir0, miniDist0), (dir1, miniDist1))
-        for i in range(2):
-            if axes[i+1] in insidenessRayCastDir:
-                outsideL.append(0)
-                direction = dirs[i][0]
-                miniDist = dirs[i][1]
-                count, firstDirection = castRays(obj_eval, point, direction, miniDist)
+    if brickShell == "CONSISTENT" and edgeIntersects:
+        # skip insideness checks if brick shell doesn't take insideness into account
+        outside = True
+    else:
+    # if True:
+        # run initial insideness check(s)
+        if insidenessRayCastDir == "HIGH EFFICIENCY" or axes[0] in insidenessRayCastDir:
+            outsideL.append(0)
+            if intersections%2 == 0 and not (useNormals and firstDirection > 0):
+                outsideL[0] = 1
+            elif castDoubleCheckRays:
+                # double check vert is inside mesh
+                count, firstDirection = castRays(obj_eval, point, -direction, -miniDist, roundType="FLOOR")
                 if count%2 == 0 and not (useNormals and firstDirection > 0):
-                    outsideL[len(outsideL) - 1] = 1
-                elif castDoubleCheckRays:
-                    # double check vert is inside mesh
-                    count, firstDirection = castRays(obj_eval, point, -direction, -miniDist, roundType="FLOOR")
+                    outsideL[0] = 1
+
+        # run more insideness checks
+        if insidenessRayCastDir != "HIGH EFFICIENCY":
+            dir0 = Vector((direction[2], direction[0], direction[1]))
+            dir1 = Vector((direction[1], direction[2], direction[0]))
+            miniDist0 = Vector((miniDist[2], miniDist[0], miniDist[1]))
+            miniDist1 = Vector((miniDist[1], miniDist[2], miniDist[0]))
+            dirs = ((dir0, miniDist0), (dir1, miniDist1))
+            for i in range(2):
+                if axes[i+1] in insidenessRayCastDir:
+                    outsideL.append(0)
+                    direction = dirs[i][0]
+                    miniDist = dirs[i][1]
+                    count, firstDirection = castRays(obj_eval, point, direction, miniDist)
                     if count%2 == 0 and not (useNormals and firstDirection > 0):
                         outsideL[len(outsideL) - 1] = 1
+                    elif castDoubleCheckRays:
+                        # double check vert is inside mesh
+                        count, firstDirection = castRays(obj_eval, point, -direction, -miniDist, roundType="FLOOR")
+                        if count%2 == 0 and not (useNormals and firstDirection > 0):
+                            outsideL[len(outsideL) - 1] = 1
 
-    # find average of outsideL and set outside accordingly (<0.5 is False, >=0.5 is True)
-    outside = sum(outsideL)/len(outsideL) >= 0.5
+        # find average of outsideL and set outside accordingly (<0.5 is False, >=0.5 is True)
+        outside = sum(outsideL)/len(outsideL) >= 0.5
 
     # return helpful information
     return not outside, edgeIntersects, intersections, nextIntersection, firstIntersection, lastIntersection
 
-def updateBFMatrix(scn, x0, y0, z0, coordMatrix, faceIdxMatrix, brickFreqMatrix, brickShell, source, x1, y1, z1, miniDist, useNormals, insidenessRayCastDir, castDoubleCheckRays):
+def updateBFMatrix(scn, x0, y0, z0, coordMatrix, ray, edgeLen, faceIdxMatrix, brickFreqMatrix, brickShell, source, x1, y1, z1, miniDist, useNormals, insidenessRayCastDir, castDoubleCheckRays):
     """ update brickFreqMatrix[x0][y0][z0] based on results from rayObjIntersections """
-    orig = coordMatrix[x0][y0][z0]
+    point = coordMatrix[x0][y0][z0]
     try:
-        rayEnd = coordMatrix[x1][y1][z1]
+        coordMatrix[x1][y1][z1]
     except IndexError:
         return -1, None, True
-    # check if point can be thrown away
-    ray = rayEnd - orig
-    edgeLen = ray.length
 
-    origInside, edgeIntersects, intersections, nextIntersection, firstIntersection, lastIntersection = rayObjIntersections(scn, orig, ray, miniDist, edgeLen, source, useNormals, insidenessRayCastDir, castDoubleCheckRays)
+    origInside, edgeIntersects, intersections, nextIntersection, firstIntersection, lastIntersection = rayObjIntersections(scn, point, ray, miniDist, edgeLen, source, useNormals, insidenessRayCastDir, castDoubleCheckRays, brickShell)
     if origInside and brickFreqMatrix[x0][y0][z0] == 0:
         # define brick as inside shell
         brickFreqMatrix[x0][y0][z0] = -1
     if edgeIntersects:
-        if (brickShell == "INSIDE" and origInside) or (brickShell == "OUTSIDE" and not origInside):
+        if (brickShell in ("INSIDE", "CONSISTENT") and origInside) or (brickShell == "OUTSIDE" and not origInside):
             # define brick as part of shell
             brickFreqMatrix[x0][y0][z0] = 1
             # set or update nearest face to brick
             if type(faceIdxMatrix[x0][y0][z0]) != dict or faceIdxMatrix[x0][y0][z0]["dist"] > firstIntersection["dist"]:
                 faceIdxMatrix[x0][y0][z0] = firstIntersection
-        if (brickShell == "INSIDE" and not origInside) or (brickShell == "OUTSIDE" and origInside):
+        if (brickShell in ("INSIDE", "CONSISTENT") and not origInside) or (brickShell == "OUTSIDE" and origInside):
             # define brick as part of shell
             brickFreqMatrix[x1][y1][z1] = 1
             # set or update nearest face to brick
@@ -279,7 +283,9 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
 
     percent0 = 0
     if "x" in axes:
-        miniDist = Vector((0.00015, 0.0, 0.0))
+        xRay = coordMatrix[1][0][0] - coordMatrix[0][0][0]
+        xEdgeLen = xRay.length
+        xMiniDist = Vector((0.00015, 0.0, 0.0))
         for z in range(zL):
             # # print status to terminal
             percent0 = printCurStatus(0, z, zL, percent0)
@@ -288,10 +294,10 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
                 i = 0
                 for x in range(xL):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
-                    if i == 2 and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].x + dist.x + miniDist.x < nextIntersection.x:
+                    if i == 2 and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].x + dist.x + xMiniDist.x < nextIntersection.x:
                         brickFreqMatrix[x][y][z] = val
                         continue
-                    intersections, nextIntersection, edgeIntersects = updateBFMatrix(scn, x, y, z, coordMatrix, faceIdxMatrix, brickFreqMatrix, brickShell, source, x+1, y, z, miniDist, useNormals, insidenessRayCastDir, castDoubleCheckRays)
+                    intersections, nextIntersection, edgeIntersects = updateBFMatrix(scn, x, y, z, coordMatrix, xRay, xEdgeLen, faceIdxMatrix, brickFreqMatrix, brickShell, source, x+1, y, z, xMiniDist, useNormals, insidenessRayCastDir, castDoubleCheckRays)
                     i = 0 if edgeIntersects else (2 if i == 1 else 1)
                     val = brickFreqMatrix[x][y][z]
                     if intersections == 0:
@@ -299,7 +305,9 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
 
     percent1 = percent0
     if "y" in axes:
-        miniDist = Vector((0.0, 0.00015, 0.0))
+        yRay = coordMatrix[0][1][0] - coordMatrix[0][0][0]
+        yEdgeLen = yRay.length
+        yMiniDist = Vector((0.0, 0.00015, 0.0))
         for z in range(zL):
             # print status to terminal
             percent1 = printCurStatus(percent0, z, zL, percent1)
@@ -308,12 +316,12 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
                 i = 0
                 for y in range(yL):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
-                    if i == 2 and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].y + dist.y + miniDist.y < nextIntersection.y:
+                    if i == 2 and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].y + dist.y + yMiniDist.y < nextIntersection.y:
                         if brickFreqMatrix[x][y][z] == 0:
                             brickFreqMatrix[x][y][z] = val
                         if brickFreqMatrix[x][y][z] == val:
                             continue
-                    intersections, nextIntersection, edgeIntersects = updateBFMatrix(scn, x, y, z, coordMatrix, faceIdxMatrix, brickFreqMatrix, brickShell, source, x, y+1, z, miniDist, useNormals, insidenessRayCastDir, castDoubleCheckRays)
+                    intersections, nextIntersection, edgeIntersects = updateBFMatrix(scn, x, y, z, coordMatrix, yRay, yEdgeLen, faceIdxMatrix, brickFreqMatrix, brickShell, source, x, y+1, z, yMiniDist, useNormals, insidenessRayCastDir, castDoubleCheckRays)
                     i = 0 if edgeIntersects else (2 if i == 1 else 1)
                     val = brickFreqMatrix[x][y][z]
                     if intersections == 0:
@@ -321,7 +329,9 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
 
     percent2 = percent1
     if "z" in axes:
-        miniDist = Vector((0.0, 0.0, 0.00015))
+        zRay = coordMatrix[0][0][1] - coordMatrix[0][0][0]
+        zEdgeLen = zRay.length
+        zMiniDist = Vector((0.0, 0.0, 0.00015))
         for x in range(xL):
             # print status to terminal
             percent2 = printCurStatus(percent1, x, xL, percent2)
@@ -330,13 +340,13 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
                 i = 0
                 for z in range(zL):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
-                    if i == 2 and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].z + dist.z + miniDist.z < nextIntersection.z:
+                    if i == 2 and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].z + dist.z + zMiniDist.z < nextIntersection.z:
                         if brickFreqMatrix[x][y][z] == 0:
                             brickFreqMatrix[x][y][z] = val
                         if brickFreqMatrix[x][y][z] == val:
                             continue
                     # cast rays and update brickFreqMatrix
-                    intersections, nextIntersection, edgeIntersects = updateBFMatrix(scn, x, y, z, coordMatrix, faceIdxMatrix, brickFreqMatrix, brickShell, source, x, y, z+1, miniDist, useNormals, insidenessRayCastDir, castDoubleCheckRays)
+                    intersections, nextIntersection, edgeIntersects = updateBFMatrix(scn, x, y, z, coordMatrix, zRay, zEdgeLen, faceIdxMatrix, brickFreqMatrix, brickShell, source, x, y, z+1, zMiniDist, useNormals, insidenessRayCastDir, castDoubleCheckRays)
                     i = 0 if edgeIntersects else (2 if i == 1 else 1)
                     val = brickFreqMatrix[x][y][z]
                     if intersections == 0:
@@ -627,7 +637,7 @@ def makeBricksDict(source, source_details, brickScale, uv_images, cursorStatus=F
     if len(coordMatrix) == 0:
         coordMatrix.append(source_details.mid)
     # set calculationAxes
-    calculationAxes = cm.calculationAxes if cm.brickShell != "INSIDE" else "XYZ"
+    calculationAxes = cm.calculationAxes if cm.brickShell == "OUTSIDE" else "XYZ"
     # set up faceIdxMatrix and brickFreqMatrix
     faceIdxMatrix = np.zeros((len(coordMatrix), len(coordMatrix[0]), len(coordMatrix[0][0])), dtype=int).tolist()
     if cm.isSmoke:

@@ -188,7 +188,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Brick Shell",
         description="Choose whether the outer shell of bricks will be inside or outside the source mesh",
         items=[("INSIDE", "Inside Mesh", "Draw brick shell inside source mesh (recommended)"),
-               ("OUTSIDE", "Outside Mesh", "Draw brick shell outside source mesh")],
+               ("OUTSIDE", "Outside Mesh", "Draw brick shell outside source mesh"),
+               ("CONSISTENT", "Consistent", "Draw brick shell on a consistent side of the source mesh topology (may fix noisy brick model if source mesh is not water-tight)")],
         update=dirtyMatrix,
         default="INSIDE")
     calculationAxes = EnumProperty(
