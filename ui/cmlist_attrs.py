@@ -73,13 +73,13 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default=False)
     startFrame = IntProperty(
         name="Start",
-        description="Start frame of the brick animation",
+        description="First frame of the brick animation",
         update=dirtyAnim,
         min=0, max=500000,
         default=1)
     stopFrame = IntProperty(
         name="End",
-        description="Stop frame of the rick animation",
+        description="Final frame of the brick animation",
         update=dirtyAnim,
         min=0, max=500000,
         default=10)
@@ -352,7 +352,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     colorSnap = EnumProperty(
         name="Color Mapping",
         description="Method for mapping source material(s)/texture(s) to new materials",
-        items=[("NONE", "None", "Use source materials"),
+        items=[("NONE", "None", "Use source material(s)"),
                ("RGB", "RGB", "Map RGB values to new materials (similar materials will merge into one material based on threshold)"),
                ("ABS", "ABS", "Map RGB values to nearest ABS Plastic Materials")],
         update=dirtyMaterial,
@@ -419,7 +419,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirtyMatrix)
     transparentWeight = FloatProperty(
         name="Transparency Weight",
-        description="How much affect the original material's alpha value has on chosen ABS color",
+        description="How much the original material's alpha value affects the chosen ABS Plastic Material",
         precision=1,
         min=0, soft_max=2,
         default=1,
