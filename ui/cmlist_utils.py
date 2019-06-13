@@ -257,7 +257,6 @@ def getCMProps():
             "useNormals",
             "verifyExposure",
             "insidenessRayCastDir",
-            "castDoubleCheckRays",
             "startFrame",
             "stopFrame",
             "useAnimation",

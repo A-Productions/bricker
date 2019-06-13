@@ -73,7 +73,6 @@ class BRICKER_OT_revert_settings(Operator):
         cm.useNormals = str_to_bool(settings[10])
         cm.verifyExposure = str_to_bool(settings[11])
         cm.insidenessRayCastDir = settings[12]
-        cm.castDoubleCheckRays = str_to_bool(settings[13])
         cm.brickShell = settings[14]
         cm.calculationAxes = settings[15]
         if cm.lastIsSmoke:

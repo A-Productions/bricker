@@ -221,6 +221,7 @@ def createNewBricks(source, parent, source_details, dimensions, refLogo, logo_de
     # reset all values for certain keys in bricksDict dictionaries
     if cm.buildIsDirty and loadedFromCache:
         threshold = getThreshold(cm)
+        shellThicknessChanged = cm.lastShellThickness != cm.shellThickness
         for kk in bricksDict:
             bD = bricksDict[kk]
             if keys == "ALL" or kk in keys:
@@ -228,7 +229,7 @@ def createNewBricks(source, parent, source_details, dimensions, refLogo, logo_de
                 bD["parent"] = None
                 bD["top_exposed"] = None
                 bD["bot_exposed"] = None
-                if cm.lastShellThickness != cm.shellThickness:
+                if shellThicknessChanged:
                     bD["draw"] = bD["val"] >= threshold
             else:
                 # don't merge bricks not in 'keys'

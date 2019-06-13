@@ -1142,8 +1142,6 @@ class VIEW3D_PT_bricker_advanced(Panel):
         row = col.row(align=True)
         row.prop(cm, "insidenessRayCastDir", text="")
         row = col.row(align=True)
-        row.prop(cm, "castDoubleCheckRays")
-        row = col.row(align=True)
         row.prop(cm, "useNormals")
         row = col.row(align=True)
         row.prop(cm, "verifyExposure")
@@ -1184,47 +1182,6 @@ class VIEW3D_PT_bricker_advanced(Panel):
         if BRICKER_OT_test_brick_generators.drawUIButton():
             col = layout.column(align=True)
             col.operator("bricker.test_brick_generators", text="Test Brick Generators", icon="OUTLINER_OB_MESH")
-
-
-class VIEW3D_PT_bricker_advanced_ray_casting(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
-    bl_label       = "Ray Casting"
-    bl_idname      = "VIEW3D_PT_bricker_advanced_ray_casting"
-    bl_parent_id   = "VIEW3D_PT_bricker_advanced"
-    bl_context     = "objectmode"
-    # bl_options     = {"DEFAULT_CLOSED"}
-
-    @classmethod
-    def poll(self, context):
-        if not settingsCanBeDrawn():
-            return False
-        # return b280()
-        return False
-
-    def draw(self, context):
-        layout = self.layout
-        scn, cm, n = getActiveContextInfo()
-
-        col = layout.column(align=True)
-        right_align(col)
-        if not b280():
-            row = col.row(align=True)
-            row.label(text="Ray Casting:")
-        row = col.row(align=True)
-        row.prop(cm, "insidenessRayCastDir", text="Method" if b280() else "")
-        row = col.row(align=True)
-        row.prop(cm, "castDoubleCheckRays")
-        row = col.row(align=True)
-        row.prop(cm, "useNormals")
-        row = col.row(align=True)
-        row.prop(cm, "verifyExposure")
-        row = col.row(align=True)
-        row.prop(cm, "brickShell", text="Shell")
-        if cm.brickShell == "OUTSIDE":
-            row = col.row(align=True)
-            row.prop(cm, "calculationAxes", text="")
 
 
 class VIEW3D_PT_bricker_matrix_details(Panel):

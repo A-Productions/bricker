@@ -183,7 +183,6 @@ def getMatrixSettings(cm=None):
                        cm.useNormals,
                        cm.verifyExposure,
                        cm.insidenessRayCastDir,
-                       cm.castDoubleCheckRays,
                        cm.brickShell,
                        cm.calculationAxes]
     smokeSettings = [round(cm.smokeDensity, 6),

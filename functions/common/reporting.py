@@ -27,10 +27,11 @@ import time
 import bpy
 
 
-def stopwatch(text:str, startTime:float, endTime:float=None, precision:int=5):
+def stopwatch(text:str, startTime:float, endTime:float=None, precision:int=5, multiplier:float=1):
     """From seconds to Days;Hours:Minutes;Seconds"""
     endTime = endTime or time.time()
     value = endTime - startTime
+    value = value * multiplier
 
     valueD = (((value/365)/24)/60)
     Days = int(valueD)

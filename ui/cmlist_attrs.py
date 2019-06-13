@@ -605,11 +605,6 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
                ("XYZ", "XYZ (Best Result)", "Cast rays in all axis directions for insideness calculation (slowest; uses result consistent for at least 2 of the 3 rays)")],
         update=dirtyMatrix,
         default="HIGH EFFICIENCY")
-    castDoubleCheckRays = BoolProperty(
-        name="Cast Both Directions",
-        description="Cast additional ray(s) the opposite direction for insideness calculation (Slightly slower but much more accurate if mesh is not single closed mesh)",
-        default=True,
-        update=dirtyMatrix)
     useNormals = BoolProperty(
         name="Use Normals",
         description="Use normals to calculate insideness of bricks (WARNING: May produce inaccurate model if source is not single closed mesh)",
