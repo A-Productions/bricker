@@ -81,6 +81,7 @@ classes = [
     VIEW3D_PT_bricker_detailing,
     VIEW3D_PT_bricker_supports,
     VIEW3D_PT_bricker_advanced,
+    VIEW3D_PT_bricker_advanced_ray_casting,
     VIEW3D_PT_bricker_matrix_details,
     VIEW3D_PT_bricker_export,
     # bricker/ui/ (cmlist)

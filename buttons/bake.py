@@ -65,9 +65,7 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
             active_brick.name = "%(n)s_bricks" % locals()
         # delete parent/source/dup
         objsToDelete = [bpy.data.objects.get("Bricker_%(n)s_parent" % locals()), cm.source_obj]
-        if cm.modelCreated:
-            objsToDelete.append(bpy.data.objects.get("Bricker_%(n)s_parent" % locals()))
-        else:
+        if cm.animated:
             for f in range(cm.lastStartFrame, cm.lastStopFrame + 1):
                 objsToDelete.append(bpy.data.objects.get("Bricker_%(n)s_f_%(f)s" % locals()))
                 objsToDelete.append(bpy.data.objects.get("Bricker_%(n)s_parent_f_%(f)s" % locals()))

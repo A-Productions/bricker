@@ -23,12 +23,13 @@ import json
 # Blender imports
 import bpy
 from bpy.types import Operator
+from bpy_extras.io_utils import ExportHelper#, path_reference_mode
 
 # Addon imports
 from ..functions import *
 
 
-class BRICKER_OT_export_model_data(Operator):
+class BRICKER_OT_export_model_data(Operator, ExportHelper):
     """send active brick model to external file"""
     bl_idname = "bricker.export_model_data"
     bl_label = "Export Model Data"
@@ -45,10 +46,7 @@ class BRICKER_OT_export_model_data(Operator):
     def execute(self, context):
         try:
             scn, cm, n = getActiveContextInfo()
-            path, errorMsg = getExportPath(n, ".py", cm.exportPath, frame=scn.frame_current if cm.animated else -1)
-            if errorMsg is not None:
-                self.report({"WARNING"}, errorMsg)
-                return {"CANCELLED"}
+            path = self.filepath
             bType = "Frames" if cm.animated else "Bricks"
             bricksDict = getBricksDict(cm, dType="ANIM" if cm.animated else "MODEL", curFrame=scn.frame_current)
             numBs = len([b for b in bricksDict.values() if b["draw"] and b["parent"] == "self"])
@@ -65,6 +63,22 @@ class BRICKER_OT_export_model_data(Operator):
         except:
             bricker_handle_exception()
         return{"FINISHED"}
+
+    #############################################
+    # ExportHelper properties
+
+    filename_ext = ".txt"
+    filter_glob = bpy.props.StringProperty(
+            default="*.txt",
+            options={'HIDDEN'},
+            )
+    # path_mode = path_reference_mode
+    check_extension = True
+
+    #############################################
+    # class variables
+
+    # NONE!
 
     #############################################
     # class methods

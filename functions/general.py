@@ -130,11 +130,12 @@ def getShortType(brickD, targetType=None):
 
 def brick_materials_installed():
     """ checks that 'ABS Plastic Materials' addon is installed and enabled """
-    # return hasattr(bpy.props, "abs_mats_common") or hasattr(bpy.props, "abs_plastic_materials")
-    for mod in addon_utils.modules():
-        if mod.bl_info["name"] == "ABS Plastic Materials":
-            return addon_utils.check(mod.__name__)[1]
-    return False
+    return hasattr(bpy.props, "abs_plastic_materials_module_name")
+    # NOTE: The following method was replaced as it was far too slow
+    # for mod in addon_utils.modules():
+    #     if mod.bl_info["name"] == "ABS Plastic Materials":
+    #         return addon_utils.check(mod.__name__)[1]
+    # return False
 
 
 def getABSMatNames(all:bool=True):
@@ -520,7 +521,7 @@ def select_source_model(self, context):
         if source and cm.version[:3] != "1_0":
             if cm.modelCreated:
                 bricks = getBricks()
-                if bricks and len(bricks) > 0:
+                if bricks and len(bricks) > 0 and obj not in bricks:
                     select(bricks, active=True, only=True)
                     scn.Bricker_last_active_object_name = obj.name if obj is not None else ""
             elif cm.animated:

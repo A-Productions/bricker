@@ -26,6 +26,10 @@
     * When switching to v1.7, change 'colorSnap' to 'colorMapping'
 * Fixes
     * when brickified model's parent is rotated, bricks drawn by customizing model are often not rotated correctly
+    * Custom object rotation is not maintained when instanced for in bricker model (is this behavior desired?)
+    * When executing a 'customize' operation twice (e.g. DrawAdjacent for bottom and then top), encounters error in b280.
+        * Future updates to b280 may fix this
+        * otherwise, a fix could be storing the depsgraph to a scn property in 'init', and accessing that later on instead of directly
 
 
 

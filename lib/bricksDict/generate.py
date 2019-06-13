@@ -124,7 +124,6 @@ def rayObjIntersections(scn, point, direction, miniDist:Vector, edgeLen, obj, us
         # skip insideness checks if brick shell doesn't take insideness into account
         outside = True
     else:
-    # if True:
         # run initial insideness check(s)
         if insidenessRayCastDir == "HIGH EFFICIENCY" or axes[0] in insidenessRayCastDir:
             outsideL.append(0)

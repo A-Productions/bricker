@@ -23,16 +23,17 @@ import json
 # Blender imports
 import bpy
 from bpy.types import Operator
+from bpy_extras.io_utils import ExportHelper#, path_reference_mode
 
 # Addon imports
 from ..functions import *
 from ..lib.Brick import *
 
 
-class BRICKER_OT_export_ldraw(Operator):
+class BRICKER_OT_export_ldraw(Operator, ExportHelper):
     """Export active brick model to ldraw file"""
     bl_idname = "bricker.export_ldraw"
-    bl_label = "Export to Ldraw File"
+    bl_label = "Export LDR"
     bl_options = {"REGISTER", "UNDO"}
 
     ################################################
@@ -51,6 +52,22 @@ class BRICKER_OT_export_ldraw(Operator):
         return{"FINISHED"}
 
     #############################################
+    # ExportHelper properties
+
+    filename_ext = ".ldr"
+    filter_glob = bpy.props.StringProperty(
+            default="*.ldr",
+            options={'HIDDEN'},
+            )
+    # path_mode = path_reference_mode
+    check_extension = True
+
+    #############################################
+    # class variables
+
+    # NONE!
+
+    #############################################
     # class methods
 
     def writeLdrawFile(self):
@@ -61,11 +78,13 @@ class BRICKER_OT_export_ldraw(Operator):
         absMatProperties = bpy.props.abs_mat_properties if hasattr(bpy.props, "abs_mat_properties") else None
         transWeight = cm.transparentWeight
         materialType = cm.materialType
+        # get matrix for rotation of brick
+        matrices = [" 0 0 -1 0 1 0  1 0  0",
+                    " 1 0  0 0 1 0  0 0  1",
+                    " 0 0  1 0 1 0 -1 0  0",
+                    "-1 0  0 0 1 0  0 0 -1"]
         for frame in range(cm.startFrame, cm.stopFrame + 1) if cm.animated else [-1]:
-            path, errorMsg = getExportPath(n, ".ldr", cm.exportPath, frame=frame, subfolder=cm.animated)
-            if errorMsg is not None:
-                self.report({"WARNING"}, errorMsg)
-                continue
+            path = self.filepath
             f = open(path, "w")
             # write META commands
             f.write("0 %(n)s\n" % locals())
@@ -91,11 +110,6 @@ class BRICKER_OT_export_ldraw(Operator):
                     # initialize brick size and typ
                     size = bricksDict[key]["size"]
                     typ = bricksDict[key]["type"]
-                    # get matrix for rotation of brick
-                    matrices = [" 0 0 -1 0 1 0  1 0  0",
-                                " 1 0  0 0 1 0  0 0  1",
-                                " 0 0  1 0 1 0 -1 0  0",
-                                "-1 0  0 0 1 0  0 0 -1"]
                     if typ == "SLOPE":
                         idx = 0
                         idx -= 2 if bricksDict[key]["flipped"] else 0
@@ -114,7 +128,7 @@ class BRICKER_OT_export_ldraw(Operator):
                     color = 0
                     if mat_name in getABSMatNames() and absMatProperties is not None:
                         color = absMatProperties[mat_name]["LDR Code"]
-                    elif rgba not in (None, ""):
+                    elif rgba not in (None, "") and materialType != "NONE":
                         mat_name = findNearestBrickColorName(rgba, transWeight)
                     elif bpy.data.materials.get(mat_name) is not None:
                         rgba = getMaterialColor(mat_name)
