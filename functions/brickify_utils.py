@@ -237,7 +237,7 @@ def createNewBricks(source, parent, source_details, dimensions, refLogo, logo_de
     elif redraw:
         for kk in keys:
             bricksDict[kk]["attempted_merge"] = False
-    if not loadedFromCache or cm.internalIsDirty:
+    if (not loadedFromCache or cm.internalIsDirty) and cm.calcInternals:
         updateInternal(bricksDict, cm, keys, clearExisting=loadedFromCache)
         cm.buildIsDirty = True
     # update materials in bricksDict

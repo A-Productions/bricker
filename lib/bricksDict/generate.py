@@ -357,7 +357,7 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
                         break
 
     # mark inside freqs as internal (-1) and outside next to outsides for removal
-    adjustBFM(brickFreqMatrix, matShellDepth=cm.matShellDepth, faceIdxMatrix=faceIdxMatrix, axes=axes)
+    adjustBFM(brickFreqMatrix, matShellDepth=cm.matShellDepth, calcInternals=cm.calcInternals, faceIdxMatrix=faceIdxMatrix, axes=axes)
 
     # print status to terminal
     updateProgressBars(printStatus, cursorStatus, 1, 0, "Shell", end=True)
@@ -460,7 +460,7 @@ def getBrickMatrixSmoke(faceIdxMatrix, brickShell, source_details, printStatus=T
                 colorMatrix[x][y][z] = list(c_ave) + [alpha]
 
     # mark inside freqs as internal (-1) and outside next to outsides for removal
-    adjustBFM(brickFreqMatrix, matShellDepth=cm.matShellDepth, axes=False)
+    adjustBFM(brickFreqMatrix, matShellDepth=cm.matShellDepth, calcInternals=cm.calcInternals, axes=False)
 
     # end progress bar
     updateProgressBars(printStatus, cursorStatus, 1, 0, "Shell", end=True)
@@ -468,7 +468,7 @@ def getBrickMatrixSmoke(faceIdxMatrix, brickShell, source_details, printStatus=T
     return brickFreqMatrix, colorMatrix
 
 
-def adjustBFM(brickFreqMatrix, matShellDepth, faceIdxMatrix=None, axes=""):
+def adjustBFM(brickFreqMatrix, matShellDepth, calcInternals, faceIdxMatrix=None, axes=""):
     """ adjust brickFreqMatrix values """
     shellVals = []
     xL = len(brickFreqMatrix)
@@ -512,24 +512,36 @@ def adjustBFM(brickFreqMatrix, matShellDepth, faceIdxMatrix=None, axes=""):
     #                  brickFreqMatrix[x][y][z-1] == 0)):
     #                 brickFreqMatrix[x][y][z] = 0
 
-    # iterate through all values except boundaries
+    trashVals = [0] if calcInternals else [0, -1]
+    allShellVals = []
+    # iterate through all values
     for x in range(xL):
         for y in range(yL):
             for z in range(zL):
                 # mark outside and unused inside brickFreqMatrix values for removal
-                if brickFreqMatrix[x][y][z] == 0:
+                if brickFreqMatrix[x][y][z] in trashVals:
                     brickFreqMatrix[x][y][z] = None
-                # If shell location (1) does not intersect outside location (0, None), make it inside (-1)
+                # get shell values for next calc
                 elif brickFreqMatrix[x][y][z] == 1:
-                    if all((brickFreqMatrix[x+1][y][z],
-                            brickFreqMatrix[x-1][y][z],
-                            brickFreqMatrix[x][y+1][z],
-                            brickFreqMatrix[x][y-1][z],
-                            brickFreqMatrix[x][y][z+1],
-                            brickFreqMatrix[x][y][z-1])):
-                        brickFreqMatrix[x][y][z] = -1
-                    else:
-                        shellVals.append((x, y, z))
+                    allShellVals.append((x, y, z))
+
+    if not calcInternals:
+        return
+
+    # iterate through all shell values
+    for x, y, z in allShellVals:
+        # If shell location (1) does not intersect outside/trashed location (0, None), make it inside (-1)
+        if brickFreqMatrix[x][y][z] == 1:
+            if all((brickFreqMatrix[x+1][y][z],
+                    brickFreqMatrix[x-1][y][z],
+                    brickFreqMatrix[x][y+1][z],
+                    brickFreqMatrix[x][y-1][z],
+                    brickFreqMatrix[x][y][z+1],
+                    brickFreqMatrix[x][y][z-1])):
+                brickFreqMatrix[x][y][z] = -1
+            else:
+                shellVals.append((x, y, z))
+
 
     # Update internals
     j = 1

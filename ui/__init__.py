@@ -405,6 +405,7 @@ class VIEW3D_PT_bricker_model_settings(Panel):
 
         col = layout.column()
         row = col.row(align=True)
+        row.active = cm.calcInternals
         row.prop(cm, "shellThickness")
 
         col = layout.column()
@@ -1075,6 +1076,7 @@ class VIEW3D_PT_bricker_supports(Panel):
     def draw(self, context):
         layout = self.layout
         scn, cm, _ = getActiveContextInfo()
+        layout.active = cm.calcInternals
 
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -1145,6 +1147,8 @@ class VIEW3D_PT_bricker_advanced(Panel):
         row.prop(cm, "useNormals")
         row = col.row(align=True)
         row.prop(cm, "verifyExposure")
+        row = col.row(align=True)
+        row.prop(cm, "calcInternals")
         row = col.row(align=True)
         row.prop(cm, "brickShell", text="Shell")
         if cm.brickShell == "OUTSIDE":

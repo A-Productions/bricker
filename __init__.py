@@ -69,6 +69,7 @@ def register():
     bpy.props.running_bricksculpt_tool = False
     bpy.props.bricker_last_selected = []
     bpy.props.bricker_trans_and_anim_data = []
+    bpy.props.manual_cmlist_update = False
     bpy.props.bfm_cache_bytes_hex = None
 
     Object.protected = BoolProperty(name='protected', default=False)
@@ -183,6 +184,7 @@ def unregister():
     del Object.isBrickifiedObject
     del Object.protected
     del bpy.props.bfm_cache_bytes_hex
+    del bpy.props.manual_cmlist_update
     del bpy.props.bricker_trans_and_anim_data
     del bpy.props.bricker_last_selected
     del bpy.props.running_bricksculpt_tool

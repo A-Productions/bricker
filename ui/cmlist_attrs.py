@@ -615,6 +615,11 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="Run additional insideness calculations (slower, but fixes issue where row(s)/column(s) of extra bricks are drawn)",
         default=False,
         update=dirtyMatrix)
+    calcInternals = BoolProperty(
+        name="Calculate Internals",
+        description="Calculate values for bricks inside shell (disable for faster calculation at the loss of the 'ShellThickness' and 'Supports' features)",
+        default=True,
+        update=dirtyMatrix)
     useLocalOrient = BoolProperty(
         name="Use Local Orient",
         description="Generate bricks based on local orientation of source object",

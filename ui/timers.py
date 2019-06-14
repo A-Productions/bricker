@@ -93,6 +93,7 @@ def handle_selections(junk=None):
             if createdWithUnsupportedVersion(cm) or getSourceName(cm) != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
                 continue
             if scn.cmlist_index != i:
+                bpy.props.manual_cmlist_update = True
                 scn.cmlist_index = i
             if obj.isBrick:
                 # adjust scn.active_brick_detail based on active brick

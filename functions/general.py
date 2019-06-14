@@ -184,6 +184,7 @@ def getMatrixSettings(cm=None):
                        cm.verifyExposure,
                        cm.insidenessRayCastDir,
                        cm.brickShell,
+                       cm.calcInternals,
                        cm.calculationAxes]
     smokeSettings = [round(cm.smokeDensity, 6),
                      round(cm.smokeQuality, 6),
@@ -514,13 +515,17 @@ def select_source_model(self, context):
     """ if scn.cmlist_index changes, select and make source or Brick Model active """
     scn = bpy.context.scene
     obj = bpy.context.view_layer.objects.active if b280() else scn.objects.active
+    # don't select source model if this property was set to True by timer
+    if bpy.props.manual_cmlist_update:
+        bpy.props.manual_cmlist_update = False
+        return
     if scn.cmlist_index != -1:
         cm, n = getActiveContextInfo()[1:]
         source = cm.source_obj
         if source and cm.version[:3] != "1_0":
             if cm.modelCreated:
                 bricks = getBricks()
-                if bricks and len(bricks) > 0 and obj not in bricks:
+                if bricks and len(bricks) > 0:
                     select(bricks, active=True, only=True)
                     scn.Bricker_last_active_object_name = obj.name if obj is not None else ""
             elif cm.animated:
