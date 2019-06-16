@@ -77,7 +77,7 @@ class BRICKER_OT_split_bricks(Operator):
                 if size[2] <= 1:
                     continue
                 if size[0] + size[1] > 2:
-                    return context.window_manager.invoke_props_popup(self, event)
+                    return context.window_manager.invoke_props_dialog(self)
                 else:
                     self.vertical = True
                     self.splitBricks()
@@ -113,7 +113,7 @@ class BRICKER_OT_split_bricks(Operator):
         description="Split bricks into plates",
         default=False)
     horizontal = bpy.props.BoolProperty(
-        name="Horizontal",
+        name="Horizontal (1x1s)",
         description="Split bricks into smaller bricks with minimum width and depth",
         default=False)
 

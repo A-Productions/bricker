@@ -70,6 +70,15 @@ class BRICKER_OT_change_brick_type(Operator):
     def invoke(self, context, event):
         return context.window_manager.invoke_props_popup(self, event)
 
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+        right_align(col)
+        col.prop(self, "brickType")
+        if "SLOPE" in self.brickType:
+            col.prop(self, "flipBrick")
+            col.prop(self, "rotateBrick")
+
     ################################################
     # initialization method
 

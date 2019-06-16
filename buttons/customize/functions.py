@@ -263,6 +263,8 @@ def createObjNamesAndBricksDictsDs(objs):
 
 def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", allModels=False, only=False, include="EXT"):
     scn = bpy.context.scene
+    if only:
+        deselectAll()
     # split all bricks in objNamesD[cm_id]
     for cm_id in objNamesD.keys():
         cm = getItemByID(scn.cmlist, cm_id)
@@ -288,8 +290,8 @@ def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", all
             if (sizeStr == brickSize or typ == brickType) and (include == "BOTH" or (include == "INT" and not onShell) or (include == "EXT" and onShell)):
                 selectedSomething = True
                 select(curObj)
-            elif only:
-                deselect(curObj)
+            # elif only:
+            #     deselect(curObj)
 
         # if no brickSize bricks exist, remove from cm.brickSizesUsed or cm.brickTypesUsed
         removeUnusedFromList(cm, brickType=brickType, brickSize=brickSize, selectedSomething=selectedSomething)

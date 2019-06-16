@@ -689,6 +689,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     lastSourceMid = StringProperty(default="-1,-1,-1")
     lastMaterialType = StringProperty(default="SOURCE")
     lastShellThickness = IntProperty(default=1)
+    lastInternalSupports = StringProperty(default="NONE")
     lastBrickType = StringProperty(default="BRICKS")
     lastMatrixSettings = StringProperty(default="")
     lastLegalBricksOnly = BoolProperty(default=False)

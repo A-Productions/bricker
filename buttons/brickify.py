@@ -352,6 +352,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cm.lastLegalBricksOnly = cm.legalBricksOnly
         cm.lastMaterialType = cm.materialType
         cm.lastShellThickness = cm.shellThickness
+        cm.lastInternalSupports = cm.internalSupports
         cm.lastMatShellDepth = cm.matShellDepth
         cm.lastMatrixSettings = getMatrixSettings()
         cm.lastIsSmoke = cm.isSmoke

@@ -712,6 +712,7 @@ class VIEW3D_PT_bricker_merge_settings(Panel):
             row.prop(cm, "mergeInternals")
         if cm.brickType == "BRICKS AND PLATES":
             row = col.row(align=True)
+            right_align(row)
             row.prop(cm, "alignBricks")
             if cm.alignBricks:
                 row = col.row(align=True)

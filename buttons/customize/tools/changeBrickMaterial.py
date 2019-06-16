@@ -58,6 +58,9 @@ class BRICKER_OT_change_brick_material(Operator):
             return True
         return False
 
+    def check(self, context):
+        return self.mat_name is None
+
     def execute(self, context):
         try:
             # only reference self.mat_name once (runs get_items)
@@ -98,7 +101,7 @@ class BRICKER_OT_change_brick_material(Operator):
         return{"FINISHED"}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_popup(self, event)
+        return context.window_manager.invoke_props_dialog(self)
 
     ################################################
     # initialization method
@@ -127,7 +130,7 @@ class BRICKER_OT_change_brick_material(Operator):
 
     # properties
     mat_name = bpy.props.EnumProperty(
-        name="Material Names",
+        name="Material Name",
         description="Choose material to apply to selected bricks",
         items=get_items)
 

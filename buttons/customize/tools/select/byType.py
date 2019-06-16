@@ -51,7 +51,24 @@ class BRICKER_OT_select_bricks_by_type(Operator):
         return{"FINISHED"}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_popup(self, event)
+        return context.window_manager.invoke_props_dialog(self)
+
+    def check(self, context):
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+        scn, cm, _ = getActiveContextInfo()
+
+        col = layout.column(align=True)
+        right_align(col)
+        col.prop(self, "brickType")
+        if len(bpy.context.selected_objects) > 0:
+            col.prop(self, "only")
+        if len(scn.cmlist) > 1:
+            col.prop(self, "allModels")
+        if cm.lastShellThickness > 1 or cm.lastInternalSupports != "NONE":
+            col.prop(self, "include")
 
     ################################################
     # initialization method
@@ -75,16 +92,16 @@ class BRICKER_OT_select_bricks_by_type(Operator):
 
     # define props for popup
     brickType = bpy.props.EnumProperty(
-        name="By Type",
+        name="Type",
         description="Select all bricks of specified type",
         items=get_items)
     only = bpy.props.BoolProperty(
         name="Only",
-        description="Select only bricks of given type/size",
+        description="Select only bricks of given type",
         default=False)
     allModels = bpy.props.BoolProperty(
         name="All Models",
-        description="Select bricks of given type/size from all models in file",
+        description="Select bricks of given type from all models in file",
         default=False)
     include = bpy.props.EnumProperty(
         name="Include",
