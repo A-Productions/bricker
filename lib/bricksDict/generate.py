@@ -631,7 +631,7 @@ def createBricksDictEntry(name:str, loc:list, val:float=0, draw:bool=False, co:t
             "created_from":created_from,
            }
 
-@timed_call('Time Elapsed')
+@timed_call("Time Elapsed")
 def makeBricksDict(source, source_details, brickScale, uv_images, cursorStatus=False):
     """ make dictionary with brick information at each coordinate of lattice surrounding source
     source         -- source object to construct lattice around
@@ -697,7 +697,7 @@ def makeBricksDict(source, source_details, brickScale, uv_images, cursorStatus=F
                 draw = brickFreqMatrix[x][y][z] >= threshold
                 # create bricksDict entry for current brick
                 bricksDict[bKey] = createBricksDictEntry(
-                    name= 'Bricker_%(n)s__%(bKey)s' % locals(),
+                    name= "Bricker_%(n)s__%(bKey)s" % locals(),
                     loc= [x, y, z],
                     val= brickFreqMatrix[x][y][z],
                     draw= draw,

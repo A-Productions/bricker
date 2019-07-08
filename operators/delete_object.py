@@ -37,7 +37,7 @@ class OBJECT_OT_delete_override(Operator):
     """OK?"""
     bl_idname = "object.delete"
     bl_label = "Delete"
-    bl_options = {'REGISTER'}
+    bl_options = {"REGISTER"}
 
     ################################################
     # Blender Operator methods
@@ -52,7 +52,7 @@ class OBJECT_OT_delete_override(Operator):
             self.runDelete(context)
         except:
             bricker_handle_exception()
-        return {'FINISHED'}
+        return {"FINISHED"}
 
     def invoke(self, context, event):
         # Run confirmation popup for delete action
@@ -84,7 +84,7 @@ class OBJECT_OT_delete_override(Operator):
         if bpy.props.bricker_initialized:
             for obj in self.objsToDelete:
                 if obj.isBrick:
-                    self.undo_stack.undo_push('delete_override')
+                    self.undo_stack.undo_push("delete_override")
                     self.undo_pushed = True
                     break
         else:

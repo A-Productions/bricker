@@ -245,7 +245,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         scn, cm, _ = getActiveContextInfo()
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
-        self.undo_stack.undo_push('brickify', affected_ids=[cm.id])
+        self.undo_stack.undo_push("brickify", affected_ids=[cm.id])
         # initialize vars
         self.createdObjects = list()
         self.action = getAction(cm)
@@ -632,9 +632,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 BRICKER_OT_bevel.runBevelAction([obj], cm)
 
         wm.progress_update(curFrame-cm.startFrame)
-        print('-'*100)
+        print("-"*100)
         print("completed frame " + str(curFrame))
-        print('-'*100)
+        print("-"*100)
         return True
 
     @staticmethod

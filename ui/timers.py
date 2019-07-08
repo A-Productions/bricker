@@ -107,7 +107,7 @@ def handle_selections(junk=None):
     return 0.05
 
 
-@blender_version_wrapper('>=','2.80')
+@blender_version_wrapper(">=","2.80")
 def handle_undo_stack():
     scn = bpy.context.scene
     undo_stack = UndoStack.get_instance()
@@ -128,7 +128,7 @@ def handle_undo_stack():
 
 
 @persistent
-@blender_version_wrapper('>=','2.80')
+@blender_version_wrapper(">=","2.80")
 def register_bricker_timers(scn):
     timer_fns = (handle_selections, handle_undo_stack)
     for timer_fn in timer_fns:

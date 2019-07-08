@@ -182,7 +182,7 @@ def updateBevelRender(self, context):
     scn, cm, _ = getActiveContextInfo()
     show_render = cm.bevelShowRender
     for brick in getBricks():
-        bevel = brick.modifiers.get(brick.name + '_bvl')
+        bevel = brick.modifiers.get(brick.name + "_bvl")
         if bevel: bevel.show_render = show_render
 
 
@@ -190,7 +190,7 @@ def updateBevelViewport(self, context):
     scn, cm, _ = getActiveContextInfo()
     show_viewport = cm.bevelShowViewport
     for brick in getBricks():
-        bevel = brick.modifiers.get(brick.name + '_bvl')
+        bevel = brick.modifiers.get(brick.name + "_bvl")
         if bevel: bevel.show_viewport = show_viewport
 
 
@@ -198,7 +198,7 @@ def updateBevelEditMode(self, context):
     scn, cm, _ = getActiveContextInfo()
     show_in_editmode = cm.bevelShowEditmode
     for brick in getBricks():
-        bevel = brick.modifiers.get(brick.name + '_bvl')
+        bevel = brick.modifiers.get(brick.name + "_bvl")
         if bevel: bevel.show_in_editmode = show_in_editmode
 
 

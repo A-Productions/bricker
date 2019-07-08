@@ -57,7 +57,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
     filename_ext = ".ldr"
     filter_glob = bpy.props.StringProperty(
             default="*.ldr",
-            options={'HIDDEN'},
+            options={"HIDDEN"},
             )
     # path_mode = path_reference_mode
     check_extension = True

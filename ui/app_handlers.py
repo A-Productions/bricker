@@ -75,7 +75,7 @@ def handle_animation(scn):
                         deselect(brick)
 
 
-@blender_version_wrapper('<=','2.79')
+@blender_version_wrapper("<=","2.79")
 def isObjVisible(scn, cm, n):
     objVisible = False
     if cm.modelCreated or cm.animated:
@@ -98,7 +98,7 @@ def find_3dview_space():
     # Find 3D_View window and its scren space
     area = None
     for a in bpy.data.window_managers[0].windows[0].screen.areas:
-        if a.type == 'VIEW_3D':
+        if a.type == "VIEW_3D":
             area = a
             break
 

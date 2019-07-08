@@ -55,9 +55,9 @@ class bricksculpt_drawing:
         self.dpi = int(72 * ui_scale * pixel_size)
 
         # add callback handlers
-        self.cb_pr_handle = SpaceView3D.draw_handler_add(self.draw_callback_preview,   (bpy.context, ), 'WINDOW', 'PRE_VIEW')
-        # self.cb_pv_handle = SpaceView3D.draw_handler_add(self.draw_callback_postview,  (bpy.context, ), 'WINDOW', 'POST_VIEW')
-        self.cb_pp_handle = SpaceView3D.draw_handler_add(self.draw_callback_postpixel, (bpy.context, ), 'WINDOW', 'POST_PIXEL')
+        self.cb_pr_handle = SpaceView3D.draw_handler_add(self.draw_callback_preview,   (bpy.context, ), "WINDOW", "PRE_VIEW")
+        # self.cb_pv_handle = SpaceView3D.draw_handler_add(self.draw_callback_postview,  (bpy.context, ), "WINDOW", "POST_VIEW")
+        self.cb_pp_handle = SpaceView3D.draw_handler_add(self.draw_callback_postpixel, (bpy.context, ), "WINDOW", "POST_PIXEL")
         # darken other spaces
         self.spaces = [
             bpy.types.SpaceClipEditor,
@@ -73,7 +73,7 @@ class bricksculpt_drawing:
             bpy.types.SpaceProperties,
             bpy.types.SpaceSequenceEditor,
             bpy.types.SpaceTextEditor,
-            #'SpaceView3D',                 # <- specially handled
+            #"SpaceView3D",                 # <- specially handled
         ]
         if b280():
             self.spaces.append(bpy.types.SpacePreferences)
@@ -82,15 +82,15 @@ class bricksculpt_drawing:
             self.spaces.append(bpy.types.SpaceUserPreferences)
             self.spaces.append(bpy.types.SpaceLogicEditor)
             self.spaces.append(bpy.types.SpaceTimeline)
-        self.areas = ('WINDOW', 'HEADER')
+        self.areas = ("WINDOW", "HEADER")
         if not b280():
-            # ('WINDOW', 'HEADER', 'CHANNELS', 'TEMPORARY', 'UI', 'TOOLS', 'TOOL_PROPS', 'PREVIEW')
-            self.cb_pp_tools   = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), 'TOOLS',      'POST_PIXEL')
-            self.cb_pp_props   = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), 'TOOL_PROPS', 'POST_PIXEL')
-            self.cb_pp_ui      = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), 'UI',         'POST_PIXEL')
-            self.cb_pp_header  = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), 'HEADER',     'POST_PIXEL')
+            # ("WINDOW", "HEADER", "CHANNELS", "TEMPORARY", "UI", "TOOLS", "TOOL_PROPS", "PREVIEW")
+            self.cb_pp_tools   = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), "TOOLS",      "POST_PIXEL")
+            self.cb_pp_props   = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), "TOOL_PROPS", "POST_PIXEL")
+            self.cb_pp_ui      = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), "UI",         "POST_PIXEL")
+            self.cb_pp_header  = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), "HEADER",     "POST_PIXEL")
             self.cb_pp_all = [
-                (s, a, s.draw_handler_add(self.draw_callback_cover, (bpy.context,), a, 'POST_PIXEL'))
+                (s, a, s.draw_handler_add(self.draw_callback_cover, (bpy.context,), a, "POST_PIXEL"))
                 for s in self.spaces
                 for a in self.areas
                 ]
@@ -99,28 +99,28 @@ class bricksculpt_drawing:
 
     def ui_end(self):
         # remove callback handlers
-        if hasattr(self, 'cb_pr_handle'):
+        if hasattr(self, "cb_pr_handle"):
             SpaceView3D.draw_handler_remove(self.cb_pr_handle, "WINDOW")
             del self.cb_pr_handle
-        if hasattr(self, 'cb_pv_handle'):
+        if hasattr(self, "cb_pv_handle"):
             SpaceView3D.draw_handler_remove(self.cb_pv_handle, "WINDOW")
             del self.cb_pv_handle
-        if hasattr(self, 'cb_pp_handle'):
+        if hasattr(self, "cb_pp_handle"):
             SpaceView3D.draw_handler_remove(self.cb_pp_handle, "WINDOW")
             del self.cb_pp_handle
-        if hasattr(self, 'cb_pp_tools'):
+        if hasattr(self, "cb_pp_tools"):
             SpaceView3D.draw_handler_remove(self.cb_pp_tools,  "TOOLS")
             del self.cb_pp_tools
-        if hasattr(self, 'cb_pp_props'):
+        if hasattr(self, "cb_pp_props"):
             SpaceView3D.draw_handler_remove(self.cb_pp_props,  "TOOL_PROPS")
             del self.cb_pp_props
-        if hasattr(self, 'cb_pp_ui'):
+        if hasattr(self, "cb_pp_ui"):
             SpaceView3D.draw_handler_remove(self.cb_pp_ui,     "UI")
             del self.cb_pp_ui
-        if hasattr(self, 'cb_pp_header'):
+        if hasattr(self, "cb_pp_header"):
             SpaceView3D.draw_handler_remove(self.cb_pp_header, "HEADER")
             del self.cb_pp_header
-        if hasattr(self, 'cb_pp_all'):
+        if hasattr(self, "cb_pp_all"):
             for s,a,cb in self.cb_pp_all: s.draw_handler_remove(cb, a)
             del self.cb_pp_all
         tag_redraw_areas()
@@ -368,7 +368,7 @@ class bricksculpt_drawing:
     #     self.hit_rmat = rmat
     #
     # def clear_ui_mouse_pos(self):
-    #     ''' called when mouse is moved outside View3D '''
+    #     """ called when mouse is moved outside View3D """
     #     self.hit = False
     #     self.hit_p = None
     #     self.hit_x = None
@@ -377,17 +377,17 @@ class bricksculpt_drawing:
     #     self.hit_rmat = None
     #
     # @staticmethod
-    # @blender_version('<','2.79')
+    # @blender_version("<","2.79")
     # def update_dpi():
     #     paintbrush._dpi = get_preferences().system.dpi
-    #     if get_preferences().system.virtual_pixel_mode == 'DOUBLE':
+    #     if get_preferences().system.virtual_pixel_mode == "DOUBLE":
     #         paintbrush._dpi *= 2
     #     paintbrush._dpi *= get_preferences().system.pixel_size
     #     paintbrush._dpi = int(paintbrush._dpi)
     #     paintbrush._dpi_mult = paintbrush._dpi / 72
     #
     # @staticmethod
-    # @blender_version('>=','2.79')
+    # @blender_version(">=","2.79")
     # def update_dpi():
     #     paintbrush._ui_scale = get_preferences().view.ui_scale
     #     paintbrush._sysdpi = get_preferences().system.dpi
@@ -397,8 +397,8 @@ class bricksculpt_drawing:
     #     paintbrush._dpi *= paintbrush._pixel_size
     #     paintbrush._dpi = int(paintbrush._dpi)
     #     paintbrush._dpi_mult = paintbrush._ui_scale * paintbrush._pixel_size * paintbrush._sysdpi / 72
-    #     s = 'DPI information: scale:%0.2f, pixel:%0.2f, dpi:%d' % (paintbrush._ui_scale, paintbrush._pixel_size, paintbrush._sysdpi)
-    #     if s != getattr(paintbrush, '_last_dpi_info', None):
+    #     s = "DPI information: scale:%0.2f, pixel:%0.2f, dpi:%d" % (paintbrush._ui_scale, paintbrush._pixel_size, paintbrush._sysdpi)
+    #     if s != getattr(paintbrush, "_last_dpi_info", None):
     #         paintbrush._last_dpi_info = s
     #         print(s)
     #

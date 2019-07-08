@@ -46,7 +46,7 @@ def hash_object(obj:bpy.types.Object):
 def hash_bmesh(bme:bmesh.types.BMesh):
     if bme is None:
         return None
-    assert type(bme) is bmesh.types.BMesh, 'Only call hash_bmesh on BMesh objects!'
+    assert type(bme) is bmesh.types.BMesh, "Only call hash_bmesh on BMesh objects!"
     counts = (len(bme.verts), len(bme.edges), len(bme.faces))
     bbox   = BBox(from_bmverts=self.bme.verts)
     vsum   = tuple(sum((v.co for v in bme.verts), Vector((0, 0, 0))))

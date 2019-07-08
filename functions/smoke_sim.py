@@ -27,7 +27,7 @@ def getSmokeInfo(smoke_obj):
     smoke_data = None
     # Search smoke domain target for smoke modifiers
     for mod in smoke_obj.modifiers:
-        if hasattr(mod, "smoke_type") and mod.smoke_type == 'DOMAIN':
+        if hasattr(mod, "smoke_type") and mod.smoke_type == "DOMAIN":
             smoke_data = mod.domain_settings
             break
 

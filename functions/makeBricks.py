@@ -40,7 +40,7 @@ from .makeBricks_utils import *
 from .mat_utils import *
 
 
-@timed_call('Time Elapsed')
+@timed_call("Time Elapsed")
 def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, action, cm=None, split=False, brickScale=None, customData=None, coll_name=None, clearExistingCollection=True, frameNum=None, cursorStatus=False, keys="ALL", printStatus=True, tempBrick=False, redraw=False):
     # set up variables
     scn, cm, n = getActiveContextInfo(cm=cm)
@@ -55,7 +55,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     mergeVertical = (keys != "ALL" and "PLATES" in cm.brickType) or cm.brickType == "BRICKS AND PLATES"
 
     # get brick collection
-    coll_name = coll_name or 'Bricker_%(n)s_bricks' % locals()
+    coll_name = coll_name or "Bricker_%(n)s_bricks" % locals()
     bColl = bpy_collections().get(coll_name)
     # create new collection if no existing collection found
     if bColl is None:
@@ -286,7 +286,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         # end progress bars
         updateProgressBars(printStatus, cursorStatus, 1, 0, "Linking to Scene", end=True)
     else:
-        name = 'Bricker_%(n)s_bricks' % locals()
+        name = "Bricker_%(n)s_bricks" % locals()
         if frameNum is not None:
             name = "%(name)s_f_%(frameNum)s" % locals()
         m = bpy.data.meshes.new(name)

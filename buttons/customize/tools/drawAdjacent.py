@@ -70,7 +70,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             self.undo_stack.matchPythonToBlenderState()
             # push to undo stack
             if self.orig_undo_stack_length == self.undo_stack.getLength():
-                self.undo_stack.undo_push('draw_adjacent', affected_ids=[cm.id])
+                self.undo_stack.undo_push("draw_adjacent", affected_ids=[cm.id])
             if not b280(): scn.update()
             self.undo_stack.iterateStates(cm)
             # get fresh copy of self.bricksDict
@@ -133,7 +133,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             if orig_obj: select(orig_obj, active=True)
         except:
             bricker_handle_exception()
-        return {'FINISHED'}
+        return {"FINISHED"}
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_popup(self, event)
@@ -253,7 +253,7 @@ class BRICKER_OT_draw_adjacent(Operator):
         if not adjBrickD:
             co = BRICKER_OT_draw_adjacent.getNewCoord(cm, bricksDict, dictKey, dictLoc, adjacent_key, adjacent_loc, dimensions)
             bricksDict[adjacent_key] = createBricksDictEntry(
-                name=              'Bricker_%(n)s__%(adjacent_key)s' % locals(),
+                name=              "Bricker_%(n)s__%(adjacent_key)s" % locals(),
                 loc=               adjacent_loc,
                 co=                co,
                 near_face=         bricksDict[dictKey]["near_face"],

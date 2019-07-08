@@ -111,7 +111,7 @@ class BRICKER_OT_merge_bricks(Operator):
         self.objNamesD, self.bricksDicts = createObjNamesAndBricksDictsDs(selected_objects)
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
-        self.undo_stack.undo_push('merge', list(self.objNamesD.keys()))
+        self.undo_stack.undo_push("merge", list(self.objNamesD.keys()))
         # set mergeInconsistentMats
         self.mergeInconsistentMats = bpy.props.bricker_last_selected == [obj.name for obj in selected_objects]
 

@@ -80,7 +80,7 @@ def drawBrick(cm_id, bricksDict, key, loc, seedKeys, parent, dimensions, zStep, 
             # set brick.data to new mesh (resets materials)
             brick.data = m
             # add/remove edge split modifier if necessary
-            eMod = brick.modifiers.get('Edge Split')
+            eMod = brick.modifiers.get("Edge Split")
             if not eMod and edgeSplit:
                 addEdgeSplitMod(brick)
             elif eMod and not edgeSplit:
@@ -174,7 +174,7 @@ def useEdgeSplitMod(brickD, customObject1, customObject2, customObject3):
 
 def addEdgeSplitMod(obj):
     """ Add edge split modifier """
-    eMod = obj.modifiers.new('Edge Split', 'EDGE_SPLIT')
+    eMod = obj.modifiers.new("Edge Split", "EDGE_SPLIT")
     eMod.split_angle = math.radians(44)
 
 
@@ -215,9 +215,9 @@ def getRandomRotMatrix(randomRot, rand, brickSize):
     y = rand.uniform(-math.radians(11.25) * mult, math.radians(11.25) * mult)
     z = rand.uniform(-math.radians(45)    * mult, math.radians(45)    * mult)
     # get rotation matrix
-    x_mat = Matrix.Rotation(x, 4, 'X')
-    y_mat = Matrix.Rotation(y, 4, 'Y')
-    z_mat = Matrix.Rotation(z, 4, 'Z')
+    x_mat = Matrix.Rotation(x, 4, "X")
+    y_mat = Matrix.Rotation(y, 4, "Y")
+    z_mat = Matrix.Rotation(z, 4, "Z")
     combined_mat = mathutils_mult(x_mat, y_mat, z_mat)
     return combined_mat
 

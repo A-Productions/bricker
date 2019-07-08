@@ -154,7 +154,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default=1)
     flameColor = FloatVectorProperty(
         name="Hex Value",
-        subtype='COLOR',
+        subtype="COLOR",
         update=dirtyMatrix,
         default=[1.0, 0.63, 0.2])
     flameIntensity = FloatProperty(

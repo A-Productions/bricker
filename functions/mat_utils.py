@@ -41,5 +41,5 @@ def setMaterial(obj, mat, to_data=False, overwrite=True):
         linkMaterialToObject(obj, mat)
 
 def linkMaterialToObject(obj, mat, index=-1):
-    obj.material_slots[index].link = 'OBJECT'
+    obj.material_slots[index].link = "OBJECT"
     obj.material_slots[index].material = mat

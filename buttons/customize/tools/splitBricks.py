@@ -126,7 +126,7 @@ class BRICKER_OT_split_bricks(Operator):
             self.undo_stack.matchPythonToBlenderState()
             # push to undo stack
             if self.orig_undo_stack_length == self.undo_stack.getLength():
-                self.cached_bfm = self.undo_stack.undo_push('split', affected_ids=list(self.objNamesD.keys()))
+                self.cached_bfm = self.undo_stack.undo_push("split", affected_ids=list(self.objNamesD.keys()))
             # initialize vars
             scn = bpy.context.scene
             objsToSelect = []

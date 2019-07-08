@@ -225,17 +225,17 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sat_mat, specular, rough
             if scn.render.engine in ("CYCLES", "BLENDER_EEVEE"):
                 if b280():
                     # get principled material node
-                    principled = mat_nodes.get('Principled BSDF')
+                    principled = mat_nodes.get("Principled BSDF")
                 else:
                     # a new material node tree already has a diffuse and material output node
-                    output = mat_nodes['Material Output']
+                    output = mat_nodes["Material Output"]
                     # remove default Diffuse BSDF
-                    diffuse = mat_nodes['Diffuse BSDF']
+                    diffuse = mat_nodes["Diffuse BSDF"]
                     mat_nodes.remove(diffuse)
                     # add Principled BSDF
-                    principled = mat_nodes.new('ShaderNodeBsdfPrincipled')
+                    principled = mat_nodes.new("ShaderNodeBsdfPrincipled")
                     # link Principled BSDF to output node
-                    mat_links.new(principled.outputs['BSDF'], output.inputs['Surface'])
+                    mat_links.new(principled.outputs["BSDF"], output.inputs["Surface"])
                 # set values for Principled BSDF
                 principled.inputs[0].default_value = rgba
                 principled.inputs[1].default_value = sss
@@ -249,38 +249,38 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sat_mat, specular, rough
                         principled.inputs[18].default_value = 1 - rgba[3]
                     else:
                         # a new material node tree already has a diffuse and material output node
-                        output = mat_nodes['Material Output']
+                        output = mat_nodes["Material Output"]
                         # create transparent and mix nodes
                         transparent = mat_nodes.new("ShaderNodeBsdfTransparent")
                         mix = mat_nodes.new("ShaderNodeMixShader")
                         # link these nodes together
-                        mat_links.new(principled.outputs['BSDF'], mix.inputs[1])
-                        mat_links.new(transparent.outputs['BSDF'], mix.inputs[2])
-                        mat_links.new(mix.outputs['Shader'], output.inputs["Surface"])
+                        mat_links.new(principled.outputs["BSDF"], mix.inputs[1])
+                        mat_links.new(transparent.outputs["BSDF"], mix.inputs[2])
+                        mat_links.new(mix.outputs["Shader"], output.inputs["Surface"])
                         # set mix factor to 1 - alpha
                         mix.inputs[0].default_value = 1 - rgba[3]
             elif scn.render.engine == "octane":
                 # a new material node tree already has a diffuse and material output node
-                output = mat_nodes['Material Output']
+                output = mat_nodes["Material Output"]
                 # remove default Diffuse shader
-                diffuse = mat_nodes['Octane Diffuse Mat']
+                diffuse = mat_nodes["Octane Diffuse Mat"]
                 mat_nodes.remove(diffuse)
                 # add Octane Glossy shader
-                oct_glossy = mat_nodes.new('ShaderNodeOctGlossyMat')
+                oct_glossy = mat_nodes.new("ShaderNodeOctGlossyMat")
                 # set values for Octane Glossy shader
                 oct_glossy.inputs[0].default_value = rgba
-                oct_glossy.inputs['Specular'].default_value = specular
-                oct_glossy.inputs['Roughness'].default_value = roughness
-                oct_glossy.inputs['Index'].default_value = ior
-                oct_glossy.inputs['Opacity'].default_value = rgba[3]
-                oct_glossy.inputs['Smooth'].default_value = True
-                mat_links.new(oct_glossy.outputs['OutMat'], output.inputs['Surface'])
+                oct_glossy.inputs["Specular"].default_value = specular
+                oct_glossy.inputs["Roughness"].default_value = roughness
+                oct_glossy.inputs["Index"].default_value = ior
+                oct_glossy.inputs["Opacity"].default_value = rgba[3]
+                oct_glossy.inputs["Smooth"].default_value = True
+                mat_links.new(oct_glossy.outputs["OutMat"], output.inputs["Surface"])
             # elif scn.render.engine == "LUXCORE":
             #     # get default Matte shader
-            #     matte = mat_nodes['Matte Material']
+            #     matte = mat_nodes["Matte Material"]
             #     # set values for Matte shader
             #     matte.inputs[0].default_value = rgba
-            #     matte.inputs['Opacity'].default_value = rgba[3]
+            #     matte.inputs["Opacity"].default_value = rgba[3]
     else:
         if scn.render.engine == "BLENDER_RENDER":
             # make sure 'use_nodes' is disabled

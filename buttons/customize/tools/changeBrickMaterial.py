@@ -114,7 +114,7 @@ class BRICKER_OT_change_brick_material(Operator):
         self.mat_name = "NONE"
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
-        self.cached_bfm = self.undo_stack.undo_push('change material', list(self.objNamesD.keys()))
+        self.cached_bfm = self.undo_stack.undo_push("change material", list(self.objNamesD.keys()))
 
     ###################################################
     # class variables

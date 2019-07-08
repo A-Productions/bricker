@@ -57,7 +57,7 @@ class BRICKER_OT_bevel(bpy.types.Operator):
             # set bevel action to add or remove
             try:
                 testBrick = getBricks()[0]
-                testBrick.modifiers[testBrick.name + '_bvl']
+                testBrick.modifiers[testBrick.name + "_bvl"]
                 action = "REMOVE" if cm.bevelAdded else "ADD"
             except:
                 action = "ADD"
@@ -105,15 +105,15 @@ class BRICKER_OT_bevel(bpy.types.Operator):
         show_in_editmode = cm.bevelShowEditmode
         # create bevel modifiers for each object
         for obj in objs:
-            self.createBevelMod(obj=obj, width=cm.bevelWidth * cm.brickHeight, segments=segments, profile=profile, limitMethod="WEIGHT", offsetType='OFFSET', angleLimit=1.55334, show_render=show_render, show_viewport=show_viewport, show_in_editmode=show_in_editmode)
+            self.createBevelMod(obj=obj, width=cm.bevelWidth * cm.brickHeight, segments=segments, profile=profile, limitMethod="WEIGHT", offsetType="OFFSET", angleLimit=1.55334, show_render=show_render, show_viewport=show_viewport, show_in_editmode=show_in_editmode)
 
     @classmethod
-    def createBevelMod(self, obj:Object, width:float=1, segments:int=1, profile:float=0.5, onlyVerts:bool=False, limitMethod:str='NONE', angleLimit:float=0.523599, vertexGroup:str=None, offsetType:str='OFFSET', show_render:bool=True, show_viewport:bool=True, show_in_editmode:bool=True):
+    def createBevelMod(self, obj:Object, width:float=1, segments:int=1, profile:float=0.5, onlyVerts:bool=False, limitMethod:str="NONE", angleLimit:float=0.523599, vertexGroup:str=None, offsetType:str="OFFSET", show_render:bool=True, show_viewport:bool=True, show_in_editmode:bool=True):
         """ create bevel modifier for 'obj' with given parameters """
-        dMod = obj.modifiers.get(obj.name + '_bvl')
+        dMod = obj.modifiers.get(obj.name + "_bvl")
         if not dMod:
-            dMod = obj.modifiers.new(obj.name + '_bvl', 'BEVEL')
-            eMod = obj.modifiers.get('Edge Split')
+            dMod = obj.modifiers.new(obj.name + "_bvl", "BEVEL")
+            eMod = obj.modifiers.get("Edge Split")
             if eMod:
                 obj.modifiers.remove(eMod)
                 addEdgeSplitMod(obj)

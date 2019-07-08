@@ -35,10 +35,10 @@ class BRICKER_OT_matlist_actions(bpy.types.Operator):
 
     action = bpy.props.EnumProperty(
         items=(
-            ('UP', "Up", ""),
-            ('DOWN', "Down", ""),
-            ('REMOVE', "Remove", ""),
-            ('ADD', "Add", ""),
+            ("UP", "Up", ""),
+            ("DOWN", "Down", ""),
+            ("REMOVE", "Remove", ""),
+            ("ADD", "Add", ""),
         )
     )
 
@@ -57,13 +57,13 @@ class BRICKER_OT_matlist_actions(bpy.types.Operator):
             matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
             idx = matObj.active_material_index
 
-            if self.action == 'REMOVE':
+            if self.action == "REMOVE":
                 self.removeItem(cm, matObj, idx)
 
-            elif self.action == 'DOWN' and idx < len(scn.cmlist) - 1:
+            elif self.action == "DOWN" and idx < len(scn.cmlist) - 1:
                 self.navigateDown(item)
 
-            elif self.action == 'UP' and idx >= 1:
+            elif self.action == "UP" and idx >= 1:
                 self.moveUp(item)
         except:
             bricker_handle_exception()

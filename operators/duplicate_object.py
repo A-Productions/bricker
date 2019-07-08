@@ -91,11 +91,11 @@ class OBJECT_OT_duplicate_move_override(bpy.types.Operator):
     """Duplicate and Move Object"""
     bl_idname = "object.duplicate_move"
     bl_label = "Duplicate and Move Object"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def invoke(self, context, event):
-        bpy.ops.object.duplicate('INVOKE_DEFAULT')
-        return bpy.ops.transform.translate('INVOKE_DEFAULT')
+        bpy.ops.object.duplicate("INVOKE_DEFAULT")
+        return bpy.ops.transform.translate("INVOKE_DEFAULT")
 
 
 # def register():

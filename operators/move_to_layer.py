@@ -30,7 +30,7 @@ class OBJECT_OT_move_to_layer_override(Operator):
     """Move to Layer functionality"""
     bl_idname = "bricker.move_to_layer_override"
     bl_label = "Move to Layer Override"
-    bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
+    bl_options = {"REGISTER", "INTERNAL", "UNDO"}
 
     ################################################
     # Blender Operator methods
@@ -61,7 +61,7 @@ class OBJECT_OT_move_to_layer_override(Operator):
         self.prev_sel = self.layers[:]
 
         self.runMove(context)
-        return {'FINISHED'}
+        return {"FINISHED"}
 
     def invoke(self, context, event):
         self.layers = [any(o.layers[i] for o in context.selected_objects)
@@ -110,10 +110,10 @@ class OBJECT_OT_move_to_layer(bpy.types.Operator):
     """Move to Layer"""
     bl_idname = "object.move_to_layer"
     bl_label = "Move to Layer"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def invoke(self, context, event):
-        return bpy.ops.bricker.move_to_layer_override('INVOKE_DEFAULT')
+        return bpy.ops.bricker.move_to_layer_override("INVOKE_DEFAULT")
 
 
 # def register():

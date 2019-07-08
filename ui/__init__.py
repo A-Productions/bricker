@@ -49,7 +49,7 @@ def settingsCanBeDrawn():
     scn = bpy.context.scene
     if scn.cmlist_index == -1:
         return False
-    if bversion() < '002.079':
+    if bversion() < "002.079":
         return False
     if not bpy.props.bricker_initialized:
         return False
@@ -94,9 +94,9 @@ class VIEW3D_PT_bricker_brick_models(Panel):
         addon_updater_ops.update_notice_box_ui(self, context)
 
         # if blender version is before 2.79, ask user to upgrade Blender
-        if bversion() < '002.079':
+        if bversion() < "002.079":
             col = layout.column(align=True)
-            col.label(text="ERROR: upgrade needed", icon='ERROR')
+            col.label(text="ERROR: upgrade needed", icon="ERROR")
             col.label(text="Bricker requires Blender 2.79+")
             return
 
@@ -106,17 +106,17 @@ class VIEW3D_PT_bricker_brick_models(Panel):
         row.template_list("CMLIST_UL_items", "", scn, "cmlist", scn, "cmlist_index", rows=rows)
 
         col = row.column(align=True)
-        col.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="", icon="ADD" if b280() else "ZOOMIN").action = 'ADD'
-        col.operator("cmlist.list_action", icon='REMOVE' if b280() else 'ZOOMOUT', text="").action = 'REMOVE'
-        col.menu("BRICKER_MT_specials", icon='DOWNARROW_HLT', text="")
+        col.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="", icon="ADD" if b280() else "ZOOMIN").action = "ADD"
+        col.operator("cmlist.list_action", icon="REMOVE" if b280() else "ZOOMOUT", text="").action = "REMOVE"
+        col.menu("BRICKER_MT_specials", icon="DOWNARROW_HLT", text="")
         if len(scn.cmlist) > 1:
             col.separator()
-            col.operator("cmlist.list_action", icon='TRIA_UP', text="").action = 'UP'
-            col.operator("cmlist.list_action", icon='TRIA_DOWN', text="").action = 'DOWN'
+            col.operator("cmlist.list_action", icon="TRIA_UP", text="").action = "UP"
+            col.operator("cmlist.list_action", icon="TRIA_DOWN", text="").action = "DOWN"
 
         # draw menu options below UI list
         if scn.cmlist_index == -1:
-            layout.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="New Brick Model", icon="ADD" if b280() else "ZOOMIN").action = 'ADD'
+            layout.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="New Brick Model", icon="ADD" if b280() else "ZOOMIN").action = "ADD"
         else:
             cm, n = getActiveContextInfo()[1:]
             if not createdWithNewerVersion(cm):
@@ -126,7 +126,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                 col1.label(text="Source Object:%(source_name)s" % locals())
                 if not (cm.animated or cm.modelCreated):
                     col2 = layout.column(align=True)
-                    col2.prop_search(cm, "source_obj", scn, "objects", text='')
+                    col2.prop_search(cm, "source_obj", scn, "objects", text="")
 
             # initialize variables
             obj = cm.source_obj
@@ -177,7 +177,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                         col.label(text="your current version.")
                 else:
                     row = col1.row(align=True)
-                    row.active = obj is not None and obj.type == 'MESH' and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
+                    row.active = obj is not None and obj.type == "MESH" and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
                     row.operator("bricker.brickify", text="Brickify Animation", icon="MOD_REMESH")
                     if obj and obj.rigid_body is not None:
                         col = layout.column(align=True)
@@ -193,7 +193,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
             else:
                 if not cm.animated and not cm.modelCreated:
                     row = col1.row(align=True)
-                    row.active = obj is not None and obj.type == 'MESH' and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
+                    row.active = obj is not None and obj.type == "MESH" and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
                     row.operator("bricker.brickify", text="Brickify Object", icon="MOD_REMESH")
                     if obj and obj.rigid_body is not None:
                         col = layout.column(align=True)
@@ -236,7 +236,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
             col = layout.column(align=True)
             row = col.row(align=True)
 
-        if bpy.data.texts.find('Bricker log') >= 0:
+        if bpy.data.texts.find("Bricker log") >= 0:
             split = layout_split(layout, factor=0.9)
             col = split.column(align=True)
             row = col.row(align=True)
@@ -343,12 +343,12 @@ class VIEW3D_PT_bricker_model_transform(Panel):
             row = col.row(align=True)
             row.prop(cm, "exposeParent")
         row = col.row(align=True)
-        parent = bpy.data.objects['Bricker_%(n)s_parent' % locals()]
+        parent = bpy.data.objects["Bricker_%(n)s_parent" % locals()]
         row = layout.row()
         row.column().prop(parent, "location")
-        if parent.rotation_mode == 'QUATERNION':
+        if parent.rotation_mode == "QUATERNION":
             row.column().prop(parent, "rotation_quaternion", text="Rotation")
-        elif parent.rotation_mode == 'AXIS_ANGLE':
+        elif parent.rotation_mode == "AXIS_ANGLE":
             row.column().prop(parent, "rotation_axis_angle", text="Rotation")
         else:
             row.column().prop(parent, "rotation_euler", text="Rotation")
@@ -881,7 +881,7 @@ class VIEW3D_PT_bricker_included_materials(Panel):
             col = layout.column(align=True)
             if not brick_materials_installed():
                 col.label(text="'ABS Plastic Materials' not installed")
-            elif scn.render.engine not in ('CYCLES', 'BLENDER_EEVEE'):
+            elif scn.render.engine not in ("CYCLES", "BLENDER_EEVEE"):
                 col.label(text="Switch to 'Cycles' or 'Eevee' for Brick Materials")
             else:
                 # draw materials UI list and list actions
@@ -891,7 +891,7 @@ class VIEW3D_PT_bricker_included_materials(Panel):
                 col1 = split.column(align=True)
                 col1.template_list("MATERIAL_UL_matslots", "", matObj, "material_slots", matObj, "active_material_index", rows=rows)
                 col1 = split.column(align=True)
-                col1.operator("bricker.mat_list_action", icon='REMOVE' if b280() else 'ZOOMOUT', text="").action = 'REMOVE'
+                col1.operator("bricker.mat_list_action", icon="REMOVE" if b280() else "ZOOMOUT", text="").action = "REMOVE"
                 col1.scale_y = 1 + rows
                 if not brick_materials_imported():
                     col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
@@ -1040,7 +1040,7 @@ class VIEW3D_PT_bricker_detailing(Panel):
             return
         try:
             testBrick = getBricks()[0]
-            bevel = testBrick.modifiers[testBrick.name + '_bvl']
+            bevel = testBrick.modifiers[testBrick.name + "_bvl"]
             col2 = split.column(align=True)
             row = col2.row(align=True)
             row.prop(cm, "bevelShowRender", icon="RESTRICT_RENDER_OFF", toggle=True)

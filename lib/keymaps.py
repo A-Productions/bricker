@@ -16,15 +16,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 def addKeymaps(km):
-    km.keymap_items.new("bricker.initialize", 'I', 'PRESS', shift=True)
-    km.keymap_items.new("bricker.brickify", 'L', 'PRESS', alt=True, shift=True)
-    km.keymap_items.new("bricker.delete_model", 'X', 'PRESS', alt=True, shift=True)
-    km.keymap_items.new("bricker.select_bricks_by_size", 'S', 'PRESS', alt=True)
-    km.keymap_items.new("bricker.select_bricks_by_type", 'S', 'PRESS', shift=True, alt=True)
-    km.keymap_items.new("bricker.split_bricks", 'Y', 'PRESS', shift=True, alt=True)
-    km.keymap_items.new("bricker.merge_bricks", 'J', 'PRESS', shift=True, alt=True)
-    km.keymap_items.new("bricker.draw_adjacent", 'N', 'PRESS', shift=True, alt=True)
-    km.keymap_items.new("bricker.change_brick_type", 'T', 'PRESS', shift=True, alt=True)
-    km.keymap_items.new("bricker.change_brick_material", 'M', 'PRESS', shift=True, alt=True)
-    km.keymap_items.new("bricker.set_exposure", 'UP_ARROW', 'PRESS', shift=True, alt=True).properties.side = "TOP"
-    km.keymap_items.new("bricker.set_exposure", 'DOWN_ARROW', 'PRESS', shift=True, alt=True).properties.side = "BOTTOM"
+    km.keymap_items.new("bricker.initialize", "I", "PRESS", shift=True)
+    km.keymap_items.new("bricker.brickify", "L", "PRESS", alt=True, shift=True)
+    km.keymap_items.new("bricker.delete_model", "X", "PRESS", alt=True, shift=True)
+    km.keymap_items.new("bricker.select_bricks_by_size", "S", "PRESS", alt=True)
+    km.keymap_items.new("bricker.select_bricks_by_type", "S", "PRESS", shift=True, alt=True)
+    km.keymap_items.new("bricker.split_bricks", "Y", "PRESS", shift=True, alt=True)
+    km.keymap_items.new("bricker.merge_bricks", "J", "PRESS", shift=True, alt=True)
+    km.keymap_items.new("bricker.draw_adjacent", "N", "PRESS", shift=True, alt=True)
+    km.keymap_items.new("bricker.change_brick_type", "T", "PRESS", shift=True, alt=True)
+    km.keymap_items.new("bricker.change_brick_material", "M", "PRESS", shift=True, alt=True)
+    km.keymap_items.new("bricker.set_exposure", "UP_ARROW", "PRESS", shift=True, alt=True).properties.side = "TOP"
+    km.keymap_items.new("bricker.set_exposure", "DOWN_ARROW", "PRESS", shift=True, alt=True).properties.side = "BOTTOM"

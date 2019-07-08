@@ -32,8 +32,8 @@ class UndoStack():
     bl_category = "Bricker"
     bl_idname = "bricker.undo_stack"
     bl_label = "Undo Stack"
-    bl_space_type  = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    bl_space_type  = "VIEW_3D"
+    bl_region_type = "TOOLS"
 
     @staticmethod
     def get_instance(reset=False):
@@ -52,7 +52,7 @@ class UndoStack():
     # initialization method
 
     def __init__(self):
-        assert hasattr(UndoStack, 'creating'), 'Do not create new UndoStack directly!  Use UndoStack.new()'
+        assert hasattr(UndoStack, "creating"), "Do not create new UndoStack directly!  Use UndoStack.new()"
         self.undo = []  # undo stack of causing actions, FSM state, tool states, and rftargets
         self.redo = []  # redo stack of causing actions, FSM state, tool states, and rftargets
 
@@ -88,14 +88,14 @@ class UndoStack():
 
     def _create_state(self, action, bfm_cache):
         return {
-            'action':       action,
-            'bfm_cache':    bfm_cache
+            "action":       action,
+            "bfm_cache":    bfm_cache
             }
 
     def _restore_state(self, state):
         global bricker_bfm_cache
-        for key in state['bfm_cache'].keys():
-            bricker_bfm_cache[key] = marshal.loads(state['bfm_cache'][key])
+        for key in state["bfm_cache"].keys():
+            bricker_bfm_cache[key] = marshal.loads(state["bfm_cache"][key])
 
     def appendState(self, action, stackType, affected_ids="ALL"):
         global bricker_bfm_cache
@@ -113,12 +113,12 @@ class UndoStack():
 
     def undo_push(self, action, affected_ids="ALL", repeatable=False):
         # skip pushing to undo if action is repeatable and we are repeating actions
-        if repeatable and self.undo and self.undo[-1]['action'] == action:
+        if repeatable and self.undo and self.undo[-1]["action"] == action:
             return
         # skip pushing to undo if bricker not initialized
         if not bpy.props.bricker_initialized:
             return
-        new_bfm_cache = self.appendState(action, 'undo', affected_ids=affected_ids)
+        new_bfm_cache = self.appendState(action, "undo", affected_ids=affected_ids)
         while len(self.undo) > self.undo_depth:
             self.undo.pop(0)  # limit stack size
         self.redo.clear()
@@ -128,9 +128,9 @@ class UndoStack():
     def undo_pop(self):
         if not self.undo:
             return
-        self.appendState('undo', 'redo')
+        self.appendState("undo", "redo")
         self._restore_state(self.undo.pop())
-        self.instrument_write('undo')
+        self.instrument_write("undo")
         # iterate undo states
         global python_undo_state
         scn, cm, _ = getActiveContextInfo()
@@ -143,14 +143,14 @@ class UndoStack():
 
     def undo_cancel(self):
         self._restore_state(self.undo.pop())
-        self.instrument_write('cancel (undo)')
+        self.instrument_write("cancel (undo)")
 
     def redo_pop(self):
         if not self.redo:
             return
-        self.appendState('redo', 'undo')
+        self.appendState("redo", "undo")
         self._restore_state(self.redo.pop())
-        self.instrument_write('redo')
+        self.instrument_write("redo")
         # iterate undo states
         global python_undo_state
         scn, cm, _ = getActiveContextInfo()
@@ -159,16 +159,16 @@ class UndoStack():
     def instrument_write(self, action):
         if True:
             return # disabled for now...
-        tb_name = 'Bricker_instrumentation'
+        tb_name = "Bricker_instrumentation"
         if tb_name not in bpy.data.texts:
             bpy.data.texts.new(tb_name)
         tb = bpy.data.texts[tb_name]
 
         target_json = self.rftarget.to_json()
-        data = {'action': action, 'target': target_json}
-        data_str = json.dumps(data, separators=[',', ':'])
+        data = {"action": action, "target": target_json}
+        data_str = json.dumps(data, separators=[",", ":"])
 
         # write data to end of textblock
-        tb.write('')        # position cursor to end
+        tb.write("")        # position cursor to end
         tb.write(data_str)
-        tb.write('\n')
+        tb.write("\n")

@@ -46,7 +46,7 @@ def build_dict(cm):
     objs = {}
 
     for item in dir(cm):
-        if item in ['__annotations__', '__dict__', '__doc__', '__module__', '__weakref__', 'bl_rna', 'rna_type', 'activeKey', 'BFMCache']:
+        if item in ["__annotations__", "__dict__", "__doc__", "__module__", "__weakref__", "bl_rna", "rna_type", "activeKey", "BFMCache"]:
             continue
         itemProp = getattr(cm, item)
         itemType = type(itemProp)

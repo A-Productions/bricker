@@ -70,7 +70,7 @@ class BRICKER_OT_export_model_data(Operator, ExportHelper):
     filename_ext = ".txt"
     filter_glob = bpy.props.StringProperty(
             default="*.txt",
-            options={'HIDDEN'},
+            options={"HIDDEN"},
             )
     # path_mode = path_reference_mode
     check_extension = True

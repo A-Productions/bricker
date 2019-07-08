@@ -36,8 +36,8 @@ class BRICKER_OT_initialize(Operator):
     bl_category = "Bricker"
     bl_idname = "bricker.initialize"
     bl_label = "Initialize Bricker"
-    bl_space_type  = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    bl_space_type  = "VIEW_3D"
+    bl_region_type = "TOOLS"
 
     ################################################
     # Blender Operator methods

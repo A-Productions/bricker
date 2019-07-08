@@ -55,18 +55,18 @@ class CMLIST_OT_list_action(bpy.types.Operator):
             except IndexError:
                 pass
 
-            if self.action == 'REMOVE' and len(scn.cmlist) > 0 and scn.cmlist_index >= 0:
+            if self.action == "REMOVE" and len(scn.cmlist) > 0 and scn.cmlist_index >= 0:
                 bpy.ops.ed.undo_push(message="Bricker: Remove Item")
                 self.removeItem(idx)
 
-            elif self.action == 'ADD':
+            elif self.action == "ADD":
                 bpy.ops.ed.undo_push(message="Bricker: Remove Item")
                 self.addItem()
 
-            elif self.action == 'DOWN' and idx < len(scn.cmlist) - 1:
+            elif self.action == "DOWN" and idx < len(scn.cmlist) - 1:
                 self.moveDown(item)
 
-            elif self.action == 'UP' and idx >= 1:
+            elif self.action == "UP" and idx >= 1:
                 self.moveUp(item)
         except:
             bricker_handle_exception()
@@ -77,10 +77,10 @@ class CMLIST_OT_list_action(bpy.types.Operator):
 
     action = bpy.props.EnumProperty(
         items=(
-            ('UP', "Up", ""),
-            ('DOWN', "Down", ""),
-            ('REMOVE', "Remove", ""),
-            ('ADD', "Add", ""),
+            ("UP", "Up", ""),
+            ("DOWN", "Down", ""),
+            ("REMOVE", "Remove", ""),
+            ("ADD", "Add", ""),
         )
     )
 
@@ -166,7 +166,7 @@ class CMLIST_OT_list_action(bpy.types.Operator):
                 # run update function of the property
                 scn.cmlist_index = scn.cmlist_index
         else:
-            cls.report({"WARNING"}, 'Please delete the Brickified model before attempting to remove this item.' % locals())
+            cls.report({"WARNING"}, "Please delete the Brickified model before attempting to remove this item." % locals())
 
     def moveDown(self, item):
         scn = bpy.context.scene
@@ -212,7 +212,7 @@ class CMLIST_OT_copy_settings_to_others(bpy.types.Operator):
                     matchProperties(cm1, cm0, overrideIdx=cm1.idx)
         except:
             bricker_handle_exception()
-        return{'FINISHED'}
+        return{"FINISHED"}
 
 
 # copy settings from current index to memory
@@ -235,7 +235,7 @@ class CMLIST_OT_copy_settings(bpy.types.Operator):
             scn.Bricker_copy_from_id = cm.id
         except:
             bricker_handle_exception()
-        return{'FINISHED'}
+        return{"FINISHED"}
 
 
 # paste settings from index in memory to current index
@@ -262,7 +262,7 @@ class CMLIST_OT_paste_settings(bpy.types.Operator):
                     break
         except:
             bricker_handle_exception()
-        return{'FINISHED'}
+        return{"FINISHED"}
 
 
 # select bricks from current model
@@ -290,7 +290,7 @@ class CMLIST_OT_select_bricks(bpy.types.Operator):
                 select(self.bricks)
         except:
             bricker_handle_exception()
-        return{'FINISHED'}
+        return{"FINISHED"}
 
     def __init__(self):
         self.bricks = getBricks()
@@ -304,10 +304,10 @@ class CMLIST_UL_items(UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # Make sure your code supports all 3 layout types
-        if self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
+        if self.layout_type in {"GRID"}:
+            layout.alignment = "CENTER"
         split = layout_split(layout, align=False, factor=0.9)
-        split.prop(item, "name", text="", emboss=False, translate=False, icon='MOD_REMESH')
+        split.prop(item, "name", text="", emboss=False, translate=False, icon="MOD_REMESH")
 
     def invoke(self, context, event):
         pass

@@ -72,13 +72,13 @@ def register():
     bpy.props.manual_cmlist_update = False
     bpy.props.bfm_cache_bytes_hex = None
 
-    Object.protected = BoolProperty(name='protected', default=False)
-    Object.isBrickifiedObject = BoolProperty(name='Is Brickified Object', default=False)
-    Object.isBrick = BoolProperty(name='Is Brick', default=False)
-    Object.cmlist_id = IntProperty(name='Custom Model ID', description="ID of cmlist entry to which this object refers", default=-1)
+    Object.protected = BoolProperty(name="protected", default=False)
+    Object.isBrickifiedObject = BoolProperty(name="Is Brickified Object", default=False)
+    Object.isBrick = BoolProperty(name="Is Brick", default=False)
+    Object.cmlist_id = IntProperty(name="Custom Model ID", description="ID of cmlist entry to which this object refers", default=-1)
     if b280():
         Object.stored_parents = CollectionProperty(type=BRICKER_UL_collections_tuple)
-    Material.num_averaged = IntProperty(name='Colors Averaged', description="Number of colors averaged together", default=0)
+    Material.num_averaged = IntProperty(name="Colors Averaged", description="Number of colors averaged together", default=0)
 
     WindowManager.Bricker_runningBlockingOperation = BoolProperty(default=False)
 
@@ -116,7 +116,7 @@ def register():
     # handle the keymaps
     wm = bpy.context.window_manager
     if wm.keyconfigs.addon: # check this to avoid errors in background case
-        km = wm.keyconfigs.addon.keymaps.new(name='Object Mode', space_type='EMPTY')
+        km = wm.keyconfigs.addon.keymaps.new(name="Object Mode", space_type="EMPTY")
         keymaps.addKeymaps(km)
         addon_keymaps.append(km)
 

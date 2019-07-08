@@ -25,7 +25,7 @@ from .general import *
 
 
 def getColors():
-    if not hasattr(getColors, 'colors'):
+    if not hasattr(getColors, "colors"):
         colors = {}
         mat_properties = bpy.props.abs_mat_properties
         for key in mat_properties.keys():

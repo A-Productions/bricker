@@ -339,7 +339,7 @@ def getAdjDKLs(cm, bricksDict, dictKey, obj):
 def installBrickSculpt():
     if not hasattr(bpy.props, "bricksculpt_module_name"):
         return False
-    addonsPath = bpy.utils.user_resource('SCRIPTS', "addons")
+    addonsPath = bpy.utils.user_resource("SCRIPTS", "addons")
     Bricker = bpy.props.bricker_module_name
     BrickSculpt = bpy.props.bricksculpt_module_name
     bricksculptPathOld = "%(addonsPath)s/%(BrickSculpt)s/bricksculpt_framework.py" % locals()

@@ -112,7 +112,7 @@ class BRICKER_OT_set_exposure(Operator):
         self.objNamesD, self.bricksDicts = createObjNamesAndBricksDictsDs(selected_objects)
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
-        self.cached_bfm = self.undo_stack.undo_push('exposure', affected_ids=list(self.objNamesD.keys()))
+        self.cached_bfm = self.undo_stack.undo_push("exposure", affected_ids=list(self.objNamesD.keys()))
 
     ###################################################
     # class variables

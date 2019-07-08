@@ -77,7 +77,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
         elif cm.materialType == "RANDOM":
             self.action = "RANDOM"
 
-    @timed_call('Total Time Elapsed')
+    @timed_call("Total Time Elapsed")
     def runApplyMaterial(self, context):
 
         # set up variables
@@ -109,7 +109,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
                         if len(brick.material_slots) == 0:
                             # Assign material to object data
                             brick.data.materials.append(mat)
-                            brick.material_slots[0].link = 'OBJECT'
+                            brick.material_slots[0].link = "OBJECT"
                         elif self.action == "CUSTOM" and len(brick.material_slots) > 1:
                             clearExistingMaterials(brick, from_idx=1)
                         # assign material to mat slot
