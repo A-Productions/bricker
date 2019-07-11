@@ -52,7 +52,7 @@ class BRICKER_OT_split_bricks(Operator):
             if not obj.isBrick:
                 continue
             # get cmlist item referred to by object
-            cm = getItemByID(scn.cmlist, obj.cmlist_id)
+            cm = get_item_by_id(scn.cmlist, obj.cmlist_id)
             if cm.lastBrickType != "CUSTOM":
                 return True
         return False
@@ -66,7 +66,7 @@ class BRICKER_OT_split_bricks(Operator):
         scn = context.scene
         # iterate through cm_ids of selected objects
         for cm_id in self.objNamesD.keys():
-            cm = getItemByID(scn.cmlist, cm_id)
+            cm = get_item_by_id(scn.cmlist, cm_id)
             if not flatBrickType(cm.brickType):
                 continue
             bricksDict = self.bricksDicts[cm_id]
@@ -132,7 +132,7 @@ class BRICKER_OT_split_bricks(Operator):
             objsToSelect = []
             # iterate through cm_ids of selected objects
             for cm_id in self.objNamesD.keys():
-                cm = getItemByID(scn.cmlist, cm_id)
+                cm = get_item_by_id(scn.cmlist, cm_id)
                 self.undo_stack.iterateStates(cm)
                 bricksDict = marshal.loads(self.cached_bfm[cm_id]) if deepCopyMatrix else self.bricksDicts[cm_id]
                 keysToUpdate = set()

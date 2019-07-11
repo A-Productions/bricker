@@ -47,8 +47,8 @@ class bricksculpt_tools:
         # get difference between intersection loc and object loc
         locDiff = self.loc - transformToWorld(Vector(self.bricksDict[curKey]["co"]), self.parent.matrix_world, self.junk_bme)
         locDiff = transformToLocal(locDiff, self.parent.matrix_world)
-        nextLoc = getNearbyLocFromVector(locDiff, curLoc, self.dimensions, cm.zStep, width_divisor=3.2 if self.brickType in getRoundBrickTypes() else 2.05)
-        if self.layerSolod is not None and nextLoc[2] not in range(self.layerSolod, self.layerSolod + 3 // cm.zStep):
+        nextLoc = getNearbyLocFromVector(locDiff, curLoc, self.dimensions, self.zStep, width_divisor=3.2 if self.brickType in getRoundBrickTypes() else 2.05)
+        if self.layerSolod is not None and nextLoc[2] not in range(self.layerSolod, self.layerSolod + 3 // self.zStep):
             return
         # draw brick at nextLoc location
         nextKey, adjBrickD = BRICKER_OT_draw_adjacent.getBrickD(self.bricksDict, nextLoc)
@@ -71,7 +71,7 @@ class bricksculpt_tools:
             # split bricks and update adjacent brickDs
             brickKeys, curKey = self.splitBrickAndGetNearest1x1(cm, n, curKey, curLoc, objSize)
             curLoc = getDictLoc(self.bricksDict, curKey)
-            keysToUpdate, onlyNewKeys = OBJECT_OT_delete_override.updateAdjBricksDicts(self.bricksDict, cm.zStep, curKey, curLoc, [])
+            keysToUpdate, onlyNewKeys = OBJECT_OT_delete_override.updateAdjBricksDicts(self.bricksDict, self.zStep, curKey, curLoc, [])
             if deepDelete:
                 self.addedBricksFromDelete += [self.bricksDict[k]["name"] for k in onlyNewKeys]
             # reset bricksDict values
@@ -92,7 +92,7 @@ class bricksculpt_tools:
             self.keysToMergeOnCommit += brickKeys + onlyNewKeys
 
     def changeMaterial(self, cm, n, curKey, curLoc, objSize):
-        if max(objSize[:2]) > 1 or objSize[2] > cm.zStep:
+        if max(objSize[:2]) > 1 or objSize[2] > self.zStep:
             brickKeys, curKey = self.splitBrickAndGetNearest1x1(cm, n, curKey, curLoc, objSize)
         else:
             brickKeys = [curKey]
@@ -106,7 +106,7 @@ class bricksculpt_tools:
     def splitBrick(self, cm, event, curKey, curLoc, objSize):
         brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
         if (event.alt and max(self.bricksDict[curKey]["size"][:2]) > 1) or (event.shift and self.bricksDict[curKey]["size"][2] > 1):
-            brickKeys = Bricks.split(self.bricksDict, curKey, cm.zStep, cm.brickType, loc=curLoc, v=event.shift, h=event.alt)
+            brickKeys = Bricks.split(self.bricksDict, curKey, self.zStep, cm.brickType, loc=curLoc, v=event.shift, h=event.alt)
             self.allUpdatedKeys += brickKeys
             # remove large brick
             brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
@@ -125,7 +125,8 @@ class bricksculpt_tools:
         elif state == "RELEASE":
             # assemble keysToMergeOnRelease
             for pl in self.parentLocsToMergeOnRelease:
-                brickKeys = getKeysInBrick(self.bricksDict, self.bricksDict[pk]["size"], cm.zStep, loc=pl)
+                pk = listToStr(pl)
+                brickKeys = getKeysInBrick(self.bricksDict, self.bricksDict[pk]["size"], self.zStep, loc=pl)
                 self.keysToMergeOnRelease += brickKeys
             self.parentLocsToMergeOnRelease = []
             self.keysToMergeOnRelease = uniquify(self.keysToMergeOnRelease)
@@ -136,7 +137,7 @@ class bricksculpt_tools:
                     brickName = "Bricker_%(source_name)s__%(key)s" % locals()
                     delete(bpy.data.objects.get(brickName))
                 # split up bricks
-                Bricks.splitAll(self.bricksDict, cm.zStep, keys=self.keysToMergeOnRelease)
+                Bricks.splitAll(self.bricksDict, self.zStep, keys=self.keysToMergeOnRelease)
                 # merge bricks after they've been split
                 mergedKeys = BRICKER_OT_merge_bricks.mergeBricks(self.bricksDict, self.keysToMergeOnRelease, cm, anyHeight=True)
                 self.allUpdatedKeys += mergedKeys
@@ -144,28 +145,26 @@ class bricksculpt_tools:
                 drawUpdatedBricks(cm, self.bricksDict, mergedKeys, action="merging bricks", selectCreated=False, tempBrick=True)
                 # re-solo layer
                 if self.layerSolod is not None:
-                    zStep = cm.zStep
                     for key in mergedKeys:
                         loc = getDictLoc(self.bricksDict, key)
-                        self.hideIfOnLayer(key, loc, self.layerSolod, zStep)
+                        self.hideIfOnLayer(key, loc, self.layerSolod, self.zStep)
             else:
-                deselectAll()
+                deselect_all()
             # reset lists
             if mode == "MERGE/SPLIT":
                 self.keysToMergeOnRelease = []
             self.addedBricks = []
 
     def soloLayer(self, cm, curKey, curLoc, objSize):
-        brickKeys = getKeysInBrick(self.bricksDict, objSize, cm.zStep, loc=curLoc)
+        brickKeys = getKeysInBrick(self.bricksDict, objSize, self.zStep, loc=curLoc)
         assert type(brickKeys) is list
         curKey = self.getNearestLocToCursor(brickKeys)
         curZ = getDictLoc(self.bricksDict, curKey)[2]
-        zStep = cm.zStep
         for key in self.bricksDict.keys():
             if self.bricksDict[key]["parent"] != "self":
                 continue
             loc = getDictLoc(self.bricksDict, key)
-            self.hideIfOnLayer(key, loc, curZ, zStep)
+            self.hideIfOnLayer(key, loc, curZ, self.zStep)
         return curZ
 
     def hideIfOnLayer(self, key, loc, curZ, zStep):
@@ -181,7 +180,7 @@ class bricksculpt_tools:
         self.hiddenBricks = []
 
     def splitBrickAndGetNearest1x1(self, cm, n, curKey, curLoc, objSize):
-        brickKeys = Bricks.split(self.bricksDict, curKey, cm.zStep, cm.brickType, loc=curLoc, v=True, h=True)
+        brickKeys = Bricks.split(self.bricksDict, curKey, self.zStep, cm.brickType, loc=curLoc, v=True, h=True)
         brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
         delete(brick)
         curKey = self.getNearestLocToCursor(brickKeys)
@@ -201,13 +200,13 @@ class bricksculpt_tools:
     def commitChanges(self):
         scn, cm, _ = getActiveContextInfo()
         # deselect any objects left selected, and show all objects
-        deselectAll()
+        deselect_all()
         self.unSoloLayer()
         # attempt to merge bricks queued for merge on commit
         self.keysToMergeOnCommit = uniquify(self.keysToMergeOnCommit)
         if mergableBrickType(self.brickType) and len(self.keysToMergeOnCommit) > 1:
             # split up bricks
-            Bricks.splitAll(self.bricksDict, cm.zStep, keys=self.keysToMergeOnCommit)
+            Bricks.splitAll(self.bricksDict, self.zStep, keys=self.keysToMergeOnCommit)
             # merge split bricks
             mergedKeys = BRICKER_OT_merge_bricks.mergeBricks(self.bricksDict, self.keysToMergeOnCommit, cm, targetType="BRICK" if cm.brickType == "BRICKS AND PLATES" else self.brickType, anyHeight=cm.brickType == "BRICKS AND PLATES")
         else:
@@ -218,7 +217,7 @@ class bricksculpt_tools:
         # set exposure of created/updated bricks
         keysToUpdate = uniquify(mergedKeys + self.allUpdatedKeys)
         for k in keysToUpdate:
-            setAllBrickExposures(self.bricksDict, cm.zStep, k)
+            setAllBrickExposures(self.bricksDict, self.zStep, k)
         # draw updated bricks
         drawUpdatedBricks(cm, self.bricksDict, keysToUpdate, action="committing changes", selectCreated=False)
 

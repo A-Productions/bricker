@@ -122,7 +122,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                     # get coordinate for brick in Ldraw units
                     co = self.blendToLdrawUnits(cm, bricksDict, cm.zStep, key, idx)
                     # get color code of brick
-                    mat = getMaterial(bricksDict, key, size, cm.zStep, materialType, cm.customMat.name if cm.customMat is not None else "z", cm.randomMatSeed, cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty, seedKeys, brick_mats=getBrickMats(materialType, cm.id))
+                    mat = getMaterial(bricksDict, key, size, cm.zStep, materialType, cm.customMat, cm.randomMatSeed, cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty, seedKeys, brick_mats=getBrickMats(materialType, cm.id))
                     mat_name = "" if mat is None else mat.name
                     rgba = bricksDict[key]["rgba"]
                     color = 0

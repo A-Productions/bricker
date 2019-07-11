@@ -122,7 +122,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     brick_mats = getBrickMats(cm.materialType, cm.id)
     brickSizeStrings = {}
     mats = []
-    allMeshes = bmesh.new()
+    allMeshes = bmesh.new() if not split else None
     lowestZ = -1
     availableKeys = []
     bricksCreated = []
@@ -133,7 +133,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     if internalMat is not None and cm.materialType == "SOURCE" and cm.matShellDepth < cm.shellThickness:
         mats.append(internalMat)
     # set number of times to run through all keys
-    numIters = 2 if brickType == "BRICKS AND PLATES" else 1
+    numIters = 2 if brickType == "BRICKS AND PLATES" and len(keysDict.keys()) > 1 else 1
     i = 0
     # if merging unnecessary, simply update bricksDict values
     if not cm.customized and not (mergableBrickType(brickType, up=cm.zStep == 1) and (maxDepth != 1 or maxWidth != 1)):
@@ -150,7 +150,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                 setBrickTypeForSlope(bricksDict, key, [key])
     else:
         # initialize progress bar around cursor
-        old_percent = updateProgressBars(printStatus, cursorStatus, 0.0, -1, "Merging")
+        old_percent = update_progress_bars(printStatus, cursorStatus, 0.0, -1, "Merging")
         # run merge operations (twice if flat brick type)
         for timeThrough in range(numIters):
             # iterate through z locations in bricksDict (bottom to top)
@@ -206,7 +206,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
 
                         # print status to terminal and cursor
                         cur_percent = (i / denom)
-                        old_percent = updateProgressBars(printStatus, cursorStatus, cur_percent, old_percent, "Merging")
+                        old_percent = update_progress_bars(printStatus, cursorStatus, cur_percent, old_percent, "Merging")
 
                         # remove keys in new brick from availableKeys (for attemptMerge)
                         for k in keysInBrick:
@@ -237,10 +237,10 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             updateBrickSizesAndTypesUsed(cm, brickSizeStr, bricksDict[key]["type"])
 
         # end 'Merging' progress bar
-        updateProgressBars(printStatus, cursorStatus, 1, 0, "Merging", end=True)
+        update_progress_bars(printStatus, cursorStatus, 1, 0, "Merging", end=True)
 
     # begin 'Building' progress bar
-    old_percent = updateProgressBars(printStatus, cursorStatus, 0.0, -1, "Building")
+    old_percent = update_progress_bars(printStatus, cursorStatus, 0.0, -1, "Building")
 
     # draw merged bricks
     seedKeys = sorted(list(bricksDict.keys())) if materialType == "RANDOM" else None
@@ -254,10 +254,10 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             # create brick based on the current brick info
             drawBrick(cm_id, bricksDict, k2, loc, seedKeys, parent, dimensions, zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, customObject1, customObject2, customObject3, matDirty, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, buildIsDirty, materialType, customMat, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, instanceBricks, randS1, randS2, randS3)
             # print status to terminal and cursor
-            old_percent = updateProgressBars(printStatus, cursorStatus, i/denom, old_percent, "Building")
+            old_percent = update_progress_bars(printStatus, cursorStatus, i/denom, old_percent, "Building")
 
     # end progress bars
-    updateProgressBars(printStatus, cursorStatus, 1, 0, "Building", end=True)
+    update_progress_bars(printStatus, cursorStatus, 1, 0, "Building", end=True)
 
     # remove duplicate of original logo
     if logoType != "LEGO" and logo is not None:
@@ -273,7 +273,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             if bricksDict[key]["parent"] != "self" or not bricksDict[key]["draw"]:
                 continue
             # print status to terminal and cursor
-            old_percent = updateProgressBars(printStatus, cursorStatus, i/denom2, old_percent, "Linking to Scene")
+            old_percent = update_progress_bars(printStatus, cursorStatus, i/denom2, old_percent, "Linking to Scene")
             # get brick
             name = bricksDict[key]["name"]
             brick = bpy.data.objects.get(name)
@@ -284,7 +284,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             if not brick.isBrick:
                 brick.isBrick = True
         # end progress bars
-        updateProgressBars(printStatus, cursorStatus, 1, 0, "Linking to Scene", end=True)
+        update_progress_bars(printStatus, cursorStatus, 1, 0, "Linking to Scene", end=True)
     else:
         name = 'Bricker_%(n)s_bricks' % locals()
         if frameNum is not None:

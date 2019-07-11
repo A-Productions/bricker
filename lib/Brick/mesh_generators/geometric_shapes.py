@@ -190,7 +190,7 @@ def makeCylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), botFace:boo
 
     # create faces on the sides
     _, sideFaces = connectCircles(topVerts if flipNormals else botVerts, botVerts if flipNormals else topVerts, bme)
-    smoothBMFaces(sideFaces)
+    smooth_bm_faces(sideFaces)
 
     # create top and bottom faces
     if topFace:
@@ -249,7 +249,7 @@ def connectCircles(circle1, circle2, bme, offset=0, flipNormals=False, smooth=Tr
         v3 = circle2[(v-1)]
         v4 = circle1[(v-1) - offset]
         f = bme.faces.new([v1, v2, v3, v4][::-1 if flipNormals else 1])
-        if select: selectGeom((f.edges[0], f.edges[2]))
+        if select: select_geom((f.edges[0], f.edges[2]))
         f.smooth = smooth
         faces.append(f)
     return bme, faces

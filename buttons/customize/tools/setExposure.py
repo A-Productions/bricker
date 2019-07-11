@@ -50,7 +50,7 @@ class BRICKER_OT_set_exposure(Operator):
             if not obj.isBrick:
                 continue
             # get cmlist item referred to by object
-            cm = getItemByID(scn.cmlist, obj.cmlist_id)
+            cm = get_item_by_id(scn.cmlist, obj.cmlist_id)
             if cm.lastBrickType != "CUSTOM":
                 return True
         return False
@@ -65,7 +65,7 @@ class BRICKER_OT_set_exposure(Operator):
 
             # iterate through cm_ids of selected objects
             for cm_id in self.objNamesD.keys():
-                cm = getItemByID(scn.cmlist, cm_id)
+                cm = get_item_by_id(scn.cmlist, cm_id)
                 self.undo_stack.iterateStates(cm)
                 bricksDict = marshal.loads(self.cached_bfm[cm_id])
                 keysToUpdate = []
@@ -97,7 +97,7 @@ class BRICKER_OT_set_exposure(Operator):
             # select the new objects created
             select(objsToSelect)
             orig_obj = bpy.data.objects.get(initial_active_obj_name)
-            setActiveObj(orig_obj)
+            set_active_obj(orig_obj)
         except:
             bricker_handle_exception()
         return {"FINISHED"}

@@ -43,7 +43,7 @@ from ..buttons.customize.undo_stack import *
 #             obj = None
 #     else:
 #         obj = cm.source_obj
-#     objVisible = isObjVisibleInViewport(obj)
+#     objVisible = is_obj_visible_in_viewport(obj)
 #     return objVisible, obj
 
 

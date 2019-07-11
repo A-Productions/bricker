@@ -31,7 +31,7 @@ from bpy.types import Operator, SpaceView3D, bpy_struct
 from bpy.props import *
 
 # Addon imports
-from .bricksculpt_framework_backup import *
+from .bricksculpt_framework import *
 from .bricksculpt_tools import *
 from .bricksculpt_drawing import *
 from .drawAdjacent import *
@@ -116,6 +116,7 @@ class BRICKER_OT_bricksculpt(Operator, bricksculpt_framework, bricksculpt_tools,
         self.dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)
         self.obj = None
         self.cm_idx = cm.idx
+        self.zStep = cm.zStep
         self.keysToMergeOnCommit = []
         self.targettedBrickKeys = []
         self.brickType = getBrickType(cm.brickType)
@@ -128,7 +129,7 @@ class BRICKER_OT_bricksculpt(Operator, bricksculpt_framework, bricksculpt_tools,
         self.mouseTravel = 0
         self.junk_bme = bmesh.new()
         self.parent = bpy.data.objects.get("Bricker_%(n)s_parent" % locals())
-        deselectAll()
+        deselect_all()
         # ui properties
         self.left_click = False
         self.double_ctrl = False

@@ -95,11 +95,11 @@ def updateParentExposure(self, context):
     parentOb = cm.parent_obj
     if parentOb:
         if cm.exposeParent:
-            safeLink(parentOb, protect=True)
+            safe_link(parentOb, protect=True)
             select(parentOb, active=True, only=True)
         else:
             try:
-                safeUnlink(parentOb)
+                safe_unlink(parentOb)
             except RuntimeError:
                 pass
 

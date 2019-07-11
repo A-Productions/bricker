@@ -49,7 +49,7 @@ def lightToDeepCache(bricker_bfm_cache):
     numPushedIDs = 0
     for cm_id in bricker_bfm_cache.keys():
         # get cmlist item referred to by object
-        cm = getItemByID(scn.cmlist, cm_id)
+        cm = get_item_by_id(scn.cmlist, cm_id)
         if not cm:
             continue
         # save last cache to cm.BFMCache

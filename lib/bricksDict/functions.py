@@ -154,7 +154,7 @@ def getPixel(pixels, uv_coord):
     b = uv_pixels[pixelNumber*4 + 2]
     a = uv_pixels[pixelNumber*4 + 3]
     # gamma correct RGB value
-    r, g, b, a = gammaCorrect([r, g, b, a], 2.0167)
+    r, g, b, a = gamma_correct([r, g, b, a], 2.0167)
     return (r, g, b, a)
 
 
@@ -428,10 +428,10 @@ def getArgumentsForBricksDict(cm, source=None, dimensions=None, brickSize=[1, 1,
                 for uv_layer in m.uv_layers:
                     m.uv_layers.remove(uv_layer)
             # apply transformation to custom object
-            safeLink(customObj0)
+            safe_link(customObj0)
             apply_transform(customObj0)
             update_depsgraph()
-            safeUnlink(customObj0)
+            safe_unlink(customObj0)
             # get custom object details
             curCustomObj_details = bounds(customObj0)
             # set brick scale

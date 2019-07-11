@@ -85,7 +85,7 @@ class BRICKER_OT_bevel(bpy.types.Operator):
     @classmethod
     def removeBevelMods(self, objs):
         """ removes bevel modifier 'obj.name + "_bvl"' for objects in 'objs' """
-        objs = confirmIter(objs)
+        objs = confirm_iter(objs)
         for obj in objs:
             bvlMod = obj.modifiers.get(obj.name + "_bvl")
             if bvlMod is None:
@@ -96,7 +96,7 @@ class BRICKER_OT_bevel(bpy.types.Operator):
     def createBevelMods(self, cm, objs):
         """ runs 'createBevelMod' on objects in 'objs' """
         # get objs to bevel
-        objs = confirmIter(objs)
+        objs = confirm_iter(objs)
         # initialize vars
         segments = cm.bevelSegments
         profile = cm.bevelProfile

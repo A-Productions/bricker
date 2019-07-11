@@ -53,7 +53,7 @@ class BRICKER_OT_merge_bricks(Operator):
             if not obj.isBrick:
                 continue
             # get cmlist item referred to by object
-            cm = getItemByID(scn.cmlist, obj.cmlist_id)
+            cm = get_item_by_id(scn.cmlist, obj.cmlist_id)
             if cm.lastBrickType == "CUSTOM" or cm.buildIsDirty:
                 continue
             i += 1
@@ -67,7 +67,7 @@ class BRICKER_OT_merge_bricks(Operator):
             objsToSelect = []
             # iterate through cm_ids of selected objects
             for cm_id in self.objNamesD.keys():
-                cm = getItemByID(scn.cmlist, cm_id)
+                cm = get_item_by_id(scn.cmlist, cm_id)
                 self.undo_stack.iterateStates(cm)
                 # initialize vars
                 bricksDict = self.bricksDicts[cm_id]

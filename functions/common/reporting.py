@@ -50,7 +50,7 @@ def stopwatch(text:str, startTime:float, endTime:float=None, precision:int=5, mu
     return time.time()  # TIP: store this to variable and call 'stopwatch' again later with this as start time
 
 
-def updateProgressBars(printStatus:bool, cursorStatus:bool, cur_percent:float, old_percent:float, statusType:str, end:bool=False):
+def update_progress_bars(printStatus:bool, cursorStatus:bool, cur_percent:float, old_percent:float, statusType:str, end:bool=False):
     """ print updated progress bar and update progress cursor """
     if printStatus and cur_percent - old_percent > 0.001 and (cur_percent < 1 or end):
         update_progress(statusType, cur_percent)
@@ -78,7 +78,7 @@ def update_progress(job_title:str, progress:float):
 
 
 # https://github.com/CGCookie/retopoflow
-def showErrorMessage(message:str, wrap:int=80):
+def show_error_message(message:str, wrap:int=80):
     if not message or wrap == 0:
         return
     lines = message.splitlines()
@@ -115,10 +115,10 @@ def handle_exception(log_name:str, report_button_loc:str):
     print(errorStr)
     print('-'*100)
     print('\n'*5)
-    showErrorMessage(errorStr, wrap=240)
+    show_error_message(errorStr, wrap=240)
 
 
-def getExceptionMessage():
+def get_exception_message():
     exc_type, exc_obj, tb = sys.exc_info()
 
     errormsg = 'EXCEPTION (%s): %s\n' % (exc_type, exc_obj)
@@ -136,7 +136,7 @@ def getExceptionMessage():
 
 # http://stackoverflow.com/questions/14519177/python-exception-handling-line-number
 def print_exception(txtName:str, showError:bool=False, errormsg:str=""):
-    errormsg = errormsg or getExceptionMessage()
+    errormsg = errormsg or get_exception_message()
 
     print(errormsg)
 
@@ -151,7 +151,7 @@ def print_exception(txtName:str, showError:bool=False, errormsg:str=""):
     txt.write(errormsg + '\n')
 
     if showError:
-        showErrorMessage(errormsg, wrap=240)
+        show_error_message(errormsg, wrap=240)
 
     return errormsg
 

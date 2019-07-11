@@ -66,6 +66,6 @@ def generateLattice(vertDist:Vector, scale:Vector, offset:Vector=Vector((0, 0, 0
                     if y != 0: bme.edges.new((vertMatrix[x][y][z], vertMatrix[x][y-1][z]))
                     if z != 0: bme.edges.new((vertMatrix[x][y][z], vertMatrix[x][y][z-1]))
         # draw bmesh verts in 3D space
-        drawBMesh(bme)
+        draw_bmesh(bme)
 
     return coordMatrix

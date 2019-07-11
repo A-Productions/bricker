@@ -27,7 +27,7 @@ from bpy.types import Object
 # Module imports
 from .blender import *
 from .maths import mathutils_mult
-from .python_utils import confirmIter
+from .python_utils import confirm_iter
 
 
 def apply_transform(obj:Object, location:bool=True, rotation:bool=True, scale:bool=True):
@@ -50,7 +50,7 @@ def parent_clear(objs, apply_transform:bool=True):
     """ efficiently clear parent """
     # select(objs, active=True, only=True)
     # bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
-    objs = confirmIter(objs)
+    objs = confirm_iter(objs)
     if apply_transform:
         for obj in objs:
             last_mx = obj.matrix_world.copy()

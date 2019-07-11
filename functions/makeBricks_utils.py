@@ -235,7 +235,7 @@ def prepareLogoAndGetDetails(scn, logo, detail, scale, dimensions):
         # apply logo object transformation
         logo.parent = None
         apply_transform(logo)
-    safeUnlink(logo)
+    safe_unlink(logo)
     # get logo details
     logo_details = bounds(logo)
     m = logo.data

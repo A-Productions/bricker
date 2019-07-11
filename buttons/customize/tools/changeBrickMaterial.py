@@ -71,7 +71,7 @@ class BRICKER_OT_change_brick_material(Operator):
             objsToSelect = []
             # iterate through cm_ids of selected objects
             for cm_id in self.objNamesD.keys():
-                cm = getItemByID(scn.cmlist, cm_id)
+                cm = get_item_by_id(scn.cmlist, cm_id)
                 self.undo_stack.iterateStates(cm)
                 # initialize vars
                 bricksDict = marshal.loads(self.cached_bfm[cm_id])

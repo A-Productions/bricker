@@ -106,7 +106,7 @@ def getDuplicateObjects(scn, cm, action, startFrame, stopFrame):
             sourceDup = bpy.data.objects.get(sourceDupName)
             if sourceDup is not None:
                 duplicates[curFrame] = sourceDup
-                safeLink(sourceDup)
+                safe_link(sourceDup)
                 continue
         # set active frame for applying modifiers
         scn.frame_set(curFrame)
@@ -309,7 +309,7 @@ def finishAnimation(cm):
                 anim_coll.children.link(cn)
         else:
             for obj in cn.objects:
-                safeLink(obj)
+                safe_link(obj)
                 if obj.name not in anim_coll.objects.keys():
                     anim_coll.objects.link(obj)
     return anim_coll
@@ -323,4 +323,4 @@ def linkBrickCollection(cm, coll):
             if coll.name not in item.collection.children:
                 item.collection.children.link(coll)
     else:
-        [safeLink(obj) for obj in coll.objects]
+        [safe_link(obj) for obj in coll.objects]

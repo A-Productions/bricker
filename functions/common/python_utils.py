@@ -158,7 +158,7 @@ def deepcopy(object):
     return newObj
 
 
-def checkEqual1(iterator):
+def check_equal1(iterator):
     iterator = iter(iterator)
     try:
         first = next(iterator)
@@ -166,29 +166,29 @@ def checkEqual1(iterator):
         return True
     return all(first == rest for rest in iterator)
 
-def checkEqual2(iterator):
+def check_equal2(iterator):
    return len(set(iterator)) <= 1
 
-def checkEqual3(lst):
+def check_equal3(lst):
    return lst[1:] == lst[:-1]
 # The difference between the 3 versions are that:
 #
-# In checkEqual2 the content must be hashable.
-# checkEqual1 and checkEqual2 can use any iterators, but checkEqual3 must take a sequence input, typically concrete containers like a list or tuple.
-# checkEqual1 stops as soon as a difference is found.
-# Since checkEqual1 contains more Python code, it is less efficient when many of the items are equal in the beginning.
-# Since checkEqual2 and checkEqual3 always perform O(N) copying operations, they will take longer if most of your input will return False.
-# checkEqual2 and checkEqual3 can't be easily changed to adopt to compare a is b instead of a == b.
+# In check_equal2 the content must be hashable.
+# check_equal1 and check_equal2 can use any iterators, but check_equal3 must take a sequence input, typically concrete containers like a list or tuple.
+# check_equal1 stops as soon as a difference is found.
+# Since check_equal1 contains more Python code, it is less efficient when many of the items are equal in the beginning.
+# Since check_equal2 and check_equal3 always perform O(N) copying operations, they will take longer if most of your input will return False.
+# check_equal2 and check_equal3 can't be easily changed to adopt to compare a is b instead of a == b.
 
 
-def confirmList(object):
+def confirm_list(object):
     """ if single item passed, convert to list """
     if type(object) not in (list, tuple):
         object = [object]
     return object
 
 
-def confirmIter(object):
+def confirm_iter(object):
     """ if single item passed, convert to list """
     try:
         iter(object)

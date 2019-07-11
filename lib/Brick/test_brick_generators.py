@@ -71,8 +71,8 @@ def newObjFromBmesh(layer, bme, meshName, objName=None, loc=(0,0,0), edgeSplit=T
 
     if not b280():
         # move to appropriate layer
-        layerList = [i == layer - 1 for i in range(20)]
-        ob.layers = layerList
+        layer_list = [i == layer - 1 for i in range(20)]
+        ob.layers = layer_list
 
     return ob
 
@@ -135,6 +135,6 @@ def test_brick_generators():
         # newObjFromBmesh(7, makeTile(dimensions, brickSize=[1,8,1], circleVerts=16, type="TILE", detail=detail), "1x8 Tile "  + detail, loc=(offset, -4.4, 0))
 
     if not b280():
-        openLayer(17)
+        open_layer(17)
 
     cm.brickType = lastBrickType

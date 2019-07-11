@@ -23,7 +23,7 @@ import bpy
 from mathutils import Vector, Euler
 
 # Addon imports
-from .common import confirmIter
+from .common import confirm_iter
 from .general import *
 
 
@@ -62,7 +62,7 @@ def clearTransformData(cm):
 
 def applyTransformData(cm, objs):
     """ apply transform data from cm.modelLoc/Rot/Scale to objects in passed iterable """
-    objs = confirmIter(objs)
+    objs = confirm_iter(objs)
     # apply matrix to objs
     for obj in objs:
         # LOCATION

@@ -53,7 +53,7 @@ class BRICKER_OT_change_brick_type(Operator):
             if not obj.isBrick:
                 continue
             # get cmlist item referred to by object
-            cm = getItemByID(scn.cmlist, obj.cmlist_id)
+            cm = get_item_by_id(scn.cmlist, obj.cmlist_id)
             return True
         return False
 
@@ -94,7 +94,7 @@ class BRICKER_OT_change_brick_type(Operator):
                 if not obj.isBrick:
                     continue
                 # get cmlist item referred to by object
-                cm = getItemByID(scn.cmlist, obj.cmlist_id)
+                cm = get_item_by_id(scn.cmlist, obj.cmlist_id)
                 # get bricksDict from cache
                 bricksDict = getBricksDict(cm)
                 dictKey = getDictKey(obj.name)
@@ -163,7 +163,7 @@ class BRICKER_OT_change_brick_type(Operator):
 
         # iterate through cm_ids of selected objects
         for cm_id in self.objNamesD.keys():
-            cm = getItemByID(scn.cmlist, cm_id)
+            cm = get_item_by_id(scn.cmlist, cm_id)
             self.undo_stack.iterateStates(cm)
             # initialize vars
             bricksDict = deepcopy(self.bricksDicts[cm_id])
@@ -236,7 +236,7 @@ class BRICKER_OT_change_brick_type(Operator):
             drawUpdatedBricks(cm, bricksDict, keysToUpdate, selectCreated=False)
         # select original bricks
         orig_obj = bpy.data.objects.get(initial_active_obj_name)
-        if orig_obj is not None: setActiveObj(orig_obj)
+        if orig_obj is not None: set_active_obj(orig_obj)
         objsToSelect = [bpy.data.objects.get(obj_n) for obj_n in objNamesToSelect if bpy.data.objects.get(obj_n) is not None]
         select(objsToSelect)
         # store current bricksDict to cache when re-run with original brick type so bricksDict is updated

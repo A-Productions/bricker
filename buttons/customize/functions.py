@@ -49,7 +49,7 @@ def drawUpdatedBricks(cm, bricksDict, keysToUpdate, action="redrawing", selectCr
     # link new bricks to scene
     if not b280():
         for brick in bricksCreated:
-            safeLink(brick)
+            safe_link(brick)
     # add bevel if it was previously added
     if cm.bevelAdded and not tempBrick:
         bricks = getBricks(cm)
@@ -135,7 +135,7 @@ def getAvailableTypes(by="SELECTION", includeSizes=[]):
     objNamesD, bricksDicts = createObjNamesAndBricksDictsDs(objs)
     invalidItems = []
     for cm_id in objNamesD.keys():
-        cm = getItemByID(scn.cmlist, cm_id)
+        cm = get_item_by_id(scn.cmlist, cm_id)
         brickType = cm.brickType
         bricksDict = bricksDicts[cm_id]
         objSizes = []
@@ -236,7 +236,7 @@ def createObjNamesD(objs):
         if obj is None or not obj.isBrick:
             continue
         # get cmlist item referred to by object
-        cm = getItemByID(scn.cmlist, obj.cmlist_id)
+        cm = get_item_by_id(scn.cmlist, obj.cmlist_id)
         if cm is None: continue
         # add object to objNamesD
         if cm.id not in objNamesD:
@@ -252,7 +252,7 @@ def createObjNamesAndBricksDictsDs(objs):
     # initialize bricksDicts
     scn = bpy.context.scene
     for cm_id in objNamesD.keys():
-        cm = getItemByID(scn.cmlist, cm_id)
+        cm = get_item_by_id(scn.cmlist, cm_id)
         if cm is None: continue
         # get bricksDict from cache
         bricksDict = getBricksDict(cm)
@@ -264,10 +264,10 @@ def createObjNamesAndBricksDictsDs(objs):
 def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", allModels=False, only=False, include="EXT"):
     scn = bpy.context.scene
     if only:
-        deselectAll()
+        deselect_all()
     # split all bricks in objNamesD[cm_id]
     for cm_id in objNamesD.keys():
-        cm = getItemByID(scn.cmlist, cm_id)
+        cm = get_item_by_id(scn.cmlist, cm_id)
         if not (cm.idx == scn.cmlist_index or allModels):
             continue
         bricksDict = bricksDicts[cm_id]

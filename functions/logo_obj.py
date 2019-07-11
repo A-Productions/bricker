@@ -58,7 +58,7 @@ def getLegoLogo(scn, typ, res, decimate, dimensions):
                 dMod = refLogo.modifiers.new("Decimate", type="DECIMATE")
                 dMod.ratio = 1 - (decimate / 10)
                 apply_modifiers(refLogo)
-            safeUnlink(refLogo)
+            safe_unlink(refLogo)
     return refLogo
 
 
@@ -77,7 +77,7 @@ def getLegoLogoTxtObj(scn, res, name):
         # set up new logo_txt_ref
         c = bpy.data.curves.new("%(name)s_curve" % locals(), "FONT")
         logo_txt = bpy.data.objects.new(name, c)
-        safeUnlink(logo_txt)
+        safe_unlink(logo_txt)
         logo_txt.name = name
         logo_txt.data.body = "LEGO"
         logo_txt.data.fill_mode = "FRONT"

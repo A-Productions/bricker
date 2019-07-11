@@ -221,7 +221,7 @@ def addSlopeStuds(dimensions, height, brickSize, brickType, circleVerts, bme, ed
                         curRatio = (v.co.x - sMin.x) / sDistX
                         v.co.z = sMin.z + sDistZ * curRatio
                 if edgeXp is not None: bme.faces.new(studVerts["inner"]["bottom"][::1 if underside else -1])
-                selectGeom(studVerts["inner"]["bottom"] + studVerts["outer"]["bottom"])
+                select_geom(studVerts["inner"]["bottom"] + studVerts["outer"]["bottom"])
                 if edgeXp is not None:
                     adjXNum = xNum - 1
                     topVertsD = createVertListDict2(studVerts["bottom"] if underside else studVerts["outer"]["bottom"])

@@ -75,7 +75,7 @@ class OBJECT_OT_duplicate_override(bpy.types.Operator):
                 obj0.name = obj0.name[8:].split("__")[0]
             elif obj0.isBrickifiedObject:
                 obj0.isBrickifiedObject = False
-                cm = getItemByID(scn.cmlist, obj0.cmlist_id)
+                cm = get_item_by_id(scn.cmlist, obj0.cmlist_id)
                 n = getSourceName(cm)
                 obj0.name = "%(n)s_bricks" % locals()
                 obj0.lock_location = lockBools

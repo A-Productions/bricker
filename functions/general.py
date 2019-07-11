@@ -229,11 +229,11 @@ def getZStep(cm):
 def getKeysDict(bricksDict, keys=None):
     """ get dictionary of bricksDict keys based on z value """
     keys = keys or list(bricksDict.keys())
-    keys.sort(key=lambda x: (getDictLoc(bricksDict, x)[0], getDictLoc(bricksDict, x)[1]))
+    if len(keys) > 1: keys.sort(key=lambda x: (getDictLoc(bricksDict, x)[0], getDictLoc(bricksDict, x)[1]))
     keysDict = {}
     for k0 in keys:
-        z = getDictLoc(bricksDict, k0)[2]
         if bricksDict[k0]["draw"]:
+            z = getDictLoc(bricksDict, k0)[2]
             try:
                 keysDict[z].append(k0)
             except KeyError:
@@ -546,7 +546,7 @@ def select_source_model(self, context):
                         scn.Bricker_last_active_object_name = bpy.context.active_object.name
                     else:
                         scn.objects.active = None
-                        deselectAll()
+                        deselect_all()
                         scn.Bricker_last_active_object_name = ""
             else:
                 select(source, active=True, only=True)
@@ -554,5 +554,5 @@ def select_source_model(self, context):
         else:
             for i,cm0 in enumerate(scn.cmlist):
                 if getSourceName(cm0) == scn.Bricker_active_object_name:
-                    deselectAll()
+                    deselect_all()
                     break

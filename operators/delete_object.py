@@ -118,7 +118,7 @@ class OBJECT_OT_delete_override(Operator):
 
         # update matrix
         for i, cm_id in enumerate(objNamesD.keys()):
-            cm = getItemByID(scn.cmlist, cm_id)
+            cm = get_item_by_id(scn.cmlist, cm_id)
             if createdWithUnsupportedVersion(cm):
                 continue
             lastBlenderState = cm.blender_undo_state

@@ -93,7 +93,7 @@ class CMLIST_OT_list_action(bpy.types.Operator):
         active_object = bpy.context.active_object
         # if active object isn't on visible layer, don't set it as default source for new model
         if b280():
-            if active_object and not isObjVisibleInViewport(active_object):
+            if active_object and not is_obj_visible_in_viewport(active_object):
                 active_object = None
         else:
             if active_object:

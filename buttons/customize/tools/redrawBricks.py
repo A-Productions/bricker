@@ -61,7 +61,7 @@ class BRICKER_OT_redraw_bricks(Operator):
 
             # iterate through cm_ids of selected objects
             for cm_id in self.objNamesD.keys():
-                cm = getItemByID(scn.cmlist, cm_id)
+                cm = get_item_by_id(scn.cmlist, cm_id)
                 # get bricksDict from cache
                 bricksDict, _ = self.bricksDicts[cm_id]
                 keysToUpdate = []
@@ -77,7 +77,7 @@ class BRICKER_OT_redraw_bricks(Operator):
             # select the new objects created
             select(objsToSelect)
             orig_obj = bpy.data.objects.get(initial_active_obj_name)
-            setActiveObj(orig_obj)
+            set_active_obj(orig_obj)
         except:
             bricker_handle_exception()
         return {"FINISHED"}

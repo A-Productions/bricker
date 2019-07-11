@@ -97,7 +97,7 @@ class OBJECT_OT_move_to_layer_override(Operator):
             obj.layers = self.layers
             if not obj.isBrickifiedObject or obj.cmlist_id == -1:
                 continue
-            cm = getItemByID(scn.cmlist, obj.cmlist_id)
+            cm = get_item_by_id(scn.cmlist, obj.cmlist_id)
             if not cm.animated:
                 continue
             n = getSourceName(cm)

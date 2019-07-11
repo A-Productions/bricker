@@ -81,8 +81,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         if bricksDict is not None: cacheBricksDict(self.action, cm, bricksDict[str(frame)] if animAction else bricksDict, curFrame=frame)
                         # process retrieved bricker data
                         bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent%(objFrameStr)s" % locals())
-                        safeLink(bricker_parent) # updates stale bricker_parent location
-                        safeUnlink(bricker_parent) # adds fake user to parent
+                        safe_link(bricker_parent) # updates stale bricker_parent location
+                        safe_unlink(bricker_parent) # adds fake user to parent
                         bricker_bricks_coll = bpy_collections()["Bricker_%(n)s_bricks%(objFrameStr)s" % locals()]
                         for brick in bricker_bricks_coll.objects:
                             brick.parent = bricker_parent
@@ -96,7 +96,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                             #         mat.user_remap(origMat)
                             #         bpy.data.materials.remove(mat)
                             if not b280():
-                                safeLink(brick)
+                                safe_link(brick)
                                 if animAction:
                                     # hide obj unless on scene current frame
                                     adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
@@ -116,7 +116,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                             # incriment numAnimatedFrames and remove job
                             cm.numAnimatedFrames += 1
                             self.completed_frames.append(frame)
-                            if not b280(): [safeLink(obj) for obj in bricker_bricks_coll.objects]
+                            if not b280(): [safe_link(obj) for obj in bricker_bricks_coll.objects]
                         else:
                             linkBrickCollection(cm, bricker_bricks_coll)
                         self.jobs.remove(job)
@@ -329,7 +329,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             oldLayers = list(scn.layers)
             sourceLayers = list(self.source.layers)
             if oldLayers != sourceLayers:
-                setLayers(sourceLayers)
+                set_layers(sourceLayers)
 
         if "ANIM" not in self.action:
             self.brickifyModel(scn, cm, n, matrixDirty)
@@ -337,7 +337,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             self.brickifyAnimation(scn, cm, n, matrixDirty)
             anim_coll = getAnimColl(n)
             linkBrickCollection(cm, anim_coll)
-            cm.animIsDirty = False
 
         # set cmlist_id for all created objects
         for obj_name in self.createdObjects:
@@ -361,6 +360,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cm.buildIsDirty = False
         cm.bricksAreDirty = False
         cm.matrixIsDirty = False
+        cm.animIsDirty = False
         cm.matrixLost = False
         cm.internalIsDirty = False
         cm.modelCreated = "ANIM" not in self.action
@@ -371,13 +371,13 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             finishAnimation(self.cm)
 
         # unlink source from scene
-        safeUnlink(self.source)
+        safe_unlink(self.source)
         if not b280():
             # reset layers
             if oldLayers != sourceLayers:
-                setLayers(oldLayers)
+                set_layers(oldLayers)
 
-        disableRelationshipLines()
+        disable_relationship_lines()
 
         return True
 
@@ -441,7 +441,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # link sourceDup if it isn't in scene
         if sourceDup.name not in scn.objects.keys():
-            safeLink(sourceDup)
+            safe_link(sourceDup)
             update_depsgraph()
 
         # get parent object
@@ -476,7 +476,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # unlink source duplicate if created
         if sourceDup != self.source:
-            safeUnlink(sourceDup)
+            safe_unlink(sourceDup)
 
         # set active frame to original active frame
         if self.action != "CREATE" and scn.frame_current != self.origFrame:
@@ -491,7 +491,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         objsToSelect = []
 
         if self.action == "UPDATE_ANIM":
-            safeLink(self.source)
+            safe_link(self.source)
             self.source.name = n  # fixes issue with smoke simulation cache
 
         # if there are no changes to apply, simply return "FINISHED"
@@ -558,7 +558,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # unlink source duplicates
         for obj in duplicates.values():
-            safeUnlink(obj)
+            safe_unlink(obj)
 
         cm.lastStartFrame = cm.startFrame
         cm.lastStopFrame = cm.stopFrame
@@ -581,7 +581,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         source = bpy.data.objects.get("Bricker_%(n)s_f_%(curFrame)s" % locals())
         # get source info to update
         if inBackground and scn not in source.users_scene:
-            safeLink(source)
+            safe_link(source)
             update_depsgraph()
 
         # get source_details and dimensions

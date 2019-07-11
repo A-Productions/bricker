@@ -94,7 +94,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         if not b280():
             # set all layers active temporarily
             curLayers = list(scn.layers)
-            setLayers([True]*20)
+            set_layers([True]*20)
             # match source layers to brick layers
             bGroup = bpy_collections().get("Bricker_%(n)s_bricks" % locals())
             if bGroup is not None and len(bGroup.objects) > 0:
@@ -126,7 +126,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
 
         if not b280():
             # set scene layers back to original layers
-            setLayers(curLayers)
+            set_layers(curLayers)
 
         return source, brickLoc, brickRot, brickScl, bricker_trans_and_anim_data
 
@@ -228,7 +228,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             if bGroup and len(bGroup.objects) > 0:
                 source.layers = list(bGroup.objects[0].layers)
             brickCollUsers = []
-        safeLink(source, collections=brickCollUsers)
+        safe_link(source, collections=brickCollUsers)
         # reset source properties
         source.cmlist_id = -1
 
