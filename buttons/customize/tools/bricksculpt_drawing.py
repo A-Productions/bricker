@@ -33,14 +33,14 @@ from bpy.props import *
 
 # Addon imports
 from .bricksculpt_tools import *
-from .drawAdjacent import *
+from .draw_adjacent import *
 from ..functions import *
 from ...brickify import *
 from ....lib.Brick import *
 from ....functions import *
 
 
-class bricksculpt_drawing:
+class BricksculptDrawing:
 
     ##############################################
     # Draw handler function
@@ -265,13 +265,13 @@ class bricksculpt_drawing:
             mtext = "*" + mtext[1:]
         elif self.mode == "PAINT":
             scn = bpy.context.scene
-            mat = scn.cmlist[self.cm_idx].paintbrushMat
+            mat = scn.cmlist[self.cm_idx].paintbrush_mat
             text = "Painting with Material: " + (mat.name if mat is not None else "None")
             self.draw_text_2d(text, position=(50, 250))
             text = "Click & drag to paint bricks with target material"
             self.draw_text_2d(text, position=(50, 220))
             ptext = "*" + ptext[1:]
-        text = "'CTRL' to solo layer" if self.layerSolod is None else "'CTRL' to un-solo layer"
+        text = "'CTRL' to solo layer" if self.layer_solod is None else "'CTRL' to un-solo layer"
         self.draw_text_2d(text, position=(50, 190))
         text = "'RETURN' to commit changes"
         self.draw_text_2d(text, position=(50, 160))

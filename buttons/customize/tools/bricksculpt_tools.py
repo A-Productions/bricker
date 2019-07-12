@@ -31,7 +31,7 @@ from bpy.types import Operator, SpaceView3D, bpy_struct
 from bpy.props import *
 
 # Addon imports
-from .drawAdjacent import *
+from .draw_adjacent import *
 from ..functions import *
 from ...brickify import *
 from ....lib.Brick import *
@@ -39,187 +39,187 @@ from ....functions import *
 from ....operators.delete_object import OBJECT_OT_delete_override
 
 
-class bricksculpt_tools:
+class BricksculptTools:
 
     #############################################
 
-    def addBrick(self, cm, n, curKey, curLoc, objSize):
+    def add_brick(self, cm, n, cur_key, cur_loc, obj_size):
         # get difference between intersection loc and object loc
-        locDiff = self.loc - transformToWorld(Vector(self.bricksDict[curKey]["co"]), self.parent.matrix_world, self.junk_bme)
-        locDiff = transformToLocal(locDiff, self.parent.matrix_world)
-        nextLoc = getNearbyLocFromVector(locDiff, curLoc, self.dimensions, cm.zStep, width_divisor=3.2 if self.brickType in getRoundBrickTypes() else 2.05)
-        if self.layerSolod is not None and nextLoc[2] not in range(self.layerSolod, self.layerSolod + 3 // cm.zStep):
+        loc_diff = self.loc - transform_to_world(Vector(self.bricksdict[cur_key]["co"]), self.parent.matrix_world, self.junk_bme)
+        loc_diff = transform_to_local(loc_diff, self.parent.matrix_world)
+        next_loc = get_nearby_loc_from_vector(loc_diff, cur_loc, self.dimensions, cm.zstep, width_divisor=3.2 if self.brick_type in get_round_brick_types() else 2.05)
+        if self.layer_solod is not None and next_loc[2] not in range(self.layer_solod, self.layer_solod + 3 // cm.zstep):
             return
-        # draw brick at nextLoc location
-        nextKey, adjBrickD = BRICKER_OT_draw_adjacent.getBrickD(self.bricksDict, nextLoc)
-        if not adjBrickD or self.bricksDict[nextKey]["val"] == 0:
-            self.adjDKLs = getAdjDKLs(cm, self.bricksDict, curKey, self.obj)
-            # add brick at nextKey location
-            status = BRICKER_OT_draw_adjacent.toggleBrick(cm, n, self.bricksDict, self.adjDKLs, [[False]], self.dimensions, nextLoc, curKey, curLoc, objSize, self.brickType, 0, 0, self.keysToMergeOnCommit, temporaryBrick=True)
+        # draw brick at next_loc location
+        next_key, adj_brick_d = BRICKER_OT_draw_adjacent.get_brick_d(self.bricksdict, next_loc)
+        if not adj_brick_d or self.bricksdict[next_key]["val"] == 0:
+            self.adj_locs = get_adj_locs(cm, self.bricksdict, cur_key, self.obj)
+            # add brick at next_key location
+            status = BRICKER_OT_draw_adjacent.toggle_brick(cm, n, self.bricksdict, self.adj_locs, [[False]], self.dimensions, next_loc, cur_key, cur_loc, obj_size, self.brick_type, 0, 0, self.keys_to_merge_on_commit, is_placeholder_brick=True)
             if not status["val"]:
                 self.report({status["report_type"]}, status["msg"])
-            self.addedBricks.append(self.bricksDict[nextKey]["name"])
-            self.keysToMergeOnRelease.append(nextKey)
-            self.allUpdatedKeys.append(curKey)
+            self.added_bricks.append(self.bricksdict[next_key]["name"])
+            self.keys_to_merge_on_release.append(next_key)
+            self.all_updated_keys.append(cur_key)
             # draw created bricks
-            drawUpdatedBricks(cm, self.bricksDict, [nextKey], action="adding new brick", selectCreated=False, tempBrick=True)
+            draw_updated_bricks(cm, self.bricksdict, [next_key], action="adding new brick", select_created=False, temp_brick=True)
 
-    def removeBrick(self, cm, n, event, curKey, curLoc, objSize):
-        shallowDelete = curKey in self.keysToMergeOnRelease and self.mode == "DRAW"
-        deepDelete = event.shift and self.mode == "DRAW" and self.obj.name not in self.addedBricksFromDelete
-        if shallowDelete or deepDelete:
-            # split bricks and update adjacent brickDs
-            brickKeys, curKey = self.splitBrickAndGetNearest1x1(cm, n, curKey, curLoc, objSize)
-            curLoc = getDictLoc(self.bricksDict, curKey)
-            keysToUpdate, onlyNewKeys = OBJECT_OT_delete_override.updateAdjBricksDicts(self.bricksDict, cm.zStep, curKey, curLoc, [])
-            if deepDelete:
-                self.addedBricksFromDelete += [self.bricksDict[k]["name"] for k in onlyNewKeys]
-            # reset bricksDict values
-            self.bricksDict[curKey]["draw"] = False
-            self.bricksDict[curKey]["val"] = 0
-            self.bricksDict[curKey]["parent"] = None
-            self.bricksDict[curKey]["created_from"] = None
-            self.bricksDict[curKey]["flipped"] = False
-            self.bricksDict[curKey]["rotated"] = False
-            self.bricksDict[curKey]["top_exposed"] = False
-            self.bricksDict[curKey]["bot_exposed"] = False
-            brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
+    def remove_brick(self, cm, n, event, cur_key, cur_loc, obj_size):
+        shallow_delete = cur_key in self.keys_to_merge_on_release and self.mode == "DRAW"
+        deep_delete = event.shift and self.mode == "DRAW" and self.obj.name not in self.added_bricks_from_delete
+        if shallow_delete or deep_delete:
+            # split bricks and update adjacent brick_ds
+            brick_keys, cur_key = self.split_brick_and_get_nearest_1x1(cm, n, cur_key, cur_loc, obj_size)
+            cur_loc = get_dict_loc(self.bricksdict, cur_key)
+            keys_to_update, only_new_keys = OBJECT_OT_delete_override.update_adj_bricksdicts(self.bricksdict, cm.zstep, cur_key, cur_loc, [])
+            if deep_delete:
+                self.added_bricks_from_delete += [self.bricksdict[k]["name"] for k in only_new_keys]
+            # reset bricksdict values
+            self.bricksdict[cur_key]["draw"] = False
+            self.bricksdict[cur_key]["val"] = 0
+            self.bricksdict[cur_key]["parent"] = None
+            self.bricksdict[cur_key]["created_from"] = None
+            self.bricksdict[cur_key]["flipped"] = False
+            self.bricksdict[cur_key]["rotated"] = False
+            self.bricksdict[cur_key]["top_exposed"] = False
+            self.bricksdict[cur_key]["bot_exposed"] = False
+            brick = bpy.data.objects.get(self.bricksdict[cur_key]["name"])
             if brick is not None:
                 delete(brick)
             tag_redraw_areas("VIEW_3D")
             # draw created bricks
-            drawUpdatedBricks(cm, self.bricksDict, uniquify(brickKeys + keysToUpdate), action="updating surrounding bricks", selectCreated=False, tempBrick=True)
-            self.keysToMergeOnCommit += brickKeys + onlyNewKeys
+            draw_updated_bricks(cm, self.bricksdict, uniquify(brick_keys + keys_to_update), action="updating surrounding bricks", select_created=False, temp_brick=True)
+            self.keys_to_merge_on_commit += brick_keys + only_new_keys
 
-    def changeMaterial(self, cm, n, curKey, curLoc, objSize):
-        if max(objSize[:2]) > 1 or objSize[2] > cm.zStep:
-            brickKeys, curKey = self.splitBrickAndGetNearest1x1(cm, n, curKey, curLoc, objSize)
+    def change_material(self, cm, n, cur_key, cur_loc, obj_size):
+        if max(obj_size[:2]) > 1 or obj_size[2] > cm.zstep:
+            brick_keys, cur_key = self.split_brick_and_get_nearest_1x1(cm, n, cur_key, cur_loc, obj_size)
         else:
-            brickKeys = [curKey]
-        self.bricksDict[curKey]["mat_name"] = self.matName
-        self.bricksDict[curKey]["custom_mat_name"] = True
-        self.addedBricks.append(self.bricksDict[curKey]["name"])
-        self.keysToMergeOnCommit += brickKeys
+            brick_keys = [cur_key]
+        self.bricksdict[cur_key]["mat_name"] = self.mat_name
+        self.bricksdict[cur_key]["custom_mat_name"] = True
+        self.added_bricks.append(self.bricksdict[cur_key]["name"])
+        self.keys_to_merge_on_commit += brick_keys
         # draw created bricks
-        drawUpdatedBricks(cm, self.bricksDict, brickKeys, action="updating material", selectCreated=False, tempBrick=True)
+        draw_updated_bricks(cm, self.bricksdict, brick_keys, action="updating material", select_created=False, temp_brick=True)
 
-    def splitBrick(self, cm, event, curKey, curLoc, objSize):
-        brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
-        if (event.alt and max(self.bricksDict[curKey]["size"][:2]) > 1) or (event.shift and self.bricksDict[curKey]["size"][2] > 1):
-            brickKeys = Bricks.split(self.bricksDict, curKey, cm.zStep, cm.brickType, loc=curLoc, v=event.shift, h=event.alt)
-            self.allUpdatedKeys += brickKeys
+    def split_brick(self, cm, event, cur_key, cur_loc, obj_size):
+        brick = bpy.data.objects.get(self.bricksdict[cur_key]["name"])
+        if (event.alt and max(self.bricksdict[cur_key]["size"][:2]) > 1) or (event.shift and self.bricksdict[cur_key]["size"][2] > 1):
+            brick_keys = Bricks.split(self.bricksdict, cur_key, cm.zstep, cm.brick_type, loc=cur_loc, v=event.shift, h=event.alt)
+            self.all_updated_keys += brick_keys
             # remove large brick
-            brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
+            brick = bpy.data.objects.get(self.bricksdict[cur_key]["name"])
             delete(brick)
             # draw split bricks
-            drawUpdatedBricks(cm, self.bricksDict, brickKeys, action="splitting bricks", selectCreated=True, tempBrick=True)
+            draw_updated_bricks(cm, self.bricksdict, brick_keys, action="splitting bricks", select_created=True, temp_brick=True)
         else:
             select(brick)
 
-    def mergeBrick(self, cm, source_name, curKey=None, curLoc=None, objSize=None, mode="DRAW", state="DRAG"):
+    def merge_brick(self, cm, source_name, cur_key=None, cur_loc=None, obj_size=None, mode="DRAW", state="DRAG"):
         if state == "DRAG":
             # TODO: Light up bricks as they are selected to be merged
-            self.parentLocsToMergeOnRelease.append(curLoc)
-            self.addedBricks.append(self.bricksDict[curKey]["name"])
+            self.parent_locs_to_merge_on_release.append(cur_loc)
+            self.added_bricks.append(self.bricksdict[cur_key]["name"])
             select(self.obj)
         elif state == "RELEASE":
-            # assemble keysToMergeOnRelease
-            for pl in self.parentLocsToMergeOnRelease:
-                brickKeys = getKeysInBrick(self.bricksDict, self.bricksDict[pk]["size"], cm.zStep, loc=pl)
-                self.keysToMergeOnRelease += brickKeys
-            self.parentLocsToMergeOnRelease = []
-            self.keysToMergeOnRelease = uniquify(self.keysToMergeOnRelease)
+            # assemble keys_to_merge_on_release
+            for pl in self.parent_locs_to_merge_on_release:
+                brick_keys = get_keys_in_brick(self.bricksdict, self.bricksdict[pk]["size"], cm.zstep, loc=pl)
+                self.keys_to_merge_on_release += brick_keys
+            self.parent_locs_to_merge_on_release = []
+            self.keys_to_merge_on_release = uniquify(self.keys_to_merge_on_release)
             # merge those keys
-            if len(self.keysToMergeOnRelease) > 1:
+            if len(self.keys_to_merge_on_release) > 1:
                 # delete outdated bricks
-                for key in self.keysToMergeOnRelease:
-                    brickName = "Bricker_%(source_name)s__%(key)s" % locals()
-                    delete(bpy.data.objects.get(brickName))
+                for key in self.keys_to_merge_on_release:
+                    brick_name = "Bricker_%(source_name)s__%(key)s" % locals()
+                    delete(bpy.data.objects.get(brick_name))
                 # split up bricks
-                Bricks.splitAll(self.bricksDict, cm.zStep, keys=self.keysToMergeOnRelease)
+                Bricks.split_all(self.bricksdict, cm.zstep, keys=self.keys_to_merge_on_release)
                 # merge bricks after they've been split
-                mergedKeys = BRICKER_OT_merge_bricks.mergeBricks(self.bricksDict, self.keysToMergeOnRelease, cm, anyHeight=True)
-                self.allUpdatedKeys += mergedKeys
+                merged_keys = BRICKER_OT_merge_bricks.merge_bricks(self.bricksdict, self.keys_to_merge_on_release, cm, any_height=True)
+                self.all_updated_keys += merged_keys
                 # draw merged bricks
-                drawUpdatedBricks(cm, self.bricksDict, mergedKeys, action="merging bricks", selectCreated=False, tempBrick=True)
+                draw_updated_bricks(cm, self.bricksdict, merged_keys, action="merging bricks", select_created=False, temp_brick=True)
                 # re-solo layer
-                if self.layerSolod is not None:
-                    zStep = cm.zStep
-                    for key in mergedKeys:
-                        loc = getDictLoc(self.bricksDict, key)
-                        self.hideIfOnLayer(key, loc, self.layerSolod, zStep)
+                if self.layer_solod is not None:
+                    zstep = cm.zstep
+                    for key in merged_keys:
+                        loc = get_dict_loc(self.bricksdict, key)
+                        self.hide_if_on_layer(key, loc, self.layer_solod, zstep)
             else:
-                deselectAll()
+                deselect_all()
             # reset lists
             if mode == "MERGE/SPLIT":
-                self.keysToMergeOnRelease = []
-            self.addedBricks = []
+                self.keys_to_merge_on_release = []
+            self.added_bricks = []
 
-    def soloLayer(self, cm, curKey, curLoc, objSize):
-        brickKeys = getKeysInBrick(self.bricksDict, objSize, cm.zStep, loc=curLoc)
-        assert type(brickKeys) is list
-        curKey = self.getNearestLocToCursor(brickKeys)
-        curZ = getDictLoc(self.bricksDict, curKey)[2]
-        zStep = cm.zStep
-        for key in self.bricksDict.keys():
-            if self.bricksDict[key]["parent"] != "self":
+    def solo_layer(self, cm, cur_key, cur_loc, obj_size):
+        brick_keys = get_keys_in_brick(self.bricksdict, obj_size, cm.zstep, loc=cur_loc)
+        assert type(brick_keys) is list
+        cur_key = self.get_nearest_loc_to_cursor(brick_keys)
+        curZ = get_dict_loc(self.bricksdict, cur_key)[2]
+        zstep = cm.zstep
+        for key in self.bricksdict.keys():
+            if self.bricksdict[key]["parent"] != "self":
                 continue
-            loc = getDictLoc(self.bricksDict, key)
-            self.hideIfOnLayer(key, loc, curZ, zStep)
+            loc = get_dict_loc(self.bricksdict, key)
+            self.hide_if_on_layer(key, loc, curZ, zstep)
         return curZ
 
-    def hideIfOnLayer(self, key, loc, curZ, zStep):
-        if loc[2] > curZ or loc[2] + self.bricksDict[key]["size"][2] / zStep <= curZ:
-            brick = bpy.data.objects.get(self.bricksDict[key]["name"])
+    def hide_if_on_layer(self, key, loc, curZ, zstep):
+        if loc[2] > curZ or loc[2] + self.bricksdict[key]["size"][2] / zstep <= curZ:
+            brick = bpy.data.objects.get(self.bricksdict[key]["name"])
             if brick is None:
                 return
             hide(brick, render=False)
-            self.hiddenBricks.append(brick)
+            self.hidden_bricks.append(brick)
 
-    def unSoloLayer(self):
-        [unhide(brick) for brick in self.hiddenBricks]
-        self.hiddenBricks = []
+    def unsolo_layer(self):
+        [unhide(brick) for brick in self.hidden_bricks]
+        self.hidden_bricks = []
 
-    def splitBrickAndGetNearest1x1(self, cm, n, curKey, curLoc, objSize):
-        brickKeys = Bricks.split(self.bricksDict, curKey, cm.zStep, cm.brickType, loc=curLoc, v=True, h=True)
-        brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
+    def split_brick_and_get_nearest_1x1(self, cm, n, cur_key, cur_loc, obj_size):
+        brick_keys = Bricks.split(self.bricksdict, cur_key, cm.zstep, cm.brick_type, loc=cur_loc, v=True, h=True)
+        brick = bpy.data.objects.get(self.bricksdict[cur_key]["name"])
         delete(brick)
-        curKey = self.getNearestLocToCursor(brickKeys)
-        return brickKeys, curKey
+        cur_key = self.get_nearest_loc_to_cursor(brick_keys)
+        return brick_keys, cur_key
 
-    def getNearestLocToCursor(self, keys):
+    def get_nearest_loc_to_cursor(self, keys):
         # get difference between intersection loc and object loc
-        minDiff = None
+        min_diff = None
         for k in keys:
-            brickLoc = transformToWorld(Vector(self.bricksDict[k]["co"]), self.parent.matrix_world, self.junk_bme)
-            locDiff = abs(self.loc[0] - brickLoc[0]) + abs(self.loc[1] - brickLoc[1]) + abs(self.loc[2] - brickLoc[2])
-            if minDiff is None or locDiff < minDiff:
-                minDiff = locDiff
-                curKey = k
-        return curKey
+            brick_loc = transform_to_world(Vector(self.bricksdict[k]["co"]), self.parent.matrix_world, self.junk_bme)
+            loc_diff = abs(self.loc[0] - brick_loc[0]) + abs(self.loc[1] - brick_loc[1]) + abs(self.loc[2] - brick_loc[2])
+            if min_diff is None or loc_diff < min_diff:
+                min_diff = loc_diff
+                cur_key = k
+        return cur_key
 
-    def commitChanges(self):
-        scn, cm, _ = getActiveContextInfo()
+    def commit_changes(self):
+        scn, cm, _ = get_active_context_info()
         # deselect any objects left selected, and show all objects
-        deselectAll()
-        self.unSoloLayer()
+        deselect_all()
+        self.unsolo_layer()
         # attempt to merge bricks queued for merge on commit
-        self.keysToMergeOnCommit = uniquify(self.keysToMergeOnCommit)
-        if mergableBrickType(self.brickType) and len(self.keysToMergeOnCommit) > 1:
+        self.keys_to_merge_on_commit = uniquify(self.keys_to_merge_on_commit)
+        if mergable_brick_type(self.brick_type) and len(self.keys_to_merge_on_commit) > 1:
             # split up bricks
-            Bricks.splitAll(self.bricksDict, cm.zStep, keys=self.keysToMergeOnCommit)
+            Bricks.split_all(self.bricksdict, cm.zstep, keys=self.keys_to_merge_on_commit)
             # merge split bricks
-            mergedKeys = BRICKER_OT_merge_bricks.mergeBricks(self.bricksDict, self.keysToMergeOnCommit, cm, targetType="BRICK" if cm.brickType == "BRICKS AND PLATES" else self.brickType, anyHeight=cm.brickType == "BRICKS AND PLATES")
+            merged_keys = BRICKER_OT_merge_bricks.merge_bricks(self.bricksdict, self.keys_to_merge_on_commit, cm, target_type="BRICK" if cm.brick_type == "BRICKS AND PLATES" else self.brick_type, any_height=cm.brick_type == "BRICKS AND PLATES")
         else:
-            mergedKeys = self.keysToMergeOnCommit
+            merged_keys = self.keys_to_merge_on_commit
         # remove 1x1 bricks merged into another brick
-        for k in self.keysToMergeOnCommit:
-            delete(None if k in mergedKeys else bpy.data.objects.get(self.bricksDict[k]["name"]))
+        for k in self.keys_to_merge_on_commit:
+            delete(None if k in merged_keys else bpy.data.objects.get(self.bricksdict[k]["name"]))
         # set exposure of created/updated bricks
-        keysToUpdate = uniquify(mergedKeys + self.allUpdatedKeys)
-        for k in keysToUpdate:
-            setAllBrickExposures(self.bricksDict, cm.zStep, k)
+        keys_to_update = uniquify(merged_keys + self.all_updated_keys)
+        for k in keys_to_update:
+            set_all_brick_exposures(self.bricksdict, cm.zstep, k)
         # draw updated bricks
-        drawUpdatedBricks(cm, self.bricksDict, keysToUpdate, action="committing changes", selectCreated=False)
+        draw_updated_bricks(cm, self.bricksdict, keys_to_update, action="committing changes", select_created=False)
 
     #############################################

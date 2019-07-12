@@ -19,15 +19,10 @@
 # NONE!
 
 # Blender imports
-import bpy
-
-# Addon imports
 # NONE!
 
-
-def set_cursor(cursor):
-    # DEFAULT, NONE, WAIT, CROSSHAIR, MOVE_X, MOVE_Y, KNIFE, TEXT,
-    # PAINT_BRUSH, HAND, SCROLL_X, SCROLL_Y, SCROLL_XY, EYEDROPPER
-    for wm in bpy.data.window_managers:
-        for win in wm.windows:
-            win.cursor_modal_set(cursor)
+# Addon imports
+from .generate import *
+from .modify import *
+from .functions import *
+from .storage import *

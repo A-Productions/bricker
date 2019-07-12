@@ -28,19 +28,18 @@ from .. import addon_updater_ops
 
 classes = [
     # bricker/buttons
-    addAbsToMatObj.BRICKER_OT_add_abs_to_mat_obj,
+    populate_mat_obj.BRICKER_OT_populate_mat_obj,
     bake.BRICKER_OT_bake_model,
     bevel.BRICKER_OT_bevel,
     brickify.BRICKER_OT_brickify,
-    brickifyInBackground.BRICKER_OT_brickify_in_background,
-    brickifyInBackground.BRICKER_OT_stop_brickifying_in_background,
+    brickify_in_background.BRICKER_OT_brickify_in_background,
+    brickify_in_background.BRICKER_OT_stop_brickifying_in_background,
     cache.BRICKER_OT_clear_cache,
     delete_model.BRICKER_OT_delete_model,
-    exportLdraw.BRICKER_OT_export_ldraw,
-    exportModelData.BRICKER_OT_export_model_data,
+    export_ldraw.BRICKER_OT_export_ldraw,
     materials.BRICKER_OT_apply_material,
-    redrawCustomBricks.BRICKER_OT_redraw_custom_bricks,
-    revertSettings.BRICKER_OT_revert_settings,
+    redraw_custom_bricks.BRICKER_OT_redraw_custom_bricks,
+    revert_settings.BRICKER_OT_revert_settings,
     # bricker/buttons/customize
     initialize.BRICKER_OT_initialize,
     BRICKER_OT_change_brick_material,

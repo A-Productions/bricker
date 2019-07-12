@@ -34,7 +34,7 @@ from bpy.props import *
 from .bricksculpt_framework_backup import *
 from .bricksculpt_tools import *
 from .bricksculpt_drawing import *
-from .drawAdjacent import *
+from .draw_adjacent import *
 from ..undo_stack import *
 from ..functions import *
 from ...brickify import *
@@ -43,7 +43,7 @@ from ....functions import *
 from ....operators.delete_object import OBJECT_OT_delete_override
 
 
-class BRICKER_OT_bricksculpt(Operator, bricksculpt_framework, bricksculpt_tools, bricksculpt_drawing):
+class BRICKER_OT_bricksculpt(Operator, BricksculptFramework, BricksculptTools, BricksculptDrawing):
     """Run the BrickSculpt editing tool suite"""
     bl_idname = "bricker.bricksculpt"
     bl_label = "BrickSculpt Tools"
@@ -62,34 +62,34 @@ class BRICKER_OT_bricksculpt(Operator, bricksculpt_framework, bricksculpt_tools,
     def execute(self, context):
         try:
             # try installing BrickSculpt
-            if not self.BrickSculptInstalled:
-                status = installBrickSculpt()
+            if not self.bricksculpt_installed:
+                status = install_bricksculpt()
                 if status:
-                    self.BrickSculptInstalled = True
-            if self.BrickSculptLoaded:
+                    self.bricksculpt_installed = True
+            if self.bricksculpt_loaded:
                 if not hasattr(bpy.props, "bricksculpt_module_name"):
                     self.report({"WARNING"}, "Please enable the 'BrickSculpt' addon from the 'Preferences > Addons' menu")
                     return {"CANCELLED"}
                 if bpy.props.running_bricksculpt_tool:
                     return {"CANCELLED"}
-                if self.mode == "DRAW" and self.brickType == "":
+                if self.mode == "DRAW" and self.brick_type == "":
                     self.report({"WARNING"}, "Please choose a target brick type")
                     return {"CANCELLED"}
-                if self.mode == "PAINT" and self.matName == "":
+                if self.mode == "PAINT" and self.mat_name == "":
                     self.report({"WARNING"}, "Please choose a material for the paintbrush")
                     return {"CANCELLED"}
                 self.ui_start()
                 bpy.props.running_bricksculpt_tool = True
-                scn, cm, _ = getActiveContextInfo()
-                self.undo_stack.iterateStates(cm)
+                scn, cm, _ = get_active_context_info()
+                self.undo_stack.iterate_states(cm)
                 cm.customized = True
-                # get fresh copy of self.bricksDict
-                self.bricksDict = getBricksDict(cm)
+                # get fresh copy of self.bricksdict
+                self.bricksdict = get_bricksdict(cm)
                 # create modal handler
                 wm = context.window_manager
                 wm.modal_handler_add(self)
                 return {"RUNNING_MODAL"}
-            elif self.BrickSculptInstalled and not self.BrickSculptLoaded:
+            elif self.bricksculpt_installed and not self.bricksculpt_loaded:
                 self.report({"WARNING"}, "Please reload Blender to complete the BrickSculpt installation")
                 return {"CANCELLED"}
             else:
@@ -103,39 +103,37 @@ class BRICKER_OT_bricksculpt(Operator, bricksculpt_framework, bricksculpt_tools,
     # initialization method
 
     def __init__(self):
-        scn, cm, n = getActiveContextInfo()
+        scn, cm, n = get_active_context_info()
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
         self.undo_stack.undo_push("bricksculpt_mode", affected_ids=[cm.id])
         # initialize vars
-        self.addedBricks = []
-        self.addedBricksFromDelete = []
-        self.parentLocsToMergeOnRelease = []
-        self.keysToMergeOnRelease = []
-        self.allUpdatedKeys = []
-        self.dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)
+        self.added_bricks = []
+        self.added_bricks_from_delete = []
+        self.parent_locs_to_merge_on_release = []
+        self.keys_to_merge_on_release = []
+        self.all_updated_keys = []
+        self.dimensions = Bricks.get_dimensions(cm.brick_height, cm.zstep, cm.gap)
         self.obj = None
         self.cm_idx = cm.idx
-        self.keysToMergeOnCommit = []
-        self.targettedBrickKeys = []
-        self.brickType = getBrickType(cm.brickType)
-        self.matName = cm.paintbrushMat.name if cm.paintbrushMat is not None else ""  # bpy.data.materials[-1].name if len(bpy.data.materials) > 0 else ""
-        self.hiddenBricks = []
-        self.releaseTime = 0
+        self.keys_to_merge_on_commit = []
+        self.brick_type = get_brick_type(cm.brick_type)
+        self.mat_name = cm.paintbrush_mat.name if cm.paintbrush_mat is not None else ""  # bpy.data.materials[-1].name if len(bpy.data.materials) > 0 else ""
+        self.hidden_bricks = []
+        self.release_time = 0
         self.vertical = False
         self.horizontal = True
-        self.lastMouse = Vector((0, 0))
-        self.mouseTravel = 0
+        self.last_mouse = Vector((0, 0))
+        self.mouse_travel = 0
         self.junk_bme = bmesh.new()
         self.parent = bpy.data.objects.get("Bricker_%(n)s_parent" % locals())
-        deselectAll()
+        deselect_all()
         # ui properties
         self.left_click = False
         self.double_ctrl = False
-        self.ctrlClickTime = -1
-        self.runUnSoloLayer = False
-        self.layerSolod = None
-        self.possibleCtrlDisable = False
+        self.ctrl_click_time = -1
+        self.layer_solod = None
+        self.possible_ctrl_disable = False
         # self.points = [(math.cos(d*math.pi/180.0),math.sin(d*math.pi/180.0)) for d in range(0,361,10)]
         # self.ox = Vector((1,0,0))
         # self.oy = Vector((0,1,0))
@@ -152,18 +150,18 @@ class BRICKER_OT_bricksculpt(Operator, bricksculpt_framework, bricksculpt_tools,
     ###################################################
     # class variables
 
-    # # get items for brickType prop
+    # # get items for brick_type prop
     # def get_items(self, context):
-    #     scn, cm, _ = getActiveContextInfo()
-    #     legalBS = bpy.props.Bricker_legal_brick_sizes
-    #     items = [itemFromType(typ) for typ in legalBS[cm.zStep]]
-    #     if cm.zStep == 1:
-    #         items += [itemFromType(typ) for typ in legalBS[3]]
-    #     # items = getAvailableTypes(by="ACTIVE", includeSizes="ALL")
+    #     scn, cm, _ = get_active_context_info()
+    #     legal_bs = bpy.props.bricker_legal_brick_sizes
+    #     items = [iter_from_type(typ) for typ in legal_bs[cm.zstep]]
+    #     if cm.zstep == 1:
+    #         items += [iter_from_type(typ) for typ in legal_bs[3]]
+    #     # items = get_available_types(by="ACTIVE", include_sizes="ALL")
     #     return items
     #
     # # define props for popup
-    # brickType = bpy.props.EnumProperty(
+    # brick_type = bpy.props.EnumProperty(
     #     name="Brick Type",
     #     description="Type of brick to draw adjacent to current brick",
     #     items=get_items,

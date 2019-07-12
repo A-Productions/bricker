@@ -23,56 +23,56 @@ import bpy
 from mathutils import Vector, Euler
 
 # Addon imports
-from .common import confirmIter
+from .common import confirm_iter
 from .general import *
 
 
-def storeTransformData(cm, obj, offsetBy=None):
-    """ store transform data from obj into cm.modelLoc/Rot/Scale """
+def store_transform_data(cm, obj, offset_by=None):
+    """ store transform data from obj into cm.model_loc/rot/scale """
     if obj:
         loc = obj.location
-        if offsetBy is not None:
-            loc += Vector(offsetBy)
-        cm.modelLoc = listToStr(loc.to_tuple())
-        # cm.modelLoc = listToStr(obj.matrix_world.to_translation().to_tuple())
-        lastMode = obj.rotation_mode
+        if offset_by is not None:
+            loc += Vector(offset_by)
+        cm.model_loc = list_to_str(loc.to_tuple())
+        # cm.model_loc = list_to_str(obj.matrix_world.to_translation().to_tuple())
+        last_mode = obj.rotation_mode
         obj.rotation_mode = "XYZ"
-        cm.modelRot = listToStr(tuple(obj.rotation_euler))
-        cm.modelScale = listToStr(obj.scale.to_tuple())
-        obj.rotation_mode = lastMode
+        cm.model_rot = list_to_str(tuple(obj.rotation_euler))
+        cm.model_scale = list_to_str(obj.scale.to_tuple())
+        obj.rotation_mode = last_mode
     elif obj is None:
-        cm.modelLoc = "0,0,0"
-        cm.modelRot = "0,0,0"
-        cm.modelScale = "1,1,1"
+        cm.model_loc = "0,0,0"
+        cm.model_rot = "0,0,0"
+        cm.model_scale = "1,1,1"
 
 
-def getTransformData(cm):
-    """ return transform data from cm.modelLoc/Rot/Scale """
-    l = strToTuple(cm.modelLoc, float)
-    r = strToTuple(cm.modelRot, float)
-    s = strToTuple(cm.modelScale, float)
+def get_transform_data(cm):
+    """ return transform data from cm.model_loc/rot/scale """
+    l = str_to_tuple(cm.model_loc, float)
+    r = str_to_tuple(cm.model_rot, float)
+    s = str_to_tuple(cm.model_scale, float)
     return l, r, s
 
 
-def clearTransformData(cm):
-    cm.modelLoc = "0,0,0"
-    cm.modelRot = "0,0,0"
-    cm.modelScale = "1,1,1"
+def clear_transform_data(cm):
+    cm.model_loc = "0,0,0"
+    cm.model_rot = "0,0,0"
+    cm.model_scale = "1,1,1"
 
 
-def applyTransformData(cm, objs):
-    """ apply transform data from cm.modelLoc/Rot/Scale to objects in passed iterable """
-    objs = confirmIter(objs)
+def apply_transform_data(cm, objs):
+    """ apply transform data from cm.model_loc/rot/scale to objects in passed iterable """
+    objs = confirm_iter(objs)
     # apply matrix to objs
     for obj in objs:
         # LOCATION
-        l, r, s = getTransformData(cm)
+        l, r, s = get_transform_data(cm)
         obj.location = obj.location + Vector(l)
         # ROTATION
-        lastMode = obj.rotation_mode
+        last_mode = obj.rotation_mode
         obj.rotation_mode = "XYZ"
         obj.rotation_euler.rotate(Euler(r))
-        obj.rotation_mode = lastMode
+        obj.rotation_mode = last_mode
         # SCALE
         osx, osy, osz = obj.scale
         obj.scale = vec_mult(obj.scale, s)

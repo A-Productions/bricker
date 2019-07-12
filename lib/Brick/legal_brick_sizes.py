@@ -24,7 +24,7 @@ import bpy
 # Addon imports
 from ...functions import *
 
-legalBricks = {
+legal_bricks = {
     1:{ "PLATE":         [{"s":[1, 1], "pt":"3024"},
                           {"s":[1, 2], "pt":"3023"},
                           {"s":[1, 3], "pt":"3623"},
@@ -149,26 +149,26 @@ legalBricks = {
     # }
     }
 
-def getLegalBrickSizes():
+def get_legal_brick_sizes():
     """ returns a list of legal brick sizes """
-    legalBrickSizes = {}
+    legal_brick_sizes = {}
     # add reverses of brick sizes
-    for heightKey,types in legalBricks.items():
-        legalBrickSizes[heightKey] = {}
-        for typ,parts in types.items():
-            reverseSizes = [part["s"][::-1] for part in parts]
-            legalBrickSizes[heightKey][typ] = uniquify2(reverseSizes + [part["s"] for part in parts])
-    return legalBrickSizes
+    for height_key, types in legal_bricks.items():
+        legal_brick_sizes[height_key] = {}
+        for typ, parts in types.items():
+            reverse_sizes = [part["s"][::-1] for part in parts]
+            legal_brick_sizes[height_key][typ] = uniquify2(reverse_sizes + [part["s"] for part in parts])
+    return legal_brick_sizes
 
 
-def getLegalBricks():
+def get_legal_bricks():
     """ returns a list of legal brick sizes and part numbers """
-    return legalBricks
+    return legal_bricks
 
 
-def getTypesObscuringAbove():
+def get_types_obscuring_above():
     return ["BRICK", "PLATE", "TILE", "STUD", "SLOPE_INVERTED"]
 
 
-def getTypesObscuringBelow():
+def get_types_obscuring_below():
     return ["BRICK", "PLATE", "TILE", "STUD", "SLOPE"]

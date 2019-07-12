@@ -33,7 +33,7 @@ else:
 
 
 scn = bpy.context.scene
-cm = scn.cmlist[scn.cmlist_index]
+cm0 = scn.cmlist[scn.cmlist_index]
 
 
 if b280():
@@ -46,29 +46,29 @@ def build_dict(cm):
     objs = {}
 
     for item in dir(cm):
-        if item in ["__annotations__", "__dict__", "__doc__", "__module__", "__weakref__", "bl_rna", "rna_type", "activeKey", "BFMCache"]:
+        if item in ["__annotations__", "__dict__", "__doc__", "__module__", "__weakref__", "bl_rna", "rna_type", "active_key", "bfm_cache"]:
             continue
-        itemProp = getattr(cm, item)
-        itemType = type(itemProp)
-        if itemType in types.keys():
-            objs[item] = {"name":itemProp.name, "type":types[itemType]}
+        item_prop = getattr(cm, item)
+        item_type = type(item_prop)
+        if item_type in types.keys():
+            objs[item] = {"name":item_prop.name, "type":types[item_type]}
             continue
-        if itemType in (Vector, Color):
-            itemProp = tuple(itemProp)
-        cm_dict[item] = itemProp
+        if item_type in (Vector, Color):
+            item_prop = tuple(item_prop)
+        cm_dict[item] = item_prop
     return cm_dict, objs
 
-cm_dict, objs = build_dict(cm)
+cm_dict, objs = build_dict(cm0)
 
 # # Print helpful information
 # props = {}
 # for item in cm_dict:
-#     itemProp = cm_dict[item]
-#     itemType = type(itemProp)
-#     if type(itemProp) in props:
-#         props[itemType] += 1
+#     item_prop = cm_dict[item]
+#     item_type = type(item_prop)
+#     if type(item_prop) in props:
+#         props[item_type] += 1
 #     else:
-#         props[itemType] = 1
+#         props[item_type] = 1
 # print()
 # for key in props:
 #     print(key, props[key])

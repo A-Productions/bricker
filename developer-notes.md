@@ -2,18 +2,18 @@
     * SNOT (studs not on top) functionality
     * Add 'exclusion' functionality so that one model doesn’t create bricks where another model already did
     * Generate model with bricks and slopes to more closely approximate original mesh (USER REQUESTED)
-    * Add customization for custom object offset, size, and brick scale (amount of bricksDict locations it takes up), default to scale/offset for 1x1 brick with stud
+    * Add customization for custom object offset, size, and brick scale (amount of bricksdict locations it takes up), default to scale/offset for 1x1 brick with stud
     * Add more brick types
     * Improve brick topology for 3D printing
     * Use shader-based bevel as opposed to geometry-based bevel
-    * improve intelligence of `getFirstImgTexNodes` function
+    * improve intelligence of `get_first_img_tex_nodes` function
         * choose prominent textures
         * ignore normal/bump textures
-    * improve speed of `getFirstNode` function
+    * improve speed of `get_first_node` function
         * store first nodes of materials so it doesn't have to recalculate every time
     * Custom UV unwrapper designed specifically for LEGO bricks
     * Improve model connectivity
-        * Store each brick parent as a BMVert, with vert.co being the dictLoc
+        * Store each brick parent as a BMVert, with vert.co being the dloc
         * connect each BMVert with an edge if the two bricks are connected
     * (EASY) New animation types (loop, boomerang, etc)
         * this would be implemented in the `handle_animation` function
@@ -21,9 +21,9 @@
     * switch `use_blend_file` to `False` for backproc calls (saves memory and time)
         * Use `cmlist_to_dict.py` code to convert cmlist item to dictionaries
         * Figure out a way to maintain physics cache, parented matrix_world info, etc. for objects appended to background blender instance
-    * Switch `calculationAxes` property to expanded bools in user interface
+    * Switch `calculation_axes` property to expanded bools in user interface
     * Fix material panel subpanels for blender 2.79?
-    * When switching to v1.7, change 'colorSnap' to 'colorMapping'
+    * When switching to v1.7, change 'color_snap' to 'colorMapping'
 * Fixes
     * when brickified model's parent is rotated, bricks drawn by customizing model are often not rotated correctly
     * Custom object rotation is not maintained when instanced for in bricker model (is this behavior desired?)

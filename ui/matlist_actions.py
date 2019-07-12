@@ -53,25 +53,25 @@ class BRICKER_OT_matlist_actions(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            scn, cm, n = getActiveContextInfo()
-            matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
-            idx = matObj.active_material_index
+            scn, cm, n = get_active_context_info()
+            mat_obj = get_mat_obj(cm.id, typ="RANDOM" if cm.material_type == "RANDOM" else "ABS")
+            idx = mat_obj.active_material_index
 
             if self.action == "REMOVE":
-                self.removeItem(cm, matObj, idx)
+                self.remove_item(cm, mat_obj, idx)
 
             elif self.action == "DOWN" and idx < len(scn.cmlist) - 1:
-                self.navigateDown(item)
+                self.navigate_down(item)
 
             elif self.action == "UP" and idx >= 1:
-                self.moveUp(item)
+                self.move_up(item)
         except:
             bricker_handle_exception()
         return{"FINISHED"}
 
-    def removeItem(self, cm, matObj, idx):
-        if idx >= len(matObj.data.materials) or idx < 0 or len(matObj.data.materials) == 0:
+    def remove_item(self, cm, mat_obj, idx):
+        if idx >= len(mat_obj.data.materials) or idx < 0 or len(mat_obj.data.materials) == 0:
             return
-        mat = matObj.data.materials.pop(index=idx)
-        if not cm.lastSplitModel:
-            cm.materialIsDirty = True
+        mat = mat_obj.data.materials.pop(index=idx)
+        if not cm.last_split_model:
+            cm.material_is_dirty = True

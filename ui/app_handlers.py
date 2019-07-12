@@ -25,50 +25,50 @@ from mathutils import Vector, Euler
 
 # Addon imports
 from ..functions import *
-from ..functions.brickify_utils import finishAnimation
-from ..lib.bricksDict import lightToDeepCache, deepToLightCache, getDictKey
+from ..functions.brickify_utils import finish_animation
+from ..lib.bricksdict import light_to_deep_cache, deep_to_light_cache, get_dict_key
 from ..lib.caches import bricker_bfm_cache
 from ..buttons.customize.tools import *
 from ..buttons.customize.undo_stack import *
 
 
-def brickerRunningBlockingOp():
+def bricker_running_blocking_op():
     wm = bpy.context.window_manager
-    return hasattr(wm, "Bricker_runningBlockingOperation") and wm.Bricker_runningBlockingOperation
+    return hasattr(wm, "bricker_running_blocking_operation") and wm.bricker_running_blocking_operation
 
 
 @persistent
 def handle_animation(scn):
-    if brickerRunningBlockingOp():
+    if bricker_running_blocking_op():
         return
     for i, cm in enumerate(scn.cmlist):
         if not cm.animated:
             continue
-        n = getSourceName(cm)
-        for cf in range(cm.lastStartFrame, cm.lastStopFrame + 1):
-            curBricks = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
-            if curBricks is None:
+        n = get_source_name(cm)
+        for cf in range(cm.last_start_frame, cm.last_stop_frame + 1):
+            cur_bricks = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
+            if cur_bricks is None:
                 continue
-            adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
-            onCurF = adjusted_frame_current == cf
+            adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
+            on_cur_f = adjusted_frame_current == cf
             if b280():
                 # hide bricks from view and render unless on current frame
-                if curBricks.hide_render == onCurF:
-                    curBricks.hide_render = not onCurF
-                if curBricks.hide_viewport == onCurF:
-                    curBricks.hide_viewport = not onCurF
+                if cur_bricks.hide_render == on_cur_f:
+                    cur_bricks.hide_render = not on_cur_f
+                if cur_bricks.hide_viewport == on_cur_f:
+                    cur_bricks.hide_viewport = not on_cur_f
                 if hasattr(bpy.context, "active_object"):
                     obj = bpy.context.active_object
-                    if obj and obj.name.startswith("Bricker_%(n)s_bricks" % locals()) and onCurF:
-                        select(curBricks.objects, active=True)
+                    if obj and obj.name.startswith("Bricker_%(n)s_bricks" % locals()) and on_cur_f:
+                        select(cur_bricks.objects, active=True)
             else:
-                for brick in curBricks.objects:
+                for brick in cur_bricks.objects:
                     # hide bricks from view and render unless on current frame
-                    if onCurF:
+                    if on_cur_f:
                         unhide(brick)
                     else:
                         hide(brick)
-                    if hasattr(bpy.context, "active_object") and bpy.context.active_object and bpy.context.active_object.name.startswith("Bricker_%(n)s_bricks" % locals()) and onCurF:
+                    if hasattr(bpy.context, "active_object") and bpy.context.active_object and bpy.context.active_object.name.startswith("Bricker_%(n)s_bricks" % locals()) and on_cur_f:
                         select(brick, active=True)
                     # prevent bricks from being selected on frame change
                     else:
@@ -76,9 +76,9 @@ def handle_animation(scn):
 
 
 @blender_version_wrapper("<=","2.79")
-def isObjVisible(scn, cm, n):
-    objVisible = False
-    if cm.modelCreated or cm.animated:
+def is_obj_visible(scn, cm, n):
+    obj_visible = False
+    if cm.model_created or cm.animated:
         g = bpy_collections().get("Bricker_%(n)s_bricks" % locals())
         if g is not None and len(g.objects) > 0:
             obj = g.objects[0]
@@ -87,11 +87,11 @@ def isObjVisible(scn, cm, n):
     else:
         obj = cm.source_obj
     if obj:
-        objVisible = False
+        obj_visible = False
         for i in range(20):
             if obj.layers[i] and scn.layers[i]:
-                objVisible = True
-    return objVisible, obj
+                obj_visible = True
+    return obj_visible, obj
 
 
 def find_3dview_space():
@@ -125,30 +125,30 @@ def reset_undo_stack(scene):
 
 @persistent
 def handle_loading_to_light_cache(dummy):
-    deepToLightCache(bricker_bfm_cache)
+    deep_to_light_cache(bricker_bfm_cache)
     # verify caches loaded properly
     for scn in bpy.data.scenes:
         for cm in scn.cmlist:
-            if not (cm.modelCreated or cm.animated):
+            if not (cm.model_created or cm.animated):
                 continue
             # reset undo states
             cm.blender_undo_state = 0
             python_undo_state[cm.id] = 0
-            # load bricksDict
-            bricksDict = getBricksDict(cm)
-            if bricksDict is None:
-                cm.matrixLost = True
-                cm.matrixIsDirty = True
+            # load bricksdict
+            bricksdict = get_bricksdict(cm)
+            if bricksdict is None:
+                cm.matrix_lost = True
+                cm.matrix_is_dirty = True
 
 
 # push dicts from light cache to deep cache on save
 @persistent
 def handle_storing_to_deep_cache(dummy):
-    lightToDeepCache(bricker_bfm_cache)
+    light_to_deep_cache(bricker_bfm_cache)
 
 
 # @persistent
-# def undo_bricksDict_changes(scene):
+# def undo_bricksdict_changes(scene):
 #     scn = bpy.context.scene
 #     if scn.cmlist_index == -1:
 #         return
@@ -162,11 +162,11 @@ def handle_storing_to_deep_cache(dummy):
 #         self.undo_stack.undo_pop()
 #
 #
-# bpy.app.handlers.undo_pre.append(undo_bricksDict_changes)
+# bpy.app.handlers.undo_pre.append(undo_bricksdict_changes)
 #
 #
 # @persistent
-# def redo_bricksDict_changes(scene):
+# def redo_bricksdict_changes(scene):
 #     scn = bpy.context.scene
 #     if scn.cmlist_index == -1:
 #         return
@@ -180,7 +180,7 @@ def handle_storing_to_deep_cache(dummy):
 #         self.undo_stack.redo_pop()
 #
 #
-# bpy.app.handlers.redo_pre.append(redo_bricksDict_changes)
+# bpy.app.handlers.redo_pre.append(redo_bricksdict_changes)
 
 
 @persistent
@@ -194,17 +194,17 @@ def handle_upconversion(dummy):
     for scn in bpy.data.scenes:
         # update cmlist indices to reflect updates to Bricker
         for cm in scn.cmlist:
-            if createdWithUnsupportedVersion(cm):
+            if created_with_unsupported_version(cm):
                 # normalize cm.version
                 cm.version = cm.version.replace(", ", ".")
                 # convert from v1_0 to v1_1
                 if int(cm.version[2]) < 1:
                     cm.brickWidth = 2 if cm.maxBrickScale2 > 1 else 1
-                    cm.brickDepth = cm.maxBrickScale2
+                    cm.brick_depth = cm.maxBrickScale2
                 # convert from v1_2 to v1_3
                 if int(cm.version[2]) < 3:
-                    if cm.colorSnapAmount == 0:
-                        cm.colorSnapAmount = 0.001
+                    if cm.color_snap_amount == 0:
+                        cm.color_snap_amount = 0.001
                     for obj in bpy.data.objects:
                         if obj.name.startswith("Rebrickr"):
                             obj.name = obj.name.replace("Rebrickr", "Bricker")
@@ -218,19 +218,19 @@ def handle_upconversion(dummy):
                 if int(cm.version[2]) < 4:
                     # update "_frame_" to "_f_" in brick and group names
                     n = cm.source_name
-                    Bricker_bricks_cn = "Bricker_%(n)s_bricks" % locals()
+                    bricker_bricks_cn = "Bricker_%(n)s_bricks" % locals()
                     if cm.animated:
-                        for i in range(cm.lastStartFrame, cm.lastStopFrame + 1):
-                            Bricker_bricks_curF_cn = Bricker_bricks_cn + "_frame_" + str(i)
-                            bColl = bpy_collections().get(Bricker_bricks_curF_cn)
-                            if bColl is not None:
-                                bColl.name = rreplace(bColl.name, "frame", "f")
-                                for obj in bColl.objects:
+                        for i in range(cm.last_start_frame, cm.last_stop_frame + 1):
+                            bricker_bricks_curf_cn = bricker_bricks_cn + "_frame_" + str(i)
+                            bcoll = bpy_collections().get(bricker_bricks_curf_cn)
+                            if bcoll is not None:
+                                bcoll.name = rreplace(bcoll.name, "frame", "f")
+                                for obj in bcoll.objects:
                                     obj.name = rreplace(obj.name, "combined_frame" if "combined_frame" in obj.name else "frame", "f")
-                    elif cm.modelCreated:
-                        bColl = bpy_collections().get(Bricker_bricks_cn)
-                        if bColl is not None:
-                            for obj in bColl.objects:
+                    elif cm.model_created:
+                        bcoll = bpy_collections().get(bricker_bricks_cn)
+                        if bcoll is not None:
+                            for obj in bcoll.objects:
                                 if obj.name.endswith("_combined"):
                                     obj.name = obj.name[:-9]
                     # remove old storage scene
@@ -243,19 +243,19 @@ def handle_upconversion(dummy):
                                 obj.use_fake_user = True
                         bpy.data.scenes.remove(sto_scn_old)
                     # create "Bricker_cm.id_mats" object for each cmlist idx
-                    createMatObjs(cm.id)
+                    create_mat_objs(cm.id)
                     # update names of Bricker source objects
-                    old_source = bpy.data.objects.get(cm.source_name + " (DO NOT RENAME)")
+                    old_source = bpy.data.objects.get(cm. + " (DO NOT RENAME)")
                     if old_source is not None:
                         old_source.name = cm.source_name
                     # transfer dist offset values to new prop locations
-                    if cm.distOffsetX != -1:
-                        cm.distOffset = (cm.distOffsetX, cm.distOffsetY, cm.distOffsetZ)
+                    if cm.dist_offsetX != -1:
+                        cm.dist_offset = (cm.dist_offsetX, cm.dist_offsetY, cm.dist_offsetZ)
                 # convert from v1_4 to v1_5
                 if int(cm.version[2]) < 5:
-                    cm.logoType = cm.logoDetail
-                    cm.matrixIsDirty = True
-                    cm.matrixLost = True
+                    cm.logo_type = cm.logoDetail
+                    cm.matrix_is_dirty = True
+                    cm.matrix_lost = True
                     remove_colls = list()
                     for coll in bpy_collections():
                         if coll.name.startswith("Bricker_") and (coll.name.endswith("_parent") or coll.name.endswith("_dupes")):
@@ -265,17 +265,22 @@ def handle_upconversion(dummy):
                 # convert from v1_5 to v1_6
                 if int(cm.version[2]) < 6:
                     for cm in scn.cmlist:
-                        cm.zStep = getZStep(cm)
+                        cm.zstep = get_zstep(cm)
                     if cm.source_obj is None: cm.source_obj = bpy.data.objects.get(cm.source_name)
                     if cm.parent_obj is None: cm.parent_obj = bpy.data.objects.get(cm.parent_name)
-                    n = getSourceName(cm)
+                    n = get_source_name(cm)
                     if cm.animated:
-                        coll = finishAnimation(cm)
+                        coll = finish_animation(cm)
                     else:
                         coll = bpy_collections().get("Bricker_%(n)s_bricks" % locals())
                     if cm.collection is None: cm.collection = coll
                     dup = bpy.data.objects.get(n + "_duplicate")
                     if dup is not None: dup.name = n + "__dup__"
+                # convert from v1_6 to v1_7
+                if int(cm.version[2]) < 7:
+                    for prop in dir()
+                    # TODO: transfer props from 1_6 to 1_7
+
             # ensure parent object has no users
             if cm.parent_obj is not None:
                 # TODO: replace with this line when the function is fixed in 2.8

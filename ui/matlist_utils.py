@@ -25,20 +25,20 @@ import bpy
 from ..functions import *
 
 
-def addMaterialToList(self, context):
-    scn, cm, n = getActiveContextInfo()
-    typ = "RANDOM" if cm.materialType == "RANDOM" else "ABS"
-    matObj = getMatObject(cm.id, typ=typ)
-    numMats = len(matObj.data.materials)
-    mat = bpy.data.materials.get(cm.targetMaterial)
+def add_material_to_list(self, context):
+    scn, cm, n = get_active_context_info()
+    typ = "RANDOM" if cm.material_type == "RANDOM" else "ABS"
+    mat_obj = get_mat_obj(cm.id, typ=typ)
+    num_mats = len(mat_obj.data.materials)
+    mat = bpy.data.materials.get(cm.target_material)
     if mat is None:
         return
-    elif mat.name in matObj.data.materials.keys():
-        cm.targetMaterial = "Already in list!"
-    elif typ == "ABS" and mat.name not in getABSMatNames():
-        cm.targetMaterial = "Not ABS Plastic material"
-    elif matObj is not None:
-        matObj.data.materials.append(mat)
-        cm.targetMaterial = ""
-    if numMats < len(matObj.data.materials) and not cm.lastSplitModel:
-        cm.materialIsDirty = True
+    elif mat.name in mat_obj.data.materials.keys():
+        cm.target_material = "Already in list!"
+    elif typ == "ABS" and mat.name not in get_abs_mat_names():
+        cm.target_material = "Not ABS Plastic material"
+    elif mat_obj is not None:
+        mat_obj.data.materials.append(mat)
+        cm.target_material = ""
+    if num_mats < len(mat_obj.data.materials) and not cm.last_split_model:
+        cm.material_is_dirty = True

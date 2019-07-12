@@ -29,24 +29,24 @@ class BRICKER_AP_preferences(AddonPreferences):
     bl_idname = __package__[:__package__.index(".lib")]
 
     # Bricker preferences
-    brickHeightDefault = bpy.props.EnumProperty(
+    brick_height_default = bpy.props.EnumProperty(
         name="Default Brick Height Setting",
         description="Method for setting default 'Model Height' value when new model is added",
         items=[("RELATIVE", "Relative (recommended)", "'Model Height' setting defaults to fixed number of bricks tall when new model is added"),
                ("ABSOLUTE", "Absolute", "'Model Height' setting defaults to fixed height in decimeters when new model is added")],
         default="RELATIVE")
-    relativeBrickHeight = bpy.props.IntProperty(
+    relative_brick_height = bpy.props.IntProperty(
         name="Model Height (bricks)",
         description="Default height for bricker models in bricks (standard deviation of 1 brick)",
         min=1,
         default=20)
-    absoluteBrickHeight = bpy.props.FloatProperty(
+    absolute_brick_height = bpy.props.FloatProperty(
         name="Brick Height (dm)",
         description="Default brick height in decimeters",
         min=0.00001,
         precision=3,
         default=0.096)
-    brickifyInBackground = EnumProperty(
+    brickify_in_background = EnumProperty(
         name="Brickify in Background",
         description="Run brickify calculations in background (if disabled, user interface will freeze during calculation)",
         items=[("AUTO", "Auto", "Automatically determine whether to brickify in background or active Blender window based on model complexity"),
@@ -91,12 +91,12 @@ class BRICKER_AP_preferences(AddonPreferences):
         col = split.column(align=True)
         split = layout_split(col, factor=0.5)
         col = split.column(align=True)
-        col.prop(prefs, "brickHeightDefault", text="")
+        col.prop(prefs, "brick_height_default", text="")
         col = split.column(align=True)
-        if prefs.brickHeightDefault == "RELATIVE":
-            col.prop(prefs, "relativeBrickHeight")
+        if prefs.brick_height_default == "RELATIVE":
+            col.prop(prefs, "relative_brick_height")
         else:
-            col.prop(prefs, "absoluteBrickHeight")
+            col.prop(prefs, "absolute_brick_height")
         col1.separator()
         col1.separator()
         row = col1.row(align=False)
@@ -104,7 +104,7 @@ class BRICKER_AP_preferences(AddonPreferences):
         col = split.column(align=True)
         col.label(text="Brickify in Background:")
         col = split.column(align=True)
-        col.prop(prefs, "brickifyInBackground", text="")
+        col.prop(prefs, "brickify_in_background", text="")
         col1.separator()
 
         # updater draw function

@@ -46,7 +46,7 @@ from .functions.general import *
 from .buttons import *
 from .buttons.customize import *
 from .lib import keymaps, preferences, classesToRegister
-from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
+from .lib.Brick.legal_brick_sizes import get_legal_brick_sizes
 from .ui.timers import *
 from .ui.cmlist_attrs import CreatedModelProperties
 from . import addon_updater_ops
@@ -73,26 +73,26 @@ def register():
     bpy.props.bfm_cache_bytes_hex = None
 
     Object.protected = BoolProperty(name="protected", default=False)
-    Object.isBrickifiedObject = BoolProperty(name="Is Brickified Object", default=False)
-    Object.isBrick = BoolProperty(name="Is Brick", default=False)
+    Object.is_brickified_object = BoolProperty(name="Is Brickified Object", default=False)
+    Object.is_brick = BoolProperty(name="Is Brick", default=False)
     Object.cmlist_id = IntProperty(name="Custom Model ID", description="ID of cmlist entry to which this object refers", default=-1)
     if b280():
         Object.stored_parents = CollectionProperty(type=BRICKER_UL_collections_tuple)
     Material.num_averaged = IntProperty(name="Colors Averaged", description="Number of colors averaged together", default=0)
 
-    WindowManager.Bricker_runningBlockingOperation = BoolProperty(default=False)
+    WindowManager.bricker_running_blocking_operation = BoolProperty(default=False)
 
     Scene.Bricker_last_layers = StringProperty(default="")
-    Scene.Bricker_active_object_name = StringProperty(default="")
-    Scene.Bricker_last_active_object_name = StringProperty(default="")
+    Scene.bricker_active_object_name = StringProperty(default="")
+    Scene.bricker_last_active_object_name = StringProperty(default="")
 
-    Scene.Bricker_copy_from_id = IntProperty(default=-1)
+    Scene.bricker_copy_from_id = IntProperty(default=-1)
 
     # define legal brick sizes (key:height, val:[width,depth])
-    bpy.props.Bricker_legal_brick_sizes = getLegalBrickSizes()
+    bpy.props.bricker_legal_brick_sizes = get_legal_brick_sizes()
 
     # Add attribute for Bricker Instructions addon
-    Scene.isBrickerInstalled = BoolProperty(default=True)
+    Scene.is_bricker_installed = BoolProperty(default=True)
 
     Scene.include_transparent = BoolProperty(
         name="Include Transparent",
@@ -117,7 +117,7 @@ def register():
     wm = bpy.context.window_manager
     if wm.keyconfigs.addon: # check this to avoid errors in background case
         km = wm.keyconfigs.addon.keymaps.new(name="Object Mode", space_type="EMPTY")
-        keymaps.addKeymaps(km)
+        keymaps.add_keymaps(km)
         addon_keymaps.append(km)
 
     # register app handlers
@@ -170,18 +170,18 @@ def unregister():
     # del Scene.Bricker_snapping
     del Scene.include_uncommon
     del Scene.include_transparent
-    del Scene.isBrickerInstalled
-    del Scene.Bricker_copy_from_id
-    del Scene.Bricker_last_active_object_name
-    del Scene.Bricker_active_object_name
+    del Scene.is_bricker_installed
+    del Scene.bricker_copy_from_id
+    del Scene.bricker_last_active_object_name
+    del Scene.bricker_active_object_name
     del Scene.Bricker_last_layers
-    del WindowManager.Bricker_runningBlockingOperation
+    del WindowManager.bricker_running_blocking_operation
     del Material.num_averaged
     if hasattr(Object, "stored_parents"):
         del Object.stored_parents
     del Object.cmlist_id
-    del Object.isBrick
-    del Object.isBrickifiedObject
+    del Object.is_brick
+    del Object.is_brickified_object
     del Object.protected
     del bpy.props.bfm_cache_bytes_hex
     del bpy.props.manual_cmlist_update

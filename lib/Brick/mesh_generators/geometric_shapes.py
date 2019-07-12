@@ -22,7 +22,7 @@ from mathutils import Vector
 from ....functions import *
 
 
-def makeSquare(coord1:Vector, coord2:Vector, face:bool=True, flipNormal:bool=False, bme:bmesh=None):
+def make_square(coord1:Vector, coord2:Vector, face:bool=True, flip_normal:bool=False, bme:bmesh=None):
     """
     create a square with bmesh
 
@@ -30,12 +30,12 @@ def makeSquare(coord1:Vector, coord2:Vector, face:bool=True, flipNormal:bool=Fal
         coord1     -- back/left/bottom corner of the square (furthest negative in all three axes)
         coord2     -- front/right/top  corner of the square (furthest positive in all three axes)
         face       -- draw face connecting cube verts
-        flipNormal -- flip the normals of the cube
+        flip_normal -- flip the normals of the cube
         bme        -- bmesh object in which to create verts
     NOTE: if coord1 and coord2 are different on all three axes, z axis will stay consistent at coord1.z
 
     Returns:
-        vList      -- list of vertices with normal facing in positive direction (right hand rule)
+        v_list      -- list of vertices with normal facing in positive direction (right hand rule)
 
     """
     # create new bmesh object
@@ -50,16 +50,16 @@ def makeSquare(coord1:Vector, coord2:Vector, face:bool=True, flipNormal:bool=Fal
     # create square with normal facing +z direction
     else:
         v1, v2, v3, v4 = [bme.verts.new((x, y, coord1.z)) for x in (coord1.x, coord2.x) for y in (coord1.y, coord2.y)]
-    vList = [v1, v3, v4, v2]
+    v_list = [v1, v3, v4, v2]
 
     # create face
     if face:
-        bme.faces.new(vList[::-1] if flipNormal else vList)
+        bme.faces.new(v_list[::-1] if flip_normal else v_list)
 
-    return vList
+    return v_list
 
 
-def makeCube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flipNormals:bool=False, seams:bool=False, bme:bmesh=None):
+def make_cube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flip_normals:bool=False, seams:bool=False, bme:bmesh=None):
     """
     create a cube with bmesh
 
@@ -67,12 +67,12 @@ def makeCube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flipNormals:boo
         coord1      -- back/left/bottom corner of the cube (furthest negative in all three axes)
         coord2      -- front/right/top  corner of the cube (furthest positive in all three axes)
         sides       -- draw sides [+z, -z, +x, -x, +y, -y]
-        flipNormals -- flip the normals of the cube
+        flip_normals -- flip the normals of the cube
         seams       -- make all edges seams
         bme         -- bmesh object in which to create verts
 
     Returns:
-        vList       -- list of vertices in the following x,y,z order: [---, -+-, ++-, +--, --+, +-+, +++, -++]
+        v_list       -- list of vertices in the following x,y,z order: [---, -+-, ++-, +--, --+, +-+, +++, -++]
 
     """
 
@@ -85,36 +85,36 @@ def makeCube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flipNormals:boo
     bme = bme or bmesh.new()
 
     # create vertices
-    vList = [bme.verts.new((x, y, z)) for x in (coord1.x, coord2.x) for y in (coord1.y, coord2.y) for z in (coord1.z, coord2.z)]
+    v_list = [bme.verts.new((x, y, z)) for x in (coord1.x, coord2.x) for y in (coord1.y, coord2.y) for z in (coord1.z, coord2.z)]
 
     # create faces
-    v1, v2, v3, v4, v5, v6, v7, v8 = vList
-    newFaces = []
+    v1, v2, v3, v4, v5, v6, v7, v8 = v_list
+    new_faces = []
     if sides[0]:
-        newFaces.append([v6, v8, v4, v2])
+        new_faces.append([v6, v8, v4, v2])
     if sides[1]:
-        newFaces.append([v3, v7, v5, v1])
+        new_faces.append([v3, v7, v5, v1])
     if sides[4]:
-        newFaces.append([v4, v8, v7, v3])
+        new_faces.append([v4, v8, v7, v3])
     if sides[3]:
-        newFaces.append([v2, v4, v3, v1])
+        new_faces.append([v2, v4, v3, v1])
     if sides[2]:
-        newFaces.append([v8, v6, v5, v7])
+        new_faces.append([v8, v6, v5, v7])
     if sides[5]:
-        newFaces.append([v6, v2, v1, v5])
+        new_faces.append([v6, v2, v1, v5])
 
-    for f in newFaces:
-        if flipNormals:
+    for f in new_faces:
+        if flip_normals:
             f.reverse()
-        newF = bme.faces.new(f)
+        new_f = bme.faces.new(f)
         # if seams:
-        #     for e in newF.edges:
+        #     for e in new_f.edges:
         #         e.seam = True
 
     return [v1, v3, v7, v5, v2, v6, v8, v4]
 
 
-def makeCircle(r:float, N:int, co:Vector=Vector((0,0,0)), face:bool=True, flipNormals:bool=False, bme:bmesh=None):
+def make_circle(r:float, N:int, co:Vector=Vector((0,0,0)), face:bool=True, flip_normals:bool=False, bme:bmesh=None):
     """
     create a circle with bmesh
 
@@ -123,7 +123,7 @@ def makeCircle(r:float, N:int, co:Vector=Vector((0,0,0)), face:bool=True, flipNo
         N           -- number of verts on circumference
         co          -- coordinate of cylinder's center
         face        -- create face between circle verts
-        flipNormals -- flip normals of cylinder
+        flip_normals -- flip normals of cylinder
         bme         -- bmesh object in which to create verts
 
     """
@@ -140,12 +140,12 @@ def makeCircle(r:float, N:int, co:Vector=Vector((0,0,0)), face:bool=True, flipNo
         verts.append(bme.verts.new(coord))
     # create face
     if face:
-        bme.faces.new(verts if not flipNormals else verts[::-1])
+        bme.faces.new(verts if not flip_normals else verts[::-1])
 
     return verts
 
 
-def makeCylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), botFace:bool=True, topFace:bool=True, flipNormals:bool=False, seams:bool=True, bme:bmesh=None):
+def make_cylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), bot_face:bool=True, top_face:bool=True, flip_normals:bool=False, seams:bool=True, bme:bmesh=None):
     """
     create a cylinder with bmesh
 
@@ -154,18 +154,18 @@ def makeCylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), botFace:boo
         h           -- height of cylinder
         N           -- number of verts per circle
         co          -- coordinate of cylinder's center
-        botFace     -- create face on bottom of cylinder
-        topFace     -- create face on top of cylinder
-        flipNormals -- flip normals of cylinder
+        bot_face     -- create face on bottom of cylinder
+        top_face     -- create face on top of cylinder
+        flip_normals -- flip normals of cylinder
         seams       -- make horizontal edges seams
         bme         -- bmesh object in which to create verts
 
     """
     # initialize vars
     bme = bme or bmesh.new()
-    topVerts = []
-    botVerts = []
-    sideFaces = []
+    top_verts = []
+    bot_verts = []
+    side_faces = []
 
     # create upper and lower circles
     for i in range(N):
@@ -173,36 +173,36 @@ def makeCylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), botFace:boo
         x = r * math.cos(circ_val)
         y = r * math.sin(circ_val)
         z = h / 2
-        coordT = co + Vector((x, y, z))
-        coordB = co + Vector((x, y, -z))
-        topVerts.append(bme.verts.new(coordT))
-        botVerts.append(bme.verts.new(coordB))
+        coord_t = co + Vector((x, y, z))
+        coord_b = co + Vector((x, y, -z))
+        top_verts.append(bme.verts.new(coord_t))
+        bot_verts.append(bme.verts.new(coord_b))
 
     # if seams:
-    #     for i in range(len(topVerts)):
-    #         v1 = topVerts[i]
-    #         v2 = topVerts[(i-1)]
-    #         v3 = botVerts[i]
-    #         v4 = botVerts[(i-1)]
+    #     for i in range(len(top_verts)):
+    #         v1 = top_verts[i]
+    #         v2 = top_verts[(i-1)]
+    #         v3 = bot_verts[i]
+    #         v4 = bot_verts[(i-1)]
     #         bme.edges.new((v1, v2)).seam = True
     #         bme.edges.new((v3, v4)).seam = True
-    #     bme.edges.new((topVerts[0], botVerts[0])).seam = True
+    #     bme.edges.new((top_verts[0], bot_verts[0])).seam = True
 
     # create faces on the sides
-    _, sideFaces = connectCircles(topVerts if flipNormals else botVerts, botVerts if flipNormals else topVerts, bme)
-    smoothBMFaces(sideFaces)
+    _, side_faces = connect_circles(top_verts if flip_normals else bot_verts, bot_verts if flip_normals else top_verts, bme)
+    smooth_bm_faces(side_faces)
 
     # create top and bottom faces
-    if topFace:
-        bme.faces.new(topVerts if not flipNormals else topVerts[::-1])
-    if botFace:
-        bme.faces.new(botVerts[::-1] if not flipNormals else botVerts)
+    if top_face:
+        bme.faces.new(top_verts if not flip_normals else top_verts[::-1])
+    if bot_face:
+        bme.faces.new(bot_verts[::-1] if not flip_normals else bot_verts)
 
     # return bme & dictionary with lists of top and bottom vertices
-    return bme, {"bottom":botVerts[::-1], "top":topVerts}
+    return bme, {"bottom":bot_verts[::-1], "top":top_verts}
 
 
-def makeTube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), topFace:bool=True, botFace:bool=True, topFaceInner:bool=False, botFaceInner:bool=False, flipNormals:bool=False, seams:bool=True, bme:bmesh=None):
+def make_tube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), top_face:bool=True, bot_face:bool=True, top_face_inner:bool=False, bot_face_inner:bool=False, flip_normals:bool=False, seams:bool=True, bme:bmesh=None):
     """
     create a tube with bmesh
 
@@ -212,11 +212,11 @@ def makeTube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), topFac
         t            -- thickness of tube
         N            -- number of verts per circle
         co           -- coordinate of cylinder's center
-        botFace      -- create face on bottom of cylinder
-        topFace      -- create face on top of cylinder
-        botFaceInner -- create inner circle on bottom of cylinder
-        topFaceInner -- create inner circle on top of cylinder
-        flipNormals  -- flip normals of cylinder
+        bot_face      -- create face on bottom of cylinder
+        top_face      -- create face on top of cylinder
+        bot_face_inner -- create inner circle on bottom of cylinder
+        top_face_inner -- create inner circle on top of cylinder
+        flip_normals  -- flip normals of cylinder
         seams       -- make horizontal edges seams
         bme          -- bmesh object in which to create verts
 
@@ -226,21 +226,21 @@ def makeTube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), topFac
         bme = bmesh.new()
 
     # create upper and lower circles
-    bme, innerVerts = makeCylinder(r, h, N, co=co, botFace=False, topFace=False, flipNormals=not flipNormals, bme=bme)
-    bme, outerVerts = makeCylinder(r + t, h, N, co=co, botFace=False, topFace=False, flipNormals=flipNormals, bme=bme)
-    if topFace:
-        connectCircles(outerVerts["top"], innerVerts["top"], bme, flipNormals=flipNormals, select=False)
-    if botFace:
-        connectCircles(outerVerts["bottom"], innerVerts["bottom"], bme, flipNormals=flipNormals, select=False)
-    if botFaceInner:
-        bme.faces.new(innerVerts["bottom"])
-    if topFaceInner:
-        bme.faces.new(innerVerts["top"][::-1])
+    bme, inner_verts = make_cylinder(r, h, N, co=co, bot_face=False, top_face=False, flip_normals=not flip_normals, bme=bme)
+    bme, outer_verts = make_cylinder(r + t, h, N, co=co, bot_face=False, top_face=False, flip_normals=flip_normals, bme=bme)
+    if top_face:
+        connect_circles(outer_verts["top"], inner_verts["top"], bme, flip_normals=flip_normals, select=False)
+    if bot_face:
+        connect_circles(outer_verts["bottom"], inner_verts["bottom"], bme, flip_normals=flip_normals, select=False)
+    if bot_face_inner:
+        bme.faces.new(inner_verts["bottom"])
+    if top_face_inner:
+        bme.faces.new(inner_verts["top"][::-1])
     # return bmesh
-    return bme, {"outer":outerVerts, "inner":innerVerts}
+    return bme, {"outer":outer_verts, "inner":inner_verts}
 
 
-def connectCircles(circle1, circle2, bme, offset=0, flipNormals=False, smooth=True, select=True):
+def connect_circles(circle1, circle2, bme, offset=0, flip_normals=False, smooth=True, select=True):
     assert offset < len(circle1) - 1 and offset >= 0
     faces = []
     for v in range(len(circle1)):
@@ -248,8 +248,8 @@ def connectCircles(circle1, circle2, bme, offset=0, flipNormals=False, smooth=Tr
         v2 = circle2[v]
         v3 = circle2[(v-1)]
         v4 = circle1[(v-1) - offset]
-        f = bme.faces.new([v1, v2, v3, v4][::-1 if flipNormals else 1])
-        if select: selectGeom((f.edges[0], f.edges[2]))
+        f = bme.faces.new([v1, v2, v3, v4][::-1 if flip_normals else 1])
+        if select: select_geom((f.edges[0], f.edges[2]))
         f.smooth = smooth
         faces.append(f)
     return bme, faces

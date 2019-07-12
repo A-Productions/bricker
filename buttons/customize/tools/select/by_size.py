@@ -45,7 +45,7 @@ class BRICKER_OT_select_bricks_by_size(Operator):
 
     def execute(self, context):
         try:
-            selectBricks(self.objNamesD, self.bricksDicts, brickSize=self.brickSize, allModels=self.allModels, only=self.only, include=self.include)
+            select_bricks(self.obj_names_dict, self.bricksdicts, brick_size=self.brick_size, all_models=self.all_models, only=self.only, include=self.include)
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -58,40 +58,40 @@ class BRICKER_OT_select_bricks_by_size(Operator):
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
 
         col = layout.column(align=True)
         right_align(col)
-        col.prop(self, "brickSize")
+        col.prop(self, "brick_size")
         if len(bpy.context.selected_objects) > 0:
             col.prop(self, "only")
         if len(scn.cmlist) > 1:
-            col.prop(self, "allModels")
-        if cm.lastShellThickness > 1 or cm.lastInternalSupports != "NONE":
+            col.prop(self, "all_models")
+        if cm.last_shell_thickness > 1 or cm.last_internal_supports != "NONE":
             col.prop(self, "include")
 
     ################################################
     # initialization method
 
     def __init__(self):
-        objs = bpy.data.objects
-        self.objNamesD, self.bricksDicts = createObjNamesAndBricksDictsDs(objs)
-        self.brickSize = "NONE"
+        self.obj_names_dict = create_obj_names_dict(bpy.data.objects)
+        self.bricksdicts = get_bricksdicts_from_objs(self.obj_names_dict.keys())
+        self.brick_size = "NONE"
 
     ###################################################
     # class variables
 
     # vars
-    objNamesD = {}
-    bricksDicts = {}
+    obj_names_dict = {}
+    bricksdicts = {}
 
-    # get items for brickSize prop
+    # get items for brick_size prop
     def get_items(self, context):
-        items = getUsedSizes()
+        items = get_used_sizes()
         return items
 
     # define props for popup
-    brickSize = bpy.props.EnumProperty(
+    brick_size = bpy.props.EnumProperty(
         name="Size",
         description="Select all bricks of specified size (X, Y, Z)",
         items=get_items)
@@ -99,7 +99,7 @@ class BRICKER_OT_select_bricks_by_size(Operator):
         name="Only",
         description="Select only bricks of given size",
         default=False)
-    allModels = bpy.props.BoolProperty(
+    all_models = bpy.props.BoolProperty(
         name="All Models",
         description="Select bricks of given size from all models in file",
         default=False)

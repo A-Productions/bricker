@@ -28,7 +28,7 @@ from ..undo_stack import *
 from ..functions import *
 from ...brickify import *
 from ...brickify import *
-from ....lib.bricksDict.functions import getDictKey
+from ....lib.bricksdict.functions import get_dict_key
 from ....lib.Brick.legal_brick_sizes import *
 from ....functions import *
 
@@ -50,11 +50,11 @@ class BRICKER_OT_merge_bricks(Operator):
         i = 0
         # check that at least 2 objects are selected and are bricks
         for obj in objs:
-            if not obj.isBrick:
+            if not obj.is_brick:
                 continue
             # get cmlist item referred to by object
-            cm = getItemByID(scn.cmlist, obj.cmlist_id)
-            if cm.lastBrickType == "CUSTOM" or cm.buildIsDirty:
+            cm = get_item_by_id(scn.cmlist, obj.cmlist_id)
+            if cm.last_brick_type == "CUSTOM" or cm.build_is_dirty:
                 continue
             i += 1
             if i == 2:
@@ -64,38 +64,38 @@ class BRICKER_OT_merge_bricks(Operator):
     def execute(self, context):
         try:
             scn = bpy.context.scene
-            objsToSelect = []
+            objs_to_select = []
             # iterate through cm_ids of selected objects
-            for cm_id in self.objNamesD.keys():
-                cm = getItemByID(scn.cmlist, cm_id)
-                self.undo_stack.iterateStates(cm)
+            for cm_id in self.obj_names_dict.keys():
+                cm = get_item_by_id(scn.cmlist, cm_id)
+                self.undo_stack.iterate_states(cm)
                 # initialize vars
-                bricksDict = self.bricksDicts[cm_id]
-                allSplitKeys = list()
+                bricksdict = self.bricksdicts[cm_id]
+                all_split_keys = list()
                 cm.customized = True
-                brickType = cm.brickType
+                brick_type = cm.brick_type
 
                 # iterate through cm_ids of selected objects
-                for obj_name in self.objNamesD[cm_id]:
+                for obj_name in self.obj_names_dict[cm_id]:
                     # initialize vars
-                    dictKey = getDictKey(obj_name)
+                    dkey = get_dict_key(obj_name)
 
                     # split brick in matrix
-                    splitKeys = Bricks.split(bricksDict, dictKey, cm.zStep, brickType)
-                    allSplitKeys += splitKeys
+                    split_keys = Bricks.split(bricksdict, dkey, cm.zstep, brick_type)
+                    all_split_keys += split_keys
                     # delete the object that was split
                     delete(bpy.data.objects.get(obj_name))
 
-                # run self.mergeBricks
-                keysToUpdate = BRICKER_OT_merge_bricks.mergeBricks(bricksDict, allSplitKeys, cm, anyHeight=True, mergeInconsistentMats=self.mergeInconsistentMats)
+                # run self.merge_bricks
+                keys_to_update = BRICKER_OT_merge_bricks.merge_bricks(bricksdict, all_split_keys, cm, any_height=True, merge_inconsistent_mats=self.merge_inconsistent_mats)
 
                 # draw modified bricks
-                drawUpdatedBricks(cm, bricksDict, keysToUpdate)
+                draw_updated_bricks(cm, bricksdict, keys_to_update)
 
                 # add selected objects to objects to select at the end
-                objsToSelect += bpy.context.selected_objects
+                objs_to_select += bpy.context.selected_objects
             # select the new objects created
-            select(objsToSelect)
+            select(objs_to_select)
             bpy.props.bricker_last_selected = [obj.name for obj in bpy.context.selected_objects]
         except:
             bricker_handle_exception()
@@ -108,48 +108,49 @@ class BRICKER_OT_merge_bricks(Operator):
         scn = bpy.context.scene
         # initialize vars
         selected_objects = bpy.context.selected_objects
-        self.objNamesD, self.bricksDicts = createObjNamesAndBricksDictsDs(selected_objects)
+        self.obj_names_dict = create_obj_names_dict(selected_objects)
+        self.bricksdicts = get_bricksdicts_from_objs(self.obj_names_dict.keys())
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
-        self.undo_stack.undo_push("merge", list(self.objNamesD.keys()))
-        # set mergeInconsistentMats
-        self.mergeInconsistentMats = bpy.props.bricker_last_selected == [obj.name for obj in selected_objects]
+        self.undo_stack.undo_push("merge", list(self.obj_names_dict.keys()))
+        # set merge_inconsistent_mats
+        self.merge_inconsistent_mats = bpy.props.bricker_last_selected == [obj.name for obj in selected_objects]
 
     ###################################################
     # class variables
 
     # variables
-    bricksDicts = {}
-    objNamesD = {}
+    bricksdicts = {}
+    obj_names_dict = {}
 
     #############################################
     # class methods
 
     @staticmethod
-    def mergeBricks(bricksDict, keys, cm, targetType="BRICK", anyHeight=False, mergeInconsistentMats=False):
+    def merge_bricks(bricksdict, keys, cm, target_type="BRICK", any_height=False, merge_inconsistent_mats=False):
         # initialize vars
-        updatedKeys = []
-        brickType = cm.brickType
-        maxWidth = cm.maxWidth
-        maxDepth = cm.maxDepth
-        legalBricksOnly = cm.legalBricksOnly
-        mergeInternalsH = cm.mergeInternals in ["BOTH", "HORIZONTAL"]
-        mergeInternalsV = cm.mergeInternals in ["BOTH", "VERTICAL"]
-        materialType = cm.materialType
-        randState = np.random.RandomState(cm.mergeSeed)
-        mergeVertical = targetType in getBrickTypes(height=3) and "PLATES" in brickType
-        height3Only = mergeVertical and not anyHeight
+        updated_keys = []
+        brick_type = cm.brick_type
+        max_width = cm.max_width
+        max_depth = cm.max_depth
+        legal_bricks_only = cm.legal_bricks_only
+        merge_internals_h = cm.merge_internals in ["BOTH", "HORIZONTAL"]
+        merge_internals_v = cm.merge_internals in ["BOTH", "VERTICAL"]
+        material_type = cm.material_type
+        rand_state = np.random.RandomState(cm.merge_seed)
+        merge_vertical = target_type in get_brick_types(height=3) and "PLATES" in brick_type
+        height_3_only = merge_vertical and not any_height
 
         # sort keys
-        keys.sort(key=lambda k: (strToList(k)[0] * strToList(k)[1] * strToList(k)[2]))
+        keys.sort(key=lambda k: (str_to_list(k)[0] * str_to_list(k)[1] * str_to_list(k)[2]))
 
         for key in keys:
             # skip keys already merged to another brick
-            if bricksDict[key]["parent"] not in (None, "self"):
+            if bricksdict[key]["parent"] not in (None, "self"):
                 continue
             # attempt to merge current brick with other bricks in keys, according to available brick types
-            brickSize,_ = attemptMerge(bricksDict, key, keys, bricksDict[key]["size"], cm.zStep, randState, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInternalsH, mergeInternalsV, materialType, mergeInconsistentMats=mergeInconsistentMats, preferLargest=True, mergeVertical=mergeVertical, targetType=targetType, height3Only=height3Only)
-            updatedKeys.append(key)
-        return updatedKeys
+            brick_size,_ = attempt_merge(bricksdict, key, keys, bricksdict[key]["size"], cm.zstep, rand_state, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats=merge_inconsistent_mats, prefer_largest=True, merge_vertical=merge_vertical, target_type=target_type, height_3_only=height_3_only)
+            updated_keys.append(key)
+        return updated_keys
 
     #############################################

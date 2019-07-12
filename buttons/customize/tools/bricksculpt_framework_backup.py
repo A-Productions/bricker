@@ -20,8 +20,8 @@
     """
 
 
-class bricksculpt_framework:
+class BricksculptFramework:
     """modal framework for the BrickSculpt tools"""
-    BrickSculptInstalled = False
-    BrickSculptLoaded = False
-    brickType = ""
+    bricksculpt_installed = False
+    bricksculpt_loaded = False
+    brick_type = ""

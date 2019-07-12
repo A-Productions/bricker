@@ -27,7 +27,7 @@ from ..undo_stack import *
 from ..functions import *
 from ...brickify import *
 from ...brickify import *
-from ....lib.bricksDict.functions import getDictKey
+from ....lib.bricksdict.functions import get_dict_key
 from ....lib.Brick.legal_brick_sizes import *
 from ....functions import *
 
@@ -49,11 +49,11 @@ class BRICKER_OT_change_brick_material(Operator):
         if scn.cmlist_index == -1:
             return False
         cm = scn.cmlist[scn.cmlist_index]
-        if cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty:
+        if cm.material_is_dirty or cm.matrix_is_dirty or cm.build_is_dirty:
             return False
         # check that at least 1 object is selected and is brick
         for obj in objs:
-            if not obj.isBrick:
+            if not obj.is_brick:
                 continue
             return True
         return False
@@ -64,38 +64,38 @@ class BRICKER_OT_change_brick_material(Operator):
     def execute(self, context):
         try:
             # only reference self.mat_name once (runs get_items)
-            targetMatName = self.mat_name
-            if targetMatName == "NONE":
+            target_mat_name = self.mat_name
+            if target_mat_name == "NONE":
                 return {"FINISHED"}
             scn = bpy.context.scene
-            objsToSelect = []
+            objs_to_select = []
             # iterate through cm_ids of selected objects
-            for cm_id in self.objNamesD.keys():
-                cm = getItemByID(scn.cmlist, cm_id)
-                self.undo_stack.iterateStates(cm)
+            for cm_id in self.obj_names_dict.keys():
+                cm = get_item_by_id(scn.cmlist, cm_id)
+                self.undo_stack.iterate_states(cm)
                 # initialize vars
-                bricksDict = marshal.loads(self.cached_bfm[cm_id])
-                keysToUpdate = set()
+                bricksdict = marshal.loads(self.cached_bfm[cm_id])
+                keys_to_update = set()
                 cm.customized = True
 
                 # iterate through cm_ids of selected objects
-                for obj_name in self.objNamesD[cm_id]:
-                    dictKey = getDictKey(obj_name)
+                for obj_name in self.obj_names_dict[cm_id]:
+                    dkey = get_dict_key(obj_name)
                     # change material
-                    keysInBrick = getKeysInBrick(bricksDict, bricksDict[dictKey]["size"], cm.zStep, key=dictKey)
-                    for k in keysInBrick:
-                        bricksDict[k]["mat_name"] = targetMatName
-                        bricksDict[k]["custom_mat_name"] = True
+                    keys_in_brick = get_keys_in_brick(bricksdict, bricksdict[dkey]["size"], cm.zstep, key=dkey)
+                    for k in keys_in_brick:
+                        bricksdict[k]["mat_name"] = target_mat_name
+                        bricksdict[k]["custom_mat_name"] = True
                     # delete the object that was split
-                    keysToUpdate.add(dictKey)
+                    keys_to_update.add(dkey)
 
                 # draw modified bricks
-                drawUpdatedBricks(cm, bricksDict, list(keysToUpdate))
+                draw_updated_bricks(cm, bricksdict, list(keys_to_update))
 
                 # add selected objects to objects to select at the end
-                objsToSelect += bpy.context.selected_objects
+                objs_to_select += bpy.context.selected_objects
             # select the new objects created
-            select(objsToSelect)
+            select(objs_to_select)
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -110,11 +110,12 @@ class BRICKER_OT_change_brick_material(Operator):
         scn = bpy.context.scene
         # initialize vars
         selected_objects = bpy.context.selected_objects
-        self.objNamesD, self.bricksDicts = createObjNamesAndBricksDictsDs(selected_objects)
+        self.obj_names_dict = create_obj_names_dict(selected_objects)
+        self.bricksdicts = get_bricksdicts_from_objs(self.obj_names_dict.keys())
         self.mat_name = "NONE"
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
-        self.cached_bfm = self.undo_stack.undo_push("change material", list(self.objNamesD.keys()))
+        self.cached_bfm = self.undo_stack.undo_push("change material", list(self.obj_names_dict.keys()))
 
     ###################################################
     # class variables
@@ -125,8 +126,8 @@ class BRICKER_OT_change_brick_material(Operator):
         return items
 
     # variables
-    bricksDicts = {}
-    objNamesD = {}
+    bricksdicts = {}
+    obj_names_dict = {}
 
     # properties
     mat_name = bpy.props.EnumProperty(

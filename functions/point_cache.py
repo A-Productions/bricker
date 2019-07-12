@@ -27,29 +27,29 @@ from .common import *
 from .general import *
 
 
-def getFirstUncachedFrame(obj, point_cache):
+def get_first_uncached_frame(obj, point_cache):
     if point_cache.is_outdated:
         return point_cache.frame_start
-    cache_frames = getCachedFrames(obj, point_cache)
+    cache_frames = get_cached_frames(obj, point_cache)
     for f in range(point_cache.frame_start, point_cache.frame_end + 1):
         if f not in cache_frames:
             return f
     return point_cache.frame_end + 1
 
 
-def getCachedFrames(obj, point_cache):
+def get_cached_frames(obj, point_cache):
     # send cache files to disk
     use_disk_cache = point_cache.use_disk_cache
     if not use_disk_cache:
         point_cache.use_disk_cache = True
 
     # helper functions
-    def cacheName(ob, point_cache):
+    def cache_name(ob, point_cache):
         name = point_cache.name
         if name == "":
             name = "".join(["%02X" % ord(c) for c in ob.name])
         return name
-    def cachePath():
+    def cache_path():
         file_path = bpy.data.filepath
         path, name = os.path.split(file_path)
         root, ext = os.path.splitext(name)
@@ -57,9 +57,9 @@ def getCachedFrames(obj, point_cache):
 
 
     # get cache paths and pattern vars
-    default_path = cachePath()
+    default_path = cache_path()
     cache_path = bpy.path.abspath(point_cache.filepath) if point_cache.use_external else default_path
-    name = cacheName(obj, point_cache)
+    name = cache_name(obj, point_cache)
     index = "%02i" % point_cache.index
 
     # protect against nonexistent cache

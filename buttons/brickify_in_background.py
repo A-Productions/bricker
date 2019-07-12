@@ -31,7 +31,7 @@ from .customize.undo_stack import *
 from .bevel import BRICKER_OT_bevel
 from .cache import *
 from .brickify import BRICKER_OT_brickify
-from ..lib.bricksDict import *
+from ..lib.bricksdict import *
 from ..functions import *
 
 
@@ -46,7 +46,7 @@ class BRICKER_OT_brickify_in_background(bpy.types.Operator):
 
     def execute(self, context):
         # get active context info
-        scn, cm, n = getActiveContextInfo()
+        scn, cm, n = get_active_context_info()
         # run brickify for current frame
         if "ANIM" in self.action:
             BRICKER_OT_brickify.brickifyCurrentFrame(self.frame, self.action, inBackground=True)
@@ -81,8 +81,8 @@ class BRICKER_OT_stop_brickifying_in_background(bpy.types.Operator):
     # Blender Operator methods
 
     def execute(self, context):
-        cm = getActiveContextInfo()[1]
-        cm.stopBackgroundProcess = True
+        cm = get_active_context_info()[1]
+        cm.stop_background_process = True
         return {"FINISHED"}
 
     #############################################

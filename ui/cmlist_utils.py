@@ -27,12 +27,12 @@ props = bpy.props
 # Addon imports
 from ..functions import *
 from ..buttons.bevel import *
-from ..lib.background_processing.classes.JobManager import JobManager
+from ..lib.background_processing.classes.job_manager import JobManager
 
 
-def uniquifyName(self, context):
+def uniquify_name(self, context):
     """ if Brick Model exists with name, add '.###' to the end """
-    scn, cm, _ = getActiveContextInfo()
+    scn, cm, _ = get_active_context_info()
     name = cm.name
     while scn.cmlist.keys().count(name) > 1:
         if name[-4] == ".":
@@ -47,7 +47,7 @@ def uniquifyName(self, context):
         cm.name = name
 
 
-def setDefaultObjIfEmpty(self, context):
+def set_default_obj_if_empty(self, context):
     scn = context.scene
     last_cmlist_index = scn.cmlist_index
     cm0 = scn.cmlist[last_cmlist_index]
@@ -59,242 +59,242 @@ def setDefaultObjIfEmpty(self, context):
                 scn.cmlist_index = i
 
 
-def verifyCustomObject1(self, context):
-    scn, cm, n = getActiveContextInfo()
-    if cm.customObject1 and cm.customObject1.name.startswith("Bricker_%(n)s" % locals()):
-        cm.customObject1 = None
-def verifyCustomObject2(self, context):
-    scn, cm, n = getActiveContextInfo()
-    if cm.customObject2 and cm.customObject2.name.startswith("Bricker_%(n)s" % locals()):
-        cm.customObject2 = None
-def verifyCustomObject3(self, context):
-    scn, cm, n = getActiveContextInfo()
-    if cm.customObject3 and cm.customObject3.name.startswith("Bricker_%(n)s" % locals()):
-        cm.customObject3 = None
+def verify_custom_object1(self, context):
+    scn, cm, n = get_active_context_info()
+    if cm.custom_object1 and cm.custom_object1.name.startswith("Bricker_%(n)s" % locals()):
+        cm.custom_object1 = None
+def verify_custom_object2(self, context):
+    scn, cm, n = get_active_context_info()
+    if cm.custom_object2 and cm.custom_object2.name.startswith("Bricker_%(n)s" % locals()):
+        cm.custom_object2 = None
+def verify_custom_object3(self, context):
+    scn, cm, n = get_active_context_info()
+    if cm.custom_object3 and cm.custom_object3.name.startswith("Bricker_%(n)s" % locals()):
+        cm.custom_object3 = None
 
 
-def updateBevel(self, context):
+def update_bevel(self, context):
     # get bricks to bevel
     try:
-        scn, cm, n = getActiveContextInfo()
-        if cm.lastBevelWidth != cm.bevelWidth or cm.lastBevelSegments != cm.bevelSegments or cm.lastBevelProfile != cm.bevelProfile:
-            bricks = getBricks()
-            BRICKER_OT_bevel.createBevelMods(cm, bricks)
-            cm.lastBevelWidth = cm.bevelWidth
-            cm.lastBevelSegments = cm.bevelSegments
-            cm.lastBevelProfile = cm.bevelProfile
+        scn, cm, n = get_active_context_info()
+        if cm.last_bevel_width != cm.bevel_width or cm.last_bevel_segments != cm.bevel_segments or cm.last_bevel_profile != cm.bevel_profile:
+            bricks = get_bricks()
+            BRICKER_OT_bevel.create_bevel_mods(cm, bricks)
+            cm.last_bevel_width = cm.bevel_width
+            cm.last_bevel_segments = cm.bevel_segments
+            cm.last_bevel_profile = cm.bevel_profile
     except Exception as e:
-        raise Exception("[Bricker] ERROR in updateBevel():", e)
+        raise Exception("[Bricker] ERROR in update_bevel():", e)
         pass
 
 
-def updateParentExposure(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    if not (cm.modelCreated or cm.animated):
+def update_parent_exposure(self, context):
+    scn, cm, _ = get_active_context_info()
+    if not (cm.model_created or cm.animated):
         return
-    parentOb = cm.parent_obj
-    if parentOb:
-        if cm.exposeParent:
-            safeLink(parentOb, protect=True)
-            select(parentOb, active=True, only=True)
+    parent_ob = cm.parent_obj
+    if parent_ob:
+        if cm.expose_parent:
+            safe_link(parent_ob, protect=True)
+            select(parent_ob, active=True, only=True)
         else:
             try:
-                safeUnlink(parentOb)
+                safe_unlink(parent_ob)
             except RuntimeError:
                 pass
 
 
-def updateModelScale(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    if not (cm.modelCreated or cm.animated):
+def update_model_scale(self, context):
+    scn, cm, _ = get_active_context_info()
+    if not (cm.model_created or cm.animated):
         return
-    _, _, s = getTransformData(cm)
-    parentOb = cm.parent_obj
-    if parentOb:
-        parentOb.scale = Vector(s) * cm.transformScale
+    _, _, s = get_transform_data(cm)
+    parent_ob = cm.parent_obj
+    if parent_ob:
+        parent_ob.scale = Vector(s) * cm.transform_scale
 
 
-def updateCircleVerts(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    if (cm.circleVerts - 2) % 4 == 0:
-        cm.circleVerts += 1
-    cm.bricksAreDirty = True
+def update_circle_verts(self, context):
+    scn, cm, _ = get_active_context_info()
+    if (cm.circle_verts - 2) % 4 == 0:
+        cm.circle_verts += 1
+    cm.bricks_are_dirty = True
 
 
-def updateJobManagerProperties(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    curJobManager = JobManager.get_instance(cm.id)
-    curJobManager.timeout = cm.backProcTimeout
-    curJobManager.max_workers = cm.maxWorkers
+def update_job_manager_properties(self, context):
+    scn, cm, _ = get_active_context_info()
+    job_manager = JobManager.get_instance(cm.id)
+    job_manager.timeout = cm.back_proc_timeout
+    job_manager.max_workers = cm.max_workers
 
 
-def updateBrickShell(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    if cm.brickShell == "CONSISTENT":
-        cm.verifyExposure = True
-    cm.matrixIsDirty = True
+def update_brick_shell(self, context):
+    scn, cm, _ = get_active_context_info()
+    if cm.brick_shell == "CONSISTENT":
+        cm.verify_exposure = True
+    cm.matrix_is_dirty = True
 
 
-def dirtyAnim(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    cm.animIsDirty = True
+def dirty_anim(self, context):
+    scn, cm, _ = get_active_context_info()
+    cm.anim_is_dirty = True
 
 
-def dirtyMaterial(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    cm.materialIsDirty = True
+def dirty_material(self, context):
+    scn, cm, _ = get_active_context_info()
+    cm.material_is_dirty = True
 
 
-def dirtyModel(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    cm.modelIsDirty = True
+def dirty_model(self, context):
+    scn, cm, _ = get_active_context_info()
+    cm.model_is_dirty = True
 
 
-# NOTE: Any prop that calls this function should be added to getMatrixSettings()
-def dirtyMatrix(self=None, context=None):
-    scn, cm, _ = getActiveContextInfo()
-    cm.matrixIsDirty = True
+# NOTE: Any prop that calls this function should be added to get_matrix_settings()
+def dirty_matrix(self=None, context=None):
+    scn, cm, _ = get_active_context_info()
+    cm.matrix_is_dirty = True
 
 
-def dirtyInternal(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    cm.internalIsDirty = True
-    cm.buildIsDirty = True
+def dirty_internal(self, context):
+    scn, cm, _ = get_active_context_info()
+    cm.internal_is_dirty = True
+    cm.build_is_dirty = True
 
 
-def dirtyBuild(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    cm.buildIsDirty = True
+def dirty_build(self, context):
+    scn, cm, _ = get_active_context_info()
+    cm.build_is_dirty = True
 
 
-def dirtyBricks(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    cm.bricksAreDirty = True
+def dirty_bricks(self, context):
+    scn, cm, _ = get_active_context_info()
+    cm.bricks_are_dirty = True
 
 
-def updateBrickType(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    cm.zStep = getZStep(cm)
-    cm.matrixIsDirty = True
+def update_brick_type(self, context):
+    scn, cm, _ = get_active_context_info()
+    cm.zstep = get_zstep(cm)
+    cm.matrix_is_dirty = True
 
 
-def updateBevelRender(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    show_render = cm.bevelShowRender
-    for brick in getBricks():
+def update_bevel_render(self, context):
+    scn, cm, _ = get_active_context_info()
+    show_render = cm.bevel_show_render
+    for brick in get_bricks():
         bevel = brick.modifiers.get(brick.name + "_bvl")
         if bevel: bevel.show_render = show_render
 
 
-def updateBevelViewport(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    show_viewport = cm.bevelShowViewport
-    for brick in getBricks():
+def update_bevel_viewport(self, context):
+    scn, cm, _ = get_active_context_info()
+    show_viewport = cm.bevel_show_viewport
+    for brick in get_bricks():
         bevel = brick.modifiers.get(brick.name + "_bvl")
         if bevel: bevel.show_viewport = show_viewport
 
 
-def updateBevelEditMode(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    show_in_editmode = cm.bevelShowEditmode
-    for brick in getBricks():
+def update_bevel_edit_mode(self, context):
+    scn, cm, _ = get_active_context_info()
+    show_in_editmode = cm.bevel_show_edit_mode
+    for brick in get_bricks():
         bevel = brick.modifiers.get(brick.name + "_bvl")
         if bevel: bevel.show_in_editmode = show_in_editmode
 
 
-def getCMProps():
+def get_cm_props():
     """ returns list of important cmlist properties """
-    return ["shellThickness",
-            "brickHeight",
-            "studDetail",
-            "logoType",
-            "logoResolution",
-            "logoDecimate",
-            "logoObject",
-            "logoScale",
-            "logoInset",
-            "hiddenUndersideDetail",
-            "exposedUndersideDetail",
-            "circleVerts",
+    return ["shell_thickness",
+            "brick_height",
+            "stud_detail",
+            "logo_type",
+            "logo_resolution",
+            "logo_decimate",
+            "logo_object",
+            "logo_scale",
+            "logo_inset",
+            "hidden_underside_detail",
+            "exposed_underside_detail",
+            "circle_verts",
             "gap",
-            "mergeSeed",
-            "connectThresh",
-            "randomLoc",
-            "randomRot",
-            "brickType",
-            "alignBricks",
-            "offsetBrickLayers",
-            "distOffset",
-            "customObject1",
-            "customObject2",
-            "customObject3",
-            "maxWidth",
-            "maxDepth",
-            "mergeType",
-            "legalBricksOnly",
-            "splitModel",
-            "internalSupports",
-            "matShellDepth",
-            "latticeStep",
-            "alternateXY",
-            "colThickness",
-            "colorSnap",
-            "colorSnapAmount",
-            "transparentWeight",
-            "colStep",
-            "smokeDensity",
-            "smokeSaturation",
-            "smokeBrightness",
-            "flameColor",
-            "flameIntensity",
-            "materialType",
-            "customMat",
-            "internalMat",
-            "matShellDepth",
-            "randomMatSeed",
-            "useUVMap",
-            "uvImage",
-            "useNormals",
-            "verifyExposure",
-            "insidenessRayCastDir",
-            "startFrame",
-            "stopFrame",
-            "useAnimation",
-            "autoUpdateOnDelete",
-            "brickShell",
-            "calculationAxes",
-            "useLocalOrient",
-            "brickHeight",
-            "bevelWidth",
-            "bevelSegments",
-            "bevelProfile"]
+            "merge_seed",
+            "connect_thresh",
+            "random_loc",
+            "random_rot",
+            "brick_type",
+            "align_bricks",
+            "offset_brick_layers",
+            "dist_offset",
+            "custom_object1",
+            "custom_object2",
+            "custom_object3",
+            "max_width",
+            "max_depth",
+            "merge_type",
+            "legal_bricks_only",
+            "split_model",
+            "internal_supports",
+            "mat_shell_depth",
+            "lattice_step",
+            "alternate_xy",
+            "col_thickness",
+            "color_snap",
+            "color_snap_amount",
+            "transparent_weight",
+            "col_step",
+            "smoke_density",
+            "smoke_saturation",
+            "smoke_brightness",
+            "flame_color",
+            "flame_intensity",
+            "material_type",
+            "custom_mat",
+            "internal_mat",
+            "mat_shell_depth",
+            "random_mat_seed",
+            "use_uv_map",
+            "uv_image",
+            "use_normals",
+            "verify_exposure",
+            "insideness_ray_cast_dir",
+            "start_frame",
+            "stop_frame",
+            "use_animation",
+            "auto_update_on_delete",
+            "brick_shell",
+            "calculation_axes",
+            "use_local_orient",
+            "brick_height",
+            "bevel_width",
+            "bevel_segments",
+            "bevel_profile"]
 
 
-def matchProperties(cmTo, cmFrom, overrideIdx=-1):
+def match_properties(cm_to, cm_from, override_idx=-1):
     scn = bpy.context.scene
-    cm_attrs = getCMProps()
+    cm_attrs = get_cm_props()
     # remove properties that should not be matched
-    if not cmFrom.bevelAdded or not cmTo.bevelAdded:
-        cm_attrs.remove("bevelWidth")
-        cm_attrs.remove("bevelSegments")
-        cm_attrs.remove("bevelProfile")
+    if not cm_from.bevel_added or not cm_to.bevel_added:
+        cm_attrs.remove("bevel_width")
+        cm_attrs.remove("bevel_segments")
+        cm_attrs.remove("bevel_profile")
     # match material properties for Random/ABS Plastic Snapping
-    matObjNamesFrom = ["Bricker_{}_RANDOM_mats".format(cmFrom.id), "Bricker_{}_ABS_mats".format(cmFrom.id)]
-    matObjNamesTo   = ["Bricker_{}_RANDOM_mats".format(cmTo.id), "Bricker_{}_ABS_mats".format(cmTo.id)]
+    mat_obj_names_from = ["Bricker_{}_RANDOM_mats".format(cm_from.id), "Bricker_{}_ABS_mats".format(cm_from.id)]
+    mat_obj_names_to   = ["Bricker_{}_RANDOM_mats".format(cm_to.id), "Bricker_{}_ABS_mats".format(cm_to.id)]
     for i in range(2):
-        matObjFrom = bpy.data.objects.get(matObjNamesFrom[i])
-        matObjTo = bpy.data.objects.get(matObjNamesTo[i])
-        if matObjFrom is None or matObjTo is None:
+        mat_obj_from = bpy.data.objects.get(mat_obj_names_from[i])
+        mat_obj_to = bpy.data.objects.get(mat_obj_names_to[i])
+        if mat_obj_from is None or mat_obj_to is None:
             continue
-        matObjTo.data.materials.clear(update_data=True)
-        for mat in matObjFrom.data.materials:
-            matObjTo.data.materials.append(mat)
-    # match properties from 'cmFrom' to 'cmTo'
-    if overrideIdx >= 0:
-        origIdx = scn.cmlist_index
-        scn.cmlist_index = overrideIdx
+        mat_obj_to.data.materials.clear(update_data=True)
+        for mat in mat_obj_from.data.materials:
+            mat_obj_to.data.materials.append(mat)
+    # match properties from 'cm_from' to 'cm_to'
+    if override_idx >= 0:
+        orig_idx = scn.cmlist_index
+        scn.cmlist_index = override_idx
     for attr in cm_attrs:
-        oldVal = getattr(cmFrom, attr)
-        setattr(cmTo, attr, oldVal)
-    if overrideIdx >= 0:
-        scn.cmlist_index = origIdx
+        old_val = getattr(cm_from, attr)
+        setattr(cm_to, attr, old_val)
+    if override_idx >= 0:
+        scn.cmlist_index = orig_idx

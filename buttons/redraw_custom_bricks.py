@@ -15,20 +15,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# System imports
+# system imports
 import time
 
 # Blender imports
 import bpy
+from bpy.props import StringProperty
 
 # Addon imports
 from ..functions import *
+from ..buttons.customize.functions import *
 
 
-class BRICKER_OT_add_abs_to_mat_obj(bpy.types.Operator):
-    """Add all ABS Plastic Materials to the list of materials to use for Brickifying object"""
-    bl_idname = "bricker.add_abs_plastic_materials"
-    bl_label = "Add ABS Plastic Materials"
+class BRICKER_OT_redraw_custom_bricks(bpy.types.Operator):
+    """Redraw custom bricks with current custom object"""
+    bl_idname = "bricker.redraw_custom_bricks"
+    bl_label = "Redraw Custom Bricks"
     bl_options = {"REGISTER", "UNDO"}
 
     ################################################
@@ -37,23 +39,33 @@ class BRICKER_OT_add_abs_to_mat_obj(bpy.types.Operator):
     @classmethod
     def poll(self, context):
         """ ensures operator can execute (if not, returns false) """
-        scn = bpy.context.scene
-        if scn.cmlist_index == -1:
+        try:
+            scn, cm, n = get_active_context_info()
+        except IndexError:
             return False
-        return True
+        if cm.matrix_is_dirty:
+            return False
+        return cm.model_created or cm.animated
 
     def execute(self, context):
         try:
-            scn, cm, _ = getActiveContextInfo()
-            matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
-            cm.materialIsDirty = True
-            for mat_name in getABSMatNames(all=False):
-                mat = bpy.data.materials.get(mat_name)
-                if mat is not None and mat_name not in matObj.data.materials:
-                    matObj.data.materials.append(mat)
-
+            self.redraw_custom_bricks()
         except:
             bricker_handle_exception()
         return{"FINISHED"}
 
-    ################################################
+    target_prop = StringProperty(default="")
+
+    #############################################
+    # class methods
+
+    def redraw_custom_bricks(self):
+        cm = get_active_context_info()[1]
+        bricksdict = get_bricksdict(cm)
+        if bricksdict is None:
+            return
+        keys_to_update = [k for k in bricksdict if bricksdict[k]["type"] == "CUSTOM " + self.target_prop[-1]]
+        if len(keys_to_update) != 0:
+            draw_updated_bricks(cm, bricksdict, keys_to_update)
+
+    #############################################

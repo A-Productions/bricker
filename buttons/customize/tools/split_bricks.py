@@ -27,7 +27,7 @@ from ..undo_stack import *
 from ..functions import *
 from ...brickify import *
 from ...brickify import *
-from ....lib.bricksDict.functions import getDictKey
+from ....lib.bricksdict.functions import get_dict_key
 from ....functions import *
 
 
@@ -49,41 +49,41 @@ class BRICKER_OT_split_bricks(Operator):
         objs = bpy.context.selected_objects
         # check that at least 1 selected object is a brick
         for obj in objs:
-            if not obj.isBrick:
+            if not obj.is_brick:
                 continue
             # get cmlist item referred to by object
-            cm = getItemByID(scn.cmlist, obj.cmlist_id)
-            if cm.lastBrickType != "CUSTOM":
+            cm = get_item_by_id(scn.cmlist, obj.cmlist_id)
+            if cm.last_brick_type != "CUSTOM":
                 return True
         return False
 
     def execute(self, context):
-        self.splitBricks(deepCopyMatrix=True)
+        self.split_bricks(deep_copy_matrix=True)
         return{"FINISHED"}
 
     def invoke(self, context, event):
         """invoke props popup if conditions met"""
         scn = context.scene
         # iterate through cm_ids of selected objects
-        for cm_id in self.objNamesD.keys():
-            cm = getItemByID(scn.cmlist, cm_id)
-            if not flatBrickType(cm.brickType):
+        for cm_id in self.obj_names_dict.keys():
+            cm = get_item_by_id(scn.cmlist, cm_id)
+            if not flat_brick_type(cm.brick_type):
                 continue
-            bricksDict = self.bricksDicts[cm_id]
+            bricksdict = self.bricksdicts[cm_id]
             # iterate through names of selected objects
-            for obj_name in self.objNamesD[cm_id]:
-                dictKey = getDictKey(obj_name)
-                size = bricksDict[dictKey]["size"]
+            for obj_name in self.obj_names_dict[cm_id]:
+                dkey = get_dict_key(obj_name)
+                size = bricksdict[dkey]["size"]
                 if size[2] <= 1:
                     continue
                 if size[0] + size[1] > 2:
                     return context.window_manager.invoke_props_dialog(self)
                 else:
                     self.vertical = True
-                    self.splitBricks()
+                    self.split_bricks()
                     return {"FINISHED"}
         self.horizontal = True
-        self.splitBricks()
+        self.split_bricks()
         return {"FINISHED"}
 
     ################################################
@@ -92,20 +92,21 @@ class BRICKER_OT_split_bricks(Operator):
     def __init__(self):
         scn = bpy.context.scene
         self.undo_stack = UndoStack.get_instance()
-        self.orig_undo_stack_length = self.undo_stack.getLength()
+        self.orig_undo_stack_length = self.undo_stack.get_length()
         self.vertical = False
         self.horizontal = False
         self.cached_bfm = {}
-        # get copy of objNamesD and bricksDicts
+        # get copy of obj_names_dict and bricksdicts
         selected_objects = bpy.context.selected_objects
-        self.objNamesD, self.bricksDicts = createObjNamesAndBricksDictsDs(selected_objects)
+        self.obj_names_dict = create_obj_names_dict(selected_objects)
+        self.bricksdicts = get_bricksdicts_from_objs(self.obj_names_dict.keys())
 
     ###################################################
     # class variables
 
     # variables
-    objNamesD = {}
-    bricksDicts = {}
+    obj_names_dict = {}
+    bricksdicts = {}
 
     # properties
     vertical = bpy.props.BoolProperty(
@@ -120,53 +121,53 @@ class BRICKER_OT_split_bricks(Operator):
     #############################################
     # class methods
 
-    def splitBricks(self, deepCopyMatrix=False):
+    def split_bricks(self, deep_copy_matrix=False):
         try:
-            # revert to last bricksDict
-            self.undo_stack.matchPythonToBlenderState()
+            # revert to last bricksdict
+            self.undo_stack.match_python_to_blender_state()
             # push to undo stack
-            if self.orig_undo_stack_length == self.undo_stack.getLength():
-                self.cached_bfm = self.undo_stack.undo_push("split", affected_ids=list(self.objNamesD.keys()))
+            if self.orig_undo_stack_length == self.undo_stack.get_length():
+                self.cached_bfm = self.undo_stack.undo_push("split", affected_ids=list(self.obj_names_dict.keys()))
             # initialize vars
             scn = bpy.context.scene
-            objsToSelect = []
+            objs_to_select = []
             # iterate through cm_ids of selected objects
-            for cm_id in self.objNamesD.keys():
-                cm = getItemByID(scn.cmlist, cm_id)
-                self.undo_stack.iterateStates(cm)
-                bricksDict = marshal.loads(self.cached_bfm[cm_id]) if deepCopyMatrix else self.bricksDicts[cm_id]
-                keysToUpdate = set()
+            for cm_id in self.obj_names_dict.keys():
+                cm = get_item_by_id(scn.cmlist, cm_id)
+                self.undo_stack.iterate_states(cm)
+                bricksdict = marshal.loads(self.cached_bfm[cm_id]) if deep_copy_matrix else self.bricksdicts[cm_id]
+                keys_to_update = set()
                 cm.customized = True
 
                 # iterate through names of selected objects
-                for obj_name in self.objNamesD[cm_id]:
+                for obj_name in self.obj_names_dict[cm_id]:
                     # get dict key details of current obj
-                    dictKey = getDictKey(obj_name)
-                    dictLoc = getDictLoc(bricksDict, dictKey)
-                    x0, y0, z0 = dictLoc
+                    dkey = get_dict_key(obj_name)
+                    dloc = get_dict_loc(bricksdict, dkey)
+                    x0, y0, z0 = dloc
                     # get size of current brick (e.g. [2, 4, 1])
-                    brickSize = bricksDict[dictKey]["size"]
-                    bricksDict[dictKey]["type"] = "BRICK" if brickSize == 3 else "PLATE"
+                    brick_size = bricksdict[dkey]["size"]
+                    bricksdict[dkey]["type"] = "BRICK" if brick_size == 3 else "PLATE"
 
                     # skip 1x1 bricks
-                    if brickSize[0] + brickSize[1] + brickSize[2] / cm.zStep == 3:
+                    if brick_size[0] + brick_size[1] + brick_size[2] / cm.zstep == 3:
                         continue
 
                     if self.vertical or self.horizontal:
-                        # split the bricks in the matrix and set size of active brick's bricksDict entries to 1x1x[lastZSize]
-                        splitKeys = Bricks.split(bricksDict, dictKey, cm.zStep, cm.brickType, loc=dictLoc, v=self.vertical, h=self.horizontal)
-                        # append new splitKeys to keysToUpdate
-                        keysToUpdate |= set(splitKeys)
+                        # split the bricks in the matrix and set size of active brick's bricksdict entries to 1x1x[lastZSize]
+                        split_keys = Bricks.split(bricksdict, dkey, cm.zstep, cm.brick_type, loc=dloc, v=self.vertical, h=self.horizontal)
+                        # append new split_keys to keys_to_update
+                        keys_to_update |= set(split_keys)
                     else:
-                        keysToUpdate.add(dictKey)
+                        keys_to_update.add(dkey)
 
                 # draw modified bricks
-                drawUpdatedBricks(cm, bricksDict, list(keysToUpdate))
+                draw_updated_bricks(cm, bricksdict, list(keys_to_update))
 
                 # add selected objects to objects to select at the end
-                objsToSelect += bpy.context.selected_objects
+                objs_to_select += bpy.context.selected_objects
             # select the new objects created
-            select(objsToSelect)
+            select(objs_to_select)
         except:
             bricker_handle_exception()
 

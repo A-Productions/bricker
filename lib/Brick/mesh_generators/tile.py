@@ -30,15 +30,15 @@ from .generator_utils import *
 from ....functions import *
 
 
-def makeTile(dimensions:dict, brickType:str, brickSize:list, circleVerts:int=None, type:str=None, detail:str="LOW", bme:bmesh=None):
+def make_tile(dimensions:dict, brick_type:str, brick_size:list, circle_verts:int=None, type:str=None, detail:str="LOW", bme:bmesh=None):
     """
     create inverted slope brick with bmesh
 
     Keyword Arguments:
         dimensions  -- dictionary containing brick dimensions
-        brickType   -- cm.brickType
-        brickSize   -- size of brick (e.g. standard 2x4 -> [2, 4, 3])
-        circleVerts -- number of vertices per circle of cylinders
+        brick_type   -- cm.brick_type
+        brick_size   -- size of brick (e.g. standard 2x4 -> [2, 4, 3])
+        circle_verts -- number of vertices per circle of cylinders
         type        -- type of round 1x1 brick in ("CONE", "CYLINDER", "STUD", "STUD_HOLLOW")
         detail      -- level of brick detail (options: ("FLAT", "LOW", "MEDIUM", "HIGH"))
         bme         -- bmesh object in which to create verts
@@ -49,15 +49,15 @@ def makeTile(dimensions:dict, brickType:str, brickSize:list, circleVerts:int=Non
 
     # get halfScale
     d = Vector((dimensions["half_width"], dimensions["half_width"], dimensions["half_height"]))
-    d.z = d.z * (brickSize[2] if flatBrickType(brickType) else 1)
+    d.z = d.z * (brick_size[2] if flat_brick_type(brick_type) else 1)
     # get scalar for d in positive xyz directions
-    scalar = Vector((brickSize[0] * 2 - 1,
-                     brickSize[1] * 2 - 1,
+    scalar = Vector((brick_size[0] * 2 - 1,
+                     brick_size[1] * 2 - 1,
                      1))
     d_scaled = vec_mult(d, scalar)
     # get thickness of brick from inside to outside
-    thickXY = dimensions["thickness"] - (dimensions["tick_depth"] if "High" in detail and min(brickSize) != 1 else 0)
-    thick = Vector((thickXY, thickXY, dimensions["thickness"]))
+    thick_xy = dimensions["thickness"] - (dimensions["tick_depth"] if "High" in detail and min(brick_size) != 1 else 0)
+    thick = Vector((thick_xy, thick_xy, dimensions["thickness"]))
 
     # create cube
     if "GRILL" in type:
@@ -65,13 +65,13 @@ def makeTile(dimensions:dict, brickType:str, brickSize:list, circleVerts:int=Non
         coord1.z += dimensions["slit_height"]
         coord2 = d_scaled
         coord2.z = coord1.z
-        v1, v4, v3, v2 = makeSquare(coord1, coord2, face=False, bme=bme)
+        v1, v4, v3, v2 = make_square(coord1, coord2, face=False, bme=bme)
     else:
         sides = [1, 1 if detail == "FLAT" else 0, 1, 1, 1, 1]
         coord1 = -d
         coord1.z += dimensions["slit_height"]
         coord2 = d_scaled
-        v1, v2, v3, v4, v5, v6, v7, v8 = makeCube(coord1, coord2, sides, bme=bme)
+        v1, v2, v3, v4, v5, v6, v7, v8 = make_cube(coord1, coord2, sides, bme=bme)
 
     # make verts for slit
     slit_depth = Vector([dimensions["slit_depth"]]*2)
@@ -79,7 +79,7 @@ def makeTile(dimensions:dict, brickType:str, brickSize:list, circleVerts:int=Non
     coord1.xy += slit_depth
     coord2 = Vector((d_scaled.x, d_scaled.y, -d.z + dimensions["slit_height"]))
     coord2.xy -= slit_depth
-    v9, v10, v11, v12, v13, v14, v15, v16 = makeCube(coord1, coord2, [0, 1 if detail == "FLAT" and "GRILL" not in type else 0, 1, 1, 1, 1], bme=bme)
+    v9, v10, v11, v12, v13, v14, v15, v16 = make_cube(coord1, coord2, [0, 1 if detail == "FLAT" and "GRILL" not in type else 0, 1, 1, 1, 1], bme=bme)
     # connect slit to outer cube
     bme.faces.new((v14, v4, v1, v13))
     bme.faces.new((v15, v3, v4, v14))
@@ -88,16 +88,16 @@ def makeTile(dimensions:dict, brickType:str, brickSize:list, circleVerts:int=Non
 
     # add details
     if "GRILL" in type:
-        if brickSize[0] < brickSize[1]:
-            addGrillDetails(dimensions, brickSize, thick, scalar, d, v4, v1, v2, v3, v9, v10, v11, v12, bme)
+        if brick_size[0] < brick_size[1]:
+            add_grill_details(dimensions, brick_size, thick, scalar, d, v4, v1, v2, v3, v9, v10, v11, v12, bme)
         else:
-            addGrillDetails(dimensions, brickSize, thick, scalar, d, v1, v2, v3, v4, v9, v10, v11, v12, bme)
+            add_grill_details(dimensions, brick_size, thick, scalar, d, v1, v2, v3, v4, v9, v10, v11, v12, bme)
 
     elif detail != "FLAT":
         # making verts for hollow portion
         coord1 = -d + Vector((thick.x, thick.y, 0))
         coord2 = vec_mult(d, scalar) - thick
-        v17, v18, v19, v20, v21, v22, v23, v24 = makeCube(coord1, coord2, [1, 0, 1, 1, 1, 1], flipNormals=True, bme=bme)
+        v17, v18, v19, v20, v21, v22, v23, v24 = make_cube(coord1, coord2, [1, 0, 1, 1, 1, 1], flip_normals=True, bme=bme)
         # connect hollow portion to verts for slit
         bme.faces.new((v18, v17, v9, v10))
         bme.faces.new((v19, v18, v10, v11))
@@ -105,7 +105,7 @@ def makeTile(dimensions:dict, brickType:str, brickSize:list, circleVerts:int=Non
         bme.faces.new((v17, v20, v12, v9))
 
         # add supports
-        if max(brickSize[:2]) > 2:
-            addSupports(dimensions, dimensions["height"], brickSize, brickType, circleVerts, type, detail, d, scalar, thick, bme)
+        if max(brick_size[:2]) > 2:
+            add_supports(dimensions, dimensions["height"], brick_size, brick_type, circle_verts, type, detail, d, scalar, thick, bme)
 
     return bme

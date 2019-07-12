@@ -60,7 +60,7 @@ class OBJECT_OT_move_to_layer_override(Operator):
             self.layers = [i in changed for i in range(20)]
         self.prev_sel = self.layers[:]
 
-        self.runMove(context)
+        self.run_move(context)
         return {"FINISHED"}
 
     def invoke(self, context, event):
@@ -90,21 +90,21 @@ class OBJECT_OT_move_to_layer_override(Operator):
     ################################################
     # class methods
 
-    def runMove(self, context):
+    def run_move(self, context):
         scn = bpy.context.scene
         for name in self.object_names:
             obj = scn.objects.get(name)
             obj.layers = self.layers
-            if not obj.isBrickifiedObject or obj.cmlist_id == -1:
+            if not obj.is_brickified_object or obj.cmlist_id == -1:
                 continue
-            cm = getItemByID(scn.cmlist, obj.cmlist_id)
+            cm = get_item_by_id(scn.cmlist, obj.cmlist_id)
             if not cm.animated:
                 continue
-            n = getSourceName(cm)
-            for f in range(cm.lastStartFrame, cm.lastStopFrame + 1):
-                bricksCurF = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(f)s" % locals())
-                if bricksCurF is not None and bricksCurF.name != obj.name:
-                    bricksCurF.layers = self.layers
+            n = get_source_name(cm)
+            for f in range(cm.last_start_frame, cm.last_stop_frame + 1):
+                bricks_cur_f = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(f)s" % locals())
+                if bricks_cur_f is not None and bricks_cur_f.name != obj.name:
+                    bricks_cur_f.layers = self.layers
 
 class OBJECT_OT_move_to_layer(bpy.types.Operator):
     """Move to Layer"""

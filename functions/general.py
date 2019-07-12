@@ -32,17 +32,17 @@ from bpy.types import Object
 from .common import *
 
 
-def getActiveContextInfo(cm=None, cm_id=None):
+def get_active_context_info(cm=None, cm_id=None):
     scn = bpy.context.scene
     cm = cm or scn.cmlist[scn.cmlist_index]
-    return scn, cm, getSourceName(cm)
+    return scn, cm, get_source_name(cm)
 
 
-def getSourceName(cm):
+def get_source_name(cm):
     return cm.source_obj.name if cm.source_obj is not None else ""
 
 
-def centerMeshOrigin(m, dimensions, size):
+def center_mesh_origin(m, dimensions, size):
     # get half width
     d0 = Vector((dimensions["width"] / 2, dimensions["width"] / 2, 0))
     # get scalar for d0 in positive xy directions
@@ -55,77 +55,77 @@ def centerMeshOrigin(m, dimensions, size):
     m.transform(Matrix.Translation(-Vector(center)))
 
 
-def getAnimAdjustedFrame(frame, startFrame, stopFrame):
-    if frame < startFrame:
-        curFrame = startFrame
-    elif frame > stopFrame:
-        curFrame = stopFrame
+def get_anim_adjusted_frame(frame, start_frame, stop_frame):
+    if frame < start_frame:
+        cur_frame = start_frame
+    elif frame > stop_frame:
+        cur_frame = stop_frame
     else:
-        curFrame = frame
-    return curFrame
+        cur_frame = frame
+    return cur_frame
 
 
-def getBricks(cm=None, typ=None):
+def get_bricks(cm=None, typ=None):
     """ get bricks in 'cm' model """
-    scn, cm, n = getActiveContextInfo(cm=cm)
-    typ = typ or ("MODEL" if cm.modelCreated else "ANIM")
+    scn, cm, n = get_active_context_info(cm=cm)
+    typ = typ or ("MODEL" if cm.model_created else "ANIM")
     bricks = list()
     if typ == "MODEL":
-        bColl = bpy_collections().get("Bricker_%(n)s_bricks" % locals())
-        if bColl:
-            bricks = list(bColl.objects)
+        bcoll = bpy_collections().get("Bricker_%(n)s_bricks" % locals())
+        if bcoll:
+            bricks = list(bcoll.objects)
     elif typ == "ANIM":
-        for cf in range(cm.lastStartFrame, cm.lastStopFrame+1):
-            bColl = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
-            if bColl:
-                bricks += list(bColl.objects)
+        for cf in range(cm.last_start_frame, cm.last_stop_frame+1):
+            bcoll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
+            if bcoll:
+                bricks += list(bcoll.objects)
     return bricks
 
 
-def getCollections(cm=None, typ=None):
+def get_collections(cm=None, typ=None):
     """ get bricks collections in 'cm' model """
-    scn, cm, n = getActiveContextInfo(cm=cm)
-    typ = typ or ("MODEL" if cm.modelCreated else "ANIM")
+    scn, cm, n = get_active_context_info(cm=cm)
+    typ = typ or ("MODEL" if cm.model_created else "ANIM")
     if typ == "MODEL":
         cn = "Bricker_%(n)s_bricks" % locals()
-        bColls = [bpy_collections()[cn]]
+        bcolls = [bpy_collections()[cn]]
     if typ == "ANIM":
-        bColls = list()
-        for cf in range(cm.lastStartFrame, cm.lastStopFrame+1):
+        bcolls = list()
+        for cf in range(cm.last_start_frame, cm.last_stop_frame+1):
             cn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
-            bColl = bpy_collections().get(cn)
-            if bColl:
-                bColls.append(bColl)
-    return bColls
+            bcoll = bpy_collections().get(cn)
+            if bcoll:
+                bcolls.append(bcoll)
+    return bcolls
 
 
-def getMatObject(cm_id, typ="RANDOM"):
+def get_mat_obj(cm_id, typ="RANDOM"):
     mat_n = cm_id
     Bricker_mat_on = "Bricker_%(mat_n)s_%(typ)s_mats" % locals()
-    matObj = bpy.data.objects.get(Bricker_mat_on)
-    return matObj
+    mat_obj = bpy.data.objects.get(Bricker_mat_on)
+    return mat_obj
 
 
-def getBrickTypes(height):
-    return bpy.props.Bricker_legal_brick_sizes[height].keys()
+def get_brick_types(height):
+    return bpy.props.bricker_legal_brick_sizes[height].keys()
 
 
-def flatBrickType(typ):
+def flat_brick_type(typ):
     return type(typ) == str and ("PLATE" in typ or "STUD" in typ)
 
 
-def mergableBrickType(typ, up=False):
+def mergable_brick_type(typ, up=False):
     return type(typ) == str and ("PLATE" in typ or "BRICK" in typ or "SLOPE" in typ or (up and typ == "CYLINDER"))
 
 
-def getTallType(brickD, targetType=None):
-    tallTypes = getBrickTypes(height=3)
-    return targetType if targetType in tallTypes else (brickD["type"] if brickD["type"] in tallTypes else "BRICK")
+def get_tall_type(brick_d, target_type=None):
+    tall_types = get_brick_types(height=3)
+    return target_type if target_type in tall_types else (brick_d["type"] if brick_d["type"] in tall_types else "BRICK")
 
 
-def getShortType(brickD, targetType=None):
-    shortTypes = getBrickTypes(height=1)
-    return targetType if targetType in shortTypes else (brickD["type"] if brickD["type"] in shortTypes else "PLATE")
+def get_short_type(brick_d, target_type=None):
+    short_types = get_brick_types(height=1)
+    return target_type if target_type in short_types else (brick_d["type"] if brick_d["type"] in short_types else "PLATE")
 
 
 def brick_materials_installed():
@@ -138,7 +138,7 @@ def brick_materials_installed():
     # return False
 
 
-def getABSMatNames(all:bool=True):
+def get_abs_mat_names(all:bool=True):
     """ returns list of ABS Plastic Material names """
     if not brick_materials_installed():
         return []
@@ -161,249 +161,209 @@ def brick_materials_imported():
         return False
     # check if any of the colors haven't been loaded
     mats = bpy.data.materials.keys()
-    for mat_name in getABSMatNames():
+    for mat_name in get_abs_mat_names():
         if mat_name not in mats:
             return False
     return True
 
 
-def getMatrixSettings(cm=None):
-    cm = cm or getActiveContextInfo()[1]
+def get_matrix_settings(cm=None):
+    cm = cm or get_active_context_info()[1]
     # TODO: Maybe remove custom objects from this?
-    regularSettings = [round(cm.brickHeight, 6),
+    regularSettings = [round(cm.brick_height, 6),
                        round(cm.gap, 4),
-                       cm.brickType,
-                       cm.distOffset[0],
-                       cm.distOffset[1],
-                       cm.distOffset[2],
-                       cm.includeTransparency,
-                       cm.customObject1.name if cm.customObject1 is not None else "",
-                       cm.customObject2.name if cm.customObject2 is not None else "",
-                       cm.customObject3.name if cm.customObject3 is not None else "",
-                       cm.useNormals,
-                       cm.verifyExposure,
-                       cm.insidenessRayCastDir,
-                       cm.brickShell,
-                       cm.calcInternals,
-                       cm.calculationAxes]
-    smokeSettings = [round(cm.smokeDensity, 6),
-                     round(cm.smokeQuality, 6),
-                     round(cm.smokeBrightness, 6),
-                     round(cm.smokeSaturation, 6),
-                     round(cm.flameColor[0], 6),
-                     round(cm.flameColor[1], 6),
-                     round(cm.flameColor[2], 6),
-                     round(cm.flameIntensity, 6)] if cm.lastIsSmoke else []
-    return listToStr(regularSettings + smokeSettings)
+                       cm.brick_type,
+                       cm.dist_offset[0],
+                       cm.dist_offset[1],
+                       cm.dist_offset[2],
+                       cm.include_transparency,
+                       cm.custom_object1.name if cm.custom_object1 is not None else "",
+                       cm.custom_object2.name if cm.custom_object2 is not None else "",
+                       cm.custom_object3.name if cm.custom_object3 is not None else "",
+                       cm.use_normals,
+                       cm.verify_exposure,
+                       cm.insideness_ray_cast_dir,
+                       cm.brick_shell,
+                       cm.calc_internals,
+                       cm.calculation_axes]
+    smokeSettings = [round(cm.smoke_density, 6),
+                     round(cm.smoke_quality, 6),
+                     round(cm.smoke_brightness, 6),
+                     round(cm.smoke_saturation, 6),
+                     round(cm.flame_color[0], 6),
+                     round(cm.flame_color[1], 6),
+                     round(cm.flame_color[2], 6),
+                     round(cm.flame_intensity, 6)] if cm.last_is_smoke else []
+    return list_to_str(regularSettings + smokeSettings)
 
 
-def matrixReallyIsDirty(cm, include_lost_matrix=True):
-    return (cm.matrixIsDirty and cm.lastMatrixSettings != getMatrixSettings()) or (cm.matrixLost and include_lost_matrix)
+def matrix_really_is_dirty(cm, include_lost_matrix=True):
+    return (cm.matrix_is_dirty and cm.last_matrix_settings != get_matrix_settings()) or (cm.matrix_lost and include_lost_matrix)
 
 
-def vecToStr(vec, separate_by=","):
-    return listToStr(list(vec), separate_by=separate_by)
+def vec_to_str(vec, separate_by=","):
+    return list_to_str(list(vec), separate_by=separate_by)
 
 
-def listToStr(lst, separate_by=","):
+def list_to_str(lst, separate_by=","):
     assert type(lst) in (list, tuple)
     return separate_by.join(map(str, lst))
 
 
 
-def strToList(string, item_type=int, split_on=","):
+def str_to_list(string, item_type=int, split_on=","):
     lst = string.split(split_on)
     assert type(string) is str and type(split_on) is str
     lst = list(map(item_type, lst))
     return lst
 
 
-def strToTuple(string, item_type=int, split_on=","):
-    return tuple(strToList(string, item_type, split_on))
+def str_to_tuple(string, item_type=int, split_on=","):
+    return tuple(str_to_list(string, item_type, split_on))
 
 
-def getZStep(cm):
-    return 1 if flatBrickType(cm.brickType) else 3
+def get_zstep(cm):
+    return 1 if flat_brick_type(cm.brick_type) else 3
 
 
-def getKeysDict(bricksDict, keys=None):
-    """ get dictionary of bricksDict keys based on z value """
-    keys = keys or list(bricksDict.keys())
-    keys.sort(key=lambda x: (getDictLoc(bricksDict, x)[0], getDictLoc(bricksDict, x)[1]))
-    keysDict = {}
+def get_keys_dict(bricksdict, keys=None):
+    """ get dictionary of bricksdict keys based on z value """
+    keys = keys or list(bricksdict.keys())
+    keys.sort(key=lambda x: (get_dict_loc(bricksdict, x)[0], get_dict_loc(bricksdict, x)[1]))
+    keys_dict = {}
     for k0 in keys:
-        z = getDictLoc(bricksDict, k0)[2]
-        if bricksDict[k0]["draw"]:
+        z = get_dict_loc(bricksdict, k0)[2]
+        if bricksdict[k0]["draw"]:
             try:
-                keysDict[z].append(k0)
+                keys_dict[z].append(k0)
             except KeyError:
-                keysDict[z] = [k0]
-    return keysDict
+                keys_dict[z] = [k0]
+    return keys_dict
 
 
-def getParentKey(bricksDict, key):
-    if key not in bricksDict:
+def get_parent_key(bricksdict, key):
+    if key not in bricksdict:
         return None
-    parent_key = key if bricksDict[key]["parent"] in ("self", None) else bricksDict[key]["parent"]
+    parent_key = key if bricksdict[key]["parent"] in ("self", None) else bricksdict[key]["parent"]
     return parent_key
 
 
-def createdWithUnsupportedVersion(cm):
+def created_with_unsupported_version(cm):
     return cm.version[:3] != bpy.props.bricker_version[:3]
 
 
-def createdWithNewerVersion(cm):
-    modelVersion = cm.version.split(".")
-    brickerVersion = bpy.props.bricker_version.split(".")
-    return (int(modelVersion[0]) > int(brickerVersion[0])) or (int(modelVersion[0]) == int(brickerVersion[0]) and int(modelVersion[1]) > int(brickerVersion[1]))
+def created_with_newer_version(cm):
+    model_version = cm.version.split(".")
+    bricker_version = bpy.props.bricker_version.split(".")
+    return (int(model_version[0]) > int(bricker_version[0])) or (int(model_version[0]) == int(bricker_version[0]) and int(model_version[1]) > int(bricker_version[1]))
 
 
 # loc is more efficient than key, but one or the other must be passed
-def getLocsInBrick(bricksDict, size, zStep, loc:list=None, key:str=None):
-    x0, y0, z0 = loc or getDictLoc(bricksDict, key)
-    return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
+def get_locs_in_brick(bricksdict, size, zstep, loc:list=None, key:str=None):
+    x0, y0, z0 = loc or get_dict_loc(bricksdict, key)
+    return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0])]
 
 
 # loc is more efficient than key, but one or the other must be passed
-def getKeysInBrick(bricksDict, size, zStep:int, loc:list=None, key:str=None):
-    x0, y0, z0 = loc or getDictLoc(bricksDict, key)
-    return [listToStr((x0 + x, y0 + y, z0 + z)) for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
+def get_keys_in_brick(bricksdict, size, zstep:int, loc:list=None, key:str=None):
+    x0, y0, z0 = loc or get_dict_loc(bricksdict, key)
+    return [list_to_str((x0 + x, y0 + y, z0 + z)) for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0])]
 
 
-def isOnShell(bricksDict, key, loc=None, zStep=None, shellDepth=1):
+def is_on_shell(bricksdict, key, loc=None, zstep=None, shell_depth=1):
     """ check if any locations in brick are on the shell """
-    size = bricksDict[key]["size"]
-    loc = loc or getDictLoc(bricksDict, key)
-    brickKeys = getKeysInBrick(bricksDict, size, zStep, loc=loc)
-    for k in brickKeys:
-        if bricksDict[k]["val"] >= 1 - (shellDepth - 1) / 100:
+    size = bricksdict[key]["size"]
+    loc = loc or get_dict_loc(bricksdict, key)
+    brick_keys = get_keys_in_brick(bricksdict, size, zstep, loc=loc)
+    for k in brick_keys:
+        if bricksdict[k]["val"] >= 1 - (shell_depth - 1) / 100:
             return True
     return False
 
 
-def getDictKey(name):
+def get_dict_key(name):
     """ get dict key details of obj """
-    dictKey = name.split("__")[-1]
-    return dictKey
+    dkey = name.split("__")[-1]
+    return dkey
 
-def getDictLoc(bricksDict, key):
+def get_dict_loc(bricksdict, key):
     try:
-        loc = bricksDict[key]["loc"]
+        loc = bricksdict[key]["loc"]
     except KeyError:
-        loc = strToList(key)
+        loc = str_to_list(key)
     return loc
 
 
-def getBrickCenter(bricksDict, key, zStep, loc=None):
-    loc = loc or getDictLoc(bricksDict, key)
-    brickKeys = getKeysInBrick(bricksDict, bricksDict[key]["size"], zStep, loc=loc)
-    coords = [bricksDict[k0]["co"] for k0 in brickKeys]
+def get_brick_center(bricksdict, key, zstep, loc=None):
+    loc = loc or get_dict_loc(bricksdict, key)
+    brick_keys = get_keys_in_brick(bricksdict, bricksdict[key]["size"], zstep, loc=loc)
+    coords = [bricksdict[k0]["co"] for k0 in brick_keys]
     coord_ave = Vector((mean([co[0] for co in coords]), mean([co[1] for co in coords]), mean([co[2] for co in coords])))
     return coord_ave
 
 
-def getNearbyLocFromVector(locDiff, curLoc, dimensions, zStep, width_divisor=2.05, height_divisor=2.05):
+def get_nearby_loc_from_vector(loc_diff, cur_loc, dimensions, zstep, width_divisor=2.05, height_divisor=2.05):
     d = Vector((dimensions["width"] / width_divisor, dimensions["width"] / width_divisor, dimensions["height"] / height_divisor))
-    nextLoc = Vector(curLoc)
-    if locDiff.z > d.z - dimensions["stud_height"]:
-        nextLoc.z += math.ceil((locDiff.z - d.z) / (d.z * 2))
-    elif locDiff.z < -d.z:
-        nextLoc.z -= 1
-    if locDiff.x > d.x:
-        nextLoc.x += math.ceil((locDiff.x - d.x) / (d.x * 2))
-    elif locDiff.x < -d.x:
-        nextLoc.x += math.floor((locDiff.x + d.x) / (d.x * 2))
-    if locDiff.y > d.y:
-        nextLoc.y += math.ceil((locDiff.y - d.y) / (d.y * 2))
-    elif locDiff.y < -d.y:
-        nextLoc.y += math.floor((locDiff.y + d.y) / (d.y * 2))
-    return [int(nextLoc.x), int(nextLoc.y), int(nextLoc.z)]
+    next_loc = Vector(cur_loc)
+    if loc_diff.z > d.z - dimensions["stud_height"]:
+        next_loc.z += math.ceil((loc_diff.z - d.z) / (d.z * 2))
+    elif loc_diff.z < -d.z:
+        next_loc.z -= 1
+    if loc_diff.x > d.x:
+        next_loc.x += math.ceil((loc_diff.x - d.x) / (d.x * 2))
+    elif loc_diff.x < -d.x:
+        next_loc.x += math.floor((loc_diff.x + d.x) / (d.x * 2))
+    if loc_diff.y > d.y:
+        next_loc.y += math.ceil((loc_diff.y - d.y) / (d.y * 2))
+    elif loc_diff.y < -d.y:
+        next_loc.y += math.floor((loc_diff.y + d.y) / (d.y * 2))
+    return [int(next_loc.x), int(next_loc.y), int(next_loc.z)]
 
 
-def getNormalDirection(normal, maxDist=0.77, slopes=False):
+def get_normal_direction(normal, max_dist=0.77, slopes=False):
     # initialize vars
-    minDist = maxDist
-    minDir = None
+    min_dist = max_dist
+    min_dir = None
     # skip normals that aren't within 0.3 of the z values
     if normal is None or ((normal.z > -0.2 and normal.z < 0.2) or normal.z > 0.8 or normal.z < -0.8):
-        return minDir
+        return min_dir
     # set Vectors for perfect normal directions
     if slopes:
-        normDirs = {"^X+":Vector((1, 0, 0.5)),
-                    "^Y+":Vector((0, 1, 0.5)),
-                    "^X-":Vector((-1, 0, 0.5)),
-                    "^Y-":Vector((0, -1, 0.5)),
-                    "vX+":Vector((1, 0, -0.5)),
-                    "vY+":Vector((0, 1, -0.5)),
-                    "vX-":Vector((-1, 0, -0.5)),
-                    "vY-":Vector((0, -1, -0.5))}
+        norm_dirs = {"^X+":Vector((1, 0, 0.5)),
+                     "^Y+":Vector((0, 1, 0.5)),
+                     "^X-":Vector((-1, 0, 0.5)),
+                     "^Y-":Vector((0, -1, 0.5)),
+                     "vX+":Vector((1, 0, -0.5)),
+                     "vY+":Vector((0, 1, -0.5)),
+                     "vX-":Vector((-1, 0, -0.5)),
+                     "vY-":Vector((0, -1, -0.5))}
     else:
-        normDirs = {"X+":Vector((1, 0, 0)),
-                    "Y+":Vector((0, 1, 0)),
-                    "Z+":Vector((0, 0, 1)),
-                    "X-":Vector((-1, 0, 0)),
-                    "Y-":Vector((0, -1, 0)),
-                    "Z-":Vector((0, 0, -1))}
+        norm_dirs = {"X+":Vector((1, 0, 0)),
+                     "Y+":Vector((0, 1, 0)),
+                     "Z+":Vector((0, 0, 1)),
+                     "X-":Vector((-1, 0, 0)),
+                     "Y-":Vector((0, -1, 0)),
+                     "Z-":Vector((0, 0, -1))}
     # calculate nearest
-    for dir,v in normDirs.items():
+    for dir,v in norm_dirs.items():
         dist = (v - normal).length
-        if dist < minDist:
-            minDist = dist
-            minDir = dir
-    return minDir
+        if dist < min_dist:
+            min_dist = dist
+            min_dir = dir
+    return min_dir
 
 
-def getFlipRot(dir):
+def get_flip_rot(dir):
     flip = dir in ("X-", "Y-")
     rot = dir in ("Y+", "Y-")
     return flip, rot
 
 
-def legalBrickSize(size, type):
-     return size[:2] in bpy.props.Bricker_legal_brick_sizes[size[2]][type]
+def legal_brick_size(size, type):
+     return size[:2] in bpy.props.bricker_legal_brick_sizes[size[2]][type]
 
 
-def getExportPath(fn, ext, basePath, frame=-1, subfolder=False):
-    # TODO: support PC with os.path.join instead of strings and support backslashes
-    path = os.path.dirname(basePath)
-    blendPath = bpy.path.abspath("//")[:-1] or os.path.join(root_path(), "tmp")
-    blendPathSplit = splitpath(blendPath)
-    # if relative path, construct path from user input
-    if path.startswith("//"):
-        splitPath = splitpath(path[2:])
-        while len(splitPath) > 0 and splitPath[0] == "..":
-            splitPath.pop(0)
-            blendPathSplit.pop()
-        newPath = os.path.join(*splitPath) if len(splitPath) > 0 else ""
-        fullBlendPath = os.path.join(*blendPathSplit) if len(blendPathSplit) > 1 else root_path()
-        path = os.path.join(fullBlendPath, newPath)
-    # if path is blank at this point, use default render location
-    if path == "":
-        path = blendPath
-    # check to make sure path exists on local machine
-    if not os.path.exists(path):
-        return path, "Blender could not find the following path: '%(path)s'" % locals()
-    # get full filename
-    fn0 = os.path.split(basePath)[1] or fn
-    frame_num = "_%(frame)s" % locals() if frame >= 0 else ""
-    full_fn = fn0 + frame_num + ext
-    # create subfolder
-    if subfolder:
-        path = os.path.join(path, fn0)
-        if not os.path.exists(path):
-            os.makedirs(path)
-    # create full export path
-    fullPath = os.path.join(path, full_fn)
-    # ensure target folder has write permissions
-    try:
-        f = open(fullPath, "w")
-        f.close()
-    except PermissionError:
-        return path, "Blender does not have write permissions for the following path: '%(path)s'" % locals()
-    return fullPath, None
-
-
-def shortenName(string:str, max_len:int=30):
+def shorten_name(string:str, max_len:int=30):
     """shortens string while maintaining uniqueness"""
     if len(string) <= max_len:
         return string
@@ -411,52 +371,52 @@ def shortenName(string:str, max_len:int=30):
         return string[:math.ceil(max_len * 0.65)] + str(hash_str(string))[:math.floor(max_len * 0.35)]
 
 
-def customValidObject(cm, targetType="Custom 0", idx=None):
-    for i, customInfo in enumerate([[cm.hasCustomObj1, cm.customObject1], [cm.hasCustomObj2, cm.customObject2], [cm.hasCustomObj3, cm.customObject3]]):
-        hasCustomObj, customObj = customInfo
+def custom_valid_object(cm, target_type="Custom 0", idx=None):
+    for i, custom_info in enumerate([[cm.has_custom_obj1, cm.custom_object1], [cm.has_custom_obj2, cm.custom_object2], [cm.has_custom_obj3, cm.custom_object3]]):
+        has_custom_obj, custom_obj = custom_info
         if idx is not None and idx != i:
             continue
-        elif not hasCustomObj and not (i == 0 and cm.brickType == "CUSTOM") and int(targetType.split(" ")[-1]) != i + 1:
+        elif not has_custom_obj and not (i == 0 and cm.brick_type == "CUSTOM") and int(target_type.split(" ")[-1]) != i + 1:
             continue
-        if customObj is None:
-            warningMsg = "Custom brick type object {} could not be found".format(i + 1)
-            return warningMsg
-        elif customObj.name == getSourceName(cm) and (not (cm.animated or cm.modelCreated) or customObj.protected):
-            warningMsg = "Source object cannot be its own custom brick."
-            return warningMsg
-        elif customObj.type != "MESH":
-            warningMsg = "Custom object {} is not of type 'MESH'. Please select another object (or press 'ALT-C to convert object to mesh).".format(i + 1)
-            return warningMsg
-        custom_details = bounds(customObj)
-        zeroDistAxes = ""
+        if custom_obj is None:
+            warning_msg = "Custom brick type object {} could not be found".format(i + 1)
+            return warning_msg
+        elif custom_obj.name == get_source_name(cm) and (not (cm.animated or cm.model_created) or custom_obj.protected):
+            warning_msg = "Source object cannot be its own custom brick."
+            return warning_msg
+        elif custom_obj.type != "MESH":
+            warning_msg = "Custom object {} is not of type 'MESH'. Please select another object (or press 'ALT-C to convert object to mesh).".format(i + 1)
+            return warning_msg
+        custom_details = bounds(custom_obj)
+        zero_dist_axis = ""
         if custom_details.dist.x < 0.00001:
-            zeroDistAxes += "X"
+            zero_dist_axis += "X"
         if custom_details.dist.y < 0.00001:
-            zeroDistAxes += "Y"
+            zero_dist_axis += "Y"
         if custom_details.dist.z < 0.00001:
-            zeroDistAxes += "Z"
-        if zeroDistAxes != "":
-            axisStr = "axis" if len(zeroDistAxes) == 1 else "axes"
-            warningMsg = "Custom brick type object is to small along the '%(zeroDistAxes)s' %(axisStr)s (<0.00001). Please select another object or extrude it along the '%(zeroDistAxes)s' %(axisStr)s." % locals()
-            return warningMsg
+            zero_dist_axis += "Z"
+        if zero_dist_axis != "":
+            axis_str = "axis" if len(zero_dist_axis) == 1 else "axes"
+            warning_msg = "Custom brick type object is to small along the '%(zero_dist_axis)s' %(axis_str)s (<0.00001). Please select another object or extrude it along the '%(zero_dist_axis)s' %(axis_str)s." % locals()
+            return warning_msg
     return None
 
 
-def updateHasCustomObjs(cm, typ):
-    # update hasCustomObj
+def update_has_custom_objs(cm, typ):
+    # update has_custom_obj
     if typ == "CUSTOM 1":
-        cm.hasCustomObj1 = True
+        cm.has_custom_obj1 = True
     if typ == "CUSTOM 2":
-        cm.hasCustomObj2 = True
+        cm.has_custom_obj2 = True
     if typ == "CUSTOM 3":
-        cm.hasCustomObj3 = True
+        cm.has_custom_obj3 = True
 
 
-def getBrickMats(materialType, cm_id):
+def get_brick_mats(material_type, cm_id):
     brick_mats = []
-    if materialType == "RANDOM":
-        matObj = getMatObject(cm_id, typ="RANDOM")
-        brick_mats = list(matObj.data.materials.keys())
+    if material_type == "RANDOM":
+        mat_obj = get_mat_obj(cm_id, typ="RANDOM")
+        brick_mats = list(mat_obj.data.materials.keys())
     return brick_mats
 
 
@@ -464,52 +424,52 @@ def bricker_handle_exception():
     handle_exception(log_name="Bricker log", report_button_loc="Bricker > Brick Models > Report Error")
 
 
-def createMatObjs(idx):
-    """ create new matObjs for current cmlist id """
-    matObjNames = ["Bricker_{}_RANDOM_mats".format(idx), "Bricker_{}_ABS_mats".format(idx)]
-    for obj_n in matObjNames:
-        matObj = bpy.data.objects.get(obj_n)
-        if matObj is None:
-            matObj = bpy.data.objects.new(obj_n, bpy.data.meshes.new(obj_n + "_mesh"))
-            matObj.use_fake_user = True
+def create_mat_objs(idx):
+    """ create new mat_objs for current cmlist id """
+    mat_obj_names = ["Bricker_{}_RANDOM_mats".format(idx), "Bricker_{}_ABS_mats".format(idx)]
+    for obj_n in mat_obj_names:
+        mat_obj = bpy.data.objects.get(obj_n)
+        if mat_obj is None:
+            mat_obj = bpy.data.objects.new(obj_n, bpy.data.meshes.new(obj_n + "_mesh"))
+            mat_obj.use_fake_user = True
 
 
-def removeMatObjs(idx):
-    """ remove matObjs for current cmlist id """
-    matObjNames = ["Bricker_{}_RANDOM_mats".format(idx), "Bricker_{}_ABS_mats".format(idx)]
-    for obj_n in matObjNames:
-        matObj = bpy.data.objects.get(obj_n)
-        if matObj is not None:
-            bpy.data.objects.remove(matObj, do_unlink=True)
+def remove_mat_objs(idx):
+    """ remove mat_objs for current cmlist id """
+    mat_obj_names = ["Bricker_{}_RANDOM_mats".format(idx), "Bricker_{}_ABS_mats".format(idx)]
+    for obj_n in mat_obj_names:
+        mat_obj = bpy.data.objects.get(obj_n)
+        if mat_obj is not None:
+            bpy.data.objects.remove(mat_obj, do_unlink=True)
 
 
-def getBrickType(modelBrickType):
-    return "PLATE" if modelBrickType == "BRICKS AND PLATES" else (modelBrickType[:-1] if modelBrickType.endswith("S") else ("CUSTOM 1" if modelBrickType == "CUSTOM" else modelBrickType))
+def get_brick_type(model_brick_type):
+    return "PLATE" if model_brick_type == "BRICKS AND PLATES" else (model_brick_type[:-1] if model_brick_type.endswith("S") else ("CUSTOM 1" if model_brick_type == "CUSTOM" else model_brick_type))
 
 
-def getRoundBrickTypes():
+def get_round_brick_types():
     return ("CYLINDER", "CONE", "STUD", "STUD_HOLLOW")
 
 
-def brickifyShouldRun(cm):
-    if ((cm.animated and (not updateCanRun("ANIMATION") and not cm.animIsDirty))
-       or (cm.modelCreated and not updateCanRun("MODEL"))):
+def brickify_should_run(cm):
+    if ((cm.animated and (not update_can_run("ANIMATION") and not cm.anim_is_dirty))
+       or (cm.model_created and not update_can_run("MODEL"))):
         return False
     return True
 
 
-def updateCanRun(type):
-    scn, cm, n = getActiveContextInfo()
-    if createdWithUnsupportedVersion(cm):
+def update_can_run(typ):
+    scn, cm, n = get_active_context_info()
+    if created_with_unsupported_version(cm):
         return True
     elif scn.cmlist_index == -1:
         return False
     else:
-        commonNeedsUpdate = (cm.logoType != "NONE" and cm.logoType != "LEGO") or cm.brickType == "CUSTOM" or cm.modelIsDirty or cm.matrixIsDirty or cm.internalIsDirty or cm.buildIsDirty or cm.bricksAreDirty
-        if type == "ANIMATION":
-            return commonNeedsUpdate or (cm.materialType != "CUSTOM" and cm.materialIsDirty)
-        elif type == "MODEL":
-            return commonNeedsUpdate or (cm.collection is not None and len(cm.collection.objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3
+        common_needs_update = (cm.logo_type != "NONE" and cm.logo_type != "LEGO") or cm.brick_type == "CUSTOM" or cm.model_is_dirty or cm.matrix_is_dirty or cm.internal_is_dirty or cm.build_is_dirty or cm.bricks_are_dirty
+        if typ == "ANIMATION":
+            return common_needs_update or (cm.material_type != "CUSTOM" and cm.material_is_dirty)
+        elif typ == "MODEL":
+            return common_needs_update or (cm.collection is not None and len(cm.collection.objects) == 0) or (cm.material_type != "CUSTOM" and (cm.material_type != "RANDOM" or cm.split_model or cm.last_material_type != cm.material_type or cm.material_is_dirty) and cm.material_is_dirty) or cm.has_custom_obj1 or cm.has_custom_obj2 or cm.has_custom_obj3
 
 def select_source_model(self, context):
     """ if scn.cmlist_index changes, select and make source or Brick Model active """
@@ -520,39 +480,39 @@ def select_source_model(self, context):
         bpy.props.manual_cmlist_update = False
         return
     if scn.cmlist_index != -1:
-        cm, n = getActiveContextInfo()[1:]
+        cm, n = get_active_context_info()[1:]
         source = cm.source_obj
         if source and cm.version[:3] != "1_0":
-            if cm.modelCreated:
-                bricks = getBricks()
+            if cm.model_created:
+                bricks = get_bricks()
                 if bricks and len(bricks) > 0:
                     select(bricks, active=True, only=True)
-                    scn.Bricker_last_active_object_name = obj.name if obj is not None else ""
+                    scn.bricker_last_active_object_name = obj.name if obj is not None else ""
             elif cm.animated:
                 cf = scn.frame_current
-                if cf > cm.lastStopFrame:
-                    cf = cm.lastStopFrame
-                elif cf < cm.lastStartFrame:
-                    cf = cm.lastStartFrame
+                if cf > cm.last_stop_frame:
+                    cf = cm.last_stop_frame
+                elif cf < cm.last_start_frame:
+                    cf = cm.last_start_frame
                 if b280():
                     cn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
                     if len(bpy.data.collections[cn].objects) > 0:
                         select(list(bpy.data.collections[cn].objects), active=True, only=True)
-                        scn.Bricker_last_active_object_name = obj.name if obj is not None else ""
+                        scn.bricker_last_active_object_name = obj.name if obj is not None else ""
                 else:
                     g = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
                     if g is not None and len(g.objects) > 0:
                         select(list(g.objects), active=True, only=True)
-                        scn.Bricker_last_active_object_name = bpy.context.active_object.name
+                        scn.bricker_last_active_object_name = bpy.context.active_object.name
                     else:
                         scn.objects.active = None
-                        deselectAll()
-                        scn.Bricker_last_active_object_name = ""
+                        deselect_all()
+                        scn.bricker_last_active_object_name = ""
             else:
                 select(source, active=True, only=True)
-                scn.Bricker_last_active_object_name = source.name
+                scn.bricker_last_active_object_name = source.name
         else:
             for i,cm0 in enumerate(scn.cmlist):
-                if getSourceName(cm0) == scn.Bricker_active_object_name:
-                    deselectAll()
+                if get_source_name(cm0) == scn.bricker_active_object_name:
+                    deselect_all()
                     break

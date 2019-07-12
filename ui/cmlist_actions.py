@@ -57,17 +57,17 @@ class CMLIST_OT_list_action(bpy.types.Operator):
 
             if self.action == "REMOVE" and len(scn.cmlist) > 0 and scn.cmlist_index >= 0:
                 bpy.ops.ed.undo_push(message="Bricker: Remove Item")
-                self.removeItem(idx)
+                self.remove_item(idx)
 
             elif self.action == "ADD":
                 bpy.ops.ed.undo_push(message="Bricker: Remove Item")
-                self.addItem()
+                self.add_item()
 
             elif self.action == "DOWN" and idx < len(scn.cmlist) - 1:
-                self.moveDown(item)
+                self.move_down(item)
 
             elif self.action == "UP" and idx >= 1:
-                self.moveUp(item)
+                self.move_up(item)
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -88,20 +88,20 @@ class CMLIST_OT_list_action(bpy.types.Operator):
     # class methods
 
     @staticmethod
-    def addItem():
+    def add_item():
         scn = bpy.context.scene
         active_object = bpy.context.active_object
         # if active object isn't on visible layer, don't set it as default source for new model
         if b280():
-            if active_object and not isObjVisibleInViewport(active_object):
+            if active_object and not is_obj_visible_in_viewport(active_object):
                 active_object = None
         else:
             if active_object:
-                objVisible = False
+                obj_visible = False
                 for i in range(20):
                     if active_object.layers[i] and scn.layers[i]:
-                        objVisible = True
-                if not objVisible:
+                        obj_visible = True
+                if not obj_visible:
                     active_object = None
         # if active object already has a model or isn't on visible layer, don't set it as default source for new model
         # NOTE: active object may have been removed, so we need to re-check if none
@@ -119,46 +119,46 @@ class CMLIST_OT_list_action(bpy.types.Operator):
             item.version = bpy.props.bricker_version
             # get Bricker preferences
             prefs = get_addon_preferences()
-            if prefs.brickHeightDefault == "ABSOLUTE":
+            if prefs.brick_height_default == "ABSOLUTE":
                 # set absolute brick height
-                item.brickHeight = prefs.absoluteBrickHeight
+                item.brick_height = prefs.absolute_brick_height
             else:
                 # set brick height based on model height
                 source = item.source_obj
                 if source:
                     source_details = bounds(source, use_adaptive_domain=False)
                     h = max(source_details.dist)
-                    item.brickHeight = h / prefs.relativeBrickHeight
+                    item.brick_height = h / prefs.relative_brick_height
 
         else:
             item.source_obj = None
             item.name = "<New Model>"
         # get all existing IDs
-        existingIDs = [cm.id for cm in scn.cmlist]
-        i = max(existingIDs) + 1
+        existing_ids = [cm.id for cm in scn.cmlist]
+        i = max(existing_ids) + 1
         # protect against massive item IDs
         if i > 9999:
             i = 1
-            while i in existingIDs:
+            while i in existing_ids:
                 i += 1
         # set item ID to unique number
         item.id = i
         item.idx = len(scn.cmlist)-1
-        item.startFrame = scn.frame_start
-        item.stopFrame = scn.frame_end
-        # create new matObj for current cmlist id
-        createMatObjs(i)
+        item.start_frame = scn.frame_start
+        item.stop_frame = scn.frame_end
+        # create new mat_obj for current cmlist id
+        create_mat_objs(i)
 
-    def removeItem(cls, idx):
-        scn, cm, sn = getActiveContextInfo()
+    def remove_item(cls, idx):
+        scn, cm, sn = get_active_context_info()
         n = cm.name
-        if not cm.modelCreated and not cm.animated:
+        if not cm.model_created and not cm.animated:
             for idx0 in range(idx + 1, len(scn.cmlist)):
                 scn.cmlist[idx0].idx -= 1
             if len(scn.cmlist) - 1 == scn.cmlist_index:
                 scn.cmlist_index -= 1
-            # remove matObj for current cmlist id
-            removeMatObjs(cm.id)
+            # remove mat_obj for current cmlist id
+            remove_mat_objs(cm.id)
             scn.cmlist.remove(idx)
             if scn.cmlist_index == -1 and len(scn.cmlist) > 0:
                 scn.cmlist_index = 0
@@ -168,19 +168,19 @@ class CMLIST_OT_list_action(bpy.types.Operator):
         else:
             cls.report({"WARNING"}, "Please delete the Brickified model before attempting to remove this item." % locals())
 
-    def moveDown(self, item):
+    def move_down(self, item):
         scn = bpy.context.scene
         scn.cmlist.move(scn.cmlist_index, scn.cmlist_index+1)
         scn.cmlist_index += 1
-        self.updateIdxs(scn.cmlist)
+        self.update_idxs(scn.cmlist)
 
-    def moveUp(self, item):
+    def move_up(self, item):
         scn = bpy.context.scene
         scn.cmlist.move(scn.cmlist_index, scn.cmlist_index-1)
         scn.cmlist_index -= 1
-        self.updateIdxs(scn.cmlist)
+        self.update_idxs(scn.cmlist)
 
-    def updateIdxs(self, cmlist):
+    def update_idxs(self, cmlist):
         for i,cm in enumerate(cmlist):
             cm.idx = i
 
@@ -206,10 +206,10 @@ class CMLIST_OT_copy_settings_to_others(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            scn, cm0, _ = getActiveContextInfo()
+            scn, cm0, _ = get_active_context_info()
             for cm1 in scn.cmlist:
                 if cm0 != cm1:
-                    matchProperties(cm1, cm0, overrideIdx=cm1.idx)
+                    match_properties(cm1, cm0, override_idx=cm1.idx)
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -231,8 +231,8 @@ class CMLIST_OT_copy_settings(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            scn, cm, _ = getActiveContextInfo()
-            scn.Bricker_copy_from_id = cm.id
+            scn, cm, _ = get_active_context_info()
+            scn.bricker_copy_from_id = cm.id
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -255,10 +255,10 @@ class CMLIST_OT_paste_settings(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            scn, cm0, _ = getActiveContextInfo()
+            scn, cm0, _ = get_active_context_info()
             for cm1 in scn.cmlist:
-                if cm0 != cm1 and cm1.id == scn.Bricker_copy_from_id:
-                    matchProperties(cm0, cm1)
+                if cm0 != cm1 and cm1.id == scn.bricker_copy_from_id:
+                    match_properties(cm0, cm1)
                     break
         except:
             bricker_handle_exception()
@@ -278,7 +278,7 @@ class CMLIST_OT_select_bricks(bpy.types.Operator):
         if scn.cmlist_index == -1:
             return False
         cm = scn.cmlist[scn.cmlist_index]
-        return cm.animated or cm.modelCreated
+        return cm.animated or cm.model_created
 
     deselect = BoolProperty(default=False)
 
@@ -293,7 +293,7 @@ class CMLIST_OT_select_bricks(bpy.types.Operator):
         return{"FINISHED"}
 
     def __init__(self):
-        self.bricks = getBricks()
+        self.bricks = get_bricks()
 
 
 # -------------------------------------------------------------------

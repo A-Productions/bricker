@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-def addKeymaps(km):
+def add_keymaps(km):
     km.keymap_items.new("bricker.initialize", "I", "PRESS", shift=True)
     km.keymap_items.new("bricker.brickify", "L", "PRESS", alt=True, shift=True)
     km.keymap_items.new("bricker.delete_model", "X", "PRESS", alt=True, shift=True)

@@ -24,143 +24,144 @@ from bpy.types import Operator
 
 # Addon imports
 from ...functions import *
-from ...functions.brickify_utils import createNewBricks, getLogo
+from ...functions.brickify_utils import create_new_bricks, get_logo
 from ..brickify import *
 from ..brickify import *
-from ...lib.bricksDict.functions import getDictKey
+from ...lib.bricksdict.functions import get_dict_key
 from ...lib.Brick.legal_brick_sizes import *
 from .undo_stack import *
 
 
-def drawUpdatedBricks(cm, bricksDict, keysToUpdate, action="redrawing", selectCreated=True, tempBrick=False):
-    if len(keysToUpdate) == 0: return
-    if not isUnique(keysToUpdate): raise ValueError("keysToUpdate cannot contain duplicate values")
+def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", select_created=True, temp_brick=False):
+    if len(keys_to_update) == 0: return
+    if not is_unique(keys_to_update): raise ValueError("keys_to_update cannot contain duplicate values")
     if action is not None:
         print("[Bricker] %(action)s..." % locals())
-    # get arguments for createNewBricks
+    # get arguments for create_new_bricks
     source = cm.source_obj
-    source_details, dimensions = getDetailsAndBounds(source, cm)
+    source_details, dimensions = get_details_and_bounds(source, cm)
     n = source.name
     parent = cm.parent_obj
-    logo_details, refLogo = [None, None] if tempBrick else getLogo(bpy.context.scene, cm, dimensions)
+    logo_details, ref_logo = [None, None] if temp_brick else get_logo(bpy.context.scene, cm, dimensions)
     action = "UPDATE_MODEL"
     # actually draw the bricks
-    _, bricksCreated = createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, cm=cm, bricksDict=bricksDict, keys=keysToUpdate, clearExistingCollection=False, selectCreated=selectCreated, printStatus=False, tempBrick=tempBrick, redraw=True)
+    _, bricks_created = create_new_bricks(source, parent, source_details, dimensions, ref_logo, logo_details, action, cm=cm, bricksdict=bricksdict, keys=keys_to_update, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, redraw=True)
     # link new bricks to scene
     if not b280():
-        for brick in bricksCreated:
-            safeLink(brick)
+        for brick in bricks_created:
+            safe_link(brick)
     # add bevel if it was previously added
-    if cm.bevelAdded and not tempBrick:
-        bricks = getBricks(cm)
-        BRICKER_OT_bevel.runBevelAction(bricks, cm)
+    if cm.bevel_added and not temp_brick:
+        bricks = get_bricks(cm)
+        BRICKER_OT_bevel.run_bevel_action(bricks, cm)
 
 
-def getAdjKeysAndBrickVals(bricksDict, loc=None, key=None):
+def get_adj_keys_and_brick_vals(bricksdict, loc=None, key=None):
     assert loc or key
-    x, y, z = loc or getDictLoc(bricksDict, key)
-    adjKeys = [listToStr((x+1, y, z)),
-               listToStr((x-1, y, z)),
-               listToStr((x, y+1, z)),
-               listToStr((x, y-1, z)),
-               listToStr((x, y, z+1)),
-               listToStr((x, y, z-1))]
-    adjBrickVals = []
-    for k in adjKeys.copy():
+    x, y, z = loc or get_dict_loc(bricksdict, key)
+    adj_keys = [list_to_str((x+1, y, z)),
+               list_to_str((x-1, y, z)),
+               list_to_str((x, y+1, z)),
+               list_to_str((x, y-1, z)),
+               list_to_str((x, y, z+1)),
+               list_to_str((x, y, z-1))]
+    adj_brick_vals = []
+    for k in adj_keys.copy():
         try:
-            adjBrickVals.append(bricksDict[k]["val"])
+            adj_brick_vals.append(bricksdict[k]["val"])
         except KeyError:
-            remove_item(adjKeys, k)
-    return adjKeys, adjBrickVals
+            remove_item(adj_keys, k)
+    return adj_keys, adj_brick_vals
 
 
-def setCurBrickVal(bricksDict, loc, key=None, action="ADD"):
-    key = key or listToStr(loc)
-    _, adjBrickVals = getAdjKeysAndBrickVals(bricksDict, loc=loc)
-    if action == "ADD" and (0 in adjBrickVals or len(adjBrickVals) < 6 or min(adjBrickVals) == 1):
-        newVal = 1
+def set_cur_brick_val(bricksdict, loc, key=None, action="ADD"):
+    key = key or list_to_str(loc)
+    adj_brick_vals = get_adj_keys_and_brick_vals(bricksdict, loc=loc)[1]
+    if action == "ADD" and (0 in adj_brick_vals or len(adj_brick_vals) < 6 or min(adj_brick_vals) == 1):
+        new_val = 1
     elif action == "REMOVE":
-        newVal = 0 if 0 in adjBrickVals or len(adjBrickVals) < 6 else max(adjBrickVals)
+        new_val = 0 if 0 in adj_brick_vals or len(adj_brick_vals) < 6 else max(adj_brick_vals)
     else:
-        newVal = max(adjBrickVals) - 0.01
-    bricksDict[key]["val"] = newVal
+        new_val = max(adj_brick_vals) - 0.01
+    bricksdict[key]["val"] = new_val
 
 
-def verifyBrickExposureAboveAndBelow(scn, zStep, origLoc, bricksDict, decriment=0, zNeg=False, zPos=False):
-    dictLocs = []
-    if not zNeg:
-        dictLocs.append((origLoc[0], origLoc[1], origLoc[2] + decriment))
-    if not zPos:
-        dictLocs.append((origLoc[0], origLoc[1], origLoc[2] - 1))
+def verify_all_brick_exposures(scn, zstep, orig_loc, bricksdict, decriment=0, z_neg=False, z_pos=False):
+    dlocs = []
+    if not z_neg:
+        dlocs.append((orig_loc[0], orig_loc[1], orig_loc[2] + decriment))
+    if not z_pos:
+        dlocs.append((orig_loc[0], orig_loc[1], orig_loc[2] - 1))
     # double check exposure of bricks above/below new adjacent brick
-    for dictLoc in dictLocs:
-        k = listToStr(dictLoc)
-        junk1 = k not in bricksDict
+    for dloc in dlocs:
+        k = list_to_str(dloc)
+        junk1 = k not in bricksdict
         try:
-            junk2 = bricksDict[k]
+            junk2 = bricksdict[k]
         except:
             pass
-        if k not in bricksDict:
+        if k not in bricksdict:
             continue
-        parent_key = k if bricksDict[k]["parent"] == "self" else bricksDict[k]["parent"]
+        parent_key = k if bricksdict[k]["parent"] == "self" else bricksdict[k]["parent"]
         if parent_key is not None:
-            setAllBrickExposures(bricksDict, zStep, parent_key)
-    return bricksDict
+            set_all_brick_exposures(bricksdict, zstep, parent_key)
+    return bricksdict
 
 
-def getUsedSizes():
+def get_used_sizes():
     scn = bpy.context.scene
     items = [("NONE", "None", "")]
     for cm in scn.cmlist:
-        if not cm.brickSizesUsed:
+        if not cm.brick_sizes_used:
             continue
-        sortBy = lambda k: (strToList(k)[2], strToList(k)[0], strToList(k)[1])
-        items += [(s, s, "") for s in sorted(cm.brickSizesUsed.split("|"), reverse=True, key=sortBy) if (s, s, "") not in items]
+        sort_by = lambda k: (str_to_list(k)[2], str_to_list(k)[0], str_to_list(k)[1])
+        items += [(s, s, "") for s in sorted(cm.brick_sizes_used.split("|"), reverse=True, key=sort_by) if (s, s, "") not in items]
     return items
 
 
-def getUsedTypes():
+def get_used_types():
     scn = bpy.context.scene
     items = [("NONE", "None", "")]
     for cm in scn.cmlist:
-        items += [(t.upper(), t.title(), "") for t in sorted(cm.brickTypesUsed.split("|")) if (t.upper(), t.title(), "") not in items]
+        items += [(t.upper(), t.title(), "") for t in sorted(cm.brick_types_used.split("|")) if (t.upper(), t.title(), "") not in items]
     return items
 
 
-def getAvailableTypes(by="SELECTION", includeSizes=[]):
+def get_available_types(by="SELECTION", include_sizes=[]):
     items = []
-    legalBS = bpy.props.Bricker_legal_brick_sizes
+    legal_bs = bpy.props.bricker_legal_brick_sizes
     scn = bpy.context.scene
     objs = bpy.context.selected_objects if by == "SELECTION" else [bpy.context.active_object]
-    objNamesD, bricksDicts = createObjNamesAndBricksDictsDs(objs)
-    invalidItems = []
-    for cm_id in objNamesD.keys():
-        cm = getItemByID(scn.cmlist, cm_id)
-        brickType = cm.brickType
-        bricksDict = bricksDicts[cm_id]
-        objSizes = []
-        # check that customObjects are valid
+    obj_names_dict = create_obj_names_dict(objs)
+    bricksdicts = get_bricksdicts_from_objs(obj_names_dict.keys())
+    invalid_items = []
+    for cm_id in obj_names_dict.keys():
+        cm = get_item_by_id(scn.cmlist, cm_id)
+        brick_type = cm.brick_type
+        bricksdict = bricksdicts[cm_id]
+        obj_sizes = []
+        # check that custom_objects are valid
         for idx in range(3):
-            targetType = "CUSTOM " + str(idx + 1)
-            warningMsg = customValidObject(cm, targetType=targetType, idx=idx)
-            if warningMsg is not None and itemFromType(targetType) not in invalidItems:
-                invalidItems.append(itemFromType(targetType))
+            target_type = "CUSTOM " + str(idx + 1)
+            warning_msg = custom_valid_object(cm, target_type=target_type, idx=idx)
+            if warning_msg is not None and iter_from_type(target_type) not in invalid_items:
+                invalid_items.append(iter_from_type(target_type))
         # build items list
-        for obj_name in objNamesD[cm_id]:
-            dictKey = getDictKey(obj_name)
-            objSize = bricksDict[dictKey]["size"]
-            if objSize in objSizes:
+        for obj_name in obj_names_dict[cm_id]:
+            dkey = get_dict_key(obj_name)
+            obj_size = bricksdict[dkey]["size"]
+            if obj_size in obj_sizes:
                 continue
-            objSizes.append(objSize)
-            if objSize[2] not in (1, 3): raise Exception("Custom Error Message: objSize not in (1, 3)")
+            obj_sizes.append(obj_size)
+            if obj_size[2] not in (1, 3): raise Exception("Custom Error Message: obj_size not in (1, 3)")
             # build items
-            items += [itemFromType(typ) for typ in legalBS[3] if includeSizes == "ALL" or objSize[:2] in legalBS[3][typ] + includeSizes]
-            if flatBrickType(brickType):
-                items += [itemFromType(typ) for typ in legalBS[1] if includeSizes == "ALL" or objSize[:2] in legalBS[1][typ] + includeSizes]
+            items += [iter_from_type(typ) for typ in legal_bs[3] if include_sizes == "ALL" or obj_size[:2] in legal_bs[3][typ] + include_sizes]
+            if flat_brick_type(brick_type):
+                items += [iter_from_type(typ) for typ in legal_bs[1] if include_sizes == "ALL" or obj_size[:2] in legal_bs[1][typ] + include_sizes]
     # uniquify items
     items = uniquify2(items, innerType=tuple)
     # remove invalid items
-    for item in invalidItems:
+    for item in invalid_items:
         remove_item(items, item)
     # sort items
     items.sort(key=lambda k: k[0])
@@ -168,189 +169,188 @@ def getAvailableTypes(by="SELECTION", includeSizes=[]):
     return items if len(items) > 0 else [("NULL", "Null", "")]
 
 
-def itemFromType(typ):
+def iter_from_type(typ):
     return (typ.upper(), typ.title().replace("_", " "), "")
 
-def updateBrickSizeAndDict(dimensions, source_name, bricksDict, brickSize, key, loc, dec=0, curHeight=None, curType=None, targetHeight=None, targetType=None, createdFrom=None):
-    brickD = bricksDict[key]
-    assert targetHeight is not None or targetType is not None
-    targetHeight = targetHeight or (1 if targetType in getBrickTypes(height=1) else 3)
-    assert curHeight is not None or curType is not None
-    curHeight = curHeight or (1 if curType in getBrickTypes(height=1) else 3)
+def update_brick_size_and_dict(dimensions, source_name, bricksdict, brick_size, key, loc, dec=0, cur_height=None, cur_type=None, target_height=None, target_type=None, created_from=None):
+    brick_d = bricksdict[key]
+    assert target_height is not None or target_type is not None
+    target_height = target_height or (1 if target_type in get_brick_types(height=1) else 3)
+    assert cur_height is not None or cur_type is not None
+    cur_height = cur_height or (1 if cur_type in get_brick_types(height=1) else 3)
     # adjust brick size if changing type from 3 tall to 1 tall
-    if curHeight == 3 and targetHeight == 1:
-        brickSize[2] = 1
-        for x in range(brickSize[0]):
-            for y in range(brickSize[1]):
-                for z in range(1, curHeight):
-                    newLoc = [loc[0] + x, loc[1] + y, loc[2] + z - dec]
-                    newKey = listToStr(newLoc)
-                    bricksDict[newKey]["parent"] = None
-                    bricksDict[newKey]["draw"] = False
-                    setCurBrickVal(bricksDict, newLoc, newKey, action="REMOVE")
+    if cur_height == 3 and target_height == 1:
+        brick_size[2] = 1
+        for x in range(brick_size[0]):
+            for y in range(brick_size[1]):
+                for z in range(1, cur_height):
+                    new_loc = [loc[0] + x, loc[1] + y, loc[2] + z - dec]
+                    new_key = list_to_str(new_loc)
+                    bricksdict[new_key]["parent"] = None
+                    bricksdict[new_key]["draw"] = False
+                    set_cur_brick_val(bricksdict, new_loc, new_key, action="REMOVE")
     # adjust brick size if changing type from 1 tall to 3 tall
-    elif curHeight == 1 and targetHeight == 3:
-        brickSize[2] = 3
+    elif cur_height == 1 and target_height == 3:
+        brick_size[2] = 3
         full_d = Vector((dimensions["width"], dimensions["width"], dimensions["height"]))
         # update bricks dict entries above current brick
-        for x in range(brickSize[0]):
-            for y in range(brickSize[1]):
-                for z in range(1, targetHeight):
-                    newLoc = [loc[0] + x, loc[1] + y, loc[2] + z]
-                    newKey = listToStr(newLoc)
-                    # create new bricksDict entry if it doesn't exist
-                    if newKey not in bricksDict:
-                        bricksDict = createAddlBricksDictEntry(source_name, bricksDict, key, newKey, full_d, x, y, z)
-                    # update bricksDict entry to point to new brick
-                    bricksDict[newKey]["parent"] = key
-                    bricksDict[newKey]["created_from"] = createdFrom
-                    bricksDict[newKey]["draw"] = True
-                    bricksDict[newKey]["mat_name"] = brickD["mat_name"] if bricksDict[newKey]["mat_name"] == "" else bricksDict[newKey]["mat_name"]
-                    bricksDict[newKey]["near_face"] = bricksDict[newKey]["near_face"] or brickD["near_face"]
-                    bricksDict[newKey]["near_intersection"] = bricksDict[newKey]["near_intersection"] or tuple(brickD["near_intersection"])
-                    if bricksDict[newKey]["val"] == 0:
-                        setCurBrickVal(bricksDict, newLoc, newKey)
-    return brickSize
+        for x in range(brick_size[0]):
+            for y in range(brick_size[1]):
+                for z in range(1, target_height):
+                    new_loc = [loc[0] + x, loc[1] + y, loc[2] + z]
+                    new_key = list_to_str(new_loc)
+                    # create new bricksdict entry if it doesn't exist
+                    if new_key not in bricksdict:
+                        bricksdict = create_addl_bricksdict_entry(source_name, bricksdict, key, new_key, full_d, x, y, z)
+                    # update bricksdict entry to point to new brick
+                    bricksdict[new_key]["parent"] = key
+                    bricksdict[new_key]["created_from"] = created_from
+                    bricksdict[new_key]["draw"] = True
+                    bricksdict[new_key]["mat_name"] = brick_d["mat_name"] if bricksdict[new_key]["mat_name"] == "" else bricksdict[new_key]["mat_name"]
+                    bricksdict[new_key]["near_face"] = bricksdict[new_key]["near_face"] or brick_d["near_face"]
+                    bricksdict[new_key]["near_intersection"] = bricksdict[new_key]["near_intersection"] or tuple(brick_d["near_intersection"])
+                    if bricksdict[new_key]["val"] == 0:
+                        set_cur_brick_val(bricksdict, new_loc, new_key)
+    return brick_size
 
 
-def createAddlBricksDictEntry(source_name, bricksDict, source_key, key, full_d, x, y, z):
-    brickD = bricksDict[source_key]
-    newName = "Bricker_%(source_name)s__%(key)s" % locals()
-    newCO = (Vector(brickD["co"]) + vec_mult(Vector((x, y, z)), full_d)).to_tuple()
-    bricksDict[key] = createBricksDictEntry(
-        name=              newName,
-        loc=               strToList(key),
-        co=                newCO,
-        near_face=         brickD["near_face"],
-        near_intersection= tuple(brickD["near_intersection"]),
-        mat_name=          brickD["mat_name"],
+def create_addl_bricksdict_entry(source_name, bricksdict, source_key, key, full_d, x, y, z):
+    brick_d = bricksdict[source_key]
+    new_name = "Bricker_%(source_name)s__%(key)s" % locals()
+    new_co = (Vector(brick_d["co"]) + vec_mult(Vector((x, y, z)), full_d)).to_tuple()
+    bricksdict[key] = createBricksDictEntry(
+        name=              new_name,
+        loc=               str_to_list(key),
+        co=                new_co,
+        near_face=         brick_d["near_face"],
+        near_intersection= tuple(brick_d["near_intersection"]),
+        mat_name=          brick_d["mat_name"],
     )
-    return bricksDict
+    return bricksdict
 
-def createObjNamesD(objs):
+def create_obj_names_dict(objs):
     scn = bpy.context.scene
-    # initialize objNamesD
-    objNamesD = {}
-    # fill objNamesD with selected_objects
+    # initialize obj_names_dict
+    obj_names_dict = {}
+    # fill obj_names_dict with selected_objects
     for obj in objs:
-        if obj is None or not obj.isBrick:
+        if obj is None or not obj.is_brick:
             continue
         # get cmlist item referred to by object
-        cm = getItemByID(scn.cmlist, obj.cmlist_id)
+        cm = get_item_by_id(scn.cmlist, obj.cmlist_id)
         if cm is None: continue
-        # add object to objNamesD
-        if cm.id not in objNamesD:
-            objNamesD[cm.id] = [obj.name]
+        # add object to obj_names_dict
+        if cm.id not in obj_names_dict:
+            obj_names_dict[cm.id] = [obj.name]
         else:
-            objNamesD[cm.id].append(obj.name)
-    return objNamesD
+            obj_names_dict[cm.id].append(obj.name)
+    return obj_names_dict
 
 
-def createObjNamesAndBricksDictsDs(objs):
-    bricksDicts = {}
-    objNamesD = createObjNamesD(objs)
-    # initialize bricksDicts
+get_bricksdicts_from_objs(obj_names):
     scn = bpy.context.scene
-    for cm_id in objNamesD.keys():
-        cm = getItemByID(scn.cmlist, cm_id)
+    # initialize bricksdicts
+    bricksdicts = {}
+    for cm_id in obj_names:
+        cm = get_item_by_id(scn.cmlist, cm_id)
         if cm is None: continue
-        # get bricksDict from cache
-        bricksDict = getBricksDict(cm)
-        # add to bricksDicts
-        bricksDicts[cm_id] = bricksDict
-    return objNamesD, bricksDicts
+        # get bricksdict from cache
+        bricksdict = get_bricksdict(cm)
+        # add to bricksdicts
+        bricksdicts[cm_id] = bricksdict
+    return bricksdicts
 
 
-def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", allModels=False, only=False, include="EXT"):
+def select_bricks(obj_names_dict, bricksdicts, brick_size="NULL", brick_type="NULL", all_models=False, only=False, include="EXT"):
     scn = bpy.context.scene
     if only:
-        deselectAll()
-    # split all bricks in objNamesD[cm_id]
-    for cm_id in objNamesD.keys():
-        cm = getItemByID(scn.cmlist, cm_id)
-        if not (cm.idx == scn.cmlist_index or allModels):
+        deselect_all()
+    # split all bricks in obj_names_dict[cm_id]
+    for cm_id in obj_names_dict.keys():
+        cm = get_item_by_id(scn.cmlist, cm_id)
+        if not (cm.idx == scn.cmlist_index or all_models):
             continue
-        bricksDict = bricksDicts[cm_id]
-        selectedSomething = False
+        bricksdict = bricksdicts[cm_id]
+        selected_something = False
 
-        for obj_name in objNamesD[cm_id]:
+        for obj_name in obj_names_dict[cm_id]:
             # get dict key details of current obj
-            dictKey = getDictKey(obj_name)
-            dictLoc = getDictLoc(bricksDict, dictKey)
-            siz = bricksDict[dictKey]["size"]
-            typ = bricksDict[dictKey]["type"]
-            onShell = isOnShell(bricksDict, dictKey, loc=dictLoc, zStep=cm.zStep)
+            dkey = get_dict_key(obj_name)
+            dloc = get_dict_loc(bricksdict, dkey)
+            siz = bricksdict[dkey]["size"]
+            typ = bricksdict[dkey]["type"]
+            on_shell = is_on_shell(bricksdict, dkey, loc=dloc, zstep=cm.zstep)
 
             # get current brick object
-            curObj = bpy.data.objects.get(obj_name)
-            # if curObj is None:
+            cur_obj = bpy.data.objects.get(obj_name)
+            # if cur_obj is None:
             #     continue
             # select brick
-            sizeStr = listToStr(sorted(siz[:2]) + [siz[2]])
-            if (sizeStr == brickSize or typ == brickType) and (include == "BOTH" or (include == "INT" and not onShell) or (include == "EXT" and onShell)):
-                selectedSomething = True
-                select(curObj)
+            size_str = list_to_str(sorted(siz[:2]) + [siz[2]])
+            if (size_str == brick_size or typ == brick_type) and (include == "BOTH" or (include == "INT" and not on_shell) or (include == "EXT" and on_shell)):
+                selected_something = True
+                select(cur_obj)
             # elif only:
-            #     deselect(curObj)
+            #     deselect(cur_obj)
 
-        # if no brickSize bricks exist, remove from cm.brickSizesUsed or cm.brickTypesUsed
-        removeUnusedFromList(cm, brickType=brickType, brickSize=brickSize, selectedSomething=selectedSomething)
+        # if no brick_size bricks exist, remove from cm.brick_sizes_used or cm.brick_types_used
+        remove_unused_from_list(cm, brick_type=brick_type, brick_size=brick_size, selected_something=selected_something)
 
 
-def removeUnusedFromList(cm, brickType="NULL", brickSize="NULL", selectedSomething=True):
-    item = brickType if brickType != "NULL" else brickSize
-    # if brickType/brickSize bricks exist, return None
-    if selectedSomething or item == "NULL":
+def remove_unused_from_list(cm, brick_type="NULL", brick_size="NULL", selected_something=True):
+    item = brick_type if brick_type != "NULL" else brick_size
+    # if brick_type/brick_size bricks exist, return None
+    if selected_something or item == "NULL":
         return None
-    # turn brickTypesUsed into list of sizes
-    lst = (cm.brickTypesUsed if brickType != "NULL" else cm.brickSizesUsed).split("|")
+    # turn brick_types_used into list of sizes
+    lst = (cm.brick_types_used if brick_type != "NULL" else cm.brick_sizes_used).split("|")
     # remove unused item
     if item in lst:
         remove_item(lst, item)
     # convert bTU back to string of sizes split by '|'
-    newLst = listToStr(lst, separate_by="|")
+    new_list = list_to_str(lst, separate_by="|")
     # store new list to current cmlist item
-    if brickSize != "NULL":
-        cm.brickSizesUsed = newLst
+    if brick_size != "NULL":
+        cm.brick_sizes_used = new_list
     else:
-        cm.brickTypesUsed = newLst
+        cm.brick_types_used = new_list
 
 
-def getAdjDKLs(cm, bricksDict, dictKey, obj):
-    # initialize vars for self.adjDKLs setup
-    x,y,z = getDictLoc(bricksDict, dictKey)
-    objSize = bricksDict[dictKey]["size"]
-    sX, sY, sZ = objSize[0], objSize[1], objSize[2] // cm.zStep
-    adjDKLs = [[],[],[],[],[],[]]
+def get_adj_locs(cm, bricksdict, dkey, obj):
+    # initialize vars for self.adj_locs setup
+    x,y,z = get_dict_loc(bricksdict, dkey)
+    obj_size = bricksdict[dkey]["size"]
+    sX, sY, sZ = obj_size[0], obj_size[1], obj_size[2] // cm.zstep
+    adj_locs = [[],[],[],[],[],[]]
     # initialize ranges
     rgs = [range(x, x + sX),
            range(y, y + sY),
            range(z, z + sZ)]
-    # set up self.adjDKLs
-    adjDKLs[0] += [[x + sX, y0, z0] for z0 in rgs[2] for y0 in rgs[1]]
-    adjDKLs[1] += [[x - 1, y0, z0]  for z0 in rgs[2] for y0 in rgs[1]]
-    adjDKLs[2] += [[x0, y + sY, z0] for z0 in rgs[2] for x0 in rgs[0]]
-    adjDKLs[3] += [[x0, y - 1, z0]  for z0 in rgs[2] for x0 in rgs[0]]
-    adjDKLs[4] += [[x0, y0, z + sZ] for y0 in rgs[1] for x0 in rgs[0]]
-    adjDKLs[5] += [[x0, y0, z - 1]  for y0 in rgs[1] for x0 in rgs[0]]
-    return adjDKLs
+    # set up self.adj_locs
+    adj_locs[0] += [[x + sX, y0, z0] for z0 in rgs[2] for y0 in rgs[1]]
+    adj_locs[1] += [[x - 1, y0, z0]  for z0 in rgs[2] for y0 in rgs[1]]
+    adj_locs[2] += [[x0, y + sY, z0] for z0 in rgs[2] for x0 in rgs[0]]
+    adj_locs[3] += [[x0, y - 1, z0]  for z0 in rgs[2] for x0 in rgs[0]]
+    adj_locs[4] += [[x0, y0, z + sZ] for y0 in rgs[1] for x0 in rgs[0]]
+    adj_locs[5] += [[x0, y0, z - 1]  for y0 in rgs[1] for x0 in rgs[0]]
+    return adj_locs
 
 
-def installBrickSculpt():
+def install_bricksculpt():
     if not hasattr(bpy.props, "bricksculpt_module_name"):
         return False
-    addonsPath = bpy.utils.user_resource("SCRIPTS", "addons")
-    Bricker = bpy.props.bricker_module_name
-    BrickSculpt = bpy.props.bricksculpt_module_name
-    bricksculptPathOld = "%(addonsPath)s/%(BrickSculpt)s/bricksculpt_framework.py" % locals()
-    bricksculptPathNew = "%(addonsPath)s/%(Bricker)s/buttons/customize/tools/bricksculpt_framework.py" % locals()
-    fOld = open(bricksculptPathOld, "r")
-    fNew = open(bricksculptPathNew, "w")
+    addons_path = bpy.utils.user_resource("SCRIPTS", "addons")
+    bricksculpt_mod_name = bpy.props.bricksculpt_module_name
+    bricker_mod_name = bpy.props.bricker_module_name
+    bricksculpt_path_old = "%(addons_path)s/%(bricksculpt_mod_name)s/bricksculpt_framework.py" % locals()
+    bricksculpt_path_new = "%(addons_path)s/%(bricker_mod_name)s/buttons/customize/tools/bricksculpt_framework.py" % locals()
+    f_old = open(bricksculpt_path_old, "r")
+    f_new = open(bricksculpt_path_new, "w")
     # write META commands
-    lines = fOld.readlines()
-    fNew.truncate(0)
+    lines = f_old.readlines()
+    f_new.truncate(0)
     print(lines)
-    fNew.writelines(lines)
-    fOld.close()
-    fNew.close()
+    f_new.writelines(lines)
+    f_old.close()
+    f_new.close()
     return True

@@ -19,5 +19,5 @@
 from .caches import *
 from .preferences import *
 from .reportError import *
-from .bricksDict import *
+from .bricksdict import *
 from .keymaps import *

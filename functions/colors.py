@@ -24,28 +24,28 @@ import colorsys
 from .general import *
 
 
-def getColors():
-    if not hasattr(getColors, "colors"):
+def get_colors():
+    if not hasattr(get_colors, "colors"):
         colors = {}
         mat_properties = bpy.props.abs_mat_properties
         for key in mat_properties.keys():
             colors[key] = mat_properties[key]["Color" if "Trans-" in key else "Diffuse Color"]
-        getColors.colors = colors
-    return getColors.colors
+        get_colors.colors = colors
+    return get_colors.colors
 
 
-def findNearestBrickColorName(rgba, transWeight, matObj=None):
+def find_nearest_brick_color_name(rgba, trans_weight, mat_obj=None):
     if rgba is None:
         return ""
-    colors = getColors().copy()
-    if matObj is not None:
+    colors = get_colors().copy()
+    if mat_obj is not None:
         for k in list(colors.keys()):  # copy keys list as it will change during iteration
-            if k not in matObj.data.materials.keys():
+            if k not in mat_obj.data.materials.keys():
                 colors.pop(k, None)
-    return findNearestColorName(rgba, transWeight, colors)
+    return find_nearest_color_name(rgba, trans_weight, colors)
 
 
-def distance(c1, c2, aWt=1):
+def distance(c1, c2, awt=1):
     r1, g1, b1, a1 = c1
     r2, g2, b2, a2 = c2
     # a1 = c1[3]
@@ -61,16 +61,16 @@ def distance(c1, c2, aWt=1):
     diff =  0.30 * ((r1 - r2)**2)
     diff += 0.59 * ((g1 - g2)**2)
     diff += 0.11 * ((b1 - b2)**2)
-    diff += aWt * ((a1 - a2)**2)
+    diff += awt * ((a1 - a2)**2)
     return diff
 
 
-def findNearestColorName(rgba, transWeight, colors):
+def find_nearest_color_name(rgba, trans_weight, colors):
     mindiff = None
     mincolorname = ""
-    for colorName in colors:
-        diff = distance(rgba, colors[colorName], transWeight)
+    for color_name in colors:
+        diff = distance(rgba, colors[color_name], trans_weight)
         if mindiff is None or diff < mindiff:
             mindiff = diff
-            mincolorname = colorName
+            mincolorname = color_name
     return mincolorname

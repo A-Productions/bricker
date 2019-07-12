@@ -32,20 +32,20 @@ from .app_handlers import *
 from .timers import *
 from .matlist_window import *
 from .matlist_actions import *
-from ..lib.bricksDict import *
+from ..lib.bricksdict import *
 from ..lib.Brick.test_brick_generators import *
-from ..lib.caches import cacheExists
-from ..buttons.revertSettings import *
+from ..lib.caches import cache_exists
+from ..buttons.revert_settings import *
 from ..buttons.brickify import *
 from ..buttons.customize.tools.bricksculpt import *
 from ..functions import *
-from ..functions.brickify_utils import getModelResolution
+from ..functions.brickify_utils import get_model_resolution
 from .. import addon_updater_ops
 if b280():
     from .other_property_groups import *
 
 
-def settingsCanBeDrawn():
+def settings_can_be_drawn():
     scn = bpy.context.scene
     if scn.cmlist_index == -1:
         return False
@@ -118,13 +118,13 @@ class VIEW3D_PT_bricker_brick_models(Panel):
         if scn.cmlist_index == -1:
             layout.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="New Brick Model", icon="ADD" if b280() else "ZOOMIN").action = "ADD"
         else:
-            cm, n = getActiveContextInfo()[1:]
-            if not createdWithNewerVersion(cm):
+            cm, n = get_active_context_info()[1:]
+            if not created_with_newer_version(cm):
                 # first, draw source object text
-                source_name = " %(n)s" % locals() if cm.animated or cm.modelCreated else ""
+                source_name = " %(n)s" % locals() if cm.animated or cm.model_created else ""
                 col1 = layout.column(align=True)
                 col1.label(text="Source Object:%(source_name)s" % locals())
-                if not (cm.animated or cm.modelCreated):
+                if not (cm.animated or cm.model_created):
                     col2 = layout.column(align=True)
                     col2.prop_search(cm, "source_obj", scn, "objects", text="")
 
@@ -133,7 +133,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
             v_str = cm.version[:3]
 
             # if model created with newer version, disable
-            if createdWithNewerVersion(cm):
+            if created_with_newer_version(cm):
                 col = layout.column(align=True)
                 col.scale_y = 0.7
                 col.label(text="Model was created with")
@@ -146,27 +146,27 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                 row = col1.row(align=True)
                 row.operator("bricker.initialize", text="Initialize Bricker", icon="MODIFIER")
                 # draw test brick generator button (for testing purposes only)
-                if BRICKER_OT_test_brick_generators.drawUIButton():
+                if BRICKER_OT_test_brick_generators.draw_ui_button():
                     col = layout.column(align=True)
                     col.operator("bricker.test_brick_generators", text="Test Brick Generators", icon="OUTLINER_OB_MESH")
             # if use animation is selected, draw animation options
-            elif cm.useAnimation:
+            elif cm.use_animation:
                 if cm.animated:
                     row = col1.row(align=True)
                     row.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    if cm.brickifyingInBackground and cm.framesToAnimate > 0:
+                    if cm.brickifying_in_background and cm.frames_to_animate > 0:
                         col.scale_y = 0.75
                         row.label(text="Animating...")
                         row.operator("bricker.stop_brickifying_in_background", text="Stop", icon="PAUSE")
                         row = col.row(align=True)
-                        percentage = round(cm.numAnimatedFrames * 100 / cm.framesToAnimate, 2)
+                        percentage = round(cm.run_animated_frames * 100 / cm.frames_to_animate, 2)
                         row.label(text=str(percentage) + "% completed")
                     else:
-                        row.active = brickifyShouldRun(cm)
+                        row.active = brickify_should_run(cm)
                         row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
-                    if createdWithUnsupportedVersion(cm):
+                    if created_with_unsupported_version(cm):
                         v_str = cm.version[:3]
                         col = layout.column(align=True)
                         col.scale_y = 0.7
@@ -191,7 +191,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                             col.label(text="be lost.")
             # if use animation is not selected, draw modeling options
             else:
-                if not cm.animated and not cm.modelCreated:
+                if not cm.animated and not cm.model_created:
                     row = col1.row(align=True)
                     row.active = obj is not None and obj.type == "MESH" and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
                     row.operator("bricker.brickify", text="Brickify Object", icon="MOD_REMESH")
@@ -210,16 +210,16 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                     row.operator("bricker.delete_model", text="Delete Brickified Model", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    if cm.brickifyingInBackground:
+                    if cm.brickifying_in_background:
                         row.label(text="Brickifying...")
                         row.operator("bricker.stop_brickifying_in_background", text="Stop", icon="PAUSE")
                         # row = col.row(align=True)
-                        # percentage = round(cm.numAnimatedFrames * 100 / cm.framesToAnimate, 2)
+                        # percentage = round(cm.run_animated_frames * 100 / cm.frames_to_animate, 2)
                         # row.label(text=str(percentage) + "% completed")
                     else:
-                        row.active = brickifyShouldRun(cm)
+                        row.active = brickify_should_run(cm)
                         row.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
-                    if createdWithUnsupportedVersion(cm):
+                    if created_with_unsupported_version(cm):
                         col = layout.column(align=True)
                         col.scale_y = 0.7
                         col.label(text="Model was created with")
@@ -227,7 +227,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                         col.label(text="run 'Update Model' so")
                         col.label(text="it is compatible with")
                         col.label(text="your current version.")
-                    elif matrixReallyIsDirty(cm, include_lost_matrix=False) and cm.customized:
+                    elif matrix_really_is_dirty(cm, include_lost_matrix=False) and cm.customized:
                         row = col.row(align=True)
                         row.label(text="Customizations will be lost")
                         row = col.row(align=True)
@@ -257,49 +257,49 @@ class VIEW3D_PT_bricker_animation(Panel):
 
     @classmethod
     def poll(self, context):
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
-        scn, cm, n = getActiveContextInfo()
-        if cm.modelCreated:
+        scn, cm, n = get_active_context_info()
+        if cm.model_created:
             return False
         return True
 
     def draw_header(self, context):
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
         if not cm.animated:
-            self.layout.prop(cm, "useAnimation", text="")
+            self.layout.prop(cm, "use_animation", text="")
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
 
         col1 = layout.column(align=True)
-        col1.active = cm.animated or cm.useAnimation
+        col1.active = cm.animated or cm.use_animation
         col1.scale_y = 0.85
         row = col1.row(align=True)
         split = layout_split(row, factor=0.5)
         col = split.column(align=True)
-        col.prop(cm, "startFrame")
+        col.prop(cm, "start_frame")
         col = split.column(align=True)
-        col.prop(cm, "stopFrame")
+        col.prop(cm, "stop_frame")
         source = cm.source_obj
-        self.appliedMods = False
+        self.applied_mods = False
         if source:
             for mod in source.modifiers:
                 if mod.type in ("CLOTH", "SOFT_BODY") and mod.show_viewport:
-                    self.appliedMods = True
+                    self.applied_mods = True
                     t = mod.type
-                    if mod.point_cache.frame_end < cm.stopFrame:
-                        s = str(max([mod.point_cache.frame_end+1, cm.startFrame]))
-                        e = str(cm.stopFrame)
-                    elif mod.point_cache.frame_start > cm.startFrame:
-                        s = str(cm.startFrame)
-                        e = str(min([mod.point_cache.frame_start-1, cm.stopFrame]))
+                    if mod.point_cache.frame_end < cm.stop_frame:
+                        s = str(max([mod.point_cache.frame_end+1, cm.start_frame]))
+                        e = str(cm.stop_frame)
+                    elif mod.point_cache.frame_start > cm.start_frame:
+                        s = str(cm.start_frame)
+                        e = str(min([mod.point_cache.frame_start-1, cm.stop_frame]))
                     else:
                         s = "0"
                         e = "-1"
-                    totalSkipped = int(e) - int(s) + 1
-                    if totalSkipped > 0:
+                    total_skipped = int(e) - int(s) + 1
+                    if total_skipped > 0:
                         row = col1.row(align=True)
                         row.label(text="Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
 
@@ -315,22 +315,22 @@ class VIEW3D_PT_bricker_model_transform(Panel):
 
     @classmethod
     def poll(self, context):
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
-        scn, cm, _ = getActiveContextInfo()
-        if cm.modelCreated or cm.animated:
+        scn, cm, _ = get_active_context_info()
+        if cm.model_created or cm.animated:
             return True
         return False
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, n = getActiveContextInfo()
+        scn, cm, n = get_active_context_info()
 
         col = layout.column(align=True)
         right_align(col)
         row = col.row(align=True)
 
-        if not (cm.animated or cm.lastSplitModel):
+        if not (cm.animated or cm.last_split_model):
             col.scale_y = 0.7
             row.label(text="Use Blender's built-in")
             row = col.row(align=True)
@@ -338,10 +338,10 @@ class VIEW3D_PT_bricker_model_transform(Panel):
             col = layout.column(align=True)
             return
 
-        row.prop(cm, "applyToSourceObject")
-        if cm.animated or (cm.lastSplitModel and cm.modelCreated):
+        row.prop(cm, "apply_to_source_object")
+        if cm.animated or (cm.last_split_model and cm.model_created):
             row = col.row(align=True)
-            row.prop(cm, "exposeParent")
+            row.prop(cm, "expose_parent")
         row = col.row(align=True)
         parent = bpy.data.objects["Bricker_%(n)s_parent" % locals()]
         row = layout.row()
@@ -354,7 +354,7 @@ class VIEW3D_PT_bricker_model_transform(Panel):
             row.column().prop(parent, "rotation_euler", text="Rotation")
         # row.column().prop(parent, "scale")
         layout.prop(parent, "rotation_mode")
-        layout.prop(cm, "transformScale")
+        layout.prop(cm, "transform_scale")
 
 
 class VIEW3D_PT_bricker_model_settings(Panel):
@@ -368,20 +368,20 @@ class VIEW3D_PT_bricker_model_settings(Panel):
     @classmethod
     def poll(self, context):
         """ ensures operator can execute (if not, returns false) """
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
         return True
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
         source = cm.source_obj
 
         col = layout.column(align=True)
         # draw Brick Model dimensions to UI
         if source:
-            r = getModelResolution(source, cm)
-            if cm.brickType == "CUSTOM" and r is None:
+            r = get_model_resolution(source, cm)
+            if cm.brick_type == "CUSTOM" and r is None:
                 col.label(text="[Custom object not found]")
             else:
                 split = layout_split(col, factor=0.5)
@@ -391,22 +391,22 @@ class VIEW3D_PT_bricker_model_settings(Panel):
                 col2.alignment = "RIGHT"
                 col2.label(text="{}x{}x{}".format(int(r.x), int(r.y), int(r.z)))
         row = col.row(align=True)
-        row.prop(cm, "brickHeight")
+        row.prop(cm, "brick_height")
         row = col.row(align=True)
         row.prop(cm, "gap")
 
         row = col.row(align=True)
-        # if not cm.useAnimation:
+        # if not cm.use_animation:
         col = layout.column()
         row = col.row(align=True)
         right_align(row)
-        row.active = not cm.useAnimation
-        row.prop(cm, "splitModel")
+        row.active = not cm.use_animation
+        row.prop(cm, "split_model")
 
         col = layout.column()
         row = col.row(align=True)
-        row.active = cm.calcInternals
-        row.prop(cm, "shellThickness")
+        row.active = cm.calc_internals
+        row.prop(cm, "shell_thickness")
 
         col = layout.column()
         row = col.row(align=True)
@@ -414,17 +414,9 @@ class VIEW3D_PT_bricker_model_settings(Panel):
         row = col.row(align=True)
         split = layout_split(row, factor=0.5)
         col1 = split.column(align=True)
-        col1.prop(cm, "randomLoc", text="Loc")
+        col1.prop(cm, "random_loc", text="Loc")
         col2 = split.column(align=True)
-        col2.prop(cm, "randomRot", text="Rot")
-
-        obj = cm.source_obj
-        # if obj and not cm.isWaterTight:
-        #     row = col.row(align=True)
-        #     # row.scale_y = 0.7
-        #     row.label(text="(Source is NOT single closed mesh)")
-        #     # row = col.row(align=True)
-        #     # row.operator("scene.make_closed_mesh", text="Make Single Closed Mesh")
+        col2.prop(cm, "random_rot", text="Rot")
 
 
 class VIEW3D_PT_bricker_customize(Panel):
@@ -438,25 +430,25 @@ class VIEW3D_PT_bricker_customize(Panel):
 
     @classmethod
     def poll(self, context):
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
-        scn, cm, _ = getActiveContextInfo()
-        if createdWithUnsupportedVersion(cm):
+        scn, cm, _ = get_active_context_info()
+        if created_with_unsupported_version(cm):
             return False
-        if not (cm.modelCreated or cm.animated):
+        if not (cm.model_created or cm.animated):
             return False
         return True
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
 
-        if matrixReallyIsDirty(cm):
+        if matrix_really_is_dirty(cm):
             layout.label(text="Matrix is dirty!")
             col = layout.column(align=True)
             col.label(text="Model must be updated to customize:")
             col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
-            if cm.customized and not cm.matrixLost:
+            if cm.customized and not cm.matrix_lost:
                 row = col.row(align=True)
                 row.label(text="Prior customizations will be lost")
                 row = col.row(align=True)
@@ -465,21 +457,21 @@ class VIEW3D_PT_bricker_customize(Panel):
         if cm.animated:
             layout.label(text="Not available for animations")
             return
-        if not cm.lastSplitModel:
+        if not cm.last_split_model:
             col = layout.column(align=True)
             col.label(text="Model must be split to customize:")
             col.operator("bricker.brickify", text="Split & Update Model", icon="FILE_REFRESH").splitBeforeUpdate = True
             return
-        if cm.buildIsDirty:
+        if cm.build_is_dirty:
             col = layout.column(align=True)
             col.label(text="Model must be updated to customize:")
             col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
             return
-        if cm.brickifyingInBackground:
+        if cm.brickifying_in_background:
             col = layout.column(align=True)
             col.label(text="Model is brickifying...")
             return
-        elif not cacheExists(cm):
+        elif not cache_exists(cm):
             layout.label(text="Matrix not cached!")
             col = layout.column(align=True)
             col.label(text="Model must be updated to customize:")
@@ -507,8 +499,8 @@ class VIEW3D_PT_bricker_customize(Panel):
         # row.operator("bricker.bricksculpt", text="Merge/Split Tool", icon="MOD_DYNAMICPAINT").mode = "MERGE/SPLIT"
         # row = col.row(align=True)
         # row.operator("bricker.bricksculpt", text="Paintbrush Tool", icon="MOD_DYNAMICPAINT").mode = "PAINT"
-        # row.prop_search(cm, "paintbrushMat", bpy.data, "materials", text="")
-        # if not BRICKER_OT_bricksculpt.BrickSculptInstalled:
+        # row.prop_search(cm, "paintbrush_mat", bpy.data, "materials", text="")
+        # if not BRICKER_OT_bricksculpt.bricksculpt_installed:
         #     row = col.row(align=True)
         #     row.scale_y = 0.7
         #     row.label(text="BrickSculpt available for purchase")
@@ -562,7 +554,7 @@ class VIEW3D_PT_bricker_customize(Panel):
         # additional controls
         row = col1.row(align=True)
         right_align(row)
-        row.prop(cm, "autoUpdateOnDelete")
+        row.prop(cm, "auto_update_on_delete")
         # row = col.row(align=True)
         # row.operator("bricker.redraw_bricks")
 
@@ -579,7 +571,7 @@ class VIEW3D_PT_bricker_smoke_settings(Panel):
     @classmethod
     def poll(self, context):
         """ ensures operator can execute (if not, returns false) """
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
         scn = bpy.context.scene
         if scn.cmlist_index == -1:
@@ -592,30 +584,30 @@ class VIEW3D_PT_bricker_smoke_settings(Panel):
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
         source = cm.source_obj
 
         col = layout.column(align=True)
         if is_smoke(source):
             row = col.row(align=True)
-            row.prop(cm, "smokeDensity", text="Density")
+            row.prop(cm, "smoke_density", text="Density")
             row = col.row(align=True)
-            row.prop(cm, "smokeQuality", text="Quality")
+            row.prop(cm, "smoke_quality", text="Quality")
 
         if is_smoke(source):
             col = layout.column(align=True)
             row = col.row(align=True)
             row.label(text="Smoke Color:")
             row = col.row(align=True)
-            row.prop(cm, "smokeBrightness", text="Brightness")
+            row.prop(cm, "smoke_brightness", text="Brightness")
             row = col.row(align=True)
-            row.prop(cm, "smokeSaturation", text="Saturation")
+            row.prop(cm, "smoke_saturation", text="Saturation")
             row = col.row(align=True)
             row.label(text="Flame Color:")
             row = col.row(align=True)
-            row.prop(cm, "flameColor", text="")
+            row.prop(cm, "flame_color", text="")
             row = col.row(align=True)
-            row.prop(cm, "flameIntensity", text="Intensity")
+            row.prop(cm, "flame_intensity", text="Intensity")
 
 
 class VIEW3D_PT_bricker_brick_types(Panel):
@@ -629,41 +621,41 @@ class VIEW3D_PT_bricker_brick_types(Panel):
 
     @classmethod
     def poll(self, context):
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
         return True
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.prop(cm, "brickType", text="")
+        row.prop(cm, "brick_type", text="")
 
-        if mergableBrickType(cm.brickType):
+        if mergable_brick_type(cm.brick_type):
             col = layout.column(align=True)
             col.label(text="Max Brick Size:")
             row = col.row(align=True)
-            row.prop(cm, "maxWidth", text="Width")
-            row.prop(cm, "maxDepth", text="Depth")
+            row.prop(cm, "max_width", text="Width")
+            row.prop(cm, "max_depth", text="Depth")
             col = layout.column(align=True)
             row = col.row(align=True)
             right_align(row)
-            row.prop(cm, "legalBricksOnly")
+            row.prop(cm, "legal_bricks_only")
 
-        if cm.brickType == "CUSTOM":
+        if cm.brick_type == "CUSTOM":
             col = layout.column(align=True)
             col.label(text="Brick Type Object:")
-        elif cm.lastSplitModel:
+        elif cm.last_split_model:
             col.label(text="Custom Brick Objects:")
-        if cm.brickType == "CUSTOM" or cm.lastSplitModel:
-            for prop in ("customObject1", "customObject2", "customObject3"):
-                if prop[-1] == "2" and cm.brickType == "CUSTOM":
+        if cm.brick_type == "CUSTOM" or cm.last_split_model:
+            for prop in ("custom_object1", "custom_object2", "custom_object3"):
+                if prop[-1] == "2" and cm.brick_type == "CUSTOM":
                     col.label(text="Distance Offset:")
                     row = col.row(align=True)
-                    row.prop(cm, "distOffset", text="")
-                    if cm.lastSplitModel:
+                    row.prop(cm, "dist_offset", text="")
+                    if cm.last_split_model:
                         col = layout.column(align=True)
                         col.label(text="Other Objects:")
                     else:
@@ -686,37 +678,37 @@ class VIEW3D_PT_bricker_merge_settings(Panel):
 
     @classmethod
     def poll(self, context):
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
         scn = bpy.context.scene
         if scn.cmlist_index == -1:
             return False
         cm = scn.cmlist[scn.cmlist_index]
-        return mergableBrickType(cm.brickType)
+        return mergable_brick_type(cm.brick_type)
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.prop(cm, "mergeType", expand=True)
-        if cm.mergeType == "RANDOM":
+        row.prop(cm, "merge_type", expand=True)
+        if cm.merge_type == "RANDOM":
             row = col.row(align=True)
-            row.prop(cm, "mergeSeed")
+            row.prop(cm, "merge_seed")
             row = col.row(align=True)
-            row.prop(cm, "connectThresh")
-        if cm.shellThickness > 1:
+            row.prop(cm, "connect_thresh")
+        if cm.shell_thickness > 1:
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.prop(cm, "mergeInternals")
-        if cm.brickType == "BRICKS AND PLATES":
+            row.prop(cm, "merge_internals")
+        if cm.brick_type == "BRICKS AND PLATES":
             row = col.row(align=True)
             right_align(row)
-            row.prop(cm, "alignBricks")
-            if cm.alignBricks:
+            row.prop(cm, "align_bricks")
+            if cm.align_bricks:
                 row = col.row(align=True)
-                row.prop(cm, "offsetBrickLayers")
+                row.prop(cm, "offset_brick_layers")
 
 
 class VIEW3D_PT_bricker_materials(Panel):
@@ -731,57 +723,57 @@ class VIEW3D_PT_bricker_materials(Panel):
     @classmethod
     def poll(self, context):
         """ ensures operator can execute (if not, returns false) """
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
         return True
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
         obj = cm.source_obj
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.prop(cm, "materialType", text="")
+        row.prop(cm, "material_type", text="")
 
-        if cm.materialType == "CUSTOM":
+        if cm.material_type == "CUSTOM":
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.prop(cm, "customMat", text="")
+            row.prop(cm, "custom_mat", text="")
             if brick_materials_installed() and not brick_materials_imported():
                 row = col.row(align=True)
                 row.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
-            if cm.modelCreated or cm.animated:
+            if cm.model_created or cm.animated:
                 col = layout.column(align=True)
                 row = col.row(align=True)
                 row.operator("bricker.apply_material", icon="FILE_TICK")
-        elif cm.materialType == "RANDOM":
+        elif cm.material_type == "RANDOM":
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.prop(cm, "randomMatSeed")
-            if cm.modelCreated or cm.animated:
-                if cm.materialIsDirty and not cm.lastSplitModel:
+            row.prop(cm, "random_mat_seed")
+            if cm.model_created or cm.animated:
+                if cm.material_is_dirty and not cm.last_split_model:
                     col = layout.column(align=True)
                     row = col.row(align=True)
                     row.label(text="Run 'Update Model' to apply changes")
-                elif cm.lastMaterialType == cm.materialType or (not cm.useAnimation and cm.lastSplitModel):
+                elif cm.last_material_type == cm.material_type or (not cm.use_animation and cm.last_split_model):
                     col = layout.column(align=True)
                     row = col.row(align=True)
                     row.operator("bricker.apply_material", icon="FILE_TICK")
-        elif cm.materialType == "SOURCE" and obj:
+        elif cm.material_type == "SOURCE" and obj:
             # internal material info
-            if cm.shellThickness > 1 or cm.internalSupports != "NONE":
+            if cm.shell_thickness > 1 or cm.internal_supports != "NONE":
                 # if len(obj.data.uv_layers) <= 0 or len(obj.data.vertex_colors) > 0:
                 col = layout.column(align=True)
                 row = col.row(align=True)
                 row.label(text="Internal Material:")
                 row = col.row(align=True)
-                row.prop(cm, "internalMat", text="")
+                row.prop(cm, "internal_mat", text="")
                 row = col.row(align=True)
-                row.prop(cm, "matShellDepth")
-                if cm.modelCreated:
+                row.prop(cm, "mat_shell_depth")
+                if cm.model_created:
                     row = col.row(align=True)
-                    if cm.matShellDepth <= cm.lastMatShellDepth:
+                    if cm.mat_shell_depth <= cm.last_mat_shell_depth:
                         row.operator("bricker.apply_material", icon="FILE_TICK")
                     else:
                         row.label(text="Run 'Update Model' to apply changes")
@@ -791,23 +783,23 @@ class VIEW3D_PT_bricker_materials(Panel):
             row = col.row(align=True)
             row.label(text="Color Mapping:")
             row = col.row(align=True)
-            row.prop(cm, "colorSnap", expand=True)
-            if cm.colorSnap == "RGB":
+            row.prop(cm, "color_snap", expand=True)
+            if cm.color_snap == "RGB":
                 row = col.row(align=True)
-                row.prop(cm, "colorSnapAmount")
-            if cm.colorSnap == "ABS":
+                row.prop(cm, "color_snap_amount")
+            if cm.color_snap == "ABS":
                 row = col.row(align=True)
-                row.prop(cm, "transparentWeight", text="Transparent Weight")
+                row.prop(cm, "transparent_weight", text="Transparent Weight")
 
-            if not b280() and cm.colorSnap != "NONE":
+            if not b280() and cm.color_snap != "NONE":
                 col = layout.column(align=True)
                 col.active = len(obj.data.uv_layers) > 0
                 row = col.row(align=True)
-                row.prop(cm, "useUVMap", text="Use UV Map")
+                row.prop(cm, "use_uv_map", text="Use UV Map")
                 split = layout_split(row, factor=0.75)
-                # split.active = cm.useUVMap
-                if cm.useUVMap:
-                    split.prop(cm, "uvImage", text="")
+                # split.active = cm.use_uv_map
+                if cm.use_uv_map:
+                    split.prop(cm, "uv_image", text="")
                     split.operator("image.open", icon="FILEBROWSER" if b280() else "FILESEL", text="")
                 if len(obj.data.vertex_colors) > 0:
                     col = layout.column(align=True)
@@ -828,26 +820,26 @@ class VIEW3D_PT_bricker_use_uv_map(Panel):
     @classmethod
     def poll(self, context):
         """ ensures operator can execute (if not, returns false) """
-        if not settingsCanBeDrawn() or not b280():
+        if not settings_can_be_drawn() or not b280():
             return False
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
         obj = cm.source_obj
-        if obj and len(obj.data.uv_layers) > 0 and cm.materialType == "SOURCE" and cm.colorSnap != "NONE":
+        if obj and len(obj.data.uv_layers) > 0 and cm.material_type == "SOURCE" and cm.color_snap != "NONE":
             return True
         return False
 
     def draw_header(self, context):
-        scn, cm, _ = getActiveContextInfo()
-        self.layout.prop(cm, "useUVMap", text="")
+        scn, cm, _ = get_active_context_info()
+        self.layout.prop(cm, "use_uv_map", text="")
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
         obj = cm.source_obj
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.prop(cm, "uvImage", text="Tex")
+        row.prop(cm, "uv_image", text="Tex")
         row.operator("image.open", icon="FILEBROWSER" if b280() else "FILESEL", text="")
 
 
@@ -863,20 +855,20 @@ class VIEW3D_PT_bricker_included_materials(Panel):
     @classmethod
     def poll(self, context):
         """ ensures operator can execute (if not, returns false) """
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
-        scn, cm, _ = getActiveContextInfo()
-        if cm.materialType == "RANDOM" or (cm.materialType == "SOURCE" and cm.colorSnap == "ABS"):
+        scn, cm, _ = get_active_context_info()
+        if cm.material_type == "RANDOM" or (cm.material_type == "SOURCE" and cm.color_snap == "ABS"):
             return True
         return False
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
 
-        matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
-        if matObj is None:
-            createNewMatObjs(cm.id)
+        mat_obj = get_mat_obj(cm.id, typ="RANDOM" if cm.material_type == "RANDOM" else "ABS")
+        if mat_obj is None:
+            create_new_mat_objs(cm.id)
         else:
             col = layout.column(align=True)
             if not brick_materials_installed():
@@ -885,11 +877,11 @@ class VIEW3D_PT_bricker_included_materials(Panel):
                 col.label(text="Switch to 'Cycles' or 'Eevee' for Brick Materials")
             else:
                 # draw materials UI list and list actions
-                numMats = len(matObj.data.materials)
-                rows = 5 if numMats > 5 else (numMats if numMats > 2 else 2)
+                num_mats = len(mat_obj.data.materials)
+                rows = 5 if num_mats > 5 else (num_mats if num_mats > 2 else 2)
                 split = layout_split(col, factor=0.85)
                 col1 = split.column(align=True)
-                col1.template_list("MATERIAL_UL_matslots", "", matObj, "material_slots", matObj, "active_material_index", rows=rows)
+                col1.template_list("MATERIAL_UL_matslots", "", mat_obj, "material_slots", mat_obj, "active_material_index", rows=rows)
                 col1 = split.column(align=True)
                 col1.operator("bricker.mat_list_action", icon="REMOVE" if b280() else "ZOOMOUT", text="").action = "REMOVE"
                 col1.scale_y = 1 + rows
@@ -911,7 +903,7 @@ class VIEW3D_PT_bricker_included_materials(Panel):
                 col = split.column(align=True)
                 col.label(text="Add:")
                 col = split.column(align=True)
-                col.prop_search(cm, "targetMaterial", bpy.data, "materials", text="")
+                col.prop_search(cm, "target_material", bpy.data, "materials", text="")
 
 
 class VIEW3D_PT_bricker_material_properties(Panel):
@@ -927,39 +919,39 @@ class VIEW3D_PT_bricker_material_properties(Panel):
     @classmethod
     def poll(self, context):
         """ ensures operator can execute (if not, returns false) """
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
         obj = cm.source_obj
-        if cm.materialType == "SOURCE" and obj:
-            if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
+        if cm.material_type == "SOURCE" and obj:
+            if cm.color_snap == "RGB" or (cm.use_uv_map and len(obj.data.uv_layers) > 0 and cm.color_snap == "NONE"):
                 return True
         return False
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
         obj = cm.source_obj
 
         if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.prop(cm, "colorSnapSpecular")
+            row.prop(cm, "color_snap_specular")
             row = col.row(align=True)
-            row.prop(cm, "colorSnapRoughness")
+            row.prop(cm, "color_snap_roughness")
             row = col.row(align=True)
-            row.prop(cm, "colorSnapIOR")
+            row.prop(cm, "color_snap_ior")
         if scn.render.engine in ("CYCLES", "BLENDER_EEVEE"):
             row = col.row(align=True)
-            row.prop(cm, "colorSnapSubsurface")
+            row.prop(cm, "color_snap_sss")
             row = col.row(align=True)
-            row.prop(cm, "colorSnapSubsurfaceSaturation")
+            row.prop(cm, "color_snap_sss_saturation")
             row = col.row(align=True)
-            row.prop(cm, "colorSnapTransmission")
+            row.prop(cm, "color_snap_transmission")
         if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
             row = col.row(align=True)
             right_align(row)
-            row.prop(cm, "includeTransparency")
+            row.prop(cm, "include_transparency")
 
 
 class VIEW3D_PT_bricker_detailing(Panel):
@@ -973,15 +965,15 @@ class VIEW3D_PT_bricker_detailing(Panel):
 
     @classmethod
     def poll(self, context):
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
         return True
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
 
-        if cm.brickType == "CUSTOM":
+        if cm.brick_type == "CUSTOM":
             col = layout.column(align=True)
             col.scale_y = 0.7
             row = col.row(align=True)
@@ -993,65 +985,65 @@ class VIEW3D_PT_bricker_detailing(Panel):
         row = col.row(align=True)
         row.label(text="Studs:")
         row = col.row(align=True)
-        row.prop(cm, "studDetail", text="")
+        row.prop(cm, "stud_detail", text="")
 
         col = layout.column(align=True)
         row = col.row(align=True)
         row.label(text="Logo:")
         row = col.row(align=True)
-        row.prop(cm, "logoType", text="")
-        if cm.logoType != "NONE":
-            if cm.logoType == "LEGO":
+        row.prop(cm, "logo_type", text="")
+        if cm.logo_type != "NONE":
+            if cm.logo_type == "LEGO":
                 row = col.row(align=True)
-                row.prop(cm, "logoResolution", text="Resolution")
-                row.prop(cm, "logoDecimate", text="Decimate")
+                row.prop(cm, "logo_resolution", text="Resolution")
+                row.prop(cm, "logo_decimate", text="Decimate")
                 row = col.row(align=True)
             else:
                 row = col.row(align=True)
-                row.prop_search(cm, "logoObject", scn, "objects", text="")
+                row.prop_search(cm, "logo_object", scn, "objects", text="")
                 row = col.row(align=True)
-                row.prop(cm, "logoScale", text="Scale")
-            row.prop(cm, "logoInset", text="Inset")
+                row.prop(cm, "logo_scale", text="Scale")
+            row.prop(cm, "logo_inset", text="Inset")
             col = layout.column(align=True)
 
         col = layout.column(align=True)
         row = col.row(align=True)
         row.label(text="Underside:")
         row = col.row(align=True)
-        row.prop(cm, "hiddenUndersideDetail", text="")
+        row.prop(cm, "hidden_underside_detail", text="")
         # row = col2.row(align=True)
-        row.prop(cm, "exposedUndersideDetail", text="")
+        row.prop(cm, "exposed_underside_detail", text="")
 
         col = layout.column(align=True)
         row = col.row(align=True)
         row.label(text="Circles:")
         row = col.row(align=True)
-        row.prop(cm, "circleVerts", text="Vertices")
+        row.prop(cm, "circle_verts", text="Vertices")
 
         col = layout.column(align=True)
         row = col.row(align=True)
         split = layout_split(row, factor=0.5)
         col1 = split.column(align=True)
         col1.label(text="Bevel:")
-        if not (cm.modelCreated or cm.animated) or cm.brickifyingInBackground:
+        if not (cm.model_created or cm.animated) or cm.brickifying_in_background:
             row = col.row(align=True)
             # right_align(row)
-            row.prop(cm, "bevelAdded", text="Bevel Bricks")
+            row.prop(cm, "bevel_added", text="Bevel Bricks")
             return
         try:
-            testBrick = getBricks()[0]
-            bevel = testBrick.modifiers[testBrick.name + "_bvl"]
+            test_brick = get_bricks()[0]
+            bevel = test_brick.modifiers[test_brick.name + "_bvl"]
             col2 = split.column(align=True)
             row = col2.row(align=True)
-            row.prop(cm, "bevelShowRender", icon="RESTRICT_RENDER_OFF", toggle=True)
-            row.prop(cm, "bevelShowViewport", icon="RESTRICT_VIEW_OFF", toggle=True)
-            row.prop(cm, "bevelShowEditmode", icon="EDITMODE_HLT", toggle=True)
+            row.prop(cm, "bevel_show_render", icon="RESTRICT_RENDER_OFF", toggle=True)
+            row.prop(cm, "bevel_show_viewport", icon="RESTRICT_VIEW_OFF", toggle=True)
+            row.prop(cm, "bevel_show_edit_mode", icon="EDITMODE_HLT", toggle=True)
             row = col.row(align=True)
-            row.prop(cm, "bevelWidth", text="Width")
+            row.prop(cm, "bevel_width", text="Width")
             row = col.row(align=True)
-            row.prop(cm, "bevelSegments", text="Segments")
+            row.prop(cm, "bevel_segments", text="Segments")
             row = col.row(align=True)
-            row.prop(cm, "bevelProfile", text="Profile")
+            row.prop(cm, "bevel_profile", text="Profile")
             row = col.row(align=True)
             row.operator("bricker.bevel", text="Remove Bevel", icon="CANCEL")
         except (IndexError, KeyError):
@@ -1070,39 +1062,34 @@ class VIEW3D_PT_bricker_supports(Panel):
 
     @classmethod
     def poll(self, context):
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
         return True
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
-        layout.active = cm.calcInternals
+        scn, cm, _ = get_active_context_info()
+        layout.active = cm.calc_internals
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.prop(cm, "internalSupports", text="")
-        if cm.internalSupports == "LATTICE":
+        row.prop(cm, "internal_supports", text="")
+        if cm.internal_supports == "LATTICE":
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.prop(cm, "latticeStep")
+            row.prop(cm, "lattice_step")
             row = col.row(align=True)
-            row.active == cm.latticeStep > 1
-            row.prop(cm, "latticeHeight")
+            row.active == cm.lattice_step > 1
+            row.prop(cm, "lattice_height")
             row = col.row(align=True)
             right_align(row)
-            row.prop(cm, "alternateXY")
-        elif cm.internalSupports == "COLUMNS":
+            row.prop(cm, "alternate_xy")
+        elif cm.internal_supports == "COLUMNS":
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.prop(cm, "colThickness")
+            row.prop(cm, "col_thickness")
             row = col.row(align=True)
-            row.prop(cm, "colStep")
-        obj = cm.source_obj
-        # if obj and not cm.isWaterTight:
-        #     row = col.row(align=True)
-        #     # row.scale_y = 0.7
-        #     row.label(text="(Source is NOT single closed mesh)")
+            row.prop(cm, "col_step")
 
 
 class VIEW3D_PT_bricker_advanced(Panel):
@@ -1116,14 +1103,14 @@ class VIEW3D_PT_bricker_advanced(Panel):
 
     @classmethod
     def poll(self, context):
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
         return True
 
     def draw(self, context):
         layout = self.layout
         # right_align(layout)
-        scn, cm, n = getActiveContextInfo()
+        scn, cm, n = get_active_context_info()
 
         # Alert user that update is available
         if addon_updater_ops.updater.update_ready:
@@ -1143,48 +1130,48 @@ class VIEW3D_PT_bricker_advanced(Panel):
         row = col.row(align=True)
         row.label(text="Ray Casting:")
         row = col.row(align=True)
-        row.prop(cm, "insidenessRayCastDir", text="")
+        row.prop(cm, "insideness_ray_cast_dir", text="")
         row = col.row(align=True)
-        row.prop(cm, "useNormals")
+        row.prop(cm, "use_normals")
         row = col.row(align=True)
-        row.prop(cm, "verifyExposure")
+        row.prop(cm, "verify_exposure")
         row = col.row(align=True)
-        row.prop(cm, "calcInternals")
+        row.prop(cm, "calc_internals")
         row = col.row(align=True)
-        row.prop(cm, "brickShell", text="Shell")
-        if cm.brickShell == "OUTSIDE":
+        row.prop(cm, "brick_shell", text="Shell")
+        if cm.brick_shell == "OUTSIDE":
             row = col.row(align=True)
-            row.prop(cm, "calculationAxes", text="")
+            row.prop(cm, "calculation_axes", text="")
 
-        if not (cm.useAnimation and cm.animated):
+        if not (cm.use_animation and cm.animated):
             # if not b280():
             col = layout.column(align=True)
             row = col.row(align=True)
             row.label(text="Meshes:")
             row = col.row(align=True)
-            row.active = not cm.useAnimation and cm.splitModel
-            row.prop(cm, "instanceBricks")
+            row.active = not cm.use_animation and cm.split_model
+            row.prop(cm, "instance_bricks")
 
         # model orientation preferences
-        if not cm.useAnimation and not (cm.modelCreated or cm.animated):
+        if not cm.use_animation and not (cm.model_created or cm.animated):
             # if not b280():
             col = layout.column(align=True)
             row = col.row(align=True)
             row.label(text="Model Orientation:")
             row = col.row(align=True)
-            col.prop(cm, "useLocalOrient", text="Use Local Orientation")
+            col.prop(cm, "use_local_orient", text="Use Local Orientation")
 
         # background processing preferences
-        if cm.useAnimation and get_addon_preferences().brickifyInBackground != "OFF":
+        if cm.use_animation and get_addon_preferences().brickify_in_background != "OFF":
             col = layout.column(align=True)
             # if not b280():
             row = col.row(align=True)
             row.label(text="Background Processing:")
             row = col.row(align=True)
-            row.prop(cm, "maxWorkers")
+            row.prop(cm, "max_workers")
 
         # draw test brick generator button (for testing purposes only)
-        if BRICKER_OT_test_brick_generators.drawUIButton():
+        if BRICKER_OT_test_brick_generators.draw_ui_button():
             col = layout.column(align=True)
             col.operator("bricker.test_brick_generators", text="Test Brick Generators", icon="OUTLINER_OB_MESH")
 
@@ -1203,51 +1190,51 @@ class VIEW3D_PT_bricker_matrix_details(Panel):
     def poll(self, context):
         if bpy.props.Bricker_developer_mode == 0:
             return False
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
-        scn, cm, _ = getActiveContextInfo()
-        if createdWithUnsupportedVersion(cm):
+        scn, cm, _ = get_active_context_info()
+        if created_with_unsupported_version(cm):
             return False
-        if not (cm.modelCreated or cm.animated):
+        if not (cm.model_created or cm.animated):
             return False
         return True
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
 
-        if matrixReallyIsDirty(cm):
+        if matrix_really_is_dirty(cm):
             layout.label(text="Matrix is dirty!")
             return
-        if not cacheExists(cm):
+        if not cache_exists(cm):
             layout.label(text="Matrix not cached!")
             return
 
         col1 = layout.column(align=True)
         row = col1.row(align=True)
-        row.prop(cm, "activeKey", text="")
+        row.prop(cm, "active_key", text="")
 
         if cm.animated:
-            bricksDict = getBricksDict(cm, dType="ANIM", curFrame=getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame))
-        elif cm.modelCreated:
-            bricksDict = getBricksDict(cm)
-        if bricksDict is None:
+            bricksdict = get_bricksdict(cm, dType="ANIM", cur_frame=get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame))
+        elif cm.model_created:
+            bricksdict = get_bricksdict(cm)
+        if bricksdict is None:
             layout.label(text="Matrix not available")
             return
         try:
-            dictKey = listToStr(tuple(cm.activeKey))
-            brickD = bricksDict[dictKey]
+            dkey = list_to_str(tuple(cm.active_key))
+            brick_d = bricksdict[dkey]
         except Exception as e:
             layout.label(text="No brick details available")
-            if len(bricksDict) == 0:
+            if len(bricksdict) == 0:
                 print("[Bricker] Skipped drawing Brick Details")
-            elif str(e)[1:-1] == dictKey:
+            elif str(e)[1:-1] == dkey:
                 pass
-                # print("[Bricker] Key '" + str(dictKey) + "' not found")
-            elif dictKey is None:
+                # print("[Bricker] Key '" + str(dkey) + "' not found")
+            elif dkey is None:
                 print("[Bricker] Key not set (entered else)")
             else:
-                print("[Bricker] Error fetching brickD:", e)
+                print("[Bricker] Error fetching brick_d:", e)
             return
 
         col1 = layout.column(align=True)
@@ -1266,10 +1253,10 @@ class VIEW3D_PT_bricker_matrix_details(Panel):
         col = split.column(align=True)
         col.scale_y = 0.65
         row = col.row(align=True)
-        row.label(text=dictKey)
+        row.label(text=dkey)
         for key in keys:
             row = col.row(align=True)
-            row.label(text=str(brickD[key]))
+            row.label(text=str(brick_d[key]))
 
 class VIEW3D_PT_bricker_export(Panel):
     """ Export Bricker Model """
@@ -1283,27 +1270,22 @@ class VIEW3D_PT_bricker_export(Panel):
 
     @classmethod
     def poll(self, context):
-        if not settingsCanBeDrawn():
+        if not settings_can_be_drawn():
             return False
-        scn, cm, _ = getActiveContextInfo()
-        if createdWithUnsupportedVersion(cm):
+        scn, cm, _ = get_active_context_info()
+        if created_with_unsupported_version(cm):
             return False
-        if not (cm.modelCreated or cm.animated):
+        if not (cm.model_created or cm.animated):
             return False
         return True
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
 
         col = layout.column(align=True)
-        col.operator("bricker.bake_model", text="Bake Model" if cm.modelCreated else "Bake Current Frame", icon="OBJECT_DATA")
-        if (cm.modelCreated or cm.animated) and cm.brickType != "CUSTOM":
+        col.operator("bricker.bake_model", text="Bake Model" if cm.model_created else "Bake Current Frame", icon="OBJECT_DATA")
+        if (cm.model_created or cm.animated) and cm.brick_type != "CUSTOM":
             col = layout.column(align=True)
             row = col.row(align=True)
             row.operator("bricker.export_ldraw", text="Export Ldraw", icon="EXPORT")
-            # row = col.row(align=True)
-            # row.prop(cm, "exportPath", text="")
-        # if bpy.props.Bricker_developer_mode > 0:
-        #     row = col.row(align=True)
-        #     row.operator("bricker.export_model_data", text="Export Model Data", icon="EXPORT")

@@ -16,12 +16,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .bricksculpt import *
-from .changeBrickType import *
-from .changeBrickMaterial import *
-from .drawAdjacent import *
-from .mergeBricks import *
-from .redrawBricks import *
-from .setExposure import *
-from .splitBricks import *
-from .select.bySize import *
-from .select.byType import *
+from .change_brick_type import *
+from .change_brick_material import *
+from .draw_adjacent import *
+from .merge_bricks import *
+from .redraw_bricks import *
+from .set_exposure import *
+from .split_bricks import *
+from .select.by_size import *
+from .select.by_type import *

@@ -47,14 +47,14 @@ class BRICKER_OT_clear_cache(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            scn, cm, n = getActiveContextInfo()
-            self.undo_stack.iterateStates(cm)
-            cm.matrixIsDirty = True
-            self.clearCaches()
+            scn, cm, n = get_active_context_info()
+            self.undo_stack.iterate_states(cm)
+            cm.matrix_is_dirty = True
+            self.clear_caches()
             # clear all duplicated sources for brickified animations
             if cm.animated:
                 dupNameBase = "Bricker_%(n)s_f_" % locals()
-                dupes = [bpy.data.objects.get(dupNameBase + str(cf)) for cf in range(cm.lastStartFrame, cm.lastStopFrame + 1)]
+                dupes = [bpy.data.objects.get(dupNameBase + str(cf)) for cf in range(cm.last_start_frame, cm.last_stop_frame + 1)]
                 delete(dupes)
         except:
             bricker_handle_exception()
@@ -72,7 +72,7 @@ class BRICKER_OT_clear_cache(bpy.types.Operator):
     # class methods
 
     @staticmethod
-    def clearCache(cm, brick_mesh=True, light_matrix=True, deep_matrix=True):
+    def clear_cache(cm, brick_mesh=True, light_matrix=True, deep_matrix=True):
         """clear caches for cmlist item"""
         # clear light brick mesh cache
         if brick_mesh:
@@ -82,11 +82,11 @@ class BRICKER_OT_clear_cache(bpy.types.Operator):
             bricker_bfm_cache[cm.id] = None
         # clear deep matrix cache
         if deep_matrix:
-            cm.BFMCache = ""
+            cm.bfm_cache = ""
 
     @staticmethod
-    def clearCaches(brick_mesh=True, light_matrix=True, deep_matrix=True):
+    def clear_caches(brick_mesh=True, light_matrix=True, deep_matrix=True):
         """clear all caches in cmlist"""
         scn = bpy.context.scene
         for cm in scn.cmlist:
-            BRICKER_OT_clear_cache.clearCache(cm, brick_mesh=brick_mesh, light_matrix=light_matrix, deep_matrix=deep_matrix)
+            BRICKER_OT_clear_cache.clear_cache(cm, brick_mesh=brick_mesh, light_matrix=light_matrix, deep_matrix=deep_matrix)

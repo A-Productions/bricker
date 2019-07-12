@@ -4,7 +4,7 @@ error_log/
 bricker_updater/
 bricker_options.db
 textures/
-bricksDict_dump.py
+bricksdict_dump.py
 *.ldr
 buttons/customize/tools/paintbrush_framework.py
 buttons/customize/tools/bricksculpt_framework.py

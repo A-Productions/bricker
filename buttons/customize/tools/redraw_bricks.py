@@ -27,12 +27,12 @@ from ..undo_stack import *
 from ..functions import *
 from ...brickify import *
 from ...brickify import *
-from ....lib.bricksDict.functions import getDictKey
+from ....lib.bricksdict.functions import get_dict_key
 from ....functions import *
 
 
 class BRICKER_OT_redraw_bricks(Operator):
-    """redraw selected bricks from bricksDict"""
+    """redraw selected bricks from bricksdict"""
     bl_idname = "bricker.redraw_bricks"
     bl_label = "Redraw Bricks"
     bl_options = {"REGISTER", "UNDO"}
@@ -47,7 +47,7 @@ class BRICKER_OT_redraw_bricks(Operator):
         objs = bpy.context.selected_objects
         # check that at least 1 selected object is a brick
         for obj in objs:
-            if obj.isBrick:
+            if obj.is_brick:
                 return True
         return False
 
@@ -57,27 +57,27 @@ class BRICKER_OT_redraw_bricks(Operator):
             selected_objects = bpy.context.selected_objects
             active_obj = bpy.context.active_object
             initial_active_obj_name = active_obj.name if active_obj else ""
-            objsToSelect = []
+            objs_to_select = []
 
             # iterate through cm_ids of selected objects
-            for cm_id in self.objNamesD.keys():
-                cm = getItemByID(scn.cmlist, cm_id)
-                # get bricksDict from cache
-                bricksDict, _ = self.bricksDicts[cm_id]
-                keysToUpdate = []
+            for cm_id in self.obj_names_dict.keys():
+                cm = get_item_by_id(scn.cmlist, cm_id)
+                # get bricksdict from cache
+                bricksdict, _ = self.bricksdicts[cm_id]
+                keys_to_update = []
 
-                # add keys for updated objects to simple bricksDict for drawing
-                keysToUpdate = [getDictKey(obj.name) for obj in self.objNamesD[cm_id]]
+                # add keys for updated objects to simple bricksdict for drawing
+                keys_to_update = [get_dict_key(obj.name) for obj in self.obj_names_dict[cm_id]]
 
                 # draw modified bricks
-                drawUpdatedBricks(cm, bricksDict, keysToUpdate)
+                draw_updated_bricks(cm, bricksdict, keys_to_update)
 
                 # add selected objects to objects to select at the end
-                objsToSelect += bpy.context.selected_objects
+                objs_to_select += bpy.context.selected_objects
             # select the new objects created
-            select(objsToSelect)
+            select(objs_to_select)
             orig_obj = bpy.data.objects.get(initial_active_obj_name)
-            setActiveObj(orig_obj)
+            set_active_obj(orig_obj)
         except:
             bricker_handle_exception()
         return {"FINISHED"}
@@ -87,7 +87,9 @@ class BRICKER_OT_redraw_bricks(Operator):
 
     def __init__(self):
         try:
-            self.objNamesD, self.bricksDicts = createObjNamesAndBricksDictsDs(selected_objects)
+            selected_objects = bpy.context.selected_objects
+            self.obj_names_dict = create_obj_names_dict(selected_objects)
+            self.bricksdicts = get_bricksdicts_from_objs(self.obj_names_dict.keys())
         except:
             bricker_handle_exception()
 
@@ -95,7 +97,7 @@ class BRICKER_OT_redraw_bricks(Operator):
     # class variables
 
     # vars
-    bricksDicts = {}
-    objNamesD = {}
+    bricksdicts = {}
+    obj_names_dict = {}
 
     #############################################

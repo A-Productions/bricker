@@ -61,30 +61,30 @@ class OBJECT_OT_duplicate_override(bpy.types.Operator):
 
     def duplicate_objects(self):
         scn = bpy.context.scene
-        newBrickerObjs = []
+        new_bricker_objs = []
         lockBools = (False, False, False)
-        # set isBrick/isBrickifiedObject to False
+        # set is_brick/is_brickified_object to False
         for obj in self.objects:
             obj0 = duplicate(obj, link_to_scene=True)
             deselect(obj)
             select(obj0)
-            if not (obj0.isBrick or obj0.isBrickifiedObject):
+            if not (obj0.is_brick or obj0.is_brickified_object):
                 continue
-            if obj0.isBrick:
-                obj0.isBrick = False
+            if obj0.is_brick:
+                obj0.is_brick = False
                 obj0.name = obj0.name[8:].split("__")[0]
-            elif obj0.isBrickifiedObject:
-                obj0.isBrickifiedObject = False
-                cm = getItemByID(scn.cmlist, obj0.cmlist_id)
-                n = getSourceName(cm)
+            elif obj0.is_brickified_object:
+                obj0.is_brickified_object = False
+                cm = get_item_by_id(scn.cmlist, obj0.cmlist_id)
+                n = get_source_name(cm)
                 obj0.name = "%(n)s_bricks" % locals()
                 obj0.lock_location = lockBools
                 obj0.lock_rotation = lockBools
                 obj0.lock_scale    = lockBools
             obj0.cmlist_id = -1
-            newBrickerObjs.append(obj0)
-        if len(newBrickerObjs) > 0:
-            parent_clear(newBrickerObjs)
+            new_bricker_objs.append(obj0)
+        if len(new_bricker_objs) > 0:
+            parent_clear(new_bricker_objs)
 
 
 class OBJECT_OT_duplicate_move_override(bpy.types.Operator):

@@ -66,7 +66,7 @@ class UndoStack():
     # undo / redo stack operations
 
     @staticmethod
-    def iterateStates(cm):
+    def iterate_states(cm):
         """ iterate undo states """
         scn = bpy.context.scene
         global python_undo_state
@@ -77,12 +77,12 @@ class UndoStack():
         cm.blender_undo_state += 1
         bpy.props.bricker_updating_undo_state = False
 
-    def matchPythonToBlenderState(self):
+    def match_python_to_blender_state(self):
         scn = bpy.context.scene
         for cm in scn.cmlist:
             python_undo_state[cm.id] = cm.blender_undo_state
 
-    def getLength(self): return len(self.undo)
+    def get_length(self): return len(self.undo)
 
     def isUpdating(self): return bpy.props.bricker_updating_undo_state
 
@@ -133,7 +133,7 @@ class UndoStack():
         self.instrument_write("undo")
         # iterate undo states
         global python_undo_state
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
         python_undo_state[cm.id] -= 1
 
     def undo_pop_clean(self):
@@ -153,7 +153,7 @@ class UndoStack():
         self.instrument_write("redo")
         # iterate undo states
         global python_undo_state
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
         python_undo_state[cm.id] += 1
 
     def instrument_write(self, action):

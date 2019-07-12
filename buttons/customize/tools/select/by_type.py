@@ -45,7 +45,7 @@ class BRICKER_OT_select_bricks_by_type(Operator):
 
     def execute(self, context):
         try:
-            selectBricks(self.objNamesD, self.bricksDicts, brickType=self.brickType, allModels=self.allModels, only=self.only, include=self.include)
+            select_bricks(self.obj_names_dict, self.bricksdicts, brick_type=self.brick_type, all_models=self.all_models, only=self.only, include=self.include)
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -58,40 +58,40 @@ class BRICKER_OT_select_bricks_by_type(Operator):
 
     def draw(self, context):
         layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
+        scn, cm, _ = get_active_context_info()
 
         col = layout.column(align=True)
         right_align(col)
-        col.prop(self, "brickType")
+        col.prop(self, "brick_type")
         if len(bpy.context.selected_objects) > 0:
             col.prop(self, "only")
         if len(scn.cmlist) > 1:
-            col.prop(self, "allModels")
-        if cm.lastShellThickness > 1 or cm.lastInternalSupports != "NONE":
+            col.prop(self, "all_models")
+        if cm.last_shell_thickness > 1 or cm.last_internal_supports != "NONE":
             col.prop(self, "include")
 
     ################################################
     # initialization method
 
     def __init__(self):
-        objs = bpy.data.objects
-        self.objNamesD, self.bricksDicts = createObjNamesAndBricksDictsDs(objs)
-        self.brickType = "NONE"
+        self.obj_names_dict = create_obj_names_dict(bpy.data.objects)
+        self.bricksdicts = get_bricksdicts_from_objs(self.obj_names_dict.keys())
+        self.brick_type = "NONE"
 
     ###################################################
     # class variables
 
     # vars
-    objNamesD = {}
-    bricksDicts = {}
+    obj_names_dict = {}
+    bricksdicts = {}
 
-    # get items for brickType prop
+    # get items for brick_type prop
     def get_items(self, context):
-        items = getUsedTypes()
+        items = get_used_types()
         return items
 
     # define props for popup
-    brickType = bpy.props.EnumProperty(
+    brick_type = bpy.props.EnumProperty(
         name="Type",
         description="Select all bricks of specified type",
         items=get_items)
@@ -99,7 +99,7 @@ class BRICKER_OT_select_bricks_by_type(Operator):
         name="Only",
         description="Select only bricks of given type",
         default=False)
-    allModels = bpy.props.BoolProperty(
+    all_models = bpy.props.BoolProperty(
         name="All Models",
         description="Select bricks of given type from all models in file",
         default=False)

@@ -24,13 +24,13 @@ from bpy.types import Operator
 from bpy.props import *
 
 # Addon imports
-from ..lib.bricksDict import *
+from ..lib.bricksdict import *
 from ..functions import *
 from ..buttons.customize.functions import *
 from ..buttons.customize.undo_stack import *
 from ..buttons.delete_model import BRICKER_OT_delete_model
 from ..lib.Brick import Bricks
-from ..lib.bricksDict.functions import getDictKey
+from ..lib.bricksdict.functions import get_dict_key
 
 
 class OBJECT_OT_delete_override(Operator):
@@ -49,7 +49,7 @@ class OBJECT_OT_delete_override(Operator):
 
     def execute(self, context):
         try:
-            self.runDelete(context)
+            self.run_delete(context)
         except:
             bricker_handle_exception()
         return {"FINISHED"}
@@ -64,9 +64,9 @@ class OBJECT_OT_delete_override(Operator):
 
     def __init__(self):
         self.undo_stack = UndoStack.get_instance()
-        self.iteratedStatesAtLeastOnce = False
-        self.objsToDelete = bpy.context.selected_objects
-        self.warnInitialize = False
+        self.iterated_states_at_least_once = False
+        self.objs_to_delete = bpy.context.selected_objects
+        self.warn_initialize = False
         self.undo_pushed = False
 
     ###################################################
@@ -80,26 +80,26 @@ class OBJECT_OT_delete_override(Operator):
     ################################################
     # class methods
 
-    def runDelete(self, context):
+    def run_delete(self, context):
         if bpy.props.bricker_initialized:
-            for obj in self.objsToDelete:
-                if obj.isBrick:
+            for obj in self.objs_to_delete:
+                if obj.is_brick:
                     self.undo_stack.undo_push("delete_override")
                     self.undo_pushed = True
                     break
         else:
-            # initialize objNamesD (key:cm_id, val:list of brick objects)
-            objNamesD = createObjNamesD(self.objsToDelete)
+            # initialize obj_names_dict (key:cm_id, val:list of brick objects)
+            obj_names_dict = create_obj_names_dict(self.objs_to_delete)
             # remove brick type objects from selection
-            for obj_names_list in objNamesD.values():
+            for obj_names_list in obj_names_dict.values():
                 if len(obj_names_list) > 0:
                     for obj_name in obj_names_list:
-                        self.objsToDelete.remove(bpy.data.objects.get(obj_name))
-                    if not self.warnInitialize:
+                        self.objs_to_delete.remove(bpy.data.objects.get(obj_name))
+                    if not self.warn_initialize:
                         self.report({"WARNING"}, "Please initialize the Bricker [shift+i] before attempting to delete bricks")
-                        self.warnInitialize = True
-        # run deleteUnprotected
-        protected = self.deleteUnprotected(context, self.use_global, self.update_model)
+                        self.warn_initialize = True
+        # run delete_unprotected
+        protected = self.delete_unprotected(context, self.use_global, self.update_model)
         # alert user of protected objects
         if len(protected) > 0:
             self.report({"WARNING"}, "Bricker is using the following object(s): " + str(protected)[1:-1])
@@ -108,82 +108,82 @@ class OBJECT_OT_delete_override(Operator):
             bpy.ops.ed.undo_push(message="Delete")
         tag_redraw_areas("VIEW_3D")
 
-    def deleteUnprotected(self, context, use_global=False, update_model=True):
+    def delete_unprotected(self, context, use_global=False, update_model=True):
         scn = context.scene
         protected = []
-        objNamesToDelete = [obj.name for obj in self.objsToDelete]
+        objNamesToDelete = [obj.name for obj in self.objs_to_delete]
 
-        # initialize objNamesD (key:cm_id, val:list of brick objects)
-        objNamesD = createObjNamesD(self.objsToDelete)
+        # initialize obj_names_dict (key:cm_id, val:list of brick objects)
+        obj_names_dict = create_obj_names_dict(self.objs_to_delete)
 
         # update matrix
-        for i, cm_id in enumerate(objNamesD.keys()):
-            cm = getItemByID(scn.cmlist, cm_id)
-            if createdWithUnsupportedVersion(cm):
+        for i, cm_id in enumerate(obj_names_dict.keys()):
+            cm = get_item_by_id(scn.cmlist, cm_id)
+            if created_with_unsupported_version(cm):
                 continue
-            lastBlenderState = cm.blender_undo_state
-            # get bricksDict from cache
-            bricksDict = getBricksDict(cm)
+            last_blender_state = cm.blender_undo_state
+            # get bricksdict from cache
+            bricksdict = get_bricksdict(cm)
             if not update_model:
                 continue
-            if bricksDict is None:
+            if bricksdict is None:
                 self.report({"WARNING"}, "Adjacent bricks in model '" + cm.name + "' could not be updated (matrix not cached)")
                 continue
-            keysToUpdate = []
+            keys_to_update = []
             cm.customized = True
 
-            for obj_name in objNamesD[cm_id]:
+            for obj_name in obj_names_dict[cm_id]:
                 # get dict key details of current obj
-                dictKey = getDictKey(obj_name)
-                x0, y0, z0 = getDictLoc(bricksDict, dictKey)
+                dkey = get_dict_key(obj_name)
+                x0, y0, z0 = get_dict_loc(bricksdict, dkey)
                 # get size of current brick (e.g. [2, 4, 1])
-                objSize = bricksDict[dictKey]["size"]
+                obj_size = bricksdict[dkey]["size"]
 
-                # for all locations in bricksDict covered by current obj
-                for x in range(x0, x0 + objSize[0]):
-                    for y in range(y0, y0 + objSize[1]):
-                        for z in range(z0, z0 + (objSize[2] // cm.zStep)):
-                            curKey = listToStr((x, y, z))
+                # for all locations in bricksdict covered by current obj
+                for x in range(x0, x0 + obj_size[0]):
+                    for y in range(y0, y0 + obj_size[1]):
+                        for z in range(z0, z0 + (obj_size[2] // cm.zstep)):
+                            cur_key = list_to_str((x, y, z))
                             # make adjustments to adjacent bricks
-                            if cm.autoUpdateOnDelete and cm.lastSplitModel:
-                                self.updateAdjBricksDicts(bricksDict, cm.zStep, curKey, [x, y, z], keysToUpdate)
-                            # reset bricksDict values
-                            bricksDict[curKey]["draw"] = False
-                            bricksDict[curKey]["val"] = 0
-                            bricksDict[curKey]["parent"] = None
-                            bricksDict[curKey]["created_from"] = None
-                            bricksDict[curKey]["flipped"] = False
-                            bricksDict[curKey]["rotated"] = False
-                            bricksDict[curKey]["top_exposed"] = False
-                            bricksDict[curKey]["bot_exposed"] = False
-            # dirtyBuild if it wasn't already
-            lastBuildIsDirty = cm.buildIsDirty
-            if not lastBuildIsDirty:
-                cm.buildIsDirty = True
+                            if cm.auto_update_on_delete and cm.last_split_model:
+                                self.update_adj_bricksdicts(bricksdict, cm.zstep, cur_key, [x, y, z], keys_to_update)
+                            # reset bricksdict values
+                            bricksdict[cur_key]["draw"] = False
+                            bricksdict[cur_key]["val"] = 0
+                            bricksdict[cur_key]["parent"] = None
+                            bricksdict[cur_key]["created_from"] = None
+                            bricksdict[cur_key]["flipped"] = False
+                            bricksdict[cur_key]["rotated"] = False
+                            bricksdict[cur_key]["top_exposed"] = False
+                            bricksdict[cur_key]["bot_exposed"] = False
+            # dirty_build if it wasn't already
+            last_build_is_dirty = cm.build_is_dirty
+            if not last_build_is_dirty:
+                cm.build_is_dirty = True
             # merge and draw modified bricks
-            if len(keysToUpdate) > 0:
-                # split up bricks before drawUpdatedBricks calls attemptMerge
-                keysToUpdate = uniquify1(keysToUpdate)
-                for k0 in keysToUpdate.copy():
-                    keysToUpdate += Bricks.split(bricksDict, k0, cm.zStep, cm.brickType)
-                keysToUpdate = uniquify1(keysToUpdate)
+            if len(keys_to_update) > 0:
+                # split up bricks before draw_updated_bricks calls attempt_merge
+                keys_to_update = uniquify1(keys_to_update)
+                for k0 in keys_to_update.copy():
+                    keys_to_update += Bricks.split(bricksdict, k0, cm.zstep, cm.brick_type)
+                keys_to_update = uniquify1(keys_to_update)
                 # remove duplicate keys from the list and delete those objects
-                for k2 in keysToUpdate:
-                    brick = bpy.data.objects.get(bricksDict[k2]["name"])
+                for k2 in keys_to_update:
+                    brick = bpy.data.objects.get(bricksdict[k2]["name"])
                     delete(brick)
-                # create new bricks at all keysToUpdate locations (attempts merge as well)
-                drawUpdatedBricks(cm, bricksDict, keysToUpdate, selectCreated=False)
+                # create new bricks at all keys_to_update locations (attempts merge as well)
+                draw_updated_bricks(cm, bricksdict, keys_to_update, select_created=False)
                 iteratedStates = True
-            if not lastBuildIsDirty:
-                cm.buildIsDirty = False
+            if not last_build_is_dirty:
+                cm.build_is_dirty = False
             # if undo states not iterated above
-            if lastBlenderState == cm.blender_undo_state:
+            if last_blender_state == cm.blender_undo_state:
                 # iterate undo states
-                self.undo_stack.iterateStates(cm)
-            self.iteratedStatesAtLeastOnce = True
+                self.undo_stack.iterate_states(cm)
+            self.iterated_states_at_least_once = True
 
         # if nothing was done worth undoing but state was pushed
-        if not self.iteratedStatesAtLeastOnce and self.undo_pushed:
+        if not self.iterated_states_at_least_once and self.undo_pushed:
             # pop pushed value from undo stack
             self.undo_stack.undo_pop_clean()
 
@@ -192,8 +192,8 @@ class OBJECT_OT_delete_override(Operator):
             obj = bpy.data.objects.get(obj_name)
             if obj is None:
                 continue
-            if obj.isBrickifiedObject or obj.isBrick:
-                self.deleteBrickObject(obj, update_model, use_global)
+            if obj.is_brickified_object or obj.is_brick:
+                self.delete_brick_object(obj, update_model, use_global)
             elif not obj.protected:
                 obj_users_scene = len(obj.users_scene)
                 if use_global or obj_users_scene == 1:
@@ -207,63 +207,63 @@ class OBJECT_OT_delete_override(Operator):
         return protected
 
     @staticmethod
-    def updateAdjBricksDicts(bricksDict, zStep, curKey, curLoc, keysToUpdate):
-        x, y, z = curLoc
-        newBricks = []
-        adjKeys = getAdjKeysAndBrickVals(bricksDict, key=curKey)[0]
+    def update_adj_bricksdicts(bricksdict, zstep, cur_key, cur_loc, keys_to_update):
+        x, y, z = cur_loc
+        new_bricks = []
+        adj_keys = get_adj_keys_and_brick_vals(bricksdict, key=cur_key)[0]
         # set adjacent bricks to shell if deleted brick was on shell
-        for k0 in adjKeys:
-            if bricksDict[k0]["val"] != 0:  # if adjacent brick not outside
-                bricksDict[k0]["val"] = 1
-                if not bricksDict[k0]["draw"]:
-                    bricksDict[k0]["draw"] = True
-                    bricksDict[k0]["size"] = [1, 1, zStep]
-                    bricksDict[k0]["parent"] = "self"
-                    bricksDict[k0]["type"] = bricksDict[curKey]["type"]
-                    bricksDict[k0]["flipped"] = bricksDict[curKey]["flipped"]
-                    bricksDict[k0]["rotated"] = bricksDict[curKey]["rotated"]
-                    bricksDict[k0]["mat_name"] = bricksDict[curKey]["mat_name"]
-                    bricksDict[k0]["near_face"] = bricksDict[curKey]["near_face"]
-                    ni = bricksDict[curKey]["near_intersection"]
-                    bricksDict[k0]["near_intersection"] = tuple(ni) if type(ni) in [list, tuple] else ni
+        for k0 in adj_keys:
+            if bricksdict[k0]["val"] != 0:  # if adjacent brick not outside
+                bricksdict[k0]["val"] = 1
+                if not bricksdict[k0]["draw"]:
+                    bricksdict[k0]["draw"] = True
+                    bricksdict[k0]["size"] = [1, 1, zstep]
+                    bricksdict[k0]["parent"] = "self"
+                    bricksdict[k0]["type"] = bricksdict[cur_key]["type"]
+                    bricksdict[k0]["flipped"] = bricksdict[cur_key]["flipped"]
+                    bricksdict[k0]["rotated"] = bricksdict[cur_key]["rotated"]
+                    bricksdict[k0]["mat_name"] = bricksdict[cur_key]["mat_name"]
+                    bricksdict[k0]["near_face"] = bricksdict[cur_key]["near_face"]
+                    ni = bricksdict[cur_key]["near_intersection"]
+                    bricksdict[k0]["near_intersection"] = tuple(ni) if type(ni) in [list, tuple] else ni
                     # add key to list for drawing
-                    keysToUpdate.append(k0)
-                    newBricks.append(k0)
+                    keys_to_update.append(k0)
+                    new_bricks.append(k0)
         # top of bricks below are now exposed
-        k0 = listToStr((x, y, z - 1))
-        if k0 in bricksDict and bricksDict[k0]["draw"]:
-            k1 = k0 if bricksDict[k0]["parent"] == "self" else bricksDict[k0]["parent"]
-            if not bricksDict[k1]["top_exposed"]:
-                bricksDict[k1]["top_exposed"] = True
+        k0 = list_to_str((x, y, z - 1))
+        if k0 in bricksdict and bricksdict[k0]["draw"]:
+            k1 = k0 if bricksdict[k0]["parent"] == "self" else bricksdict[k0]["parent"]
+            if not bricksdict[k1]["top_exposed"]:
+                bricksdict[k1]["top_exposed"] = True
                 # add key to list for drawing
-                keysToUpdate.append(k1)
+                keys_to_update.append(k1)
         # bottom of bricks above are now exposed
-        k0 = listToStr((x, y, z + 1))
-        if k0 in bricksDict and bricksDict[k0]["draw"]:
-            k1 = k0 if bricksDict[k0]["parent"] == "self" else bricksDict[k0]["parent"]
-            if not bricksDict[k1]["bot_exposed"]:
-                bricksDict[k1]["bot_exposed"] = True
+        k0 = list_to_str((x, y, z + 1))
+        if k0 in bricksdict and bricksdict[k0]["draw"]:
+            k1 = k0 if bricksdict[k0]["parent"] == "self" else bricksdict[k0]["parent"]
+            if not bricksdict[k1]["bot_exposed"]:
+                bricksdict[k1]["bot_exposed"] = True
                 # add key to list for drawing
-                keysToUpdate.append(k1)
-        return keysToUpdate, newBricks
+                keys_to_update.append(k1)
+        return keys_to_update, new_bricks
 
-    def deleteBrickObject(self, obj, update_model=True, use_global=False):
+    def delete_brick_object(self, obj, update_model=True, use_global=False):
         scn = bpy.context.scene
         cm = None
-        for cmCur in scn.cmlist:
-            n = getSourceName(cmCur)
+        for cm_cur in scn.cmlist:
+            n = get_source_name(cm_cur)
             if not obj.name.startswith("Bricker_%(n)s_brick" % locals()):
                 continue
-            if obj.isBrickifiedObject:
-                cm = cmCur
+            if obj.is_brickified_object:
+                cm = cm_cur
                 break
-            elif obj.isBrick:
-                curBricks = cmCur.collection
-                if curBricks is not None and len(curBricks.objects) < 2:
-                    cm = cmCur
+            elif obj.is_brick:
+                cur_bricks = cm_cur.collection
+                if cur_bricks is not None and len(cur_bricks.objects) < 2:
+                    cm = cm_cur
                     break
         if cm and update_model:
-            BRICKER_OT_delete_model.runFullDelete(cm=cm)
+            BRICKER_OT_delete_model.run_full_delete(cm=cm)
             deselect(bpy.context.active_object)
         else:
             obj_users_scene = len(obj.users_scene)

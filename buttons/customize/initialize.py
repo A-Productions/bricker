@@ -24,7 +24,7 @@ from bpy.types import Operator
 
 # Addon imports
 from .undo_stack import *
-from ...ui.app_handlers import brickerRunningBlockingOp
+from ...ui.app_handlers import bricker_running_blocking_op
 from ...ui.timers import *
 from ...functions import *
 from ...ui.cmlist_actions import *
@@ -53,7 +53,7 @@ class BRICKER_OT_initialize(Operator):
         if self.stop:
             self.cancel(context)
             return {"CANCELLED"}
-        if not self.undo_stack.isUpdating() and not brickerRunningBlockingOp() and scn.cmlist_index != -1:
+        if not self.undo_stack.isUpdating() and not bricker_running_blocking_op() and scn.cmlist_index != -1:
             global python_undo_state
             cm = scn.cmlist[scn.cmlist_index]
             if cm.id not in python_undo_state:
@@ -71,7 +71,7 @@ class BRICKER_OT_initialize(Operator):
     def execute(self, context):
         # add new scn.cmlist item
         if self.action == "ADD":
-            CMLIST_OT_list_action.addItem()
+            CMLIST_OT_list_action.add_item()
         # run modal
         context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}

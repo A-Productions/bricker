@@ -19,9 +19,9 @@ from .colors import *
 from .common import *
 from .general import *
 from .generate_lattice import *
-from .hashObject import *
-from .makeBricks import *
-from .transformData import *
+from .hash_object import *
+from .make_bricks import *
+from .transform_data import *
 from .logo_obj import *
 from .mat_utils import *
 from .point_cache import *

@@ -32,26 +32,26 @@ from ...functions import *
 
 class Bricks:
     @staticmethod
-    def new_mesh(dimensions:list, brickType:str, size:list=[1,1,3], type:str="BRICK", flip:bool=False, rotate90:bool=False, logo=False, logoType="NONE", logoScale=100, logoInset=None, all_vars=False, logo_details=None, undersideDetail:str="FLAT", stud:bool=True, circleVerts:int=16):
+    def new_mesh(dimensions:list, brick_type:str, size:list=[1,1,3], type:str="BRICK", flip:bool=False, rotate90:bool=False, logo=False, logo_type="NONE", logo_scale=100, logo_inset=None, all_vars=False, logo_details=None, underside_detail:str="FLAT", stud:bool=True, circle_verts:int=16):
         """ create unlinked Brick at origin """
         # create brick mesh
         if type in ("BRICK", "PLATE") or "CUSTOM" in type:
-            brickBM = makeStandardBrick(dimensions, size, type, brickType, circleVerts=circleVerts, detail=undersideDetail, stud=stud)
-        elif type in getRoundBrickTypes():
-            brickBM = makeRound1x1(dimensions, brickType, circleVerts=circleVerts, type=type, detail=undersideDetail)
+            brickBM = make_standard_brick(dimensions, size, type, brick_type, circle_verts=circle_verts, detail=underside_detail, stud=stud)
+        elif type in get_round_brick_types():
+            brickBM = make_round_1x1(dimensions, brick_type, circle_verts=circle_verts, type=type, detail=underside_detail)
         elif type in ("TILE", "TILE_GRILL"):
-            brickBM = makeTile(dimensions, brickType, brickSize=size, circleVerts=circleVerts, type=type, detail=undersideDetail)
+            brickBM = make_tile(dimensions, brick_type, brick_size=size, circle_verts=circle_verts, type=type, detail=underside_detail)
         elif type in ("SLOPE", "SLOPE_INVERTED", "TALL_SLOPE"):
             # determine brick direction
             directions = ["X+", "Y+", "X-", "Y-"]
-            maxIdx = size.index(max(size[:2]))
-            maxIdx -= 2 if flip else 0
-            maxIdx += 1 if rotate90 else 0
+            max_idx = size.index(max(size[:2]))
+            max_idx -= 2 if flip else 0
+            max_idx += 1 if rotate90 else 0
             # make slope brick bmesh
             if type == "SLOPE_INVERTED":
-                brickBM = makeInvertedSlope(dimensions, size, brickType, circleVerts=circleVerts, direction=directions[maxIdx], detail=undersideDetail, stud=stud)
+                brickBM = make_inverted_slope(dimensions, size, brick_type, circle_verts=circle_verts, direction=directions[max_idx], detail=underside_detail, stud=stud)
             else:
-                brickBM = makeSlope(dimensions, size, brickType, circleVerts=circleVerts, direction=directions[maxIdx], detail=undersideDetail, stud=stud)
+                brickBM = make_slope(dimensions, size, brick_type, circle_verts=circle_verts, direction=directions[max_idx], detail=underside_detail, stud=stud)
         else:
             raise ValueError("'new_mesh' function received unrecognized value for parameter 'type': '" + str(type) + "'")
 
@@ -69,7 +69,7 @@ class Bricks:
 
         # create list of bmesh variations (logo only, for now)
         if logo and stud and (type in ("BRICK", "PLATE", "STUD", "SLOPE_INVERTED") or type == "SLOPE" and max(size[:2]) != 1):
-            bms = makeLogoVariations(dimensions, size, brickType, directions[maxIdx] if type.startswith("SLOPE") else "", all_vars, logo, logo_details, logoInset, logoType, logoScale)
+            bms = makeLogoVariations(dimensions, size, brick_type, directions[max_idx] if type.startswith("SLOPE") else "", all_vars, logo, logo_details, logo_inset, logo_type, logo_scale)
         else:
             bms = [bmesh.new()]
 
@@ -81,52 +81,52 @@ class Bricks:
         return bms
 
     @staticmethod
-    def splitAll(bricksDict, zStep, keys=None):
-        keys = keys or list(bricksDict.keys())
+    def split_all(bricksdict, zstep, keys=None):
+        keys = keys or list(bricksdict.keys())
         for key in keys:
             # set all bricks as unmerged
-            if bricksDict[key]["draw"]:
-                bricksDict[key]["parent"] = "self"
-                bricksDict[key]["size"] = [1, 1, zStep]
+            if bricksdict[key]["draw"]:
+                bricksdict[key]["parent"] = "self"
+                bricksdict[key]["size"] = [1, 1, zstep]
 
-    def split(bricksDict, key, zStep, brickType, loc=None, v=True, h=True):
+    def split(bricksdict, key, zstep, brick_type, loc=None, v=True, h=True):
         """split brick vertically and/or horizontally
 
         Keyword Arguments:
-        bricksDict -- Matrix of bricks in model
+        bricksdict -- Matrix of bricks in model
         key        -- key for brick in matrix
         loc        -- xyz location of brick in matrix
         v          -- split brick vertically
         h          -- split brick horizontally
         """
         # set up unspecified paramaters
-        loc = loc or getDictLoc(bricksDict, key)
+        loc = loc or get_dict_loc(bricksdict, key)
         # initialize vars
-        size = bricksDict[key]["size"]
-        newSize = [1, 1, size[2]]
-        if flatBrickType(brickType):
+        size = bricksdict[key]["size"]
+        new_size = [1, 1, size[2]]
+        if flat_brick_type(brick_type):
             if not v:
-                zStep = 3
+                zstep = 3
             else:
-                newSize[2] = 1
+                new_size[2] = 1
         if not h:
-            newSize[0] = size[0]
-            newSize[1] = size[1]
+            new_size[0] = size[0]
+            new_size[1] = size[1]
             size[0] = 1
             size[1] = 1
         # split brick into individual bricks
-        keysInBrick = getKeysInBrick(bricksDict, size, zStep, loc=loc)
-        for curKey in keysInBrick:
-            bricksDict[curKey]["size"] = newSize.copy()
-            bricksDict[curKey]["type"] = "BRICK" if newSize[2] == 3 else "PLATE"
-            bricksDict[curKey]["parent"] = "self"
-            bricksDict[curKey]["top_exposed"] = bricksDict[key]["top_exposed"]
-            bricksDict[curKey]["bot_exposed"] = bricksDict[key]["bot_exposed"]
-        return keysInBrick
+        keys_in_brick = get_keys_in_brick(bricksdict, size, zstep, loc=loc)
+        for cur_key in keys_in_brick:
+            bricksdict[cur_key]["size"] = new_size.copy()
+            bricksdict[cur_key]["type"] = "BRICK" if new_size[2] == 3 else "PLATE"
+            bricksdict[cur_key]["parent"] = "self"
+            bricksdict[cur_key]["top_exposed"] = bricksdict[key]["top_exposed"]
+            bricksdict[cur_key]["bot_exposed"] = bricksdict[key]["bot_exposed"]
+        return keys_in_brick
 
     @staticmethod
-    def get_dimensions(height=1, zScale=1, gap_percentage=0.01):
-        return get_brick_dimensions(height, zScale, gap_percentage)
+    def get_dimensions(height=1, z_scale=1, gap_percentage=0.01):
+        return get_brick_dimensions(height, z_scale, gap_percentage)
 
 
 def getNumRots(direction, size):
@@ -142,7 +142,7 @@ def getRotAdd(direction, size):
     return rot_add
 
 
-def makeLogoVariations(dimensions, size, brickType, direction, all_vars, logo, logo_details, logoInset, logoType, logoScale):
+def makeLogoVariations(dimensions, size, brick_type, direction, all_vars, logo, logo_details, logo_inset, logo_type, logo_scale):
     # get logo rotation angle based on size of brick
     rot_vars = getNumRots(direction, size)
     rot_mult = 90 if size[0] == 1 and size[1] == 1 else 180
@@ -152,18 +152,18 @@ def makeLogoVariations(dimensions, size, brickType, direction, all_vars, logo, l
         zRots = [i * rot_mult + rot_add for i in range(rot_vars)]
     else:
         randomSeed = int(time.time()*10**6) % 10000
-        randS0 = np.random.RandomState(randomSeed)
-        zRots = [randS0.randint(0,rot_vars) * rot_mult + rot_add]
+        rand_s0 = np.random.RandomState(randomSeed)
+        zRots = [rand_s0.randint(0,rot_vars) * rot_mult + rot_add]
     # get duplicate of logo mesh
     m = logo.data.copy()
 
     # create new bmeshes for each logo variation
     bms = [bmesh.new() for zRot in zRots]
     # get loc offsets
-    zOffset = dimensions["logo_offset"] + (dimensions["height"] if flatBrickType(brickType) and size[2] == 3 else 0)
-    lw = dimensions["logo_width"] * (0.78 if logoType == "LEGO" else (logoScale / 100))
-    distMax = max(logo_details.dist.xy)
-    zOffset += ((logo_details.dist.z * (lw / distMax)) / 2) * (1 - logoInset / 50)
+    zOffset = dimensions["logo_offset"] + (dimensions["height"] if flat_brick_type(brick_type) and size[2] == 3 else 0)
+    lw = dimensions["logo_width"] * (0.78 if logo_type == "LEGO" else (logo_scale / 100))
+    dist_max = max(logo_details.dist.xy)
+    zOffset += ((logo_details.dist.z * (lw / dist_max)) / 2) * (1 - logo_inset / 50)
     xyOffset = dimensions["width"] + dimensions["gap"]
     # cap x/y ranges so logos aren't created over slopes
     xR0 = size[0] - 1 if direction == "X-" else 0
