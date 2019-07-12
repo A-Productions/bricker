@@ -38,21 +38,11 @@ from ..Brick import Bricks
 accs = [0, 0, 0, 0, 0]
 
 
-def VectorRound(vec, dec, round_type="ROUND"):
-    """ round all vals in Vector 'vec' to 'dec' precision """
-    if round_type == "ROUND":
-        lst = [round(vec[i], dec) for i in range(len(vec))]
-    elif round_type == "FLOOR":
-        lst = [(math.floor(vec[i] * 10**dec)) / 10**dec for i in range(len(vec))]
-    elif round_type in ("CEILING", "CEIL"):
-        lst = [(math.ceil(vec[i] * 10**dec)) / 10**dec for i in range(len(vec))]
-    return Vector(lst)
-
 def cast_rays(obj_eval:Object, point:Vector, direction:Vector, mini_dist:float, round_type:str="CEILING", edge_len:int=0):
     """
-    obj_eval  -- source object to test intersections for
-    point     -- starting point for ray casting
-    direction -- cast ray in this direction
+    obj_eval   -- source object to test intersections for
+    point      -- starting point for ray casting
+    direction  -- cast ray in this direction
     mini_dist  -- Vector with miniscule amount to add after intersection
     round_type -- round final intersection location Vector with this type
     edge_len   -- distance to test for intersections
@@ -60,10 +50,10 @@ def cast_rays(obj_eval:Object, point:Vector, direction:Vector, mini_dist:float, 
     # initialize variables
     first_direction = False
     first_intersection = None
-    next_intersection = None
+    next_intersection_loc = None
     last_intersection = None
     edge_intersects = False
-    edge_len2 = edge_len*1.00001
+    edge_len2 = round(edge_len + 0.000001, 6)
     starting_point = point
     intersections = 0
     # cast rays until no more rays to cast
@@ -73,7 +63,7 @@ def cast_rays(obj_eval:Object, point:Vector, direction:Vector, mini_dist:float, 
         if intersections == 0:
             first_direction = direction.dot(normal)
         if edge_len != 0:
-            dist = (location-point).length
+            dist = (location - point).length
             # get first and last intersection (used when getting materials of nearest (first or last intersected) face)
             if dist <= edge_len2:
                 if intersections == 0:
@@ -81,15 +71,15 @@ def cast_rays(obj_eval:Object, point:Vector, direction:Vector, mini_dist:float, 
                     first_intersection = {"idx":index, "dist":dist, "loc":location, "normal":normal}
                 last_intersection = {"idx":index, "dist":edge_len - dist, "loc":location, "normal":normal}
 
-            # set next_intersection
-            if next_intersection is None:
-                next_intersection = location.copy()
+            # set next_intersection_loc
+            if next_intersection_loc is None:
+                next_intersection_loc = location.copy()
         intersections += 1
-        location = VectorRound(location, 5, round_type=round_type)
+        location = vec_round(location, precision=6, round_type=round_type)
         starting_point = location + mini_dist
 
     if edge_len != 0:
-        return intersections, first_direction, first_intersection, next_intersection, last_intersection, edge_intersects
+        return intersections, first_direction, first_intersection, next_intersection_loc, last_intersection, edge_intersects
     else:
         return intersections, first_direction
 
@@ -99,10 +89,10 @@ def ray_obj_intersections(scn, point, direction, mini_dist:Vector, edge_len, obj
     cast ray(s) from point in direction to determine insideness and whether edge intersects obj within edge_len
 
     returned:
-    - not outside       - 'point' is inside object 'obj'
+    - not outside        - 'point' is inside object 'obj'
     - edge_intersects    - ray from 'point' in 'direction' of length 'edge_len' intersects object 'obj'
-    - intersections     - number of ray-obj intersections from 'point' in 'direction' to infinity
-    - next_intersection  - second ray intersection from 'point' in 'direction'
+    - intersections      - number of ray-obj intersections from 'point' in 'direction' to infinity
+    - next_intersection_loc - second ray intersection from 'point' in 'direction'
     - first_intersection - dictionary containing 'idx':index of first intersection and 'distance:distance from point to first intersection within edge_len
     - last_intersection  - dictionary containing 'idx':index of last intersection and 'distance:distance from point to last intersection within edge_len
 
@@ -110,8 +100,7 @@ def ray_obj_intersections(scn, point, direction, mini_dist:Vector, edge_len, obj
 
     # initialize variables
     intersections = 0
-    no_more_checks = False
-    outside_L = []
+    outsideL = []
     if b280():
         depsgraph = bpy.context.view_layer.depsgraph
         obj_eval = obj.evaluated_get(depsgraph)
@@ -120,7 +109,7 @@ def ray_obj_intersections(scn, point, direction, mini_dist:Vector, edge_len, obj
     # set axis of direction
     axes = "XYZ" if direction[0] > 0 else ("YZX" if direction[1] > 0 else "ZXY")
     # run initial intersection check
-    intersections, first_direction, first_intersection, next_intersection, last_intersection, edge_intersects = cast_rays(obj_eval, point, direction, mini_dist, edge_len=edge_len)
+    intersections, first_direction, first_intersection, next_intersection_loc, last_intersection, edge_intersects = cast_rays(obj_eval, point, direction, mini_dist, edge_len=edge_len)
 
     if brick_shell == "CONSISTENT" and edge_intersects:
         # skip insideness checks if brick shell doesn't take insideness into account
@@ -268,7 +257,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
     # initialize Matix sizes
     x_L = len(brick_freq_matrix)
     y_L = len(brick_freq_matrix[0])
-    zL = len(brick_freq_matrix[0][0])
+    z_L = len(brick_freq_matrix[0][0])
 
 
     # initialize values used for printing status
@@ -285,22 +274,22 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
 
     percent0 = 0
     if "x" in axes:
-        xRay = coord_matrix[1][0][0] - coord_matrix[0][0][0]
-        xEdgeLen = xRay.length
-        xMiniDist = Vector((0.00015, 0.0, 0.0))
-        for z in range(zL):
+        x_ray = coord_matrix[1][0][0] - coord_matrix[0][0][0]
+        x_edge_len = x_ray.length
+        x_mini_dist = Vector((0.00015, 0.0, 0.0))
+        for z in range(z_L):
             # print status to terminal
-            percent0 = printCurStatus(0, z, zL, percent0)
+            percent0 = printCurStatus(0, z, z_L, percent0)
             for y in range(y_L):
                 next_intersection = None
                 i = 0
                 for x in range(x_L):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
-                    if i == 2 and high_efficiency and next_intersection is not None and coord_matrix[x][y][z].x + dist.x + xMiniDist.x < next_intersection.x:
+                    if i == 2 and high_efficiency and next_intersection is not None and coord_matrix[x][y][z].x + dist.x + x_mini_dist.x < next_intersection.x:
                         brick_freq_matrix[x][y][z] = val
                         continue
                     # cast rays and update brick_freq_matrix
-                    intersections, next_intersection, edge_intersects = update_bf_matrix(scn, x, y, z, coord_matrix, xRay, xEdgeLen, face_idx_matrix, brick_freq_matrix, brick_shell, source, x+1, y, z, xMiniDist, use_normals, insideness_ray_cast_dir)
+                    intersections, next_intersection, edge_intersects = update_bf_matrix(scn, x, y, z, coord_matrix, x_ray, x_edge_len, face_idx_matrix, brick_freq_matrix, brick_shell, source, x+1, y, z, x_mini_dist, use_normals, insideness_ray_cast_dir)
                     i = 0 if edge_intersects else (2 if i == 1 else 1)
                     val = brick_freq_matrix[x][y][z]
                     if intersections == 0:
@@ -308,24 +297,24 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
 
     percent1 = percent0
     if "y" in axes:
-        yRay = coord_matrix[0][1][0] - coord_matrix[0][0][0]
-        yEdgeLen = yRay.length
-        yMiniDist = Vector((0.0, 0.00015, 0.0))
-        for z in range(zL):
+        y_ray = coord_matrix[0][1][0] - coord_matrix[0][0][0]
+        y_edge_len = y_ray.length
+        y_mini_dist = Vector((0.0, 0.00015, 0.0))
+        for z in range(z_L):
             # print status to terminal
-            percent1 = printCurStatus(percent0, z, zL, percent1)
+            percent1 = printCurStatus(percent0, z, z_L, percent1)
             for x in range(x_L):
                 next_intersection = None
                 i = 0
                 for y in range(y_L):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
-                    if i == (3 if verify_exposure else 2) and high_efficiency and next_intersection is not None and coord_matrix[x][y][z].y + dist.y + yMiniDist.y < next_intersection.y:
+                    if i == (3 if verify_exposure else 2) and high_efficiency and next_intersection is not None and coord_matrix[x][y][z].y + dist.y + y_mini_dist.y < next_intersection.y:
                         if brick_freq_matrix[x][y][z] == 0:
                             brick_freq_matrix[x][y][z] = val
                         if brick_freq_matrix[x][y][z] == val:
                             continue
                     # cast rays and update brick_freq_matrix
-                    intersections, next_intersection, edge_intersects = update_bf_matrix(scn, x, y, z, coord_matrix, yRay, yEdgeLen, face_idx_matrix, brick_freq_matrix, brick_shell, source, x, y+1, z, yMiniDist, use_normals, insideness_ray_cast_dir)
+                    intersections, next_intersection, edge_intersects = update_bf_matrix(scn, x, y, z, coord_matrix, y_ray, y_edge_len, face_idx_matrix, brick_freq_matrix, brick_shell, source, x, y+1, z, y_mini_dist, use_normals, insideness_ray_cast_dir)
                     i = 0 if edge_intersects else (2 if i == 1 else 1)
                     val = brick_freq_matrix[x][y][z]
                     if intersections == 0:
@@ -333,31 +322,31 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
 
     percent2 = percent1
     if "z" in axes:
-        zRay = coord_matrix[0][0][1] - coord_matrix[0][0][0]
-        zEdgeLen = zRay.length
-        zMiniDist = Vector((0.0, 0.0, 0.00015))
+        z_ray = coord_matrix[0][0][1] - coord_matrix[0][0][0]
+        z_edge_len = z_ray.length
+        z_mini_dist = Vector((0.0, 0.0, 0.00015))
         for x in range(x_L):
             # print status to terminal
             percent2 = printCurStatus(percent1, x, x_L, percent2)
             for y in range(y_L):
                 next_intersection = None
                 i = 0
-                for z in range(zL):
+                for z in range(z_L):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
-                    if i == (3 if verify_exposure else 2) and high_efficiency and next_intersection is not None and coord_matrix[x][y][z].z + dist.z + zMiniDist.z < next_intersection.z:
+                    if i == (3 if verify_exposure else 2) and high_efficiency and next_intersection is not None and coord_matrix[x][y][z].z + dist.z + z_mini_dist.z < next_intersection.z:
                         if brick_freq_matrix[x][y][z] == 0:
                             brick_freq_matrix[x][y][z] = val
                         if brick_freq_matrix[x][y][z] == val:
                             continue
                     # cast rays and update brick_freq_matrix
-                    intersections, next_intersection, edge_intersects = update_bf_matrix(scn, x, y, z, coord_matrix, zRay, zEdgeLen, face_idx_matrix, brick_freq_matrix, brick_shell, source, x, y, z+1, zMiniDist, use_normals, insideness_ray_cast_dir)
+                    intersections, next_intersection, edge_intersects = update_bf_matrix(scn, x, y, z, coord_matrix, z_ray, z_edge_len, face_idx_matrix, brick_freq_matrix, brick_shell, source, x, y, z+1, z_mini_dist, use_normals, insideness_ray_cast_dir)
                     i = 0 if edge_intersects else (2 if i == 1 else 1)
                     val = brick_freq_matrix[x][y][z]
                     if intersections == 0:
                         break
 
     # mark inside freqs as internal (-1) and outside next to outsides for removal
-    adjustBFM(brick_freq_matrix, mat_shell_depth=cm.mat_shell_depth, calc_internals=cm.calc_internals, face_idx_matrix=face_idx_matrix, axes=axes)
+    adjust_bfm(brick_freq_matrix, mat_shell_depth=cm.mat_shell_depth, calc_internals=cm.calc_internals, face_idx_matrix=face_idx_matrix, axes=axes)
 
     # print status to terminal
     update_progress_bars(print_status, cursor_status, 1, 0, "Shell", end=True)
@@ -370,7 +359,7 @@ def get_brick_matrix_smoke(face_idx_matrix, brick_shell, source_details, print_s
     source = cm.source_obj
     density_grid, flame_grid, color_grid, domain_res, max_res, adapt = get_smoke_info(source)
     brick_freq_matrix = deepcopy(face_idx_matrix)
-    colorMatrix = deepcopy(face_idx_matrix)
+    color_matrix = deepcopy(face_idx_matrix)
     old_percent = 0
     brightness = Vector([(cm.smoke_brightness - 1) / 5]*3)
     sat_mat = get_saturation_matrix(cm.smoke_saturation)
@@ -385,7 +374,7 @@ def get_brick_matrix_smoke(face_idx_matrix, brick_shell, source_details, print_s
         full_max = source_details.max
         full_dist = full_max - full_min
         if 0 in full_dist:
-            return brick_freq_matrix, colorMatrix
+            return brick_freq_matrix, color_matrix
         start_percent = vec_div(adapt_min - full_min, full_dist)
         end_percent   = vec_div(adapt_max - full_min, full_dist)
         s_idx = (len(face_idx_matrix) * start_percent.x, len(face_idx_matrix[0]) * start_percent.y, len(face_idx_matrix[0][0]) * start_percent.z)
@@ -398,7 +387,7 @@ def get_brick_matrix_smoke(face_idx_matrix, brick_shell, source_details, print_s
     d = Vector((e_idx[0] - s_idx[0], e_idx[1] - s_idx[1], e_idx[2] - s_idx[2]))
     # verify bounding box is larger than 0 in all directions
     if 0 in d:
-        return brick_freq_matrix, colorMatrix
+        return brick_freq_matrix, color_matrix
     # get x/y/z distances
     xn0 = domain_res[0] / d.x
     yn0 = domain_res[1] / d.y
@@ -430,13 +419,13 @@ def get_brick_matrix_smoke(face_idx_matrix, brick_shell, source_details, print_s
                 xn[1] += 1 if xn[1] == xn[0] else 0
                 yn[1] += 1 if yn[1] == yn[0] else 0
                 zn[1] += 1 if zn[1] == zn[0] else 0
-                stepX = math.ceil((xn[1] - xn[0]) / quality)
-                stepY = math.ceil((yn[1] - yn[0]) / quality)
-                stepZ = math.ceil((zn[1] - zn[0]) / quality)
+                step_x = math.ceil((xn[1] - xn[0]) / quality)
+                step_y = math.ceil((yn[1] - yn[0]) / quality)
+                step_z = math.ceil((zn[1] - zn[0]) / quality)
                 ave_denom = 0
-                for x1 in range(xn[0], xn[1], stepX):
-                    for y1 in range(yn[0], yn[1], stepY):
-                        for z1 in range(zn[0], zn[1], stepZ):
+                for x1 in range(xn[0], xn[1], step_x):
+                    for y1 in range(yn[0], yn[1], step_y):
+                        for z1 in range(zn[0], zn[1], step_z):
                             cur_idx = (z1 * domain_res[1] + y1) * domain_res[0] + x1
                             _d = density_grid[cur_idx]
                             f = flame_grid[cur_idx]
@@ -457,33 +446,33 @@ def get_brick_matrix_smoke(face_idx_matrix, brick_shell, source_details, print_s
                 # add saturation
                 c_ave = mathutils_mult(c_ave, sat_mat)
                 brick_freq_matrix[x][y][z] = 0 if alpha < (1 - smoke_density) else 1
-                colorMatrix[x][y][z] = list(c_ave) + [alpha]
+                color_matrix[x][y][z] = list(c_ave) + [alpha]
 
     # mark inside freqs as internal (-1) and outside next to outsides for removal
-    adjustBFM(brick_freq_matrix, mat_shell_depth=cm.mat_shell_depth, calc_internals=cm.calc_internals, axes=False)
+    adjust_bfm(brick_freq_matrix, mat_shell_depth=cm.mat_shell_depth, calc_internals=cm.calc_internals, axes=False)
 
     # end progress bar
     update_progress_bars(print_status, cursor_status, 1, 0, "Shell", end=True)
 
-    return brick_freq_matrix, colorMatrix
+    return brick_freq_matrix, color_matrix
 
 
-def adjustBFM(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matrix=None, axes=""):
+def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matrix=None, axes=""):
     """ adjust brick_freq_matrix values """
-    shellVals = []
+    shell_vals = []
     x_L = len(brick_freq_matrix)
     y_L = len(brick_freq_matrix[0])
-    zL = len(brick_freq_matrix[0][0])
+    z_L = len(brick_freq_matrix[0][0])
 
     # if generating shell outside mesh with less than three axes
     if axes != "xyz":
         for x in range(x_L):
             for y in range(y_L):
-                for z in range(zL):
+                for z in range(z_L):
                     # if current location is inside (-1) and adjacent location is out of bounds, current location is shell (1)
                     if (brick_freq_matrix[x][y][z] == -1 and
                         (("z" not in axes and
-                          (z in (0, zL-1) or
+                          (z in (0, z_L-1) or
                            brick_freq_matrix[x][y][z+1] == 0 or
                            brick_freq_matrix[x][y][z-1] == 0)) or
                          ("y" not in axes and
@@ -501,7 +490,7 @@ def adjustBFM(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matri
     # # iterate through all values except boundaries
     # for x in range(1, x_L - 1):
     #     for y in range(1, y_L - 1):
-    #         for z in range(1, zL - 1):
+    #         for z in range(1, z_L - 1):
     #             # If inside location (-1) intersects outside location (0), make it ouside (0)
     #             if (brick_freq_matrix[x][y][z] == -1 and
     #                 (brick_freq_matrix[x+1][y][z] == 0 or
@@ -512,24 +501,24 @@ def adjustBFM(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matri
     #                  brick_freq_matrix[x][y][z-1] == 0)):
     #                 brick_freq_matrix[x][y][z] = 0
 
-    trashVals = [0] if calc_internals else [0, -1]
-    allShellVals = []
+    trash_vals = [0] if calc_internals else [0, -1]
+    all_shell_vals = []
     # iterate through all values
     for x in range(x_L):
         for y in range(y_L):
-            for z in range(zL):
+            for z in range(z_L):
                 # mark outside and unused inside brick_freq_matrix values for removal
-                if brick_freq_matrix[x][y][z] in trashVals:
+                if brick_freq_matrix[x][y][z] in trash_vals:
                     brick_freq_matrix[x][y][z] = None
                 # get shell values for next calc
                 elif brick_freq_matrix[x][y][z] == 1:
-                    allShellVals.append((x, y, z))
+                    all_shell_vals.append((x, y, z))
 
     if not calc_internals:
         return
 
     # iterate through all shell values
-    for x, y, z in allShellVals:
+    for x, y, z in all_shell_vals:
         # If shell location (1) does not intersect outside/trashed location (0, None), make it inside (-1)
         if brick_freq_matrix[x][y][z] == 1:
             if all((brick_freq_matrix[x+1][y][z],
@@ -540,39 +529,39 @@ def adjustBFM(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matri
                     brick_freq_matrix[x][y][z-1])):
                 brick_freq_matrix[x][y][z] = -1
             else:
-                shellVals.append((x, y, z))
+                shell_vals.append((x, y, z))
 
 
     # Update internals
     j = 1
-    setNF = True
+    set_nf = True
     for i in range(50):
         j = round(j-0.01, 2)
         got_one = False
-        newShellVals = []
-        if setNF:
-            setNF = (1 - j) * 100 < mat_shell_depth
-        for x, y, z in shellVals:
-            idxsToCheck = ((x+1, y, z),
+        new_shell_vals = []
+        if set_nf:
+            set_nf = (1 - j) * 100 < mat_shell_depth
+        for x, y, z in shell_vals:
+            idxs_to_check = ((x+1, y, z),
                            (x-1, y, z),
                            (x, y+1, z),
                            (x, y-1, z),
                            (x, y, z+1),
                            (x, y, z-1))
-            for idx in idxsToCheck:
+            for idx in idxs_to_check:
                 # print("*"*25)
                 # print(str(idx))
                 # print(str(len(brick_freq_matrix)), str(len(brick_freq_matrix[0])), str(len(brick_freq_matrix[0][0])))
                 # print("*"*25)
-                curVal = brick_freq_matrix[idx[0]][idx[1]][idx[2]]
-                if curVal == -1:
-                    newShellVals.append(idx)
+                cur_val = brick_freq_matrix[idx[0]][idx[1]][idx[2]]
+                if cur_val == -1:
+                    new_shell_vals.append(idx)
                     brick_freq_matrix[idx[0]][idx[1]][idx[2]] = j
-                    if face_idx_matrix and setNF: face_idx_matrix[idx[0]][idx[1]][idx[2]] = face_idx_matrix[x][y][z]
+                    if face_idx_matrix and set_nf: face_idx_matrix[idx[0]][idx[1]][idx[2]] = face_idx_matrix[x][y][z]
                     got_one = True
         if not got_one:
             break
-        shellVals = newShellVals
+        shell_vals = new_shell_vals
 
 
 def getThreshold(cm):
@@ -580,7 +569,7 @@ def getThreshold(cm):
     return 1.01 - (cm.shell_thickness / 100)
 
 
-def createBricksDictEntry(name:str, loc:list, val:float=0, draw:bool=False, co:tuple=(0, 0, 0), near_face:int=None, near_intersection:str=None, near_normal:tuple=None, rgba:tuple=None, mat_name:str="", custom_mat_name:bool=False, parent:str=None, size:list=None, attempted_merge:bool=False, top_exposed:bool=None, bot_exposed:bool=None, obscures:list=[False]*6, bType:str=None, flipped:bool=False, rotated:bool=False, created_from:str=None):
+def createBricksDictEntry(name:str, loc:list, val:float=0, draw:bool=False, co:tuple=(0, 0, 0), near_face:int=None, near_intersection:str=None, near_normal:tuple=None, rgba:tuple=None, mat_name:str="", custom_mat_name:bool=False, parent:str=None, size:list=None, attempted_merge:bool=False, top_exposed:bool=None, bot_exposed:bool=None, obscures:list=[False]*6, b_type:str=None, flipped:bool=False, rotated:bool=False, created_from:str=None):
     """
     create an entry in the dictionary of brick locations
 
@@ -625,7 +614,7 @@ def createBricksDictEntry(name:str, loc:list, val:float=0, draw:bool=False, co:t
             "top_exposed":top_exposed,
             "bot_exposed":bot_exposed,
             "obscures":obscures,
-            "type":bType,
+            "type":b_type,
             "flipped":flipped,
             "rotated":rotated,
             "created_from":created_from,
@@ -642,12 +631,12 @@ def make_bricksdict(source, source_details, brick_scale, uv_images, cursor_statu
     scn, cm, n = get_active_context_info()
     # get lattice bmesh
     print("\ngenerating blueprint...")
-    lScale = source_details.dist
+    l_scale = source_details.dist
     offset = source_details.mid
     if source.parent:
         offset = offset - source.parent.location
     # get coordinate list from intersections of edges with faces
-    coord_matrix = generate_lattice(brick_scale, lScale, offset)
+    coord_matrix = generate_lattice(brick_scale, l_scale, offset)
     if len(coord_matrix) == 0:
         coord_matrix.append(source_details.mid)
     # set calculation_axes
@@ -655,10 +644,10 @@ def make_bricksdict(source, source_details, brick_scale, uv_images, cursor_statu
     # set up face_idx_matrix and brick_freq_matrix
     face_idx_matrix = np.zeros((len(coord_matrix), len(coord_matrix[0]), len(coord_matrix[0][0])), dtype=int).tolist()
     if cm.is_smoke:
-        brick_freq_matrix, smokeColors = get_brick_matrix_smoke(face_idx_matrix, cm.brick_shell, source_details, cursor_status=cursor_status)
+        brick_freq_matrix, smoke_colors = get_brick_matrix_smoke(face_idx_matrix, cm.brick_shell, source_details, cursor_status=cursor_status)
     else:
         brick_freq_matrix = get_brick_matrix(source, face_idx_matrix, coord_matrix, cm.brick_shell, axes=calculation_axes, cursor_status=cursor_status)
-        smokeColors = None
+        smoke_colors = None
     # initialize active keys
     cm.active_key = (-1, -1, -1)
 
@@ -668,8 +657,8 @@ def make_bricksdict(source, source_details, brick_scale, uv_images, cursor_statu
     brick_type = cm.brick_type  # prevents cm.brick_type update function from running over and over in for loop
     uv_image = cm.uv_image
     build_is_dirty = cm.build_is_dirty
-    drawnKeys = []
-    sourceMats = cm.material_type == "SOURCE"
+    drawn_keys = []
+    source_mats = cm.material_type == "SOURCE"
     noOffset = vec_round(offset, precision=5) == Vector((0, 0, 0))
     for x in range(len(coord_matrix)):
         for y in range(len(coord_matrix[0])):
@@ -679,7 +668,7 @@ def make_bricksdict(source, source_details, brick_scale, uv_images, cursor_statu
                     continue
 
                 # initialize variables
-                bKey = list_to_str((x, y, z))
+                b_key = list_to_str((x, y, z))
 
                 co = coord_matrix[x][y][z].to_tuple() if noOffset else (coord_matrix[x][y][z] - source_details.mid).to_tuple()
 
@@ -688,16 +677,16 @@ def make_bricksdict(source, source_details, brick_scale, uv_images, cursor_statu
                 ni = face_idx_matrix[x][y][z]["loc"].to_tuple() if type(face_idx_matrix[x][y][z]) == dict else None
                 nn = face_idx_matrix[x][y][z]["normal"] if type(face_idx_matrix[x][y][z]) == dict else None
                 norm_dir = get_normal_direction(nn, slopes=True)
-                bType = get_brick_type(brick_type)
+                b_type = get_brick_type(brick_type)
                 flipped, rotated = get_flip_rot("" if norm_dir is None else norm_dir[1:])
-                if sourceMats:
-                    rgba = smokeColors[x][y][z] if smokeColors else get_uv_pixel_color(scn, source, nf, ni if ni is None else Vector(ni), uv_images, uv_image)
+                if source_mats:
+                    rgba = smoke_colors[x][y][z] if smoke_colors else get_uv_pixel_color(scn, source, nf, ni if ni is None else Vector(ni), uv_images, uv_image)
                 else:
                     rgba = (0, 0, 0, 1)
                 draw = brick_freq_matrix[x][y][z] >= threshold
                 # create bricksdict entry for current brick
-                bricksdict[bKey] = createBricksDictEntry(
-                    name= "Bricker_%(n)s__%(bKey)s" % locals(),
+                bricksdict[b_key] = createBricksDictEntry(
+                    name= "Bricker_%(n)s__%(b_key)s" % locals(),
                     loc= [x, y, z],
                     val= brick_freq_matrix[x][y][z],
                     draw= draw,
@@ -708,17 +697,17 @@ def make_bricksdict(source, source_details, brick_scale, uv_images, cursor_statu
                     rgba= rgba,
                     # mat_name= "",  # defined in 'updateMaterials' function
                     # obscures= [brick_freq_matrix[x][y][z] != 0]*6,
-                    bType= bType,
+                    b_type= b_type,
                     flipped= flipped,
                     rotated= rotated,
                 )
                 if build_is_dirty and draw:
-                    drawnKeys.append(bKey)
+                    drawn_keys.append(b_key)
 
     # if build_is_dirty, this is done in draw_brick
     if not cm.build_is_dirty:
         # set exposure of brick locs
-        for key in drawnKeys:
+        for key in drawn_keys:
             set_brick_exposure(bricksdict, key)
 
     # return list of created Brick objects

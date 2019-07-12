@@ -49,9 +49,9 @@ class BRICKER_OT_brickify_in_background(bpy.types.Operator):
         scn, cm, n = get_active_context_info()
         # run brickify for current frame
         if "ANIM" in self.action:
-            BRICKER_OT_brickify.brickifyCurrentFrame(self.frame, self.action, inBackground=True)
+            BRICKER_OT_brickify.brickify_current_frame(self.frame, self.action, in_background=True)
         else:
-            BRICKER_OT_brickify.brickifyActiveFrame(self.action)
+            BRICKER_OT_brickify.brickify_active_frame(self.action)
         # save last cache to prop temporarily
         bpy.props.bfm_cache_bytes_hex = marshal.dumps(bricker_bfm_cache[cm.id]).hex()
         return {"FINISHED"}

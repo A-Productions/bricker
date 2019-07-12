@@ -460,7 +460,7 @@ class VIEW3D_PT_bricker_customize(Panel):
         if not cm.last_split_model:
             col = layout.column(align=True)
             col.label(text="Model must be split to customize:")
-            col.operator("bricker.brickify", text="Split & Update Model", icon="FILE_REFRESH").splitBeforeUpdate = True
+            col.operator("bricker.brickify", text="Split & Update Model", icon="FILE_REFRESH").split_before_update = True
             return
         if cm.build_is_dirty:
             col = layout.column(align=True)

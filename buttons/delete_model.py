@@ -31,7 +31,7 @@ from .cache import *
 from ..lib.background_processing.classes.job_manager import JobManager
 
 
-def getModelType(cm):
+def get_model_type(cm):
     """ return 'MODEL' if model_created, 'ANIMATION' if animated """
     if cm.animated:
         model_type = "ANIMATION"
@@ -85,7 +85,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
     # class methods
 
     @classmethod
-    def cleanUp(cls, model_type, cm=None, skipSource=False, skipDupes=False, skipParents=False, skipBricks=False, skip_trans_and_anim_data=True, preserved_frames=None, source_name=None):
+    def cleanUp(cls, model_type, cm=None, skip_source=False, skip_dupes=False, skip_parents=False, skip_bricks=False, skip_trans_and_anim_data=True, preserved_frames=None, source_name=None):
         """ externally callable cleanup function for bricks, source, dupes, and parents """
         # set up variables
         scn, cm, n = get_active_context_info(cm=cm)
@@ -93,7 +93,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
 
         if not b280():
             # set all layers active temporarily
-            curLayers = list(scn.layers)
+            cur_layers = list(scn.layers)
             set_layers([True]*20)
             # match source layers to brick layers
             b_group = bpy_collections().get("Bricker_%(n)s_bricks" % locals())
@@ -102,14 +102,14 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 source.layers = brick.layers
 
         # clean up 'Bricker_[source name]' collection
-        if not skipSource:
+        if not skip_source:
             cls.clean_source(cm, n, source, model_type)
 
         # clean up source model duplicates
-        if not skipDupes:
+        if not skip_dupes:
             cls.clean_dupes(cm, n, preserved_frames, model_type)
 
-        if not skipParents:
+        if not skip_parents:
             brick_loc, brick_rot, brick_scl = cls.clean_parents(cm, n, preserved_frames, model_type)
         else:
             brick_loc, brick_rot, brick_scl = None, None, None
@@ -119,14 +119,14 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         wm.progress_begin(0, 100)
         print()
 
-        if not skipBricks:
+        if not skip_bricks:
             bricker_trans_and_anim_data = cls.clean_bricks(scn, cm, n, preserved_frames, model_type, skip_trans_and_anim_data)
         else:
             bricker_trans_and_anim_data = []
 
         if not b280():
             # set scene layers back to original layers
-            set_layers(curLayers)
+            set_layers(cur_layers)
 
         return source, brick_loc, brick_rot, brick_scl, bricker_trans_and_anim_data
 
@@ -134,8 +134,8 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
     def run_full_delete(cls, cm=None):
         """ externally callable cleanup function for full delete action (clears everything from memory) """
         scn, cm, n = get_active_context_info(cm=cm)
-        model_type = getModelType(cm)
-        origFrame = scn.frame_current
+        model_type = get_model_type(cm)
+        orig_frame = scn.frame_current
         scn.frame_set(cm.model_created_on_frame)
         bricks = get_bricks()
         # store pivot point for model
@@ -149,7 +149,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             job_manager = JobManager.get_instance(cm.id)
             job_manager.kill_all()
 
-        source, brick_loc, brick_rot, brick_scl, _ = cls.cleanUp(model_type, cm=cm, skipSource=cm.source_obj is None)
+        source, brick_loc, brick_rot, brick_scl, _ = cls.cleanUp(model_type, cm=cm, skip_source=cm.source_obj is None)
 
         # select source
         if source is None:
@@ -210,7 +210,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         clear_transform_data(cm)
 
         # reset frame (for proper update), update scene and redraw 3D view
-        scn.frame_set(origFrame)
+        scn.frame_set(orig_frame)
         update_depsgraph()
         tag_redraw_areas("VIEW_3D")
 

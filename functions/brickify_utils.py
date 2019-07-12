@@ -74,7 +74,7 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame):
     """ returns list of duplicates from source with all traits applied """
     source = cm.source_obj
     n = source.name
-    origFrame = scn.frame_current
+    orig_frame = scn.frame_current
     soft_body = False
     smoke = False
 
@@ -135,7 +135,7 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame):
         if percent < 1:
             update_progress("Applying Modifiers", percent)
     # update progress bar
-    scn.frame_set(origFrame)
+    scn.frame_set(orig_frame)
     update_depsgraph()
     update_progress("Applying Modifiers", 1)
     return duplicates

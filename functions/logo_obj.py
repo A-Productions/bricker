@@ -55,11 +55,19 @@ def get_lego_logo(scn, typ, res, decimate, dimensions):
             remove_doubles(ref_logo)
             # decimate mesh
             if decimate != 0:
+<<<<<<< HEAD
                 d_mod = ref_logo.modifiers.new("Decimate", type="DECIMATE")
                 d_mod.ratio = 1 - (decimate / 10)
                 apply_modifiers(ref_logo)
             safe_unlink(ref_logo)
     return ref_logo
+=======
+                dMod = refLogo.modifiers.new("Decimate", type="DECIMATE")
+                dMod.ratio = 1 - (decimate / 10)
+                apply_modifiers(refLogo)
+            safe_unlink(refLogo)
+    return refLogo
+>>>>>>> common
 
 
 def get_lego_stud_font():

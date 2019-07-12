@@ -226,6 +226,7 @@ def get_zstep(cm):
     return 1 if flat_brick_type(cm.brick_type) else 3
 
 
+<<<<<<< HEAD
 def get_keys_dict(bricksdict, keys=None):
     """ get dictionary of bricksdict keys based on z value """
     keys = keys or list(bricksdict.keys())
@@ -234,6 +235,16 @@ def get_keys_dict(bricksdict, keys=None):
     for k0 in keys:
         z = get_dict_loc(bricksdict, k0)[2]
         if bricksdict[k0]["draw"]:
+=======
+def getKeysDict(bricksDict, keys=None):
+    """ get dictionary of bricksDict keys based on z value """
+    keys = keys or list(bricksDict.keys())
+    if len(keys) > 1: keys.sort(key=lambda x: (getDictLoc(bricksDict, x)[0], getDictLoc(bricksDict, x)[1]))
+    keysDict = {}
+    for k0 in keys:
+        if bricksDict[k0]["draw"]:
+            z = getDictLoc(bricksDict, k0)[2]
+>>>>>>> common
             try:
                 keys_dict[z].append(k0)
             except KeyError:
@@ -507,12 +518,20 @@ def select_source_model(self, context):
                     else:
                         scn.objects.active = None
                         deselect_all()
+<<<<<<< HEAD
                         scn.bricker_last_active_object_name = ""
+=======
+                        scn.Bricker_last_active_object_name = ""
+>>>>>>> common
             else:
                 select(source, active=True, only=True)
                 scn.bricker_last_active_object_name = source.name
         else:
             for i,cm0 in enumerate(scn.cmlist):
+<<<<<<< HEAD
                 if get_source_name(cm0) == scn.bricker_active_object_name:
+=======
+                if getSourceName(cm0) == scn.Bricker_active_object_name:
+>>>>>>> common
                     deselect_all()
                     break

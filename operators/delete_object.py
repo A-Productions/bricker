@@ -111,7 +111,7 @@ class OBJECT_OT_delete_override(Operator):
     def delete_unprotected(self, context, use_global=False, update_model=True):
         scn = context.scene
         protected = []
-        objNamesToDelete = [obj.name for obj in self.objs_to_delete]
+        obj_names_to_delete = [obj.name for obj in self.objs_to_delete]
 
         # initialize obj_names_dict (key:cm_id, val:list of brick objects)
         obj_names_dict = create_obj_names_dict(self.objs_to_delete)
@@ -173,7 +173,6 @@ class OBJECT_OT_delete_override(Operator):
                     delete(brick)
                 # create new bricks at all keys_to_update locations (attempts merge as well)
                 draw_updated_bricks(cm, bricksdict, keys_to_update, select_created=False)
-                iteratedStates = True
             if not last_build_is_dirty:
                 cm.build_is_dirty = False
             # if undo states not iterated above
@@ -188,7 +187,7 @@ class OBJECT_OT_delete_override(Operator):
             self.undo_stack.undo_pop_clean()
 
         # delete bricks
-        for obj_name in objNamesToDelete:
+        for obj_name in obj_names_to_delete:
             obj = bpy.data.objects.get(obj_name)
             if obj is None:
                 continue

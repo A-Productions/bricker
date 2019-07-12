@@ -53,8 +53,8 @@ class BRICKER_OT_clear_cache(bpy.types.Operator):
             self.clear_caches()
             # clear all duplicated sources for brickified animations
             if cm.animated:
-                dupNameBase = "Bricker_%(n)s_f_" % locals()
-                dupes = [bpy.data.objects.get(dupNameBase + str(cf)) for cf in range(cm.last_start_frame, cm.last_stop_frame + 1)]
+                dup_name_base = "Bricker_%(n)s_f_" % locals()
+                dupes = [bpy.data.objects.get(dup_name_base + str(cf)) for cf in range(cm.last_start_frame, cm.last_stop_frame + 1)]
                 delete(dupes)
         except:
             bricker_handle_exception()

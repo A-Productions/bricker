@@ -31,7 +31,7 @@ from bpy.types import Operator, SpaceView3D, bpy_struct
 from bpy.props import *
 
 # Addon imports
-from .bricksculpt_framework_backup import *
+from .bricksculpt_framework import *
 from .bricksculpt_tools import *
 from .bricksculpt_drawing import *
 from .draw_adjacent import *
@@ -116,6 +116,7 @@ class BRICKER_OT_bricksculpt(Operator, BricksculptFramework, BricksculptTools, B
         self.dimensions = Bricks.get_dimensions(cm.brick_height, cm.zstep, cm.gap)
         self.obj = None
         self.cm_idx = cm.idx
+        self.zstep = cm.zstep
         self.keys_to_merge_on_commit = []
         self.brick_type = get_brick_type(cm.brick_type)
         self.mat_name = cm.paintbrush_mat.name if cm.paintbrush_mat is not None else ""  # bpy.data.materials[-1].name if len(bpy.data.materials) > 0 else ""
