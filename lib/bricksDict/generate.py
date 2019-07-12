@@ -31,7 +31,6 @@ from .functions import *
 from ...functions.common import *
 from ...functions.general import *
 from ...functions.generate_lattice import generate_lattice
-from ...functions.wrappers import *
 from ...functions.smoke_sim import *
 from ..Brick import Bricks
 

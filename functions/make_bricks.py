@@ -33,7 +33,6 @@ from .hash_object import hash_object
 from ..lib.Brick import Bricks
 from ..lib.bricksdict import *
 from .common import *
-from .wrappers import *
 from .general import bounds
 from ..lib.caches import bricker_mesh_cache
 from .make_bricks_utils import *

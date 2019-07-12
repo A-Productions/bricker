@@ -245,7 +245,7 @@ def handle_upconversion(dummy):
                     # create "Bricker_cm.id_mats" object for each cmlist idx
                     create_mat_objs(cm.id)
                     # update names of Bricker source objects
-                    old_source = bpy.data.objects.get(cm. + " (DO NOT RENAME)")
+                    old_source = bpy.data.objects.get(cm.source_name + " (DO NOT RENAME)")
                     if old_source is not None:
                         old_source.name = cm.source_name
                     # transfer dist offset values to new prop locations
@@ -276,10 +276,10 @@ def handle_upconversion(dummy):
                     if cm.collection is None: cm.collection = coll
                     dup = bpy.data.objects.get(n + "_duplicate")
                     if dup is not None: dup.name = n + "__dup__"
-                # convert from v1_6 to v1_7
-                if int(cm.version[2]) < 7:
-                    for prop in dir()
-                    # TODO: transfer props from 1_6 to 1_7
+                # # convert from v1_6 to v1_7
+                # if int(cm.version[2]) < 7:
+                #     for prop in dir()
+                #     # TODO: transfer props from 1_6 to 1_7
 
             # ensure parent object has no users
             if cm.parent_obj is not None:

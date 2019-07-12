@@ -35,7 +35,6 @@ from ..lib.Brick import Bricks
 from ..lib.bricksDict import *
 from .common import *
 from .mat_utils import *
-from .wrappers import *
 from .general import *
 from ..lib.caches import bricker_mesh_cache
 

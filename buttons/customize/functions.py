@@ -247,7 +247,7 @@ def create_obj_names_dict(objs):
     return obj_names_dict
 
 
-get_bricksdicts_from_objs(obj_names):
+def get_bricksdicts_from_objs(obj_names):
     scn = bpy.context.scene
     # initialize bricksdicts
     bricksdicts = {}
