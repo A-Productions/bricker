@@ -697,7 +697,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     dist_offsetY = FloatProperty()
     dist_offsetZ = FloatProperty()
     # v1.4
-    logoDetail = StringProperty()
+    logoDetail = StringProperty("NONE")
     # v1.5
     source_name = StringProperty()
     parent_name = StringProperty()

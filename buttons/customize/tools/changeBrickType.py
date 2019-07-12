@@ -27,7 +27,7 @@ from ..undo_stack import *
 from ..functions import *
 from ...brickify import *
 from ...brickify import *
-from ....lib.bricksDict.functions import getDictKey
+from ....lib.bricksdict.functions import getDictKey
 from ....lib.Brick.legal_brick_sizes import *
 from ....functions import *
 
@@ -95,20 +95,20 @@ class BRICKER_OT_change_brick_type(Operator):
                     continue
                 # get cmlist item referred to by object
                 cm = get_item_by_id(scn.cmlist, obj.cmlist_id)
-                # get bricksDict from cache
-                bricksDict = getBricksDict(cm)
+                # get bricksdict from cache
+                bricksdict = getBricksDict(cm)
                 dictKey = getDictKey(obj.name)
                 # initialize properties
-                curBrickType = bricksDict[dictKey]["type"]
-                curBrickSize = bricksDict[dictKey]["size"]
+                curBrickType = bricksdict[dictKey]["type"]
+                curBrickSize = bricksdict[dictKey]["size"]
                 try:
-                    self.flipBrick = bricksDict[dictKey]["flipped"]
-                    self.rotateBrick = bricksDict[dictKey]["rotated"]
+                    self.flipBrick = bricksdict[dictKey]["flipped"]
+                    self.rotateBrick = bricksdict[dictKey]["rotated"]
                     self.brickType = curBrickType or ("BRICK" if curBrickSize[2] == 3 else "PLATE")
                 except TypeError:
                     pass
                 break
-            self.objNamesD, self.bricksDicts = createObjNamesAndBricksDictsDs(selected_objects)
+            self.objNamesD, self.bricksdicts = createObjNamesAndBricksDictsDs(selected_objects)
         except:
             bricker_handle_exception()
 
@@ -116,8 +116,8 @@ class BRICKER_OT_change_brick_type(Operator):
     # class variables
 
     # vars
-    bricksDicts = {}
-    bricksDict = {}
+    bricksdicts = {}
+    bricksdict = {}
     objNamesD = {}
 
     # get items for brickType prop
@@ -145,7 +145,7 @@ class BRICKER_OT_change_brick_type(Operator):
     # class methods
 
     def changeType(self):
-        # revert to last bricksDict
+        # revert to last bricksdict
         self.undo_stack.matchPythonToBlenderState()
         # push to undo stack
         if self.orig_undo_stack_length == self.undo_stack.getLength():
@@ -166,7 +166,7 @@ class BRICKER_OT_change_brick_type(Operator):
             cm = get_item_by_id(scn.cmlist, cm_id)
             self.undo_stack.iterateStates(cm)
             # initialize vars
-            bricksDict = deepcopy(self.bricksDicts[cm_id])
+            bricksdict = deepcopy(self.bricksdicts[cm_id])
             keysToUpdate = set()
             updateHasCustomObjs(cm, targetBrickType)
             cm.customized = True
@@ -178,17 +178,17 @@ class BRICKER_OT_change_brick_type(Operator):
             for obj_name in self.objNamesD[cm_id]:
                 # initialize vars
                 dictKey = getDictKey(obj_name)
-                dictLoc = getDictLoc(bricksDict, dictKey)
+                dictLoc = getDictLoc(bricksdict, dictKey)
                 x0, y0, z0 = dictLoc
                 # get size of current brick (e.g. [2, 4, 1])
-                size = bricksDict[dictKey]["size"]
-                typ = bricksDict[dictKey]["type"]
+                size = bricksdict[dictKey]["size"]
+                typ = bricksdict[dictKey]["type"]
 
                 # skip bricks that are already of type self.brickType
                 if (typ == targetBrickType
                     and (not typ.startswith("SLOPE")
-                         or (bricksDict[dictKey]["flipped"] == self.flipBrick
-                             and bricksDict[dictKey]["rotated"] == self.rotateBrick))):
+                         or (bricksdict[dictKey]["flipped"] == self.flipBrick
+                             and bricksdict[dictKey]["rotated"] == self.rotateBrick))):
                     continue
                 # skip bricks that can't be turned into the chosen brick type
                 if size[:2] not in legalBrickSizes[3 if targetBrickType in getBrickTypes(height=3) else 1][targetBrickType]:
@@ -199,33 +199,33 @@ class BRICKER_OT_change_brick_type(Operator):
                     aboveKeys = [listToStr((x0 + x, y0 + y, z0 + z)) for z in range(1, 3) for y in range(size[1]) for x in range(size[0])]
                     obstructed = False
                     for curKey in aboveKeys:
-                        if curKey in bricksDict and bricksDict[curKey]["draw"]:
+                        if curKey in bricksdict and bricksdict[curKey]["draw"]:
                             self.report({"INFO"}, "Could not change to type {brickType}; some locations are occupied".format(brickType=targetBrickType))
                             obstructed = True
                             break
                     if obstructed: continue
 
                 # set type of parent brick to targetBrickType
-                lastType = bricksDict[dictKey]["type"]
-                bricksDict[dictKey]["type"] = targetBrickType
-                bricksDict[dictKey]["flipped"] = self.flipBrick
-                bricksDict[dictKey]["rotated"] = False if min(size[:2]) == 1 and max(size[:2]) > 1 else self.rotateBrick
+                lastType = bricksdict[dictKey]["type"]
+                bricksdict[dictKey]["type"] = targetBrickType
+                bricksdict[dictKey]["flipped"] = self.flipBrick
+                bricksdict[dictKey]["rotated"] = False if min(size[:2]) == 1 and max(size[:2]) > 1 else self.rotateBrick
 
                 # update height of brick if necessary, and update dictionary accordingly
                 if flatBrickType(brickType):
                     dimensions = Bricks.get_dimensions(brickHeight, cm.zStep, gap)
-                    size = updateBrickSizeAndDict(dimensions, getSourceName(cm), bricksDict, size, dictKey, dictLoc, curHeight=size[2], targetType=targetBrickType)
+                    size = updateBrickSizeAndDict(dimensions, getSourceName(cm), bricksdict, size, dictKey, dictLoc, curHeight=size[2], targetType=targetBrickType)
 
                 # check if brick spans 3 matrix locations
                 bAndPBrick = flatBrickType(brickType) and size[2] == 3
 
                 # verify exposure above and below
-                brickLocs = getLocsInBrick(bricksDict, size, cm.zStep, dictLoc)
+                brickLocs = getLocsInBrick(bricksdict, size, cm.zStep, dictLoc)
                 for curLoc in brickLocs:
-                    bricksDict = verifyBrickExposureAboveAndBelow(scn, cm.zStep, curLoc, bricksDict, decriment=3 if bAndPBrick else 1)
+                    bricksdict = verifyBrickExposureAboveAndBelow(scn, cm.zStep, curLoc, bricksdict, decriment=3 if bAndPBrick else 1)
                     # add bricks to keysToUpdate
-                    keysToUpdate |= set([getParentKey(bricksDict, listToStr((x0 + x, y0 + y, z0 + z))) for z in (-1, 0, 3 if bAndPBrick else 1) for y in range(size[1]) for x in range(size[0])])
-                objNamesToSelect += [bricksDict[listToStr(loc)]["name"] for loc in brickLocs]
+                    keysToUpdate |= set([getParentKey(bricksdict, listToStr((x0 + x, y0 + y, z0 + z))) for z in (-1, 0, 3 if bAndPBrick else 1) for y in range(size[1]) for x in range(size[0])])
+                objNamesToSelect += [bricksdict[listToStr(loc)]["name"] for loc in brickLocs]
 
             # remove null keys
             keysToUpdate = [x for x in keysToUpdate if x != None]
@@ -233,15 +233,15 @@ class BRICKER_OT_change_brick_type(Operator):
             bricksWereGenerated = bricksWereGenerated or len(keysToUpdate) > 0
 
             # draw updated brick
-            drawUpdatedBricks(cm, bricksDict, keysToUpdate, selectCreated=False)
+            drawUpdatedBricks(cm, bricksdict, keysToUpdate, selectCreated=False)
         # select original bricks
         orig_obj = bpy.data.objects.get(initial_active_obj_name)
         if orig_obj is not None: set_active_obj(orig_obj)
         objsToSelect = [bpy.data.objects.get(obj_n) for obj_n in objNamesToSelect if bpy.data.objects.get(obj_n) is not None]
         select(objsToSelect)
-        # store current bricksDict to cache when re-run with original brick type so bricksDict is updated
+        # store current bricksdict to cache when re-run with original brick type so bricksdict is updated
         if not bricksWereGenerated:
-            cacheBricksDict("CREATE", cm, bricksDict)
+            cacheBricksDict("CREATE", cm, bricksdict)
         # print helpful message to user in blender interface
         if bricksWereGenerated:
             self.report({"INFO"}, "Changed bricks to type '{targetType}'".format(size=listToStr(size).replace(",", "x"), targetType=targetBrickType))

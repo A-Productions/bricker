@@ -23,11 +23,14 @@
         * Figure out a way to maintain physics cache, parented matrix_world info, etc. for objects appended to background blender instance
     * Switch `calculation_axes` property to expanded bools in user interface
     * Fix material panel subpanels for blender 2.79?
-    * When switching to v1.7, change 'color_snap' to 'colorMapping'
+
 * Fixes
     * when brickified model's parent is rotated, bricks drawn by customizing model are often not rotated correctly
     * Custom object rotation is not maintained when instanced for in bricker model (is this behavior desired?)
 
+before 1.7 release:
+    * change 'color_snap' to 'colorMapping'
+    * debug custom logos
 
 
 # Blender 2.80 Notes
