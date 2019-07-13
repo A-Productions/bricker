@@ -28,7 +28,7 @@ from ..functions import *
 def add_material_to_list(self, context):
     scn, cm, n = get_active_context_info()
     typ = "RANDOM" if cm.material_type == "RANDOM" else "ABS"
-    mat_obj = get_mat_obj(cm.id, typ=typ)
+    mat_obj = get_mat_obj(cm, typ=typ)
     num_mats = len(mat_obj.data.materials)
     mat = bpy.data.materials.get(cm.target_material)
     if mat is None:

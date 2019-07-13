@@ -147,7 +147,7 @@ class CMLIST_OT_list_action(bpy.types.Operator):
         item.start_frame = scn.frame_start
         item.stop_frame = scn.frame_end
         # create new mat_obj for current cmlist id
-        create_mat_objs(i)
+        create_mat_objs(item)
 
     def remove_item(cls, idx):
         scn, cm, sn = get_active_context_info()

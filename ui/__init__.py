@@ -866,44 +866,43 @@ class VIEW3D_PT_bricker_included_materials(Panel):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
 
-        mat_obj = get_mat_obj(cm.id, typ="RANDOM" if cm.material_type == "RANDOM" else "ABS")
+        mat_obj = get_mat_obj(cm, typ=cm.material_type)
         if mat_obj is None:
-            create_new_mat_objs(cm.id)
+            return
+        col = layout.column(align=True)
+        if not brick_materials_installed():
+            col.label(text="'ABS Plastic Materials' not installed")
+        elif scn.render.engine not in ("CYCLES", "BLENDER_EEVEE"):
+            col.label(text="Switch to 'Cycles' or 'Eevee' for Brick Materials")
         else:
-            col = layout.column(align=True)
-            if not brick_materials_installed():
-                col.label(text="'ABS Plastic Materials' not installed")
-            elif scn.render.engine not in ("CYCLES", "BLENDER_EEVEE"):
-                col.label(text="Switch to 'Cycles' or 'Eevee' for Brick Materials")
+            # draw materials UI list and list actions
+            num_mats = len(mat_obj.data.materials)
+            rows = 5 if num_mats > 5 else (num_mats if num_mats > 2 else 2)
+            split = layout_split(col, factor=0.85)
+            col1 = split.column(align=True)
+            col1.template_list("MATERIAL_UL_matslots", "", mat_obj, "material_slots", mat_obj, "active_material_index", rows=rows)
+            col1 = split.column(align=True)
+            col1.operator("bricker.mat_list_action", icon="REMOVE" if b280() else "ZOOMOUT", text="").action = "REMOVE"
+            col1.scale_y = 1 + rows
+            if not brick_materials_imported():
+                col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
             else:
-                # draw materials UI list and list actions
-                num_mats = len(mat_obj.data.materials)
-                rows = 5 if num_mats > 5 else (num_mats if num_mats > 2 else 2)
-                split = layout_split(col, factor=0.85)
-                col1 = split.column(align=True)
-                col1.template_list("MATERIAL_UL_matslots", "", mat_obj, "material_slots", mat_obj, "active_material_index", rows=rows)
-                col1 = split.column(align=True)
-                col1.operator("bricker.mat_list_action", icon="REMOVE" if b280() else "ZOOMOUT", text="").action = "REMOVE"
-                col1.scale_y = 1 + rows
-                if not brick_materials_imported():
-                    col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
-                else:
-                    col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ADD" if b280() else "ZOOMIN")
-                # settings for adding materials
-                if hasattr(bpy.props, "abs_mats_common"):  # checks that ABS plastic mats are at least v2.1
-                    col = layout.column(align=True)
-                    right_align(col)
-                    row = col.row(align=True)
-                    row.prop(scn, "include_transparent")
-                    row = col.row(align=True)
-                    row.prop(scn, "include_uncommon")
-
+                col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ADD" if b280() else "ZOOMIN")
+            # settings for adding materials
+            if hasattr(bpy.props, "abs_mats_common"):  # checks that ABS plastic mats are at least v2.1
                 col = layout.column(align=True)
-                split = layout_split(col, factor=0.25)
-                col = split.column(align=True)
-                col.label(text="Add:")
-                col = split.column(align=True)
-                col.prop_search(cm, "target_material", bpy.data, "materials", text="")
+                right_align(col)
+                row = col.row(align=True)
+                row.prop(scn, "include_transparent")
+                row = col.row(align=True)
+                row.prop(scn, "include_uncommon")
+
+            col = layout.column(align=True)
+            split = layout_split(col, factor=0.25)
+            col = split.column(align=True)
+            col.label(text="Add:")
+            col = split.column(align=True)
+            col.prop_search(cm, "target_material", bpy.data, "materials", text="")
 
 
 class VIEW3D_PT_bricker_material_properties(Panel):

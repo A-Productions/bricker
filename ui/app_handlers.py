@@ -243,7 +243,7 @@ def handle_upconversion(dummy):
                                 obj.use_fake_user = True
                         bpy.data.scenes.remove(sto_scn_old)
                     # create "Bricker_cm.id_mats" object for each cmlist idx
-                    create_mat_objs(cm.id)
+                    create_mat_objs(cm)
                     # update names of Bricker source objects
                     old_source = bpy.data.objects.get(cm.source_name + " (DO NOT RENAME)")
                     if old_source is not None:

@@ -650,6 +650,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     zstep = IntProperty(default=3)
     parent_obj = PointerProperty(type=bpy.types.Object)
     collection = PointerProperty(type=bpy.types.Collection if b280() else bpy.types.Group)
+    mat_obj_abs = PointerProperty(type=bpy.types.Object)
+    mat_obj_random = PointerProperty(type=bpy.types.Object)
     customized = BoolProperty(default=True)
     brick_sizes_used = StringProperty(default="")  # list of brick_sizes used separated by | (e.g. '5,4,3|7,4,5|8,6,5')
     brick_types_used = StringProperty(default="")  # list of brick_types used separated by | (e.g. 'PLATE|BRICK|STUD')

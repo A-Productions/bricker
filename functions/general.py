@@ -99,13 +99,6 @@ def get_collections(cm=None, typ=None):
     return bcolls
 
 
-def get_mat_obj(cm_id, typ="RANDOM"):
-    mat_n = cm_id
-    Bricker_mat_on = "Bricker_%(mat_n)s_%(typ)s_mats" % locals()
-    mat_obj = bpy.data.objects.get(Bricker_mat_on)
-    return mat_obj
-
-
 def get_brick_types(height):
     return bpy.props.bricker_legal_brick_sizes[height].keys()
 
@@ -410,22 +403,33 @@ def bricker_handle_exception():
     handle_exception(log_name="Bricker log", report_button_loc="Bricker > Brick Models > Report Error")
 
 
-def get_brick_mats(material_type, cm_id):
+def get_brick_mats(cm):
     brick_mats = []
-    if material_type == "RANDOM":
-        mat_obj = get_mat_obj(cm_id, typ="RANDOM")
+    if cm.material_type == "RANDOM":
+        mat_obj = get_mat_obj(cm, typ="RANDOM")
         brick_mats = list(mat_obj.data.materials.keys())
     return brick_mats
 
 
-def create_mat_objs(idx):
+def create_mat_objs(cm):
     """ create new mat_objs for current cmlist id """
-    mat_obj_names = ["Bricker_{}_RANDOM_mats".format(idx), "Bricker_{}_ABS_mats".format(idx)]
+    mat_obj_names = ["Bricker_{}_RANDOM_mats".format(cm.id), "Bricker_{}_ABS_mats".format(cm.id)]
     for obj_n in mat_obj_names:
         mat_obj = bpy.data.objects.get(obj_n)
         if mat_obj is None:
             mat_obj = bpy.data.objects.new(obj_n, bpy.data.meshes.new(obj_n + "_mesh"))
             mat_obj.use_fake_user = True
+    cm.mat_obj_random = bpy.data.objects.get(mat_obj_names[0])
+    cm.mat_obj_abs = bpy.data.objects.get(mat_obj_names[1])
+    return cm.mat_obj_random, cm.mat_obj_abs
+
+
+def get_mat_obj(cm, typ="RANDOM"):
+    if typ == "RANDOM":
+        mat_obj = cm.mat_obj_random
+    else:
+        mat_obj = cm.mat_obj_abs
+    return mat_obj
 
 
 def remove_mat_objs(idx):

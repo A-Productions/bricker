@@ -22,6 +22,8 @@ scn = bpy.context.scene
 bpy.ops.cmlist.list_action(action="ADD")
 scn.cmlist_index = 0
 cm = scn.cmlist[scn.cmlist_index]
+# match cm.id to source cmlist item
+cm.id = cmlist_id
 # Pull objects and meshes from source file
 for data_block in passed_data_blocks:
     if isinstance(data_block, bpy.types.Object):

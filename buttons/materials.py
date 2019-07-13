@@ -131,7 +131,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
     def apply_random_materials(self, scn, cm, context, bricks, bricksdict):
         # initialize list of brick materials
         brick_mats = []
-        mat_obj = get_mat_obj(cm.id, typ="RANDOM")
+        mat_obj = get_mat_obj(cm, typ="RANDOM")
         for mat in mat_obj.data.materials.keys():
             brick_mats.append(mat)
         if len(brick_mats) == 0:

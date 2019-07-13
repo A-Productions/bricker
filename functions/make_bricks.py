@@ -118,7 +118,7 @@ def make_bricks(source, parent, logo, logo_details, dimensions, bricksdict, acti
     rand_s2 = None if temp_brick else np.random.RandomState(cm.merge_seed+1)
     rand_s3 = None if temp_brick else np.random.RandomState(cm.merge_seed+2)
     # initialize other variables
-    brick_mats = get_brick_mats(cm.material_type, cm.id)
+    brick_mats = get_brick_mats(cm)
     brick_size_strings = {}
     mats = []
     all_meshes = bmesh.new()

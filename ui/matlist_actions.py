@@ -54,7 +54,7 @@ class BRICKER_OT_matlist_actions(bpy.types.Operator):
     def execute(self, context):
         try:
             scn, cm, n = get_active_context_info()
-            mat_obj = get_mat_obj(cm.id, typ="RANDOM" if cm.material_type == "RANDOM" else "ABS")
+            mat_obj = get_mat_obj(cm, typ=cm.material_type)
             idx = mat_obj.active_material_index
 
             if self.action == "REMOVE":

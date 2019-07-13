@@ -51,7 +51,6 @@ def updateMaterials(bricksdict, source, uv_images, keys, cur_frame=None):
     ior = cm.color_snap_ior
     transmission = cm.color_snap_transmission
     color_snap_amount = cm.color_snap_amount
-    cm_id = cm.id
     # clear materials
     mat_name_start = "Bricker_{n}{f}".format(n=n, f="f_%(cur_frame)s" % locals() if cur_frame else "")
     for mat in bpy.data.materials:
@@ -81,7 +80,7 @@ def updateMaterials(bricksdict, source, uv_images, keys, cur_frame=None):
                     pass
                 # otherwise, find nearest ABS plastic material to rgba value
                 else:
-                    mat_obj = get_mat_obj(cm_id, typ="ABS")
+                    mat_obj = get_mat_obj(cm, typ="ABS")
                     assert len(mat_obj.data.materials) > 0
                     mat_name = find_nearest_brick_color_name(rgba, trans_weight, mat_obj=mat_obj)
             elif color_snap == "RGB" or is_smoke:# or use_uv_map:

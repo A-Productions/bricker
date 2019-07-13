@@ -292,20 +292,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if self.brickify_in_background:
             cm.brickifying_in_background = True
 
-        if b280():
-            # store parent collections to source
-            self.source.stored_parents.clear()
-            if len(self.source.users_collection) > 0:
-                # use parent collections of source
-                linked_colls = self.source.users_collection
-            else:
-                # use parent collections of brick collection
-                brick_coll = cm.collection
-                linked_colls = [cn for cn in bpy.data.collections if brick_coll.name in cn.children]
-            for cn in linked_colls:
-                self.source.stored_parents.add().collection = cn
-
-        # # check if source object is smoke simulation domain
+        # check if source object is smoke simulation domain
         cm.is_smoke = is_smoke(self.source)
         if cm.is_smoke != cm.last_is_smoke:
             cm.matrix_is_dirty = True
@@ -319,6 +306,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if cm.matrix_is_dirty:
             if not matrix_dirty and get_bricksdict(cm) is not None:
                 cm.matrix_is_dirty = False
+
+        # clear stored parents before sending to back_proc to save on mem usage
+        if b280():
+            self.source.stored_parents.clear()
 
         if b280():
             # TODO: potentially necessary to ensure current View Layer includes collection with self.source
@@ -335,8 +326,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             self.brickify_model(scn, cm, n, matrix_dirty)
         else:
             self.brickify_animation(scn, cm, n, matrix_dirty)
-            anim_coll = get_anim_coll(n)
-            link_brick_collection(cm, anim_coll)
             cm.anim_is_dirty = False
 
         # set cmlist_id for all created objects
@@ -367,8 +356,24 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cm.animated = "ANIM" in self.action
         cm.expose_parent = False
 
-        if cm.animated and not self.brickify_in_background:
-            finish_animation(self.cm)
+        # store parent collections to source
+        if b280():
+            if len(self.source.users_collection) > 0:
+                # use parent collections of source
+                linked_colls = self.source.users_collection
+            else:
+                # use parent collections of brick collection
+                brick_coll = cm.collection
+                linked_colls = [cn for cn in bpy.data.collections if brick_coll.name in cn.children]
+            for cn in linked_colls:
+                self.source.stored_parents.add().collection = cn
+
+        # link created brick collection
+        if cm.animated:
+            anim_coll = get_anim_coll(n)
+            link_brick_collection(cm, anim_coll)
+            if not self.brickify_in_background:
+                finish_animation(self.cm)
 
         # unlink source from scene
         safe_unlink(self.source)
@@ -462,7 +467,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             filename = bpy.path.basename(bpy.data.filepath)[:-6]
             cur_job = "%(filename)s__%(n)s" % locals()
             script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, source_dup)
-            job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":None, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)
+            job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":None, "cmlist_id":cm.id, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)
             if not job_added: raise Exception(msg)
             self.jobs.append(cur_job)
         else:
@@ -547,7 +552,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if self.brickify_in_background:
                 cur_job = "%(filename)s__%(n)s__%(cur_frame)s" % locals()
                 script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, duplicates[cur_frame])
-                job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":cur_frame, "cmlist_index":scn.cmlist_index, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)#, overwrite_blend=overwrite_blend)
+                job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":cur_frame, "cmlist_id":cm.id, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)#, overwrite_blend=overwrite_blend)
                 if not job_added: raise Exception(msg)
                 self.jobs.append(cur_job)
                 overwrite_blend = False
@@ -707,9 +712,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 self.report({"WARNING"}, "Requires ABS Plastic Materials v2.1.1 or later – please update via the addon preferences")
                 return False
             # ensure ABS Plastic materials UI list is populated
-            mat_obj = get_mat_obj(cm.id, typ="ABS")
+            mat_obj = get_mat_obj(cm, typ="ABS")
             if mat_obj is None:
-                mat_obj = create_new_mat_objs(cm.id)[1]
+                mat_obj = create_mat_objs(cm)[1]
             if len(mat_obj.data.materials) == 0:
                 self.report({"WARNING"}, "No ABS Plastic Materials found in Materials to be used")
                 return False
