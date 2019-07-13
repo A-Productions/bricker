@@ -43,7 +43,11 @@ def dump_cm_props(cm):
     for item in dir(cm):
         if item.startswith("__") or not item.islower() or item in ["bl_rna", "rna_type", "active_key", "bfm_cache"]:
             continue
-        item_prop = getattr(cm, item)
+        print(item)
+        try:
+            item_prop = getattr(cm, item)
+        except:
+            continue
         item_type = type(item_prop)
         if item_type in types.keys():
             pointer_dict[item] = {"name":item_prop.name, "type":types[item_type]}
