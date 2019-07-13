@@ -22,43 +22,55 @@ import json
 import bpy
 from mathutils import Vector, Color
 
-# Addon imports
-from .common import *
+# # Addon imports
+# from .common import *
+#
+# # Conditional imports
+# if b280():
+#     from bpy.types import Material, Image, Object, Collection
+#     types = {Material:"Material", Image:"Image", Object:"Object", Collection:"Collection"}
+# else:
+#     from bpy.types import Material, Image, Object, Group
+#     types = {Material:"Material", Image:"Image", Object:"Object", Group:"Group"}
+from bpy.types import Material, Image, Object, Collection
+types = {Material:"Material", Image:"Image", Object:"Object", Collection:"Collection"}
 
-# Conditional imports
-if b280():
-    from bpy.types import Material, Image, Object, Collection
-else:
-    from bpy.types import Material, Image, Object, Group
 
-
-scn = bpy.context.scene
-cm0 = scn.cmlist[scn.cmlist_index]
-
-
-if b280():
-    types = {Material:"Material", Image:"Image", Object:"Object", Collection:"Collection"}
-else:
-    types = {Material:"Material", Image:"Image", Object:"Object", Group:"Group"}
-
-def build_dict(cm):
-    cm_dict = {}
-    objs = {}
+def dump_cm_props(cm):
+    prop_dict = {}
+    pointer_dict = {}
 
     for item in dir(cm):
-        if item in ["__annotations__", "__dict__", "__doc__", "__module__", "__weakref__", "bl_rna", "rna_type", "active_key", "bfm_cache"]:
+        if item.startswith("__") or not item.islower() or item in ["bl_rna", "rna_type", "active_key", "bfm_cache"]:
             continue
         item_prop = getattr(cm, item)
         item_type = type(item_prop)
         if item_type in types.keys():
-            objs[item] = {"name":item_prop.name, "type":types[item_type]}
+            pointer_dict[item] = {"name":item_prop.name, "type":types[item_type]}
             continue
         if item_type in (Vector, Color):
             item_prop = tuple(item_prop)
-        cm_dict[item] = item_prop
-    return cm_dict, objs
+        prop_dict[item] = item_prop
+    return prop_dict, pointer_dict
 
-cm_dict, objs = build_dict(cm0)
+
+def load_cm_props(cm, prop_dict, pointer_dict):
+    for item in prop_dict:
+        setattr(cm, item, prop_dict[item])
+    for item in pointer_dict:
+        name = pointer_dict[item]["name"]
+        typ = pointer_dict[item]["type"]
+        data = getattr(bpy.data, typ.lower() + "s")[name]
+        setattr(cm, item, data)
+
+
+# scn = bpy.context.scene
+# cm0 = scn.cmlist[scn.cmlist_index]
+# prop_dict, pointer_dict = dump_cm_props(cm0)
+#
+# bpy.ops.cmlist.list_action(action="ADD")
+# cm1 = scn.cmlist[-1]
+# load_cm_props(cm1, prop_dict, pointer_dict)
 
 # # Print helpful information
 # props = {}
@@ -72,8 +84,7 @@ cm_dict, objs = build_dict(cm0)
 # print()
 # for key in props:
 #     print(key, props[key])
-
-
-print()
-print(objs)
-print(json.dumps(cm_dict))
+#
+# print()
+# print(pointer_dict)
+# print(json.dumps(prop_dict))

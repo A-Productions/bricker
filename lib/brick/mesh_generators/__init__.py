@@ -15,14 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# from .cmlist_to_dict import *
-from .colors import *
-from .common import *
-from .general import *
-from .generate_lattice import *
-from .hash_object import *
-from .make_bricks import *
-from .transform_data import *
-from .logo_obj import *
-from .mat_utils import *
-from .point_cache import *
+from .standard_brick import *
+from .round_1x1 import *
+from .slope import *
+from .slope_inverted import *
+from .tile import *

@@ -18,6 +18,6 @@
 
 from .caches import *
 from .preferences import *
-from .reportError import *
+from .report_error import *
 from .bricksdict import *
 from .keymaps import *

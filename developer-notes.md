@@ -29,7 +29,6 @@
     * Custom object rotation is not maintained when instanced for in bricker model (is this behavior desired?)
 
 before 1.7 release:
-    * change 'color_snap' to 'colorMapping'
     * debug custom logos
 
 

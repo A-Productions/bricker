@@ -56,8 +56,8 @@ def handle_selections(junk=None):
     # TODO: in b280, Check if active object (with active cmlist index) is no longer visible
     # cur_layers = str(list(scn.layers))
     # # if scn.layers changes and active object is no longer visible, set scn.cmlist_index to -1
-    # if scn.Bricker_last_layers != cur_layers:
-    #     scn.Bricker_last_layers = cur_layers
+    # if scn.bricker_last_layers != cur_layers:
+    #     scn.bricker_last_layers = cur_layers
     #     cur_objVisible = False
     #     if scn.cmlist_index != -1:
     #         cm0, n0 = get_active_context_info()[1:]

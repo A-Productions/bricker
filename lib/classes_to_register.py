@@ -22,7 +22,7 @@ from ..buttons.customize import *
 from ..operators import *
 from ..functions.common import *
 from .preferences import *
-from .reportError import *
+from .report_error import *
 from .. import addon_updater_ops
 
 

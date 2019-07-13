@@ -257,7 +257,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.job_manager.timeout = cm.back_proc_timeout
         self.job_manager.max_workers = cm.max_workers
         self.job_manager.max_attempts = 1
-        self.debug_level = 0 if "ANIM" in self.action else 1 # or bpy.props.Bricker_developer_mode == 0 else 1
+        self.debug_level = 0 if "ANIM" in self.action else 1 # or bpy.props.bricker_developer_mode == 0 else 1
         self.completed_frames = []
         self.bricker_addon_path = get_addon_directory()
         self.jobs = list()

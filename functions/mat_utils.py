@@ -22,6 +22,7 @@
 from .common import *
 from .general import *
 
+
 def clear_existing_materials(obj, from_idx=0, from_data=False):
     if from_data:
         brick.data.materials.clear(update_data=True)
@@ -32,6 +33,7 @@ def clear_existing_materials(obj, from_idx=0, from_data=False):
             # remove material slots
             bpy.ops.object.material_slot_remove()
 
+
 def set_material(obj, mat, to_data=False, overwrite=True):
     if len(obj.data.materials) == 1 and overwrite:
         obj.data.materials[0] = mat
@@ -39,6 +41,7 @@ def set_material(obj, mat, to_data=False, overwrite=True):
         obj.data.materials.append(mat)
     if not to_data:
         link_material_to_object(obj, mat)
+
 
 def link_material_to_object(obj, mat, index=-1):
     obj.material_slots[index].link = "OBJECT"

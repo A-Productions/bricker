@@ -45,8 +45,8 @@ from .ui import *
 from .functions.general import *
 from .buttons import *
 from .buttons.customize import *
-from .lib import keymaps, preferences, classesToRegister
-from .lib.Brick.legal_brick_sizes import get_legal_brick_sizes
+from .lib import keymaps, preferences, classes_to_register
+from .lib.brick.legal_brick_sizes import get_legal_brick_sizes
 from .ui.timers import *
 from .ui.cmlist_attrs import CreatedModelProperties
 from . import addon_updater_ops
@@ -56,7 +56,7 @@ addon_keymaps = []
 
 
 def register():
-    for cls in classesToRegister.classes:
+    for cls in classes_to_register.classes:
         make_annotations(cls)
         bpy.utils.register_class(cls)
 
@@ -65,7 +65,7 @@ def register():
 
     bpy.props.bricker_initialized = b280()  # automatically initialized (uses timer) in b280
     bpy.props.bricker_updating_undo_state = False
-    bpy.props.Bricker_developer_mode = developer_mode
+    bpy.props.bricker_developer_mode = developer_mode
     bpy.props.running_bricksculpt_tool = False
     bpy.props.bricker_last_selected = []
     bpy.props.bricker_trans_and_anim_data = []
@@ -82,7 +82,7 @@ def register():
 
     WindowManager.bricker_running_blocking_operation = BoolProperty(default=False)
 
-    Scene.Bricker_last_layers = StringProperty(default="")
+    Scene.bricker_last_layers = StringProperty(default="")
     Scene.bricker_active_object_name = StringProperty(default="")
     Scene.bricker_last_active_object_name = StringProperty(default="")
 
@@ -103,7 +103,7 @@ def register():
         description="Include uncommon ABS Plastic materials",
         default=False)
 
-    # Scene.Bricker_snapping = BoolProperty(
+    # Scene.bricker_snapping = BoolProperty(
     #     name="Bricker Snap",
     #     description="Snap to brick dimensions",
     #     default=False)
@@ -167,14 +167,14 @@ def unregister():
     del Scene.cmlist_index
     del Scene.cmlist
     # bpy.types.VIEW3D_HT_header.remove(Bricker_snap_button)
-    # del Scene.Bricker_snapping
+    # del Scene.bricker_snapping
     del Scene.include_uncommon
     del Scene.include_transparent
     del Scene.is_bricker_installed
     del Scene.bricker_copy_from_id
     del Scene.bricker_last_active_object_name
     del Scene.bricker_active_object_name
-    del Scene.Bricker_last_layers
+    del Scene.bricker_last_layers
     del WindowManager.bricker_running_blocking_operation
     del Material.num_averaged
     if hasattr(Object, "stored_parents"):
@@ -188,11 +188,11 @@ def unregister():
     del bpy.props.bricker_trans_and_anim_data
     del bpy.props.bricker_last_selected
     del bpy.props.running_bricksculpt_tool
-    del bpy.props.Bricker_developer_mode
+    del bpy.props.bricker_developer_mode
     del bpy.props.bricker_updating_undo_state
     del bpy.props.bricker_initialized
     del bpy.props.bricker_version
     del bpy.props.bricker_module_name
 
-    for cls in reversed(classesToRegister.classes):
+    for cls in reversed(classes_to_register.classes):
         bpy.utils.unregister_class(cls)

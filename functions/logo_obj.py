@@ -66,7 +66,7 @@ def get_lego_stud_font():
     lego_stud_font = bpy.data.fonts.get("LEGO Stud Font")
     if not lego_stud_font:
         bricker_addon_path = dirname(dirname(abspath(__file__)))
-        font_path = "%(bricker_addon_path)s/lib/LEGO_Stud_Font.ttf" % locals()
+        font_path = "%(bricker_addon_path)s/lib/lego_font.ttf" % locals()
         lego_stud_font = bpy.data.fonts.load(font_path)
     return lego_stud_font
 
@@ -92,3 +92,18 @@ def get_lego_logoTxtObj(scn, res, name):
     logo_txt.data.resolution_u = res - 1
     logo_txt.data.bevel_resolution = res - 1
     return logo_txt
+
+
+def get_logo(scn, cm, dimensions):
+    typ = cm.logo_type
+    if cm.brick_type == "CUSTOM" or typ == "NONE":
+        ref_logo = None
+        logo_details = None
+    else:
+        if typ == "LEGO":
+            ref_logo = get_lego_logo(scn, typ, cm.logo_resolution, cm.logo_decimate, dimensions)
+        else:
+            ref_logo = cm.logo_object
+        # apply transformation to duplicate of logo object and normalize size/position
+        logo_details, ref_logo = prepare_logo_and_get_details(scn, ref_logo, typ, cm.logo_scale, dimensions)
+    return logo_details, ref_logo

@@ -226,6 +226,39 @@ def get_zstep(cm):
     return 1 if flat_brick_type(cm.brick_type) else 3
 
 
+def created_with_unsupported_version(cm):
+    return cm.version[:3] != bpy.props.bricker_version[:3]
+
+
+def created_with_newer_version(cm):
+    model_version = cm.version.split(".")
+    bricker_version = bpy.props.bricker_version.split(".")
+    return (int(model_version[0]) > int(bricker_version[0])) or (int(model_version[0]) == int(bricker_version[0]) and int(model_version[1]) > int(bricker_version[1]))
+
+
+def is_on_shell(bricksdict, key, loc=None, zstep=None, shell_depth=1):
+    """ check if any locations in brick are on the shell """
+    size = bricksdict[key]["size"]
+    loc = loc or get_dict_loc(bricksdict, key)
+    brick_keys = get_keys_in_brick(bricksdict, size, zstep, loc=loc)
+    for k in brick_keys:
+        if bricksdict[k]["val"] >= 1 - (shell_depth - 1) / 100:
+            return True
+    return False
+
+
+# loc param is more efficient than key, but one or the other must be passed
+def get_locs_in_brick(bricksdict, size, zstep, loc:list=None, key:str=None):
+    x0, y0, z0 = loc or get_dict_loc(bricksdict, key)
+    return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0])]
+
+
+# loc param is more efficient than key, but one or the other must be passed
+def get_keys_in_brick(bricksdict, size, zstep:int, loc:list=None, key:str=None):
+    x0, y0, z0 = loc or get_dict_loc(bricksdict, key)
+    return [list_to_str((x0 + x, y0 + y, z0 + z)) for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0])]
+
+
 def get_keys_dict(bricksdict, keys=None):
     """ get dictionary of bricksdict keys based on z value """
     keys = keys or list(bricksdict.keys())
@@ -248,58 +281,19 @@ def get_parent_key(bricksdict, key):
     return parent_key
 
 
-def created_with_unsupported_version(cm):
-    return cm.version[:3] != bpy.props.bricker_version[:3]
-
-
-def created_with_newer_version(cm):
-    model_version = cm.version.split(".")
-    bricker_version = bpy.props.bricker_version.split(".")
-    return (int(model_version[0]) > int(bricker_version[0])) or (int(model_version[0]) == int(bricker_version[0]) and int(model_version[1]) > int(bricker_version[1]))
-
-
-# loc is more efficient than key, but one or the other must be passed
-def get_locs_in_brick(bricksdict, size, zstep, loc:list=None, key:str=None):
-    x0, y0, z0 = loc or get_dict_loc(bricksdict, key)
-    return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0])]
-
-
-# loc is more efficient than key, but one or the other must be passed
-def get_keys_in_brick(bricksdict, size, zstep:int, loc:list=None, key:str=None):
-    x0, y0, z0 = loc or get_dict_loc(bricksdict, key)
-    return [list_to_str((x0 + x, y0 + y, z0 + z)) for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0])]
-
-
-def is_on_shell(bricksdict, key, loc=None, zstep=None, shell_depth=1):
-    """ check if any locations in brick are on the shell """
-    size = bricksdict[key]["size"]
-    loc = loc or get_dict_loc(bricksdict, key)
-    brick_keys = get_keys_in_brick(bricksdict, size, zstep, loc=loc)
-    for k in brick_keys:
-        if bricksdict[k]["val"] >= 1 - (shell_depth - 1) / 100:
-            return True
-    return False
-
-
 def get_dict_key(name):
-    """ get dict key details of obj """
+    """ get dict key from end of obj name """
     dkey = name.split("__")[-1]
     return dkey
 
+
 def get_dict_loc(bricksdict, key):
+    """ get dict loc from bricksdict key """
     try:
         loc = bricksdict[key]["loc"]
     except KeyError:
         loc = str_to_list(key)
     return loc
-
-
-def get_brick_center(bricksdict, key, zstep, loc=None):
-    loc = loc or get_dict_loc(bricksdict, key)
-    brick_keys = get_keys_in_brick(bricksdict, bricksdict[key]["size"], zstep, loc=loc)
-    coords = [bricksdict[k0]["co"] for k0 in brick_keys]
-    coord_ave = Vector((mean([co[0] for co in coords]), mean([co[1] for co in coords]), mean([co[2] for co in coords])))
-    return coord_ave
 
 
 def get_nearby_loc_from_vector(loc_diff, cur_loc, dimensions, zstep, width_divisor=2.05, height_divisor=2.05):
@@ -318,6 +312,14 @@ def get_nearby_loc_from_vector(loc_diff, cur_loc, dimensions, zstep, width_divis
     elif loc_diff.y < -d.y:
         next_loc.y += math.floor((loc_diff.y + d.y) / (d.y * 2))
     return [int(next_loc.x), int(next_loc.y), int(next_loc.z)]
+
+
+def get_brick_center(bricksdict, key, zstep, loc=None):
+    loc = loc or get_dict_loc(bricksdict, key)
+    brick_keys = get_keys_in_brick(bricksdict, bricksdict[key]["size"], zstep, loc=loc)
+    coords = [bricksdict[k0]["co"] for k0 in brick_keys]
+    coord_ave = Vector((mean([co[0] for co in coords]), mean([co[1] for co in coords]), mean([co[2] for co in coords])))
+    return coord_ave
 
 
 def get_normal_direction(normal, max_dist=0.77, slopes=False):
@@ -363,14 +365,6 @@ def legal_brick_size(size, type):
      return size[:2] in bpy.props.bricker_legal_brick_sizes[size[2]][type]
 
 
-def shorten_name(string:str, max_len:int=30):
-    """shortens string while maintaining uniqueness"""
-    if len(string) <= max_len:
-        return string
-    else:
-        return string[:math.ceil(max_len * 0.65)] + str(hash_str(string))[:math.floor(max_len * 0.35)]
-
-
 def custom_valid_object(cm, target_type="Custom 0", idx=None):
     for i, custom_info in enumerate([[cm.has_custom_obj1, cm.custom_object1], [cm.has_custom_obj2, cm.custom_object2], [cm.has_custom_obj3, cm.custom_object3]]):
         has_custom_obj, custom_obj = custom_info
@@ -412,16 +406,16 @@ def update_has_custom_objs(cm, typ):
         cm.has_custom_obj3 = True
 
 
+def bricker_handle_exception():
+    handle_exception(log_name="Bricker log", report_button_loc="Bricker > Brick Models > Report Error")
+
+
 def get_brick_mats(material_type, cm_id):
     brick_mats = []
     if material_type == "RANDOM":
         mat_obj = get_mat_obj(cm_id, typ="RANDOM")
         brick_mats = list(mat_obj.data.materials.keys())
     return brick_mats
-
-
-def bricker_handle_exception():
-    handle_exception(log_name="Bricker log", report_button_loc="Bricker > Brick Models > Report Error")
 
 
 def create_mat_objs(idx):

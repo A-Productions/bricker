@@ -34,7 +34,7 @@ from bpy.props import *
 from .draw_adjacent import *
 from ..functions import *
 from ...brickify import *
-from ....lib.Brick import *
+from ....lib.brick import *
 from ....functions import *
 from ....operators.delete_object import OBJECT_OT_delete_override
 

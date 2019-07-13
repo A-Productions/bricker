@@ -33,7 +33,7 @@ from .timers import *
 from .matlist_window import *
 from .matlist_actions import *
 from ..lib.bricksdict import *
-from ..lib.Brick.test_brick_generators import *
+from ..lib.brick.test_brick_generators import *
 from ..lib.caches import cache_exists
 from ..buttons.revert_settings import *
 from ..buttons.brickify import *
@@ -1188,7 +1188,7 @@ class VIEW3D_PT_bricker_matrix_details(Panel):
 
     @classmethod
     def poll(self, context):
-        if bpy.props.Bricker_developer_mode == 0:
+        if bpy.props.bricker_developer_mode == 0:
             return False
         if not settings_can_be_drawn():
             return False

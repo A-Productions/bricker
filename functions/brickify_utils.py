@@ -28,38 +28,8 @@ from .logo_obj import *
 from .make_bricks import *
 from .point_cache import *
 from .transform_data import *
-from ..lib.Brick import Bricks
+from ..lib.brick import Bricks
 from ..lib.bricksdict import *
-
-
-def get_new_parent(name, loc):
-    parent = bpy.data.objects.new(name, None)
-    parent.location = loc
-    parent.use_fake_user = True
-    return parent
-
-
-def get_logo(scn, cm, dimensions):
-    typ = cm.logo_type
-    if cm.brick_type == "CUSTOM" or typ == "NONE":
-        ref_logo = None
-        logo_details = None
-    else:
-        if typ == "LEGO":
-            ref_logo = get_lego_logo(scn, typ, cm.logo_resolution, cm.logo_decimate, dimensions)
-        else:
-            ref_logo = cm.logo_object
-        # apply transformation to duplicate of logo object and normalize size/position
-        logo_details, ref_logo = prepare_logo_and_get_details(scn, ref_logo, typ, cm.logo_scale, dimensions)
-    return logo_details, ref_logo
-
-
-def get_anim_coll(n):
-    anim_coll_name = "Bricker_%(n)s_bricks" % locals()
-    anim_coll = bpy_collections().get(anim_coll_name)
-    if anim_coll is None:
-        anim_coll = bpy_collections().new(anim_coll_name)
-    return anim_coll
 
 
 def get_action(cm):
@@ -296,6 +266,32 @@ def transform_bricks(bcoll, cm, parent, source, source_dup_details, action):
         obj.lock_scale    = (True, True, True)
 
 
+def get_new_parent(name, loc):
+    parent = bpy.data.objects.new(name, None)
+    parent.location = loc
+    parent.use_fake_user = True
+    return parent
+
+
+def link_brick_collection(cm, coll):
+    cm.collection = coll
+    source = cm.source_obj
+    if b280():
+        for item in source.stored_parents:
+            if coll.name not in item.collection.children:
+                item.collection.children.link(coll)
+    else:
+        [safe_link(obj) for obj in coll.objects]
+
+
+def get_anim_coll(n):
+    anim_coll_name = "Bricker_%(n)s_bricks" % locals()
+    anim_coll = bpy_collections().get(anim_coll_name)
+    if anim_coll is None:
+        anim_coll = bpy_collections().new(anim_coll_name)
+    return anim_coll
+
+
 def finish_animation(cm):
     scn, cm, n = get_active_context_info(cm=cm)
     wm = bpy.context.window_manager
@@ -313,14 +309,3 @@ def finish_animation(cm):
                 if obj.name not in anim_coll.objects.keys():
                     anim_coll.objects.link(obj)
     return anim_coll
-
-
-def link_brick_collection(cm, coll):
-    cm.collection = coll
-    source = cm.source_obj
-    if b280():
-        for item in source.stored_parents:
-            if coll.name not in item.collection.children:
-                item.collection.children.link(coll)
-    else:
-        [safe_link(obj) for obj in coll.objects]

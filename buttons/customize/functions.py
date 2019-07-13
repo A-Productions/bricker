@@ -24,11 +24,11 @@ from bpy.types import Operator
 
 # Addon imports
 from ...functions import *
-from ...functions.brickify_utils import create_new_bricks, get_logo
+from ...functions.brickify_utils import create_new_bricks
 from ..brickify import *
 from ..brickify import *
 from ...lib.bricksdict.functions import get_dict_key
-from ...lib.Brick.legal_brick_sizes import *
+from ...lib.brick.legal_brick_sizes import *
 from .undo_stack import *
 
 

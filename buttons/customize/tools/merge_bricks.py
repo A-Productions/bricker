@@ -29,7 +29,7 @@ from ..functions import *
 from ...brickify import *
 from ...brickify import *
 from ....lib.bricksdict.functions import get_dict_key
-from ....lib.Brick.legal_brick_sizes import *
+from ....lib.brick.legal_brick_sizes import *
 from ....functions import *
 
 

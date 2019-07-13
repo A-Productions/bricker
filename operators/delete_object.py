@@ -29,7 +29,7 @@ from ..functions import *
 from ..buttons.customize.functions import *
 from ..buttons.customize.undo_stack import *
 from ..buttons.delete_model import BRICKER_OT_delete_model
-from ..lib.Brick import Bricks
+from ..lib.brick import Bricks
 from ..lib.bricksdict.functions import get_dict_key
 
 

@@ -32,7 +32,7 @@ from ...functions.common import *
 from ...functions.general import *
 from ...functions.generate_lattice import generate_lattice
 from ...functions.smoke_sim import *
-from ..Brick import Bricks
+from ..brick import Bricks
 
 accs = [0, 0, 0, 0, 0]
 
