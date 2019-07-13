@@ -502,6 +502,7 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
 
     trash_vals = [0] if calc_internals else [0, -1]
     all_shell_vals = []
+    # edge_val = [True, True, True]  # efficient way of checking if this is an edge
     # iterate through all values
     for x in range(x_L):
         for y in range(y_L):
@@ -510,7 +511,11 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
                 if brick_freq_matrix[x][y][z] in trash_vals:
                     brick_freq_matrix[x][y][z] = None
                 # get shell values for next calc
-                elif brick_freq_matrix[x][y][z] == 1:
+                elif calc_internals and brick_freq_matrix[x][y][z] == 1:
+                    if x == 0 or y == 0 or z == 0:
+                        continue
+                    if x == x_L - 1 or y == y_L - 1 or z == z_L - 1:
+                        continue
                     all_shell_vals.append((x, y, z))
 
     if not calc_internals:
