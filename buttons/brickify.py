@@ -461,8 +461,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if self.brickify_in_background:
             filename = bpy.path.basename(bpy.data.filepath)[:-6]
             cur_job = "%(filename)s__%(n)s" % locals()
-            script = os.path.join(self.bricker_addon_path, "lib", "brickify_in_background_template.py")
-            job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":None, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True)
+            script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, source_dup)
+            job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":None, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)
             if not job_added: raise Exception(msg)
             self.jobs.append(cur_job)
         else:
@@ -546,8 +546,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 continue
             if self.brickify_in_background:
                 cur_job = "%(filename)s__%(n)s__%(cur_frame)s" % locals()
-                script = os.path.join(self.bricker_addon_path, "lib", "brickify_in_background_template.py")
-                job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":cur_frame, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True, overwrite_blend=overwrite_blend)
+                script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, duplicates[cur_frame])
+                job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":cur_frame, "cmlist_index":scn.cmlist_index, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)#, overwrite_blend=overwrite_blend)
                 if not job_added: raise Exception(msg)
                 self.jobs.append(cur_job)
                 overwrite_blend = False

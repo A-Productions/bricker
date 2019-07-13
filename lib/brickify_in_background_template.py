@@ -1,13 +1,37 @@
-# NOTE: Requires 'cmlist_index', 'frame', and 'action' as variables
-# Pull objects and meshes from source file
+# NOTE: Requires 'cmlist_props', 'cmlist_pointer_props' 'frame', and 'action' as variables
 import sys
+# redefine common functions
+def b280():
+    return bpy.app.version >= (2,80,0)
+def load_cm_props(cm, prop_dict, pointer_dict):
+    for item in prop_dict:
+        setattr(cm, item, prop_dict[item])
+    for item in pointer_dict:
+        name = pointer_dict[item]["name"]
+        typ = pointer_dict[item]["type"]
+        data = getattr(bpy.data, typ.lower() + "s")[name]
+        setattr(cm, item, data)
+def link_object(o, scene=None):
+    scene = scene or bpy.context.scene
+    if b280():
+        scene.collection.objects.link(o)
+    else:
+        scene.objects.link(o)
+# create and populate new cmlist index
 scn = bpy.context.scene
-if bpy.app.version < (2,80,0):
-    scn.objects.active = None
-else:
-    bpy.context.window.view_layer.objects.active = None
-scn.cmlist_index = cmlist_index
-cm = scn.cmlist[cmlist_index]
+bpy.ops.cmlist.list_action(action="ADD")
+scn.cmlist_index = 0
+cm = scn.cmlist[scn.cmlist_index]
+# Pull objects and meshes from source file
+for data_block in passed_data_blocks:
+    if isinstance(data_block, bpy.types.Object):
+        link_object(data_block)
+load_cm_props(cm, cmlist_props, cmlist_pointer_props)
+# # update depsgraph
+# if b280():
+#     bpy.context.view_layer.depsgraph.update()
+# else:
+#     bpy.context.scene.update()
 n = cm.source_obj.name
 bpy.ops.bricker.brickify_in_background(frame=frame if frame is not None else -1, action=action)
 frame_str = "_f_%(frame)s" % locals() if cm.use_animation else ""

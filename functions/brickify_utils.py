@@ -170,6 +170,23 @@ def should_brickify_in_background(cm, r, action):
               (cm.material_type == "SOURCE" and cm.use_uv_map and len(source.data.uv_layers) > 0)))
 
 
+def get_args_for_background_processor(cm, bricker_addon_path, source_dup):
+    script = os.path.join(bricker_addon_path, "lib", "brickify_in_background_template.py")
+
+    cmlist_props, cmlist_pointer_props = dump_cm_props(cm)
+
+    data_blocks_to_send = set()
+    for item in cmlist_pointer_props:
+        name = cmlist_pointer_props[item]["name"]
+        typ = cmlist_pointer_props[item]["type"]
+        data = getattr(bpy.data, typ.lower() + "s")[name]
+        data_blocks_to_send.add(data)
+    data_blocks_to_send.add(source_dup)
+
+    return script, cmlist_props, cmlist_pointer_props, data_blocks_to_send
+
+
+
 def create_new_bricks(source, parent, source_details, dimensions, ref_logo, logo_details, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
     """ gets/creates bricksdict, runs make_bricks, and caches the final bricksdict """
     scn, cm, n = get_active_context_info(cm=cm)
