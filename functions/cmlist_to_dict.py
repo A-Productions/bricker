@@ -43,7 +43,6 @@ def dump_cm_props(cm):
     for item in dir(cm):
         if item.startswith("__") or not item.islower() or item in ["bl_rna", "rna_type", "active_key", "bfm_cache"]:
             continue
-        print(item)
         try:
             item_prop = getattr(cm, item)
         except:

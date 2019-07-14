@@ -283,6 +283,23 @@ def transform_bricks(bcoll, cm, parent, source, source_dup_details, action):
         obj.lock_scale    = (True, True, True)
 
 
+def store_parent_collections_to_source(cm, source):
+    if not b280():
+        return
+    # clear outdated stored_parents
+    source.stored_parents.clear()
+    # store parent collections to source
+    if len(source.users_collection) > 0:
+        # use parent collections of source
+        linked_colls = source.users_collection
+    else:
+        # use parent collections of brick collection
+        brick_coll = cm.collection
+        linked_colls = [cn for cn in bpy.data.collections if brick_coll.name in cn.children]
+    for cn in linked_colls:
+        source.stored_parents.add().collection = cn
+
+
 def get_new_parent(name, loc):
     parent = bpy.data.objects.new(name, None)
     parent.location = loc

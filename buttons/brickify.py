@@ -307,9 +307,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if not matrix_dirty and get_bricksdict(cm) is not None:
                 cm.matrix_is_dirty = False
 
-        # clear stored parents before sending to back_proc to save on mem usage
-        if b280():
-            self.source.stored_parents.clear()
+        # store parent collections to source
+        store_parent_collections_to_source(cm, self.source)
 
         if b280():
             # TODO: potentially necessary to ensure current View Layer includes collection with self.source
@@ -355,18 +354,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cm.model_created = "ANIM" not in self.action
         cm.animated = "ANIM" in self.action
         cm.expose_parent = False
-
-        # store parent collections to source
-        if b280():
-            if len(self.source.users_collection) > 0:
-                # use parent collections of source
-                linked_colls = self.source.users_collection
-            else:
-                # use parent collections of brick collection
-                brick_coll = cm.collection
-                linked_colls = [cn for cn in bpy.data.collections if brick_coll.name in cn.children]
-            for cn in linked_colls:
-                self.source.stored_parents.add().collection = cn
 
         # link created brick collection
         if cm.animated:
@@ -466,10 +453,17 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if self.brickify_in_background:
             filename = bpy.path.basename(bpy.data.filepath)[:-6]
             cur_job = "%(filename)s__%(n)s" % locals()
+            # temporarily clear stored parents (prevents these collections from being sent to back proc)
+            stored_parents = [p.collection for p in self.source.stored_parents]
+            self.source.stored_parents.clear()
+            # send job to the background processor
             script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, source_dup)
             job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":None, "cmlist_id":cm.id, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)
             if not job_added: raise Exception(msg)
             self.jobs.append(cur_job)
+            # replace stored parents to source object
+            for p in stored_parents:
+                self.source.stored_parents.add().collection = p
         else:
             bcoll = self.brickify_active_frame(self.action)
             link_brick_collection(cm, bcoll)

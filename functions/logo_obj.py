@@ -21,6 +21,7 @@ from os.path import dirname, abspath
 # Addon imports
 from .common import *
 from .general import *
+from .make_bricks_utils import *
 
 def remove_doubles(obj):
     select(obj, active=True, only=True)
