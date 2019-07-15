@@ -545,11 +545,18 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 continue
             if self.brickify_in_background:
                 cur_job = "%(filename)s__%(n)s__%(cur_frame)s" % locals()
+                # temporarily clear stored parents (prevents these collections from being sent to back proc)
+                stored_parents = [p.collection for p in self.source.stored_parents]
+                self.source.stored_parents.clear()
+                # send job to the background processor
                 script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, duplicates[cur_frame])
                 job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":cur_frame, "cmlist_id":cm.id, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)#, overwrite_blend=overwrite_blend)
                 if not job_added: raise Exception(msg)
                 self.jobs.append(cur_job)
                 overwrite_blend = False
+                # replace stored parents to source object
+                for p in stored_parents:
+                    self.source.stored_parents.add().collection = p
             else:
                 success = self.brickify_current_frame(cur_frame, self.action)
                 if not success:
