@@ -253,7 +253,8 @@ def handle_upconversion(dummy):
                         cm.dist_offset = (cm.dist_offsetX, cm.dist_offsetY, cm.dist_offsetZ)
                 # convert from v1_4 to v1_5
                 if int(cm.version[2]) < 5:
-                    cm.logo_type = cm.logoDetail
+                    if cm.logoDetail != "":
+                        cm.logo_type = cm.logoDetail
                     cm.matrix_is_dirty = True
                     cm.matrix_lost = True
                     remove_colls = list()
@@ -276,10 +277,12 @@ def handle_upconversion(dummy):
                     if cm.collection is None: cm.collection = coll
                     dup = bpy.data.objects.get(n + "_duplicate")
                     if dup is not None: dup.name = n + "__dup__"
-                # # convert from v1_6 to v1_7
-                # if int(cm.version[2]) < 7:
-                #     for prop in dir()
-                #     # TODO: transfer props from 1_6 to 1_7
+                # convert from v1_6 to v1_7
+                if int(cm.version[2]) < 7:
+                    cm.mat_obj_abs = bpy.data.objects.get("Bricker_{}_RANDOM_mats".format(cm.id))
+                    cm.mat_obj_random = bpy.data.objects.get("Bricker_{}_ABS_mats".format(cm.id))
+                    # for prop in dir()
+                    # TODO: transfer props from 1_6 to 1_7
 
             # ensure parent object has no users
             if cm.parent_obj is not None:

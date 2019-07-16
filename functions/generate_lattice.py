@@ -27,13 +27,14 @@ from mathutils import Vector
 from .common import *
 
 
-def generate_lattice(vert_dist:Vector, scale:Vector, offset:Vector=Vector((0, 0, 0)), visualize:bool=False):
+def generate_lattice(vert_dist:Vector, scale:Vector, offset:Vector=Vector((0, 0, 0)), extra_res:int=0, visualize:bool=False):
     """ return lattice coordinate matrix surrounding object of size 'scale'
 
     Keyword arguments:
     vert_dist  -- distance between lattice verts in 3D space
     scale     -- lattice scale in 3D space
     offset    -- offset lattice center from origin
+    extra_res -- additional resolution to add to ends of lattice
     visualize -- draw lattice coordinates in 3D space
 
     """
@@ -48,7 +49,7 @@ def generate_lattice(vert_dist:Vector, scale:Vector, offset:Vector=Vector((0, 0,
     res = Vector(round_up(round(val), 2) for val in res)
     h_res = res / 2
     # populate coord matrix
-    nx, ny, nz = int(res.x) + 2, int(res.y) + 2, int(res.z) + 2
+    nx, ny, nz = int(res.x) - 1 + extra_res, int(res.y) - 1 + extra_res, int(res.z) - 1 + extra_res
     create_coord = lambda v: vec_mult(v - h_res, vert_dist) + offset
     coord_matrix = [[[create_coord(Vector((x, y, z))) for z in range(nz)] for y in range(ny)] for x in range(nx)]
 

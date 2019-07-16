@@ -640,7 +640,7 @@ def make_bricksdict(source, source_details, brick_scale, uv_images, cursor_statu
     if source.parent:
         offset = offset - source.parent.location
     # get coordinate list from intersections of edges with faces
-    coord_matrix = generate_lattice(brick_scale, l_scale, offset)
+    coord_matrix = generate_lattice(brick_scale, l_scale, offset, extra_res=2)
     if len(coord_matrix) == 0:
         coord_matrix.append(source_details.mid)
     # set calculation_axes

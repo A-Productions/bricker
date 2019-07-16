@@ -22,18 +22,16 @@ import json
 import bpy
 from mathutils import Vector, Color
 
-# # Addon imports
-# from .common import *
-#
-# # Conditional imports
-# if b280():
-#     from bpy.types import Material, Image, Object, Collection
-#     types = {Material:"Material", Image:"Image", Object:"Object", Collection:"Collection"}
-# else:
-#     from bpy.types import Material, Image, Object, Group
-#     types = {Material:"Material", Image:"Image", Object:"Object", Group:"Group"}
-from bpy.types import Material, Image, Object, Collection
-types = {Material:"Material", Image:"Image", Object:"Object", Collection:"Collection"}
+# Addon imports
+from .common import *
+
+# Conditional imports
+if b280():
+    from bpy.types import Material, Image, Object, Collection
+    types = {Material:"Material", Image:"Image", Object:"Object", Collection:"Collection"}
+else:
+    from bpy.types import Material, Image, Object, Group
+    types = {Material:"Material", Image:"Image", Object:"Object", Group:"Group"}
 
 
 def dump_cm_props(cm):
@@ -65,29 +63,3 @@ def load_cm_props(cm, prop_dict, pointer_dict):
         typ = pointer_dict[item]["type"]
         data = getattr(bpy.data, typ.lower() + "s")[name]
         setattr(cm, item, data)
-
-
-# scn = bpy.context.scene
-# cm0 = scn.cmlist[scn.cmlist_index]
-# prop_dict, pointer_dict = dump_cm_props(cm0)
-#
-# bpy.ops.cmlist.list_action(action="ADD")
-# cm1 = scn.cmlist[-1]
-# load_cm_props(cm1, prop_dict, pointer_dict)
-
-# # Print helpful information
-# props = {}
-# for item in cm_dict:
-#     item_prop = cm_dict[item]
-#     item_type = type(item_prop)
-#     if type(item_prop) in props:
-#         props[item_type] += 1
-#     else:
-#         props[item_type] = 1
-# print()
-# for key in props:
-#     print(key, props[key])
-#
-# print()
-# print(pointer_dict)
-# print(json.dumps(prop_dict))
