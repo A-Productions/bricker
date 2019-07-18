@@ -28,7 +28,7 @@ from ..functions.common import *
 class BRICKER_AP_preferences(AddonPreferences):
     bl_idname = __package__[:__package__.index(".lib")]
 
-    # Bricker preferences
+    # addon preferences
     brick_height_default = bpy.props.EnumProperty(
         name="Default Brick Height Setting",
         description="Method for setting default 'Model Height' value when new model is added",
