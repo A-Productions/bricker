@@ -33,7 +33,7 @@ from ...functions.general import *
 from ...functions.generate_lattice import generateLattice
 from ...functions.wrappers import *
 from ...functions.smoke_sim import *
-from ..Brick import Bricks
+from ..brick import Bricks
 
 
 def VectorRound(vec, dec, roundType="ROUND"):

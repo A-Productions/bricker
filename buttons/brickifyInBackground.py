@@ -30,7 +30,7 @@ from .customize.undo_stack import *
 from .bevel import BRICKER_OT_bevel
 from .cache import *
 from .brickify import BRICKER_OT_brickify
-from ..lib.bricksDict import *
+from ..lib.bricksdict import *
 from ..functions import *
 
 

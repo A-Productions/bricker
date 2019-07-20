@@ -25,7 +25,7 @@ from mathutils import Vector, Euler
 
 # Addon imports
 from ..functions import *
-from ..lib.bricksDict import lightToDeepCache, deepToLightCache, getDictKey
+from ..lib.bricksdict import lightToDeepCache, deepToLightCache, getDictKey
 from ..lib.caches import bricker_bfm_cache
 from ..buttons.customize.tools import *
 from ..buttons.customize.undo_stack import *

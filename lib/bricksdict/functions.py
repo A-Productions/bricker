@@ -25,8 +25,8 @@ import bpy
 
 # Addon imports
 from ...functions import *
-from ..Brick import Bricks
-from ..Brick.legal_brick_sizes import *
+from ..brick import Bricks
+from ..brick.legal_brick_sizes import *
 
 
 def getMatAtFaceIdx(obj, face_idx):

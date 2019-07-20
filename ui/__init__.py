@@ -32,8 +32,8 @@ from .app_handlers import *
 from .timers import *
 from .matlist_window import *
 from .matlist_actions import *
-from ..lib.bricksDict import *
-from ..lib.Brick.test_brick_generators import *
+from ..lib.bricksdict import *
+from ..lib.brick.test_brick_generators import *
 from ..lib.caches import cacheExists
 from ..buttons.revertSettings import *
 from ..buttons.brickify import *

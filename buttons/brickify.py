@@ -32,7 +32,7 @@ from .customize.undo_stack import *
 from .delete_model import BRICKER_OT_delete_model
 from .bevel import BRICKER_OT_bevel
 from .cache import *
-from ..lib.bricksDict import *
+from ..lib.bricksdict import *
 from ..lib.background_processing.classes.JobManager import JobManager
 from ..functions import *
 

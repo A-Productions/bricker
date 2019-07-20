@@ -31,8 +31,8 @@ from mathutils import Vector, Matrix
 
 # Addon imports
 from .hashObject import hash_object
-from ..lib.Brick import Bricks
-from ..lib.bricksDict import *
+from ..lib.brick import Bricks
+from ..lib.bricksdict import *
 from .common import *
 from .mat_utils import *
 from .wrappers import *

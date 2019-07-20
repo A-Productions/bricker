@@ -36,7 +36,7 @@ from .bricksculpt_tools import *
 from .drawAdjacent import *
 from ..functions import *
 from ...brickify import *
-from ....lib.Brick import *
+from ....lib.brick import *
 from ....functions import *
 
 
