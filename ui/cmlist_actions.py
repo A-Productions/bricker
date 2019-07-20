@@ -91,59 +91,39 @@ class CMLIST_OT_list_action(bpy.types.Operator):
     def add_item():
         scn = bpy.context.scene
         active_object = bpy.context.active_object
-        # if active object isn't on visible layer, don't set it as default source for new model
-        if b280():
-            if active_object and not is_obj_visible_in_viewport(active_object):
-                active_object = None
-        else:
-            if active_object:
-                obj_visible = False
-                for i in range(20):
-                    if active_object.layers[i] and scn.layers[i]:
-                        obj_visible = True
-                if not obj_visible:
-                    active_object = None
-        # if active object already has a model or isn't on visible layer, don't set it as default source for new model
-        # NOTE: active object may have been removed, so we need to re-check if none
         if active_object:
-            for cm in scn.cmlist:
-                if cm.source_obj is active_object:
-                    active_object = None
-                    break
+            # if active object isn't on visible layer, don't set it as default source for new model
+            if not is_obj_visible_in_viewport(active_object):
+                active_object = None
+            # if active object is already the source for another model, don't set it as default source for new model
+            elif any([cm.source_obj is active_object for cm in scn.cmlist]):
+                active_object = None
         item = scn.cmlist.add()
-        last_index = scn.cmlist_index
-        scn.cmlist_index = len(scn.cmlist)-1
+        # initialize source object and name for item
         if active_object and active_object.type == "MESH" and not active_object.name.startswith("Bricker_"):
             item.source_obj = active_object
             item.name = active_object.name
-            item.version = bpy.props.bricker_version
-            # get Bricker preferences
-            prefs = get_addon_preferences()
-            if prefs.brick_height_default == "ABSOLUTE":
-                # set absolute brick height
-                item.brick_height = prefs.absolute_brick_height
-            else:
-                # set brick height based on model height
-                source = item.source_obj
-                if source:
-                    source_details = bounds(source, use_adaptive_domain=False)
-                    h = max(source_details.dist)
-                    item.brick_height = h / prefs.relative_brick_height
-
         else:
             item.source_obj = None
             item.name = "<New Model>"
-        # get all existing IDs
-        existing_ids = [cm.id for cm in scn.cmlist]
-        i = max(existing_ids) + 1
-        # protect against massive item IDs
-        if i > 9999:
-            i = 1
-            while i in existing_ids:
-                i += 1
-        # set item ID to unique number
-        item.id = i
-        item.idx = len(scn.cmlist)-1
+        # switch to new cmlist item
+        scn.cmlist_index = len(scn.cmlist) - 1
+        # set brick height based on Bricker preferences
+        prefs = get_addon_preferences()
+        if prefs.brick_height_default == "ABSOLUTE":
+            # set absolute brick height
+            item.brick_height = prefs.absolute_brick_height
+        else:
+            # set brick height based on model height
+            source = item.source_obj
+            if source:
+                source_details = bounds(source, use_adaptive_domain=False)
+                h = max(source_details.dist)
+                item.brick_height = h / prefs.relative_brick_height
+        # set other item properties
+        item.id = max([cm.id for cm in scn.cmlist]) + 1
+        item.idx = scn.cmlist_index
+        item.version = bpy.props.bricker_version
         item.start_frame = scn.frame_start
         item.stop_frame = scn.frame_end
         # create new mat_obj for current cmlist id

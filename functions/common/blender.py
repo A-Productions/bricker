@@ -220,6 +220,10 @@ def unhide(obj:Object, viewport:bool=True, render:bool=True):
         obj.hide_render = False
 
 
+@blender_version_wrapper("<=","2.79")
+def is_obj_visible_in_viewport(obj:Object):
+    scn = bpy.context.scene
+    return any([obj.layers[i] and scn.layers[i] for i in range(20)])
 @blender_version_wrapper(">=","2.80")
 def is_obj_visible_in_viewport(obj:Object):
     if obj is None:
