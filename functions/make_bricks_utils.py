@@ -225,6 +225,8 @@ def prepare_logo_and_get_details(scn, logo, detail, scale, dimensions):
     """ duplicate and normalize custom logo object; return logo and bounds(logo) """
     if logo is None:
         return None, logo
+    # get logo details
+    orig_logo_details = bounds(logo)
     # duplicate logo object
     logo = duplicate(logo, link_to_scene=True)
     if detail != "LEGO":
@@ -235,15 +237,13 @@ def prepare_logo_and_get_details(scn, logo, detail, scale, dimensions):
         logo.parent = None
         apply_transform(logo)
     safe_unlink(logo)
-    # get logo details
-    logo_details = bounds(logo)
     m = logo.data
     # set bevel weight for logo
     m.use_customdata_edge_bevel = True
     for e in m.edges:
         e.bevel_weight = 0.0
     # create transform and scale matrices
-    t_mat = Matrix.Translation(-logo_details.mid)
+    t_mat = Matrix.Translation(-orig_logo_details.mid)
     dist_max = max(logo.dimensions.xy)
     lw = dimensions["logo_width"] * (0.78 if detail == "LEGO" else scale)
     s_mat = Matrix.Scale(lw / dist_max, 4)

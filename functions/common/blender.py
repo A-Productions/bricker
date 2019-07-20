@@ -573,7 +573,7 @@ def make_annotations(cls):
 
 @blender_version_wrapper("<=","2.79")
 def get_annotations(cls):
-    return list(dict(cm).keys())
+    return list(dict(cls).keys())
 @blender_version_wrapper(">=","2.80")
 def get_annotations(cls):
     return cls.__annotations__
