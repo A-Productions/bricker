@@ -553,7 +553,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     self.source.stored_parents.clear()
                 # send job to the background processor
                 script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, duplicates[cur_frame])
-                job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":cur_frame, "cmlist_id":cm.id, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)#, overwrite_blend=overwrite_blend)
+                job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":cur_frame, "cmlist_id":cm.id, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)
                 if not job_added: raise Exception(msg)
                 self.jobs.append(cur_job)
                 overwrite_blend = False
