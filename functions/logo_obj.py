@@ -105,5 +105,5 @@ def get_logo(scn, cm, dimensions):
         else:
             ref_logo = cm.logo_object
         # apply transformation to duplicate of logo object and normalize size/position
-        ref_logo = prepare_logo_and_get_details(scn, ref_logo, typ, cm.logo_scale, dimensions)
+        ref_logo = prepare_logo_and_get_details(scn, ref_logo, typ, cm.logo_scale / 100, dimensions)
     return ref_logo
