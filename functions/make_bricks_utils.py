@@ -39,7 +39,7 @@ from .general import *
 from ..lib.caches import bricker_mesh_cache
 
 
-def draw_brick(cm_id, bricksdict, key, loc, seed_keys, parent, dimensions, zstep, brick_size, brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, logo_details, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_bricks, rand_s1, rand_s2, rand_s3):
+def draw_brick(cm_id, bricksdict, key, loc, seed_keys, parent, dimensions, zstep, brick_size, brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_bricks, rand_s1, rand_s2, rand_s3):
     brick_d = bricksdict[key]
     # check exposure of current [merged] brick
     if brick_d["top_exposed"] is None or brick_d["bot_exposed"] is None or build_is_dirty:
@@ -62,7 +62,7 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, parent, dimensions, zstep
         m = custom_data[int(brick_d["type"][-1]) - 1]
     else:
         # get brick mesh
-        m = get_brick_data(brick_d, rand_s3, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, logo_details, logo_scale, logo_inset, use_stud)
+        m = get_brick_data(brick_d, rand_s3, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, logo_scale, logo_inset, use_stud)
     # duplicate data if cm.instance_bricks is disabled
     m = m if instance_bricks else m.copy()
     # apply random rotation to edit mesh according to parameters
@@ -244,16 +244,16 @@ def prepare_logo_and_get_details(scn, logo, detail, scale, dimensions):
         e.bevel_weight = 0.0
     # create transform and scale matrices
     t_mat = Matrix.Translation(-logo_details.mid)
-    dist_max = max(logo_details.dist.xy)
+    dist_max = max(logo.dimensions.xy)
     lw = dimensions["logo_width"] * (0.78 if detail == "LEGO" else scale)
     s_mat = Matrix.Scale(lw / dist_max, 4)
     # run transformations on logo mesh
     m.transform(t_mat)
     m.transform(s_mat)
-    return logo_details, logo
+    return logo
 
 
-def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, logo_details, logo_scale, logo_inset, use_stud):
+def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, logo_scale, logo_inset, use_stud):
     # get bm_cache_string
     bm_cache_string = ""
     if "CUSTOM" not in brick_type:
@@ -275,7 +275,7 @@ def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_heig
     # if not found create new brick mesh(es) and store to cache
     if bms is None:
         # create new brick bmeshes
-        bms = Bricks.new_mesh(dimensions, brick_type, size=brick_size, type=brick_d["type"], flip=brick_d["flipped"], rotate90=brick_d["rotated"], logo=logo_to_use, logo_type=logo_type, logo_scale=logo_scale, logo_inset=logo_inset, all_vars=logo_to_use is not None, logo_details=logo_details, underside_detail=underside_detail, stud=use_stud, circle_verts=circle_verts)
+        bms = Bricks.new_mesh(dimensions, brick_type, size=brick_size, type=brick_d["type"], flip=brick_d["flipped"], rotate90=brick_d["rotated"], logo=logo_to_use, logo_type=logo_type, logo_scale=logo_scale, logo_inset=logo_inset, all_vars=logo_to_use is not None, underside_detail=underside_detail, stud=use_stud, circle_verts=circle_verts)
         # store newly created meshes to cache
         if brick_type != "CUSTOM":
             bricker_mesh_cache[bm_cache_string] = bms
@@ -305,7 +305,7 @@ def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_heig
     # # if not found create new brick mesh(es) and store to cache
     # if meshes is None:
     #     # create new brick bmeshes
-    #     bms = Bricks.new_mesh(dimensions, brick_type, size=brick_size, type=brick_d["type"], flip=brick_d["flipped"], rotate90=brick_d["rotated"], logo=logo_to_use, logo_type=logo_type, logo_scale=logo_scale, logo_inset=logo_inset, all_vars=logo_to_use is not None, logo_details=logo_details, underside_detail=underside_detail, stud=use_stud, circle_verts=circle_verts)
+    #     bms = Bricks.new_mesh(dimensions, brick_type, size=brick_size, type=brick_d["type"], flip=brick_d["flipped"], rotate90=brick_d["rotated"], logo=logo_to_use, logo_type=logo_type, logo_scale=logo_scale, logo_inset=logo_inset, all_vars=logo_to_use is not None, underside_detail=underside_detail, stud=use_stud, circle_verts=circle_verts)
     #     # create edit mesh for each bmesh
     #     meshes = []
     #     for i,bm in enumerate(bms):

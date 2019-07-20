@@ -32,15 +32,15 @@ from ...functions import *
 
 class Bricks:
     @staticmethod
-    def new_mesh(dimensions:list, brick_type:str, size:list=[1,1,3], type:str="BRICK", flip:bool=False, rotate90:bool=False, logo=False, logo_type="NONE", logo_scale=100, logo_inset=None, all_vars=False, logo_details=None, underside_detail:str="FLAT", stud:bool=True, circle_verts:int=16):
+    def new_mesh(dimensions:list, brick_type:str, size:list=[1,1,3], type:str="BRICK", flip:bool=False, rotate90:bool=False, logo=False, logo_type="NONE", logo_scale=100, logo_inset=None, all_vars=False, underside_detail:str="FLAT", stud:bool=True, circle_verts:int=16):
         """ create unlinked Brick at origin """
         # create brick mesh
         if type in ("BRICK", "PLATE") or "CUSTOM" in type:
-            brickBM = make_standard_brick(dimensions, size, type, brick_type, circle_verts=circle_verts, detail=underside_detail, stud=stud)
+            brick_bm = make_standard_brick(dimensions, size, type, brick_type, circle_verts=circle_verts, detail=underside_detail, stud=stud)
         elif type in get_round_brick_types():
-            brickBM = make_round_1x1(dimensions, brick_type, circle_verts=circle_verts, type=type, detail=underside_detail)
+            brick_bm = make_round_1x1(dimensions, brick_type, circle_verts=circle_verts, type=type, detail=underside_detail)
         elif type in ("TILE", "TILE_GRILL"):
-            brickBM = make_tile(dimensions, brick_type, brick_size=size, circle_verts=circle_verts, type=type, detail=underside_detail)
+            brick_bm = make_tile(dimensions, brick_type, brick_size=size, circle_verts=circle_verts, type=type, detail=underside_detail)
         elif type in ("SLOPE", "SLOPE_INVERTED", "TALL_SLOPE"):
             # determine brick direction
             directions = ["X+", "Y+", "X-", "Y-"]
@@ -49,33 +49,32 @@ class Bricks:
             max_idx += 1 if rotate90 else 0
             # make slope brick bmesh
             if type == "SLOPE_INVERTED":
-                brickBM = make_inverted_slope(dimensions, size, brick_type, circle_verts=circle_verts, direction=directions[max_idx], detail=underside_detail, stud=stud)
+                brick_bm = make_inverted_slope(dimensions, size, brick_type, circle_verts=circle_verts, direction=directions[max_idx], detail=underside_detail, stud=stud)
             else:
-                brickBM = make_slope(dimensions, size, brick_type, circle_verts=circle_verts, direction=directions[max_idx], detail=underside_detail, stud=stud)
+                brick_bm = make_slope(dimensions, size, brick_type, circle_verts=circle_verts, direction=directions[max_idx], detail=underside_detail, stud=stud)
         else:
             raise ValueError("'new_mesh' function received unrecognized value for parameter 'type': '" + str(type) + "'")
 
         # send brick mesh to junk edit mesh
-        junkMesh = bpy.data.meshes.get('Bricker_junkMesh')
-        if junkMesh is None:
-            junkMesh = bpy.data.meshes.new('Bricker_junkMesh')
-        brickBM.to_mesh(junkMesh)
+        junk_mesh = bpy.data.meshes.get('Bricker_junk_mesh')
+        if junk_mesh is None:
+            junk_mesh = bpy.data.meshes.new('Bricker_junk_mesh')
+        brick_bm.to_mesh(junk_mesh)
 
         # set bevel weights
-        junkMesh.use_customdata_edge_bevel = True
-        for e in junkMesh.edges:
+        junk_mesh.use_customdata_edge_bevel = True
+        for e in junk_mesh.edges:
             e.bevel_weight = 0.0 if e.select else 1.0
-        # print(len([e for e in junkMesh.edges if e.bevel_weight == 1.0]))
 
         # create list of bmesh variations (logo only, for now)
         if logo and stud and (type in ("BRICK", "PLATE", "STUD", "SLOPE_INVERTED") or type == "SLOPE" and max(size[:2]) != 1):
-            bms = makeLogoVariations(dimensions, size, brick_type, directions[max_idx] if type.startswith("SLOPE") else "", all_vars, logo, logo_details, logo_inset, logo_type, logo_scale)
+            bms = make_logo_variations(dimensions, size, brick_type, directions[max_idx] if type.startswith("SLOPE") else "", all_vars, logo, logo_inset, logo_type, logo_scale)
         else:
             bms = [bmesh.new()]
 
         # append brick mesh to each bmesh variation
         for bm in bms:
-            bm.from_mesh(junkMesh)
+            bm.from_mesh(junk_mesh)
 
         # return bmesh objects
         return bms
@@ -129,11 +128,11 @@ class Bricks:
         return get_brick_dimensions(height, z_scale, gap_percentage)
 
 
-def getNumRots(direction, size):
+def get_num_rots(direction, size):
     return 1 if direction != "" else (4 if size[0] == 1 and size[1] == 1 else 2)
 
 
-def getRotAdd(direction, size):
+def get_rod_add(direction, size):
     if direction != "":
         directions = ["X+", "Y+", "X-", "Y-"]
         rot_add = 90 * (directions.index(direction) + 1)
@@ -142,49 +141,49 @@ def getRotAdd(direction, size):
     return rot_add
 
 
-def makeLogoVariations(dimensions, size, brick_type, direction, all_vars, logo, logo_details, logo_inset, logo_type, logo_scale):
+def make_logo_variations(dimensions, size, brick_type, direction, all_vars, logo, logo_inset, logo_type, logo_scale):
     # get logo rotation angle based on size of brick
-    rot_vars = getNumRots(direction, size)
+    rot_vars = get_num_rots(direction, size)
     rot_mult = 90 if size[0] == 1 and size[1] == 1 else 180
-    rot_add = getRotAdd(direction, size)
-    # set zRot to random rotation angle
+    rot_add = get_rod_add(direction, size)
+    # set z_rot to random rotation angle
     if all_vars:
-        zRots = [i * rot_mult + rot_add for i in range(rot_vars)]
+        z_rots = [i * rot_mult + rot_add for i in range(rot_vars)]
     else:
-        randomSeed = int(time.time()*10**6) % 10000
-        rand_s0 = np.random.RandomState(randomSeed)
-        zRots = [rand_s0.randint(0,rot_vars) * rot_mult + rot_add]
+        random_seed = int(time.time()*10**6) % 10000
+        rand_s0 = np.random.RandomState(random_seed)
+        z_rots = [rand_s0.randint(0,rot_vars) * rot_mult + rot_add]
     # get duplicate of logo mesh
     m = logo.data.copy()
 
     # create new bmeshes for each logo variation
-    bms = [bmesh.new() for zRot in zRots]
+    bms = [bmesh.new() for z_rot in z_rots]
     # get loc offsets
-    zOffset = dimensions["logo_offset"] + (dimensions["height"] if flat_brick_type(brick_type) and size[2] == 3 else 0)
+    z_offset = dimensions["logo_offset"] + (dimensions["height"] if flat_brick_type(brick_type) and size[2] == 3 else 0)
     lw = dimensions["logo_width"] * (0.78 if logo_type == "LEGO" else (logo_scale / 100))
-    dist_max = max(logo_details.dist.xy)
-    zOffset += ((logo_details.dist.z * (lw / dist_max)) / 2) * (1 - logo_inset / 50)
-    xyOffset = dimensions["width"] + dimensions["gap"]
+    dist_max = max(logo.dimensions.xy)
+    z_offset += ((logo.dimensions.z * (lw / dist_max)) / 2) * (1 - logo_inset / 50)
+    xy_offset = dimensions["width"] + dimensions["gap"]
     # cap x/y ranges so logos aren't created over slopes
-    xR0 = size[0] - 1 if direction == "X-" else 0
-    yR0 = size[1] - 1 if direction == "Y-" else 0
-    xR1 = 1 if direction == "X+" else size[0]
-    yR1 = 1 if direction == "Y+" else size[1]
+    x_range_start = size[0] - 1 if direction == "X-" else 0
+    y_range_start = size[1] - 1 if direction == "Y-" else 0
+    x_range_end = 1 if direction == "X+" else size[0]
+    y_range_end = 1 if direction == "Y+" else size[1]
     # add logos on top of each stud
-    for i,zRot in enumerate(zRots):
+    for i,z_rot in enumerate(z_rots):
         m0 = m.copy()
         # rotate logo around stud
-        if zRot != 0: m0.transform(Matrix.Rotation(math.radians(zRot), 4, 'Z'))
+        if z_rot != 0: m0.transform(Matrix.Rotation(math.radians(z_rot), 4, 'Z'))
         # create logo for each stud and append to bm
-        gap_base = dimensions["gap"] * Vector(((xR1 - xR0 - 1) / 2, (yR1 - yR0 - 1) / 2))
-        for x in range(xR0, xR1):
-            for y in range(yR0, yR1):
+        gap_base = dimensions["gap"] * Vector(((x_range_end - x_range_start - 1) / 2, (y_range_end - y_range_start - 1) / 2))
+        for x in range(x_range_start, x_range_end):
+            for y in range(y_range_start, y_range_end):
                 # create duplicate of rotated logo
                 m1 = m0.copy()
                 # adjust gap based on distance from first stud
-                gap = gap_base + dimensions["gap"] * Vector((x / xR1, y / yR1))
+                gap = gap_base + dimensions["gap"] * Vector((x / x_range_end, y / y_range_end))
                 # translate logo into place
-                m1.transform(Matrix.Translation((x * xyOffset - gap.x, y * xyOffset - gap.y, zOffset)))
+                m1.transform(Matrix.Translation((x * xy_offset - gap.x, y * xy_offset - gap.y, z_offset)))
                 # add transformed mesh to bm mesh
                 bms[i].from_mesh(m1)
                 bpy.data.meshes.remove(m1)

@@ -42,10 +42,10 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     source_details, dimensions = get_details_and_bounds(source, cm)
     n = source.name
     parent = cm.parent_obj
-    logo_details, ref_logo = [None, None] if temp_brick else get_logo(bpy.context.scene, cm, dimensions)
+    ref_logo = None if temp_brick else get_logo(bpy.context.scene, cm, dimensions)
     action = "UPDATE_MODEL"
     # actually draw the bricks
-    _, bricks_created = create_new_bricks(source, parent, source_details, dimensions, ref_logo, logo_details, action, cm=cm, bricksdict=bricksdict, keys=keys_to_update, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, redraw=True)
+    _, bricks_created = create_new_bricks(source, parent, source_details, dimensions, ref_logo, action, cm=cm, bricksdict=bricksdict, keys=keys_to_update, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, redraw=True)
     # link new bricks to scene
     if not b280():
         for brick in bricks_created:

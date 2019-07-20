@@ -187,7 +187,7 @@ def get_args_for_background_processor(cm, bricker_addon_path, source_dup):
 
 
 
-def create_new_bricks(source, parent, source_details, dimensions, ref_logo, logo_details, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
+def create_new_bricks(source, parent, source_details, dimensions, ref_logo, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
     """ gets/creates bricksdict, runs make_bricks, and caches the final bricksdict """
     scn, cm, n = get_active_context_info(cm=cm)
     brick_scale, custom_data = get_arguments_for_bricksdict(cm, source=source, dimensions=dimensions)
@@ -231,7 +231,7 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, logo
     if cm.material_type != "NONE" and (cm.material_is_dirty or cm.matrix_is_dirty or cm.anim_is_dirty): bricksdict = updateMaterials(bricksdict, source, uv_images, keys, cur_frame)
     # make bricks
     coll_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
-    bricks_created, bricksdict = make_bricks(source, parent, ref_logo, logo_details, dimensions, bricksdict, action, cm=cm, split=split, brick_scale=brick_scale, custom_data=custom_data, coll_name=coll_name, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, keys=keys, print_status=print_status, temp_brick=temp_brick, redraw=redraw)
+    bricks_created, bricksdict = make_bricks(source, parent, ref_logo, dimensions, bricksdict, action, cm=cm, split=split, brick_scale=brick_scale, custom_data=custom_data, coll_name=coll_name, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, keys=keys, print_status=print_status, temp_brick=temp_brick, redraw=redraw)
     if select_created and len(bricks_created) > 0:
         select(bricks_created)
     # store current bricksdict to cache
