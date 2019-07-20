@@ -281,8 +281,13 @@ def handle_upconversion(dummy):
                 if int(cm.version[2]) < 7:
                     cm.mat_obj_abs = bpy.data.objects.get("Bricker_{}_RANDOM_mats".format(cm.id))
                     cm.mat_obj_random = bpy.data.objects.get("Bricker_{}_ABS_mats".format(cm.id))
-                    # for prop in dir()
-                    # TODO: transfer props from 1_6 to 1_7
+                    # transfer props from 1_6 to 1_7 (camel to snake case)
+                    for prop in get_annotations(cm):
+                        if prop.islower():
+                            continue
+                        snake_prop = camel_to_snake_case(prop)
+                        if hasattr(cm, snake_prop):
+                            setattr(cm, snake_prop, getattr(cm, snake_prop))
 
             # ensure parent object has no users
             if cm.parent_obj is not None:

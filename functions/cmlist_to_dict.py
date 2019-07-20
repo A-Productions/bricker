@@ -38,8 +38,8 @@ def dump_cm_props(cm):
     prop_dict = {}
     pointer_dict = {}
 
-    for item in dir(cm):
-        if item.startswith("__") or not item.islower() or item in ["bl_rna", "rna_type", "active_key", "bfm_cache"]:
+    for item in get_annotations(cm):
+        if not item.islower() or item in ["active_key", "bfm_cache"]:
             continue
         try:
             item_prop = getattr(cm, item)

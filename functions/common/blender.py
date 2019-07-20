@@ -567,6 +567,14 @@ def make_annotations(cls):
     return cls
 
 
+@blender_version_wrapper("<=","2.79")
+def get_annotations(cls):
+    return list(dict(cm).keys())
+@blender_version_wrapper(">=","2.80")
+def get_annotations(cls):
+    return cls.__annotations__
+
+
 def append_from(blendfile_path, attr, filename):
     directory = os.path.join(blendfile_path, attr)
     filepath = os.path.join(directory, filename)
