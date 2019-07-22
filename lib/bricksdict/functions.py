@@ -149,10 +149,10 @@ def get_pixel(pixels, uv_coord):
     """
     image_size_x, image_size_y, uv_pixels = pixels
     pixel_number = (image_size_x * int(uv_coord.y)) + int(uv_coord.x)
-    r = uv_pixels[pixel_number*4 + 0]
-    g = uv_pixels[pixel_number*4 + 1]
-    b = uv_pixels[pixel_number*4 + 2]
-    a = uv_pixels[pixel_number*4 + 3]
+    r = uv_pixels[pixel_number * 4 + 0]
+    g = uv_pixels[pixel_number * 4 + 1]
+    b = uv_pixels[pixel_number * 4 + 2]
+    a = uv_pixels[pixel_number * 4 + 3]
     # gamma correct RGB value
     r, g, b, a = gamma_correct([r, g, b, a], 2.0167)
     return (r, g, b, a)
@@ -370,11 +370,8 @@ def get_material_color(mat_name):
         if b280():
             r, g, b, a = mat.diffuse_color
         else:
-            r, g, b = mat.diffuse_color
             intensity = mat.diffuse_intensity
-            r = r * intensity
-            g = g * intensity
-            b = b * intensity
+            r, g, b = Vector((mat.diffuse_color)) * intensity
             a = mat.alpha if mat.use_transparency else 1.0
     return [r, g, b, a]
 
@@ -436,9 +433,7 @@ def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1
             cur_custom_obj_details = bounds(custom_obj0)
             # set brick scale
             scale = cm.brick_height/cur_custom_obj_details.dist.z
-            brick_scale = Vector((scale * cur_custom_obj_details.dist.x + dimensions["gap"],
-                        scale * cur_custom_obj_details.dist.y + dimensions["gap"],
-                        scale * cur_custom_obj_details.dist.z + dimensions["gap"]))
+            brick_scale = cur_custom_obj_details.dist * scale + Vector([dimensions["gap"]] * 3)
             # get transformation matrices
             t_mat = Matrix.Translation(-cur_custom_obj_details.mid)
             max_dist = max(cur_custom_obj_details.dist)
@@ -454,8 +449,8 @@ def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1
             custom_data[i] = custom_obj0.data
     if cm.brick_type != "CUSTOM":
         brick_scale = Vector((dimensions["width"] + dimensions["gap"],
-                    dimensions["width"] + dimensions["gap"],
-                    dimensions["height"]+ dimensions["gap"]))
+                              dimensions["width"] + dimensions["gap"],
+                              dimensions["height"]+ dimensions["gap"]))
     return brick_scale, custom_data
 
 
