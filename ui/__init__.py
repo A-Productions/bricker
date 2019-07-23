@@ -161,7 +161,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                         row.label(text="Animating...")
                         row.operator("bricker.stop_brickifying_in_background", text="Stop", icon="PAUSE")
                         row = col.row(align=True)
-                        percentage = round(cm.run_animated_frames * 100 / cm.frames_to_animate, 2)
+                        percentage = round(cm.num_animated_frames * 100 / cm.frames_to_animate, 2)
                         row.label(text=str(percentage) + "% completed")
                     else:
                         row.active = brickify_should_run(cm)
@@ -214,7 +214,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                         row.label(text="Brickifying...")
                         row.operator("bricker.stop_brickifying_in_background", text="Stop", icon="PAUSE")
                         # row = col.row(align=True)
-                        # percentage = round(cm.run_animated_frames * 100 / cm.frames_to_animate, 2)
+                        # percentage = round(cm.num_animated_frames * 100 / cm.frames_to_animate, 2)
                         # row.label(text=str(percentage) + "% completed")
                     else:
                         row.active = brickify_should_run(cm)

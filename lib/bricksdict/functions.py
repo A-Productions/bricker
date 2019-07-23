@@ -492,7 +492,10 @@ def set_brick_exposure(bricksdict, key=None, loc=None):
     loc = loc or get_dict_loc(bricksdict, key)
     key = key or list_to_str(loc)
     # get size of brick and break conditions
-    if key not in bricksdict: return None, None
+    try:
+        brick_d = bricksdict[key]
+    except KeyError:
+        return None, None
     # get keys above and below
     x, y, z = loc
     key_below = list_to_str((x, y, z - 1))
@@ -500,8 +503,8 @@ def set_brick_exposure(bricksdict, key=None, loc=None):
     # check if brick top or bottom is exposed
     top_exposed = check_exposure(bricksdict, key_above, obscuringTypes=get_types_obscuring_below())
     bot_exposed = check_exposure(bricksdict, key_below, obscuringTypes=get_types_obscuring_above())
-    bricksdict[key]["top_exposed"] = top_exposed
-    bricksdict[key]["bot_exposed"] = bot_exposed
+    brick_d["top_exposed"] = top_exposed
+    brick_d["bot_exposed"] = bot_exposed
     return top_exposed, bot_exposed
 
 

@@ -260,17 +260,19 @@ def get_keys_dict(bricksdict, keys=None):
     for k0 in keys:
         if bricksdict[k0]["draw"]:
             z = get_dict_loc(bricksdict, k0)[2]
-            try:
+            if z in keys_dict:
                 keys_dict[z].append(k0)
-            except KeyError:
+            else:
                 keys_dict[z] = [k0]
     return keys_dict
 
 
 def get_parent_key(bricksdict, key):
-    if key not in bricksdict:
+    try:
+        brick_d = bricksdict[key]
+    except KeyError:
         return None
-    parent_key = key if bricksdict[key]["parent"] in ("self", None) else bricksdict[key]["parent"]
+    parent_key = key if brick_d["parent"] in ("self", None) else brick_d["parent"]
     return parent_key
 
 

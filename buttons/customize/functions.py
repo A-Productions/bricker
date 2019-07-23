@@ -95,14 +95,11 @@ def verify_all_brick_exposures(scn, zstep, orig_loc, bricksdict, decriment=0, z_
     # double check exposure of bricks above/below new adjacent brick
     for dloc in dlocs:
         k = list_to_str(dloc)
-        junk1 = k not in bricksdict
         try:
-            junk2 = bricksdict[k]
-        except:
-            pass
-        if k not in bricksdict:
+            brick_d = bricksdict[k]
+        except KeyError:
             continue
-        parent_key = k if bricksdict[k]["parent"] == "self" else bricksdict[k]["parent"]
+        parent_key = k if brick_d["parent"] == "self" else brick_d["parent"]
         if parent_key is not None:
             set_all_brick_exposures(bricksdict, zstep, parent_key)
     return bricksdict

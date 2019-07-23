@@ -113,8 +113,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                                 adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
                                 bricker_bricks_coll.hide_viewport = frame != adjusted_frame_current
                                 bricker_bricks_coll.hide_render   = frame != adjusted_frame_current
-                            # incriment run_animated_frames and remove job
-                            cm.run_animated_frames += 1
+                            # incriment num_animated_frames and remove job
+                            cm.num_animated_frames += 1
                             self.completed_frames.append(frame)
                             if not b280(): [safe_link(obj) for obj in bricker_bricks_coll.objects]
                         else:
@@ -126,7 +126,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         report_frames_str = " frame %(frame)s of" % locals() if anim_action else ""
                         self.report({"WARNING"}, "Dropped%(report_frames_str)s model '%(n)s'" % locals())
                         tag_redraw_areas("VIEW_3D")
-                        if anim_action: cm.run_animated_frames += 1
+                        if anim_action: cm.num_animated_frames += 1
                         self.jobs.remove(job)
                 # cancel and save finished frames if stopped
                 if cm.stop_background_process:
@@ -219,7 +219,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         wm.bricker_running_blocking_operation = False
         if self.brickify_in_background:
             # create timer for modal
-            self._timer = wm.event_timer_add(0.5, window=bpy.context.window)
+            self._timer = wm.event_timer_add(0.1, window=bpy.context.window)
             wm.modal_handler_add(self)
             return {"RUNNING_MODAL"}
         else:
@@ -504,7 +504,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 return {"FINISHED"}
 
         if self.brickify_in_background:
-            cm.run_animated_frames = 0
+            cm.num_animated_frames = 0
             cm.frames_to_animate = (cm.stop_frame - cm.start_frame + 1)
 
         if (self.action == "ANIMATE" or cm.matrix_is_dirty or cm.anim_is_dirty) and not self.updated_frames_only:

@@ -119,7 +119,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
                         bricksdict[brick.name.split("__")[-1]]["mat_name"] = mat.name
                 # update bricksdict mat_name values for not split models
                 if self.action == "CUSTOM" and not cm.last_split_model:
-                    for k in bricksdict.keys():
+                    for k in bricksdict:
                         if bricksdict[k]["draw"] and bricksdict[k]["parent"] == "self":
                             bricksdict[k]["mat_name"] = mat.name
 

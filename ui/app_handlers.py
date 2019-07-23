@@ -286,7 +286,7 @@ def handle_upconversion(dummy):
                         if prop.islower():
                             continue
                         snake_prop = camel_to_snake_case(prop)
-                        if hasattr(cm, snake_prop):
+                        if hasattr(cm, snake_prop) and hasattr(cm, prop):
                             setattr(cm, snake_prop, getattr(cm, prop))
 
             # ensure parent object has no users
