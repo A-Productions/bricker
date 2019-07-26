@@ -216,15 +216,15 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     brick_type = EnumProperty(
         name="Brick Type",
         description="Type of brick used to build the model",
-        items=[("BRICKS", "Bricks (fast)", description),
-               ("BRICKS AND PLATES", "Bricks and Plates", description),
-               ("CONES", "Cones", description),
-               ("CUSTOM", "Custom", "Use custom object to build the model"),
-               ("CYLINDERS", "Cylinders", description),
-               ("PLATES", "Plates", description),
-               # ("SLOPES", "Slopes (fast)", description),
-               ("STUDS", "Studs", description),
-               ("STUD_HOLLOWS", "Hollow Studs", description)],
+        items=[("BRICKS", "Bricks (fast)", description, 0),
+               ("BRICKS AND PLATES", "Bricks and Plates", description, 1),
+               ("CONES", "Cones", description, 2),
+               ("CUSTOM", "Custom", "Use custom object to build the model", 3),
+               ("CYLINDERS", "Cylinders", description, 4),
+               ("PLATES", "Plates", description, 5),
+               # ("SLOPES", "Slopes (fast)", description, 6),
+               ("STUDS", "Studs", description, 7),
+               ("STUD_HOLLOWS", "Hollow Studs", description, 8)],
         update=update_brick_type,
         default="BRICKS")
     align_bricks = BoolProperty(
@@ -443,9 +443,9 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     logo_type = EnumProperty(
         name="Logo Type",
         description="Choose logo type to draw on brick studs",
-        items=[("NONE", "None", "Don't include Brick Logo on bricks"),
-               # ("LEGO", "LEGO Logo", "Include a LEGO logo on each stud"),
-               ("CUSTOM", "Custom Logo", "Choose a mesh object to use as the brick stud logo")],
+        items=[("NONE", "None", "Don't include Brick Logo on bricks", 0),
+               # ("LEGO", "LEGO Logo", "Include a LEGO logo on each stud", 1),
+               ("CUSTOM", "Custom Logo", "Choose a mesh object to use as the brick stud logo", 2)],
         update=dirty_bricks,
         default="NONE")
     logo_resolution = IntProperty(
