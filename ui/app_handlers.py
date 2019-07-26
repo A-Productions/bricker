@@ -249,8 +249,8 @@ def handle_upconversion(dummy):
                     if old_source is not None:
                         old_source.name = cm.source_name
                     # transfer dist offset values to new prop locations
-                    if cm.dist_offsetX != -1:
-                        cm.dist_offset = (cm.dist_offsetX, cm.dist_offsetY, cm.dist_offsetZ)
+                    if cm.distOffsetX != -1:
+                        cm.dist_offset = (cm.distOffsetX, cm.distOffsetY, cm.distOffsetZ)
                 # convert from v1_4 to v1_5
                 if int(cm.version[2]) < 5:
                     if cm.logoDetail != "":
@@ -281,8 +281,13 @@ def handle_upconversion(dummy):
                 if int(cm.version[2]) < 7:
                     cm.mat_obj_abs = bpy.data.objects.get("Bricker_{}_RANDOM_mats".format(cm.id))
                     cm.mat_obj_random = bpy.data.objects.get("Bricker_{}_ABS_mats".format(cm.id))
-                    # for prop in dir()
-                    # TODO: transfer props from 1_6 to 1_7
+                    # transfer props from 1_6 to 1_7 (camel to snake case)
+                    for prop in get_annotations(cm):
+                        if prop.islower():
+                            continue
+                        snake_prop = camel_to_snake_case(prop)
+                        if hasattr(cm, snake_prop) and hasattr(cm, prop):
+                            setattr(cm, snake_prop, getattr(cm, prop))
 
             # ensure parent object has no users
             if cm.parent_obj is not None:

@@ -140,34 +140,39 @@ def get_model_resolution(source, cm):
 def should_brickify_in_background(cm, r, action):
     matrix_dirty = matrix_really_is_dirty(cm)
     source = cm.source_obj
-    return ("ANIM" in action or
-             # checks if model is simple enough to run
-             (((# model resolution
-                r.x * r.y * r.z *
+    return (    # check if model is simple enough to run
+            (   # model resolution
+                r.x * r.y * r.z
                 # accounts for shell thickness
-                math.sqrt(cm.shell_thickness) *
+                * math.sqrt(cm.shell_thickness)
                 # accounts for internal supports
-                (1.35 if cm.internal_supports != "NONE" else 1) *
+                * (1.35 if cm.internal_supports != "NONE" else 1)
                 # accounts for costly ray casting
-                (3 if cm.insideness_ray_cast_dir != "HIGH EFFICIENCY" else 1) *
+                * (3 if cm.insideness_ray_cast_dir != "HIGH EFFICIENCY" else 1)
                 # accounts for additional ray casting
-                (1.5 if cm.verify_exposure and matrix_dirty else 1) *
+                * (1.5 if cm.verify_exposure and matrix_dirty else 1)
                 # accounts for merging algorithm
-                (1.5 if mergable_brick_type(cm.brick_type) else 1) *
+                * (1.5 if mergable_brick_type(cm.brick_type) else 1)
                 # accounts for additional merging calculations for connectivity
-                (math.sqrt(cm.connect_thresh) if mergable_brick_type(cm.brick_type) and cm.merge_type == "RANDOM" else 1) *
+                * (math.sqrt(cm.connect_thresh) if mergable_brick_type(cm.brick_type) and cm.merge_type == "RANDOM" else 1)
                 # accounts for source object resolution
-                len(source.data.vertices)**(1/20)) >= (20000 if matrix_dirty else 40000)) or
-              # no logos
-              cm.logo_type != "NONE" or
-              # accounts for intricacy of custom object
-              (cm.brick_type == "CUSTOM" and (not b280() or len(cm.custom_object1.evaluated_get(bpy.context.view_layer.depsgraph).data.vertices) > 50)) or
-              # low exposed underside detail
-              cm.exposed_underside_detail not in ("FLAT", "LOW") or
-              # no hidden underside detail
-              cm.hidden_underside_detail != "FLAT" or
-              # not using source materials
-              (cm.material_type == "SOURCE" and cm.use_uv_map and len(source.data.uv_layers) > 0)))
+                * len(source.data.vertices)**(1/20)
+                # multiplies per frame
+                * (abs(cm.stop_frame - cm.start_frame) if cm.use_animation else 1)
+                # if using cached matrix, divide by 2
+                / (1 if matrix_dirty else 2)
+            ) >= 30000 or
+            # no logos
+            cm.logo_type != "NONE" or
+            # accounts for intricacy of custom object
+            (cm.brick_type == "CUSTOM" and (not b280() or len(cm.custom_object1.evaluated_get(bpy.context.view_layer.depsgraph).data.vertices) > 50)) or
+            # low exposed underside detail
+            cm.exposed_underside_detail not in ("FLAT", "LOW") or
+            # no hidden underside detail
+            cm.hidden_underside_detail != "FLAT" or
+            # not using source materials
+            (cm.material_type == "SOURCE" and cm.use_uv_map and len(source.data.uv_layers) > 0)
+           )
 
 
 def get_args_for_background_processor(cm, bricker_addon_path, source_dup):
@@ -187,7 +192,7 @@ def get_args_for_background_processor(cm, bricker_addon_path, source_dup):
 
 
 
-def create_new_bricks(source, parent, source_details, dimensions, ref_logo, logo_details, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
+def create_new_bricks(source, parent, source_details, dimensions, ref_logo, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
     """ gets/creates bricksdict, runs make_bricks, and caches the final bricksdict """
     scn, cm, n = get_active_context_info(cm=cm)
     brick_scale, custom_data = get_arguments_for_bricksdict(cm, source=source, dimensions=dimensions)
@@ -231,7 +236,7 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, logo
     if cm.material_type != "NONE" and (cm.material_is_dirty or cm.matrix_is_dirty or cm.anim_is_dirty): bricksdict = updateMaterials(bricksdict, source, uv_images, keys, cur_frame)
     # make bricks
     coll_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
-    bricks_created, bricksdict = make_bricks(source, parent, ref_logo, logo_details, dimensions, bricksdict, action, cm=cm, split=split, brick_scale=brick_scale, custom_data=custom_data, coll_name=coll_name, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, keys=keys, print_status=print_status, temp_brick=temp_brick, redraw=redraw)
+    bricks_created, bricksdict = make_bricks(source, parent, ref_logo, dimensions, bricksdict, action, cm=cm, split=split, brick_scale=brick_scale, custom_data=custom_data, coll_name=coll_name, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, keys=keys, print_status=print_status, temp_brick=temp_brick, redraw=redraw)
     if select_created and len(bricks_created) > 0:
         select(bricks_created)
     # store current bricksdict to cache

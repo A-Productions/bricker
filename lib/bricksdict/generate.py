@@ -502,7 +502,6 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
 
     trash_vals = [0] if calc_internals else [0, -1]
     all_shell_vals = []
-    # edge_val = [True, True, True]  # efficient way of checking if this is an edge
     # iterate through all values
     for x in range(x_L):
         for y in range(y_L):
@@ -546,18 +545,23 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
         if set_nf:
             set_nf = (1 - j) * 100 < mat_shell_depth
         for x, y, z in shell_vals:
-            idxs_to_check = ((x+1, y, z),
-                           (x-1, y, z),
-                           (x, y+1, z),
-                           (x, y-1, z),
-                           (x, y, z+1),
-                           (x, y, z-1))
+            idxs_to_check = (
+                (x+1, y, z),
+                (x-1, y, z),
+                (x, y+1, z),
+                (x, y-1, z),
+                (x, y, z+1),
+                (x, y, z-1))
+            # print("*** " + str((x, y, z)) + " ***")
             for idx in idxs_to_check:
                 # print("*"*25)
                 # print(str(idx))
                 # print(str(len(brick_freq_matrix)), str(len(brick_freq_matrix[0])), str(len(brick_freq_matrix[0][0])))
                 # print("*"*25)
-                cur_val = brick_freq_matrix[idx[0]][idx[1]][idx[2]]
+                try:
+                    cur_val = brick_freq_matrix[idx[0]][idx[1]][idx[2]]
+                except IndexError:
+                    continue
                 if cur_val == -1:
                     new_shell_vals.append(idx)
                     brick_freq_matrix[idx[0]][idx[1]][idx[2]] = j

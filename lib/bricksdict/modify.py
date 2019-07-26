@@ -180,19 +180,19 @@ def get_num_aligned_edges(bricksdict, size, key, loc, bricks_and_plates=False):
     got_one = False
 
     for l in locs:
-        # factor in height of brick (encourages)
-        if bricks_and_plates and False:
-            k0 = list_to_str(l)
-            try:
-                p_brick0 = bricksdict[k0]["parent"]
-            except KeyError:
-                continue
-            if p_brick0 == "self":
-                p_brick0 = k
-            if p_brick0 is None:
-                continue
-            p_brick_sz0 = bricksdict[p_brick0]["size"]
-            num_aligned_edges -= p_brick_sz0[2] / 3
+        # # factor in height of brick (encourages)
+        # if bricks_and_plates:
+        #     k0 = list_to_str(l)
+        #     try:
+        #         p_brick0 = bricksdict[k0]["parent"]
+        #     except KeyError:
+        #         continue
+        #     if p_brick0 == "self":
+        #         p_brick0 = k
+        #     if p_brick0 is None:
+        #         continue
+        #     p_brick_sz0 = bricksdict[p_brick0]["size"]
+        #     num_aligned_edges -= p_brick_sz0[2] / 3
         # check number of aligned edges
         l[2] -= 1
         k = list_to_str(l)

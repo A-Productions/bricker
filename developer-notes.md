@@ -28,9 +28,6 @@
     * when brickified model's parent is rotated, bricks drawn by customizing model are often not rotated correctly
     * Custom object rotation is not maintained when instanced for in bricker model (is this behavior desired?)
 
-before 1.7 release:
-    * debug custom logos
-
 
 # Blender 2.80 Notes
 

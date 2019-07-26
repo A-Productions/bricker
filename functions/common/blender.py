@@ -220,6 +220,10 @@ def unhide(obj:Object, viewport:bool=True, render:bool=True):
         obj.hide_render = False
 
 
+@blender_version_wrapper("<=","2.79")
+def is_obj_visible_in_viewport(obj:Object):
+    scn = bpy.context.scene
+    return any([obj.layers[i] and scn.layers[i] for i in range(20)])
 @blender_version_wrapper(">=","2.80")
 def is_obj_visible_in_viewport(obj:Object):
     if obj is None:
@@ -565,6 +569,14 @@ def make_annotations(cls):
             annotations[k] = v
             delattr(cls, k)
     return cls
+
+
+@blender_version_wrapper("<=","2.79")
+def get_annotations(cls):
+    return list(dict(cls).keys())
+@blender_version_wrapper(">=","2.80")
+def get_annotations(cls):
+    return cls.__annotations__
 
 
 def append_from(blendfile_path, attr, filename):

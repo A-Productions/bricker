@@ -113,8 +113,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                                 adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
                                 bricker_bricks_coll.hide_viewport = frame != adjusted_frame_current
                                 bricker_bricks_coll.hide_render   = frame != adjusted_frame_current
-                            # incriment run_animated_frames and remove job
-                            cm.run_animated_frames += 1
+                            # incriment num_animated_frames and remove job
+                            cm.num_animated_frames += 1
                             self.completed_frames.append(frame)
                             if not b280(): [safe_link(obj) for obj in bricker_bricks_coll.objects]
                         else:
@@ -126,7 +126,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         report_frames_str = " frame %(frame)s of" % locals() if anim_action else ""
                         self.report({"WARNING"}, "Dropped%(report_frames_str)s model '%(n)s'" % locals())
                         tag_redraw_areas("VIEW_3D")
-                        if anim_action: cm.run_animated_frames += 1
+                        if anim_action: cm.num_animated_frames += 1
                         self.jobs.remove(job)
                 # cancel and save finished frames if stopped
                 if cm.stop_background_process:
@@ -219,7 +219,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         wm.bricker_running_blocking_operation = False
         if self.brickify_in_background:
             # create timer for modal
-            self._timer = wm.event_timer_add(0.5, window=bpy.context.window)
+            self._timer = wm.event_timer_add(0.1, window=bpy.context.window)
             wm.modal_handler_add(self)
             return {"RUNNING_MODAL"}
         else:
@@ -504,7 +504,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 return {"FINISHED"}
 
         if self.brickify_in_background:
-            cm.run_animated_frames = 0
+            cm.num_animated_frames = 0
             cm.frames_to_animate = (cm.stop_frame - cm.start_frame + 1)
 
         if (self.action == "ANIMATE" or cm.matrix_is_dirty or cm.anim_is_dirty) and not self.updated_frames_only:
@@ -553,7 +553,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     self.source.stored_parents.clear()
                 # send job to the background processor
                 script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, duplicates[cur_frame])
-                job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":cur_frame, "cmlist_id":cm.id, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)#, overwrite_blend=overwrite_blend)
+                job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":cur_frame, "cmlist_id":cm.id, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)
                 if not job_added: raise Exception(msg)
                 self.jobs.append(cur_job)
                 overwrite_blend = False
@@ -598,7 +598,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         source_details, dimensions = get_details_and_bounds(source)
 
         # update ref_logo
-        logo_details, ref_logo = get_logo(scn, cm, dimensions)
+        ref_logo = get_logo(scn, cm, dimensions)
 
         # set up parent for this layer
         # TODO: Remove these from memory in the delete function, or don't use them at all
@@ -613,7 +613,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # create new bricks
         try:
-            coll_name, _ = create_new_bricks(source, parent, source_details, dimensions, ref_logo, logo_details, action, split=cm.split_model, cur_frame=cur_frame, clear_existing_collection=False, orig_source=cm.source_obj, select_created=False)
+            coll_name, _ = create_new_bricks(source, parent, source_details, dimensions, ref_logo, action, split=cm.split_model, cur_frame=cur_frame, clear_existing_collection=False, orig_source=cm.source_obj, select_created=False)
         except KeyboardInterrupt:
             if cur_frame != cm.start_frame:
                 wm.progress_end()
@@ -656,10 +656,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         source_dup_details, dimensions = get_details_and_bounds(source_dup)
 
         # update ref_logo
-        logo_details, ref_logo = get_logo(scn, cm, dimensions)
+        ref_logo = get_logo(scn, cm, dimensions)
 
         # create new bricks
-        coll_name, _ = create_new_bricks(source_dup, parent, source_dup_details, dimensions, ref_logo, logo_details, action, split=cm.split_model, cur_frame=None)
+        coll_name, _ = create_new_bricks(source_dup, parent, source_dup_details, dimensions, ref_logo, action, split=cm.split_model, cur_frame=None)
 
         bcoll = bpy_collections().get(coll_name)
         if bcoll:

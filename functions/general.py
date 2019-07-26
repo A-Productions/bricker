@@ -260,17 +260,19 @@ def get_keys_dict(bricksdict, keys=None):
     for k0 in keys:
         if bricksdict[k0]["draw"]:
             z = get_dict_loc(bricksdict, k0)[2]
-            try:
+            if z in keys_dict:
                 keys_dict[z].append(k0)
-            except KeyError:
+            else:
                 keys_dict[z] = [k0]
     return keys_dict
 
 
 def get_parent_key(bricksdict, key):
-    if key not in bricksdict:
+    try:
+        brick_d = bricksdict[key]
+    except KeyError:
         return None
-    parent_key = key if bricksdict[key]["parent"] in ("self", None) else bricksdict[key]["parent"]
+    parent_key = key if brick_d["parent"] in ("self", None) else brick_d["parent"]
     return parent_key
 
 
@@ -487,25 +489,15 @@ def select_source_model(self, context):
                     select(bricks, active=True, only=True)
                     scn.bricker_last_active_object_name = obj.name if obj is not None else ""
             elif cm.animated:
-                cf = scn.frame_current
-                if cf > cm.last_stop_frame:
-                    cf = cm.last_stop_frame
-                elif cf < cm.last_start_frame:
-                    cf = cm.last_start_frame
-                if b280():
-                    cn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
-                    if len(bpy.data.collections[cn].objects) > 0:
-                        select(list(bpy.data.collections[cn].objects), active=True, only=True)
-                        scn.bricker_last_active_object_name = obj.name if obj is not None else ""
+                cf = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
+                brick_obj = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals()).objects[0]
+                if brick_obj is not None and len(brick_objs) > 0:
+                    select(brick_obj, active=True, only=True)
+                    scn.bricker_last_active_object_name = obj.name if obj is not None else ""
                 else:
-                    g = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
-                    if g is not None and len(g.objects) > 0:
-                        select(list(g.objects), active=True, only=True)
-                        scn.bricker_last_active_object_name = bpy.context.active_object.name
-                    else:
-                        scn.objects.active = None
-                        deselect_all()
-                        scn.bricker_last_active_object_name = ""
+                    set_active_obj(None)
+                    deselect_all()
+                    scn.bricker_last_active_object_name = ""
             else:
                 select(source, active=True, only=True)
                 scn.bricker_last_active_object_name = source.name

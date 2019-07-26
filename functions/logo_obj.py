@@ -99,12 +99,11 @@ def get_logo(scn, cm, dimensions):
     typ = cm.logo_type
     if cm.brick_type == "CUSTOM" or typ == "NONE":
         ref_logo = None
-        logo_details = None
     else:
         if typ == "LEGO":
             ref_logo = get_lego_logo(scn, typ, cm.logo_resolution, cm.logo_decimate, dimensions)
         else:
             ref_logo = cm.logo_object
         # apply transformation to duplicate of logo object and normalize size/position
-        logo_details, ref_logo = prepare_logo_and_get_details(scn, ref_logo, typ, cm.logo_scale, dimensions)
-    return logo_details, ref_logo
+        ref_logo = prepare_logo_and_get_details(scn, ref_logo, typ, cm.logo_scale / 100, dimensions)
+    return ref_logo
