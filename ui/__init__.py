@@ -796,9 +796,9 @@ class VIEW3D_PT_bricker_materials(Panel):
                 col.active = len(obj.data.uv_layers) > 0
                 row = col.row(align=True)
                 row.prop(cm, "use_uv_map", text="Use UV Map")
-                split = layout_split(row, factor=0.75)
-                # split.active = cm.use_uv_map
                 if cm.use_uv_map:
+                    split = layout_split(row, factor=0.75)
+                    # split.active = cm.use_uv_map
                     split.prop(cm, "uv_image", text="")
                     split.operator("image.open", icon="FILEBROWSER" if b280() else "FILESEL", text="")
                 if len(obj.data.vertex_colors) > 0:
@@ -1239,7 +1239,27 @@ class VIEW3D_PT_bricker_matrix_details(Panel):
         col1 = layout.column(align=True)
         split = layout_split(col1, factor=0.35)
         # hard code keys so that they are in the order I want
-        keys = ["name", "val", "draw", "co", "near_face", "near_intersection", "near_normal", "mat_name", "custom_mat_name", "rgba", "parent", "size", "attempted_merge", "top_exposed", "bot_exposed", "type", "flipped", "rotated", "created_from"]
+        keys = [
+            "name",
+            "val",
+            "draw",
+            "co",
+            "near_face",
+            "near_intersection",
+            "near_normal",
+            "mat_name",
+            "custom_mat_name",
+            "rgba",
+            "parent",
+            "size",
+            "attempted_merge",
+            "top_exposed",
+            "bot_exposed",
+            "type",
+            "flipped",
+            "rotated",
+            "created_from"
+        ]
         # draw keys
         col = split.column(align=True)
         col.scale_y = 0.65

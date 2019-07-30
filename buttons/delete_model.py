@@ -369,8 +369,6 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             "matrix_is_dirty",
             "bricks_are_dirty",
             "armature",
-            "rigid_body",
-            "soft_body",
             "expose_parent",
             "active_key",
             "is_smoke",
