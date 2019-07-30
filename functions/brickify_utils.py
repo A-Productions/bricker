@@ -197,7 +197,7 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
     scn, cm, n = get_active_context_info(cm=cm)
     brick_scale, custom_data = get_arguments_for_bricksdict(cm, source=source, dimensions=dimensions)
     update_cursor = action in ("CREATE", "UPDATE_MODEL")
-    uv_images = get_uv_images(source) if cm.material_type == "SOURCE" and cm.use_uv_map and len(source.data.uv_layers) > 0 else {}  # get uv_layer image and pixels for material calculation
+    # uv_images = get_uv_images(source) if cm.material_type == "SOURCE" and cm.use_uv_map and len(source.data.uv_layers) > 0 else {}  # get uv_layer image and pixels for material calculation
     if bricksdict is None:
         # load bricksdict from cache
         bricksdict = get_bricksdict(cm, dType=action, cur_frame=cur_frame)
@@ -207,7 +207,7 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
             # multiply brick_scale by offset distance
             brick_scale2 = brick_scale if cm.brick_type != "CUSTOM" else vec_mult(brick_scale, Vector(cm.dist_offset))
             # create new bricksdict
-            bricksdict = make_bricksdict(source, source_details, brick_scale2, uv_images, cursor_status=update_cursor)
+            bricksdict = make_bricksdict(source, source_details, brick_scale2, cursor_status=update_cursor)
     else:
         loaded_from_cache = True
     # reset all values for certain keys in bricksdict dictionaries
@@ -233,7 +233,7 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
         update_internal(bricksdict, cm, keys, clear_existing=loaded_from_cache)
         cm.build_is_dirty = True
     # update materials in bricksdict
-    if cm.material_type != "NONE" and (cm.material_is_dirty or cm.matrix_is_dirty or cm.anim_is_dirty): bricksdict = updateMaterials(bricksdict, source, uv_images, keys, cur_frame)
+    if cm.material_type != "NONE" and (cm.material_is_dirty or cm.matrix_is_dirty or cm.anim_is_dirty): bricksdict = updateMaterials(bricksdict, source, keys, cur_frame)
     # make bricks
     coll_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
     bricks_created, bricksdict = make_bricks(source, parent, ref_logo, dimensions, bricksdict, action, cm=cm, split=split, brick_scale=brick_scale, custom_data=custom_data, coll_name=coll_name, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, keys=keys, print_status=print_status, temp_brick=temp_brick, redraw=redraw)

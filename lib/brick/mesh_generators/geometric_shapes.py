@@ -241,7 +241,7 @@ def make_tube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), top_f
 
 
 def connect_circles(circle1, circle2, bme, offset=0, flip_normals=False, smooth=True, select=True):
-    assert offset < len(circle1) - 1 and offset >= 0
+    assert len(circle1) - 1 > offset >= 0
     faces = []
     for v in range(len(circle1)):
         v1 = circle1[v - offset]

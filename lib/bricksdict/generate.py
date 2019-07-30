@@ -184,7 +184,7 @@ def update_bf_matrix(scn, x0, y0, z0, coord_matrix, ray, edge_len, face_idx_matr
 def is_internal(bricksdict, key):
     """ check if brick entry in bricksdict is internal """
     val = bricksdict[key]["val"]
-    return (val > 0 and val < 1) or val == -1
+    return (0 < val < 1) or val == -1
 
 def add_column_supports(bricksdict, keys, thickness, step):
     """ update bricksdict internal entries to draw columns
@@ -629,7 +629,7 @@ def createBricksDictEntry(name:str, loc:list, val:float=0, draw:bool=False, co:t
            }
 
 @timed_call("Time Elapsed")
-def make_bricksdict(source, source_details, brick_scale, uv_images, cursor_status=False):
+def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
     """ make dictionary with brick information at each coordinate of lattice surrounding source
     source         -- source object to construct lattice around
     source_details -- object details with subattributes for distance and midpoint of x, y, z axes
@@ -688,7 +688,7 @@ def make_bricksdict(source, source_details, brick_scale, uv_images, cursor_statu
                 b_type = get_brick_type(brick_type)
                 flipped, rotated = get_flip_rot("" if norm_dir is None else norm_dir[1:])
                 if source_mats:
-                    rgba = smoke_colors[x][y][z] if smoke_colors else get_uv_pixel_color(scn, source, nf, ni if ni is None else Vector(ni), uv_images, uv_image)
+                    rgba = smoke_colors[x][y][z] if smoke_colors else get_uv_pixel_color(scn, source, nf, ni if ni is None else Vector(ni), uv_image)
                 else:
                     rgba = (0, 0, 0, 1)
                 draw = brick_freq_matrix[x][y][z] >= threshold

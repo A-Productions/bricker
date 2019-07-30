@@ -322,7 +322,7 @@ def get_normal_direction(normal, max_dist=0.77, slopes=False):
     min_dist = max_dist
     min_dir = None
     # skip normals that aren't within 0.3 of the z values
-    if normal is None or ((normal.z > -0.2 and normal.z < 0.2) or normal.z > 0.8 or normal.z < -0.8):
+    if normal is None or ((-0.2 < normal.z < 0.2) or normal.z > 0.8 or normal.z < -0.8):
         return min_dir
     # set Vectors for perfect normal directions
     if slopes:

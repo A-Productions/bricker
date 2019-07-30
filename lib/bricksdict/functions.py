@@ -27,6 +27,7 @@ import bpy
 from ...functions import *
 from ..brick import Bricks
 from ..brick.legal_brick_sizes import *
+from ..caches import *
 
 
 def get_mat_at_face_idx(obj, face_idx):
@@ -115,44 +116,53 @@ def get_all_first_img_tex_nodes(obj):
 
 
 # reference: https://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts/addons/uv_bake_texture_to_vcols.py
-def get_uv_images(obj):
-    """ returns dictionary with duplicate pixel arrays for all UV textures in object """
-    scn, cm, _ = get_active_context_info()
-    # get list of images to store
-    if b280():
-        # TODO: Reinstate this 2.79 functionality
-        images = set()
+# def get_uv_images(obj):
+#     """ returns dictionary with duplicate pixel arrays for all UV textures in object """
+#     scn, cm, _ = get_active_context_info()
+#     # get list of images to store
+#     if b280():
+#         # TODO: Reinstate this 2.79 functionality
+#         images = set()
+#     else:
+#         uv_tex_data = get_uv_layer_data(obj)
+#         images = set([uv_tex.image for uv_tex in uv_tex_data if uv_tex.image is not None]) if uv_tex_data else set()
+#     images.add(cm.uv_image)
+#     images |= get_all_first_img_tex_nodes(obj)
+#     # store images
+#     uv_images = {}
+#     for img in images:
+#         if verify_img(img) is None:
+#             continue
+#         uv_images[img.name] = (img.size[0],
+#                                img.size[1],
+#                                img.pixels[:]
+#                                # Accessing pixels directly is far too slow.
+#                                #Copied to new array for massive performance-gain.
+#                                )
+#     return uv_images
+
+
+def get_pixels(image):
+    if image.name in bricker_pixel_cache:
+        return bricker_pixel_cache[image.name]
     else:
-        uv_tex_data = get_uv_layer_data(obj)
-        images = set([uv_tex.image for uv_tex in uv_tex_data if uv_tex.image is not None]) if uv_tex_data else set()
-    images.add(cm.uv_image)
-    images |= get_all_first_img_tex_nodes(obj)
-    # store images
-    uv_images = {}
-    for img in images:
-        if verify_img(img) is None:
-            continue
-        uv_images[img.name] = (img.size[0],
-                               img.size[1],
-                               img.pixels[:]
-                               # Accessing pixels directly is far too slow.
-                               #Copied to new array for massive performance-gain.
-                               )
-    return uv_images
+        pixels = image.pixels[:]
+        bricker_pixel_cache[image.name] = pixels
+        return pixels
 
 
 # reference: https://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts/addons/uv_bake_texture_to_vcols.py
-def get_pixel(pixels, uv_coord):
+def get_pixel(pixels, pixel_width, uv_coord):
     """ get RGBA value for specified coordinate in UV image
     pixels    -- list of pixel data from UV texture image
+    size      -- image width
     uv_coord  -- UV coordinate of desired pixel value
     """
-    image_size_x, image_size_y, uv_pixels = pixels
-    pixel_number = (image_size_x * int(uv_coord.y)) + int(uv_coord.x)
-    r = uv_pixels[pixel_number * 4 + 0]
-    g = uv_pixels[pixel_number * 4 + 1]
-    b = uv_pixels[pixel_number * 4 + 2]
-    a = uv_pixels[pixel_number * 4 + 3]
+    pixel_number = (pixel_width * int(uv_coord.y)) + int(uv_coord.x)
+    r = pixels[pixel_number * 4 + 0]
+    g = pixels[pixel_number * 4 + 1]
+    b = pixels[pixel_number * 4 + 2]
+    a = pixels[pixel_number * 4 + 3]
     # gamma correct RGB value
     r, g, b, a = gamma_correct([r, g, b, a], 2.0167)
     return (r, g, b, a)
@@ -194,13 +204,13 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
     scn = bpy.context.scene
     # get or create material with unique color
     min_diff = float("inf")
-    snapAmount = 0.000001 if color_snap == "NONE" else color_snap_amount
+    snap_amount = 0.000001 if color_snap == "NONE" else color_snap_amount
     if rgba is None:
         return ""
     r0, g0, b0, a0 = rgba
     for i in range(len(rgba_vals)):
         diff = distance(rgba, rgba_vals[i])
-        if diff < min_diff and diff < snapAmount:
+        if diff < min_diff and diff < snap_amount:
             min_diff = diff
             r0, g0, b0, a0 = rgba_vals[i]
             break
@@ -333,7 +343,7 @@ def get_uv_image(scn, obj, face_idx, uv_image):
     return image
 
 
-def get_uv_pixel_color(scn, obj, face_idx, point, uv_images, uv_image):
+def get_uv_pixel_color(scn, obj, face_idx, point, uv_image):
     """ get RGBA value for point in UV image at specified face index """
     if face_idx is None:
         return None
@@ -346,7 +356,8 @@ def get_uv_pixel_color(scn, obj, face_idx, point, uv_images, uv_image):
     # get uv coordinate based on nearest face intersection
     uv_coord = get_uv_coord(obj.data, face, point, image)
     # retrieve rgba value at uv coordinate
-    rgba = get_pixel(uv_images[image.name], uv_coord)
+    pixels = get_pixels(image)
+    rgba = get_pixel(pixels, image.size[0], uv_coord)
     return rgba
 
 
@@ -376,7 +387,7 @@ def get_material_color(mat_name):
     return [r, g, b, a]
 
 
-def get_brick_rgba(scn, obj, face_idx, point, uv_images, uv_image=None):
+def get_brick_rgba(scn, obj, face_idx, point, uv_image=None):
     """ returns RGBA value for brick """
     if face_idx is None:
         return None, None
@@ -384,7 +395,7 @@ def get_brick_rgba(scn, obj, face_idx, point, uv_images, uv_image=None):
     image = get_uv_image(scn, obj, face_idx, uv_image)
     if image is not None:
         orig_mat_name = ""
-        rgba = get_uv_pixel_color(scn, obj, face_idx, point, uv_images, image)
+        rgba = get_uv_pixel_color(scn, obj, face_idx, point, image)
     else:
         # get closest material using material slot of face
         orig_mat_name = get_mat_at_face_idx(obj, face_idx)

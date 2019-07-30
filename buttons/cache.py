@@ -72,7 +72,7 @@ class BRICKER_OT_clear_cache(bpy.types.Operator):
     # class methods
 
     @staticmethod
-    def clear_cache(cm, brick_mesh=True, light_matrix=True, deep_matrix=True):
+    def clear_cache(cm, brick_mesh=True, light_matrix=True, deep_matrix=True, images=True):
         """clear caches for cmlist item"""
         # clear light brick mesh cache
         if brick_mesh:
@@ -83,10 +83,13 @@ class BRICKER_OT_clear_cache(bpy.types.Operator):
         # clear deep matrix cache
         if deep_matrix:
             cm.bfm_cache = ""
+        # clear image cache
+        if images:
+            bricker_pixel_cache = dict()
 
     @staticmethod
-    def clear_caches(brick_mesh=True, light_matrix=True, deep_matrix=True):
+    def clear_caches(brick_mesh=True, light_matrix=True, deep_matrix=True, images=True):
         """clear all caches in cmlist"""
         scn = bpy.context.scene
         for cm in scn.cmlist:
-            BRICKER_OT_clear_cache.clear_cache(cm, brick_mesh=brick_mesh, light_matrix=light_matrix, deep_matrix=deep_matrix)
+            BRICKER_OT_clear_cache.clear_cache(cm, brick_mesh=brick_mesh, light_matrix=light_matrix, deep_matrix=deep_matrix, images=images)

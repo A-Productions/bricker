@@ -179,7 +179,7 @@ def add_edge_split_mod(obj):
 
 def merge_with_adjacent_bricks(brick_d, bricksdict, key, loc, keys_not_checked, default_size, zstep, rand_s1, build_is_dirty, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_vertical=True):
     if brick_d["size"] is None or build_is_dirty:
-        prefer_largest = brick_d["val"] > 0 and brick_d["val"] < 1
+        prefer_largest = 0 < brick_d["val"] < 1
         brick_size, keys_in_brick = attempt_merge(bricksdict, key, keys_not_checked, default_size, zstep, rand_s1, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, loc=loc, prefer_largest=prefer_largest, merge_vertical=merge_vertical, height_3_only=brick_d["type"] in get_brick_types(height=3))
     else:
         brick_size = brick_d["size"]

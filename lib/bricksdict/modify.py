@@ -26,14 +26,10 @@ from .functions import *
 from ...functions import *
 
 
-def updateMaterials(bricksdict, source, uv_images, keys, cur_frame=None):
+def updateMaterials(bricksdict, source, keys, cur_frame=None):
     """ sets all mat_names in bricksdict based on near_face """
     scn, cm, n = get_active_context_info()
     use_uv_map = cm.use_uv_map and (len(source.data.uv_layers) > 0 or cm.uv_image is not None)
-    if not use_uv_map:
-        uv_images = None
-    elif len(uv_images) == 0:
-        use_uv_map = False
     rgba_vals = []
     # initialize variables
     if keys == "ALL": keys = list(bricksdict.keys())
@@ -68,7 +64,7 @@ def updateMaterials(bricksdict, source, uv_images, keys, cur_frame=None):
             mat_name = ""
         else:
             ni = Vector(bricksdict[key]["near_intersection"])
-            rgba, mat_name = get_brick_rgba(scn, source, nf, ni, uv_images, uv_image)
+            rgba, mat_name = get_brick_rgba(scn, source, nf, ni, uv_image)
 
         if material_type == "SOURCE":
             # get material with snapped RGBA value
