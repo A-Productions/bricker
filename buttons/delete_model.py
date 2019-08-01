@@ -348,32 +348,34 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
 
     def reset_cmlist_attrs():
         scn, cm, n = get_active_context_info()
-        cm.model_loc = "-1,-1,-1"
-        cm.model_rot = "-1,-1,-1"
-        cm.model_scale = "-1,-1,-1"
-        cm.transform_scale = 1
-        cm.model_created_on_frame = -1
-        cm.last_source_mid = "-1,-1,-1"
-        cm.last_logo_type = "NONE"
-        cm.last_split_model = False
-        cm.last_brick_type = "NONE"
-        cm.last_legal_bricks_only = True
-        cm.last_matrix_settings = "NONE"
-        cm.last_material_type = "NONE"
-        cm.last_is_smoke = False
-        cm.anim_is_dirty = True
-        cm.material_is_dirty = True
-        cm.model_is_dirty = True
-        cm.build_is_dirty = False
-        cm.matrix_is_dirty = True
-        cm.bricks_are_dirty = True
-        cm.armature = False
-        cm.rigid_body = False
-        cm.soft_body = False
-        cm.expose_parent = False
+        reset_attrs = [
+            "model_loc",
+            "model_rot",
+            "model_scale",
+            "transform_scale",
+            "model_created_on_frame",
+            "last_source_mid",
+            "last_logo_type",
+            "last_split_model",
+            "last_brick_type",
+            "last_legal_bricks_only",
+            "last_matrix_settings",
+            "last_material_type",
+            "last_is_smoke",
+            "anim_is_dirty",
+            "material_is_dirty",
+            "model_is_dirty",
+            "build_is_dirty",
+            "matrix_is_dirty",
+            "bricks_are_dirty",
+            "armature",
+            "expose_parent",
+            "active_key",
+            "is_smoke",
+            "has_custom_obj1",
+            "has_custom_obj2",
+            "has_custom_obj3",
+        ]
+        for attr in reset_attrs:
+            cm.property_unset(attr)
         cm.version = bpy.props.bricker_version
-        cm.active_key = (-1, -1, -1)
-        cm.is_smoke = False
-        cm.has_custom_obj1 = False
-        cm.has_custom_obj2 = False
-        cm.has_custom_obj3 = False

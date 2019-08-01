@@ -15,4 +15,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = ["populate_mat_obj", "bake", "customize", "bevel", "brickify", "brickify_in_background", "cache", "delete_model", "export_ldraw", "materials", "redraw_custom_bricks", "revert_settings"]
+__all__ = [
+    "populate_mat_obj",
+    "bake",
+    "customize",
+    "bevel",
+    "brickify",
+    "brickify_in_background",
+    "cache",
+    "delete_model",
+    "export_ldraw",
+    "materials",
+    "redraw_custom_bricks",
+    "revert_settings"
+]

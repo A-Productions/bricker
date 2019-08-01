@@ -409,14 +409,14 @@ def change_context(context, areaType:str):
     return last_area_type
 
 
-def assemble_override_context_for_view_3d_ops():
+def assemble_override_context(area_type="VIEW_3D"):
     """
     Iterates through the blender GUI's areas & regions to find the View3D space
     NOTE: context override can only be used with bpy.ops that were called from a window/screen with a view3d space
     """
     win      = bpy.context.window
     scr      = win.screen
-    areas3d  = [area for area in scr.areas if area.type == "VIEW_3D"]
+    areas3d  = [area for area in scr.areas if area.type == area_type]
     region   = [region for region in areas3d[0].regions if region.type == "WINDOW"]
     override = {"window": win,
                 "screen": scr,
