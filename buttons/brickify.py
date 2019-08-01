@@ -262,6 +262,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.bricker_addon_path = get_addon_directory()
         self.jobs = list()
         self.cm = cm
+        bricker_pixel_cache = dict()
         # set up model dimensions variables sX, sY, and sZ
         r = get_model_resolution(self.source, cm)
         if get_addon_preferences().brickify_in_background == "AUTO" and r is not None:

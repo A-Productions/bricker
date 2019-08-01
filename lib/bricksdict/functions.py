@@ -104,44 +104,6 @@ def get_first_img_tex_nodes(obj, mat_slot_idx):
     return img
 
 
-def get_all_first_img_tex_nodes(obj):
-    """ return set of first image textures found in all material slots """
-    images = set()
-    for idx in range(len(obj.material_slots)):
-        img = get_first_img_tex_nodes(obj, idx)
-        if img is not None:
-            images.add(img)
-    return images
-
-
-
-# reference: https://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts/addons/uv_bake_texture_to_vcols.py
-# def get_uv_images(obj):
-#     """ returns dictionary with duplicate pixel arrays for all UV textures in object """
-#     scn, cm, _ = get_active_context_info()
-#     # get list of images to store
-#     if b280():
-#         # TODO: Reinstate this 2.79 functionality
-#         images = set()
-#     else:
-#         uv_tex_data = get_uv_layer_data(obj)
-#         images = set([uv_tex.image for uv_tex in uv_tex_data if uv_tex.image is not None]) if uv_tex_data else set()
-#     images.add(cm.uv_image)
-#     images |= get_all_first_img_tex_nodes(obj)
-#     # store images
-#     uv_images = {}
-#     for img in images:
-#         if verify_img(img) is None:
-#             continue
-#         uv_images[img.name] = (img.size[0],
-#                                img.size[1],
-#                                img.pixels[:]
-#                                # Accessing pixels directly is far too slow.
-#                                #Copied to new array for massive performance-gain.
-#                                )
-#     return uv_images
-
-
 def get_pixels(image):
     if image.name in bricker_pixel_cache:
         return bricker_pixel_cache[image.name]

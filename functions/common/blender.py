@@ -17,7 +17,6 @@
 
 # System imports
 import os
-import numpy as np
 from math import *
 
 # Blender imports
@@ -190,6 +189,14 @@ def deselect_all():
     """ deselects all objs in scene """
     selected_objects = bpy.context.selected_objects if hasattr(bpy.context, "selected_objects") else [obj for obj in bpy.context.view_layer.objects if obj.select_get()]
     deselect(selected_objects)
+
+
+@blender_version_wrapper("<=","2.79")
+def is_selected(obj):
+    return obj.select
+@blender_version_wrapper(">=","2.80")
+def is_selected(obj):
+    return obj.select_get()
 
 
 @blender_version_wrapper("<=","2.79")
