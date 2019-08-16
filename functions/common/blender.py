@@ -486,6 +486,14 @@ def smooth_mesh_faces(faces:iter):
 
 
 @blender_version_wrapper("<=","2.79")
+def active_render_engine():
+    return bpy.context.scene.render.engine
+@blender_version_wrapper(">=","2.80")
+def active_render_engine():
+    return bpy.context.engine
+
+
+@blender_version_wrapper("<=","2.79")
 def update_depsgraph():
     bpy.context.scene.update()
 @blender_version_wrapper(">=","2.80")
