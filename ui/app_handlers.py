@@ -96,11 +96,7 @@ def is_obj_visible(scn, cm, n):
 
 def find_3dview_space():
     # Find 3D_View window and its scren space
-    area = None
-    for a in bpy.data.window_managers[0].windows[0].screen.areas:
-        if a.type == "VIEW_3D":
-            area = a
-            break
+    area = next((a for a in bpy.data.window_managers[0].windows[0].screen.areas if a.type == "VIEW_3D"), None)
 
     if area:
         space = area.spaces[0]

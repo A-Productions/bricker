@@ -25,7 +25,6 @@ import numpy as np
 from mathutils import Vector, Matrix
 
 # Addon imports
-from .geometric_shapes import *
 from .generator_utils import *
 from ....functions import *
 
@@ -73,7 +72,7 @@ def make_inverted_slope(dimensions:dict, brick_size:list, brick_type:str, direct
     # make brick body cube
     coord1 = -d
     coord2 = vec_mult(d, [1, scalar.y, 1])
-    v1, v2, v3, v4, v5, v6, v7, v8 = make_cube(coord1, coord2, [0 if stud else 1, 1 if detail == "FLAT" else 0, 0, 0, 1, 1], bme=bme)
+    v1, v2, v3, v4, v5, v6, v7, v8 = make_cube(coord1, coord2, [0 if stud else 1, 1 if detail == "FLAT" else 0, 0, 0, 1, 1], bme=bme)[1]
     if adjusted_brick_size[0] > 1:
         # remove bottom verts on slope side
         bme.verts.remove(v6)
@@ -85,7 +84,7 @@ def make_inverted_slope(dimensions:dict, brick_size:list, brick_type:str, direct
     coord1 = vec_mult(d, [scalar.x, -1, 1])
     coord2 = vec_mult(d, [scalar.x, scalar.y, 1])
     coord1.z -= thick.z
-    v9, v10, v11, v12 = make_square(coord1, coord2, bme=bme)
+    v9, v10, v11, v12 = make_rectangle(coord1, coord2, bme=bme).verts
 
     # connect square to body cube
     bme.faces.new([v8, v11, v10, v3, v2])
@@ -104,9 +103,9 @@ def make_inverted_slope(dimensions:dict, brick_size:list, brick_type:str, direct
             # make upper square over slope
             coord1 = Vector((d.x, -d.y + thick.y / 2, -d.z * (0.5 if max(adjusted_brick_size[:2]) == 2 else 0.625)))
             coord2 = Vector((d.x * scalar.x - thick.x, d.y * scalar.y - thick.y / 2, d.z))
-            # v13, v14, v15, v16, v17, v18, v19, v20 = make_cube(coord1, coord2, [0, 0, 1, 0 if sum(adjusted_brick_size[:2]) == 5 else 1, 1, 1], flip_normals=True, bme=bme)
+            # v13, v14, v15, v16, v17, v18, v19, v20 = make_cube(coord1, coord2, [0, 0, 1, 0 if sum(adjusted_brick_size[:2]) == 5 else 1, 1, 1], flip_normals=True, bme=bme)[1]
             # TODO: replace the following line with line above to add support details later
-            v13, v14, v15, v16, v17, v18, v19, v20 = make_cube(coord1, coord2, [0, 0, 1, 1, 1, 1], flip_normals=True, bme=bme)
+            v13, v14, v15, v16, v17, v18, v19, v20 = make_cube(coord1, coord2, [0, 0, 1, 1, 1, 1], flip_normals=True, bme=bme)[1]
             v15.co.z += (d.z * 2 - thick.z) * (0.9 if max(adjusted_brick_size[:2]) == 3 else 0.8)
             v16.co.z = v15.co.z
             # make faces on edges of new square
@@ -126,7 +125,7 @@ def make_inverted_slope(dimensions:dict, brick_size:list, brick_type:str, direct
         coord1 = -d + Vector((thick.x, thick.y, 0))
         coord2 = Vector((d.x + (dimensions["tick_depth"] if detail == "HIGH" else 0), d.y * scalar.y, d.z * scalar.z)) - thick
         sides = [1 if detail == "LOW" else 0, 0, 0 if detail == "HIGH" else 1, 1, 1, 1]
-        v21, v22, v23, v24, v25, v26, v27, v28 = make_cube(coord1, coord2, sides, flip_normals=True, bme=bme)
+        v21, v22, v23, v24, v25, v26, v27, v28 = make_cube(coord1, coord2, sides, flip_normals=True, bme=bme)[1]
         # make faces on bottom edges of brick
         bme.faces.new((v1,  v21,  v24, v4))
         bme.faces.new((v1,  v2,  v22, v21))

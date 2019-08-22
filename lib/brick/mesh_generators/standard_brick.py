@@ -24,7 +24,6 @@ from mathutils import Vector, Matrix
 from bpy.types import Object
 
 # Addon imports
-from .geometric_shapes import *
 from .generator_utils import *
 from ....functions import *
 
@@ -65,7 +64,7 @@ def make_standard_brick(dimensions:dict, brick_size:list, type:str, brick_type:s
     # create cube
     coord1 = -d
     coord2 = vec_mult(d, scalar)
-    v1, v2, v3, v4, v5, v6, v7, v8 = make_cube(coord1, coord2, [0 if stud else 1, 1 if detail == "FLAT" else 0, 1, 1, 1, 1], seams=True, bme=bme)
+    v1, v2, v3, v4, v5, v6, v7, v8 = make_cube(coord1, coord2, [0 if stud else 1, 1 if detail == "FLAT" else 0, 1, 1, 1, 1], seams=True, bme=bme)[1]
 
     # add studs
     if stud: add_studs(dimensions, height, brick_size, brick_type, circle_verts, bme, edge_xp=[v7, v6], edge_xn=[v8, v5], edge_yp=[v7, v8], edge_yn=[v6, v5], hollow=brick_size[2] > 3 or "HOLES" in type)
@@ -77,7 +76,7 @@ def make_standard_brick(dimensions:dict, brick_size:list, type:str, brick_type:s
         coord1 = -d + Vector((thick.x, thick.y, 0))
         coord2 = vec_mult(d, scalar) - thick
         sides = [1 if detail == "LOW" else 0, 0] + ([0]*4 if draw_tick_marks else [1]*4)
-        v9, v10, v11, v12, v13, v14, v15, v16 = make_cube(coord1, coord2, sides, flip_normals=True, seams=True, bme=bme)
+        v9, v10, v11, v12, v13, v14, v15, v16 = make_cube(coord1, coord2, sides, flip_normals=True, seams=True, bme=bme)[1]
         # make tick marks inside 2 by x bricks
         if draw_tick_marks:
             bottom_verts = add_tick_marks(dimensions, brick_size, circle_verts, detail, d, thick, bme, nno=v1, npo=v2, ppo=v3, pno=v4, nni=v9, npi=v10, ppi=v11, pni=v12, nnt=v13, npt=v16, ppt=v15, pnt=v14)

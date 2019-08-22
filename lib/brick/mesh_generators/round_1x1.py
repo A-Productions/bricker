@@ -25,7 +25,6 @@ import numpy as np
 from mathutils import Vector
 
 # Addon imports
-from .geometric_shapes import *
 from .generator_utils import *
 from ....functions import *
 

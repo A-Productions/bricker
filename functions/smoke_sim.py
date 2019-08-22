@@ -26,10 +26,7 @@ from .general import *
 def get_smoke_info(smoke_obj):
     smoke_data = None
     # Search smoke domain target for smoke modifiers
-    for mod in smoke_obj.modifiers:
-        if hasattr(mod, "smoke_type") and mod.smoke_type == "DOMAIN":
-            smoke_data = mod.domain_settings
-            break
+    smoke_data = next((mod.domain_settings for mod in smoke_obj.modifiers if hasattr(mod, "smoke_type") and mod.smoke_type == "DOMAIN"), None)
 
     if smoke_data is not None:
         # get channel data

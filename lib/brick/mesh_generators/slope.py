@@ -25,7 +25,6 @@ import numpy as np
 from mathutils import Vector, Matrix
 
 # Addon imports
-from .geometric_shapes import *
 from .generator_utils import *
 from ....functions import *
 
@@ -74,11 +73,11 @@ def make_slope(dimensions:dict, brick_size:list, brick_type:str, direction:str=N
     if max(brick_size[:2]) == 1:
         coord1 = Vector((-d.x, -d.y, -d.z + dimensions["slit_height"]))
         coord2 = Vector((-d.x,  d.y,  d.z * (4 / 3) - d.z))
-        v1, v2, v7, v6 = make_square(coord1, coord2, face=True, flip_normal=True, bme=bme)
+        v1, v2, v7, v6 = make_rectangle(coord1, coord2, face=True, flip_normal=True, bme=bme).verts
     else:
         coord1 = -d
         coord2 = vec_mult(d, [1, scalar.y, 1])
-        v1, v2, d0, d1, v5, v6, v7, v8 = make_cube(coord1, coord2, [0 if stud else 1, 1 if detail == "FLAT" else 0, 0, 0, 1, 1], bme=bme)
+        v1, v2, d0, d1, v5, v6, v7, v8 = make_cube(coord1, coord2, [0 if stud else 1, 1 if detail == "FLAT" else 0, 0, 0, 1, 1], bme=bme)[1]
         # remove bottom verts on slope side
         bme.verts.remove(d0)
         bme.verts.remove(d1)
@@ -91,7 +90,7 @@ def make_slope(dimensions:dict, brick_size:list, brick_type:str, direction:str=N
     coord1 = Vector((d.x * scalar.x, -d.y, -d.z + (dimensions["slit_height"] if max(brick_size[:2]) == 1 else 0)))
     coord2 = vec_mult(d, [scalar.x, scalar.y, -1])
     coord2.z += thick.z
-    v9, v10, v11, v12 = make_square(coord1, coord2, bme=bme)
+    v9, v10, v11, v12 = make_rectangle(coord1, coord2, bme=bme).verts
 
     # connect square to body cube
     bme.faces.new([v7, v11, v10, v2] + ([v8] if max(brick_size[:2]) != 1 else []))
@@ -105,7 +104,7 @@ def make_slope(dimensions:dict, brick_size:list, brick_type:str, direction:str=N
         coord1.xy += Vector([dimensions["slit_depth"]]*2)
         coord2 = Vector((d.x * scalar.x, d.y * scalar.y, -d.z + dimensions["slit_height"]))
         coord2.xy -= Vector([dimensions["slit_depth"]]*2)
-        v13, v14, v15, v16, v17, v18, v19, v20 = make_cube(coord1, coord2, [0, 1 if detail == "FLAT" else 0, 1, 1, 1, 1], bme=bme)
+        v13, v14, v15, v16, v17, v18, v19, v20 = make_cube(coord1, coord2, [0, 1 if detail == "FLAT" else 0, 1, 1, 1, 1], bme=bme)[1]
         # connect slit to outer cube
         bme.faces.new((v18, v10, v9, v17))
         bme.faces.new((v19, v2, v10, v18))
@@ -119,7 +118,7 @@ def make_slope(dimensions:dict, brick_size:list, brick_type:str, direction:str=N
             coord2 = Vector(( d.x - thick.x,
                               d.y - thick.y,
                               -thick.z * 0.2))
-            v19, v20, v21, v22, v23, v24, v25, v26 = make_cube(coord1, coord2, [1, 0, 1, 1, 1, 1], flip_normals=True, bme=bme)
+            v19, v20, v21, v22, v23, v24, v25, v26 = make_cube(coord1, coord2, [1, 0, 1, 1, 1, 1], flip_normals=True, bme=bme)[1]
             # adjust z height of top verts at end of inner slope
             v24.co.z = -d.z + thick.z
             v25.co.z = -d.z + thick.z
@@ -139,7 +138,7 @@ def make_slope(dimensions:dict, brick_size:list, brick_type:str, direction:str=N
         coord2 = Vector(( d.x * scalar.x - thick.x,
                           d.y * scalar.y - thick.y,
                          -d.z + thick.z))
-        v13, v14, v15, v16 = make_square(coord1, coord2, flip_normal=True, bme=bme)
+        v13, v14, v15, v16 = make_rectangle(coord1, coord2, flip_normal=True, bme=bme).verts
         # add verts next to inside square at end of slope
         if adjusted_brick_size[0] in (3, 4):
             x = d.x * scalar.x + (thick.x * (adjusted_brick_size[0] - 3))
@@ -155,7 +154,7 @@ def make_slope(dimensions:dict, brick_size:list, brick_type:str, direction:str=N
         coord1.xy += thick.xy
         coord2 = vec_mult(d, [1, scalar.y, 1])
         coord2.yz -= thick.yz
-        v19, v20, v21, v22, v23, v24, v25, v26 = make_cube(coord1, coord2, [1 if detail not in ("MEDIUM", "HIGH") and not add_block_supports else 0, 0, 0, 1, 0, 0], flip_normals=True, bme=bme)
+        v19, v20, v21, v22, v23, v24, v25, v26 = make_cube(coord1, coord2, [1 if detail not in ("MEDIUM", "HIGH") and not add_block_supports else 0, 0, 0, 1, 0, 0], flip_normals=True, bme=bme)[1]
         # connect side faces from verts created above
         bme.faces.new((v18, v25, v21))
         bme.faces.new((v22, v24, v17))
@@ -173,7 +172,7 @@ def make_slope(dimensions:dict, brick_size:list, brick_type:str, direction:str=N
             # add longer support
             coord1 = Vector((d.x - thick.x, -d.y + thick.y, -d.z))
             coord2 = Vector((d.x,            d.y - thick.y,  d.z - thick.z))
-            v27, v28, d0, d1, v31, d2, d3, v34 = make_cube(coord1, coord2, [0, 0, 0, 1, 0, 0], bme=bme)
+            v27, v28, d0, d1, v31, d2, d3, v34 = make_cube(coord1, coord2, [0, 0, 0, 1, 0, 0], bme=bme)[1]
             # remove v32, v33, v29, v30 (same location as v24, v25, v21, v22)
             bme.verts.remove(d0)
             bme.verts.remove(d1)
@@ -182,7 +181,7 @@ def make_slope(dimensions:dict, brick_size:list, brick_type:str, direction:str=N
             # add short tick support
             coord1 = Vector((d.x,          -thick.y / 2, -d.z))
             coord2 = Vector((d.x + thick.x, thick.y / 2,  d.z - thick.z))
-            v35, v36, v37, v38, v39, v40, v41, v42 = make_cube(coord1, coord2, [0, 1, 1, 0, 1, 1], bme=bme)
+            v35, v36, v37, v38, v39, v40, v41, v42 = make_cube(coord1, coord2, [0, 1, 1, 0, 1, 1], bme=bme)[1]
             # connect the two supports
             bme.faces.new((v27, v28, v21, v36, v35, v22))
             bme.faces.new((v24, v22, v35, v39))

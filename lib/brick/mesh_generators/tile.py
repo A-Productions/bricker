@@ -25,7 +25,6 @@ import numpy as np
 from mathutils import Vector
 
 # Addon imports
-from .geometric_shapes import *
 from .generator_utils import *
 from ....functions import *
 
@@ -65,13 +64,13 @@ def make_tile(dimensions:dict, brick_type:str, brick_size:list, circle_verts:int
         coord1.z += dimensions["slit_height"]
         coord2 = d_scaled
         coord2.z = coord1.z
-        v1, v4, v3, v2 = make_square(coord1, coord2, face=False, bme=bme)
+        v1, v4, v3, v2 = make_rectangle(coord1, coord2, face=False, bme=bme).verts
     else:
         sides = [1, 1 if detail == "FLAT" else 0, 1, 1, 1, 1]
         coord1 = -d
         coord1.z += dimensions["slit_height"]
         coord2 = d_scaled
-        v1, v2, v3, v4, v5, v6, v7, v8 = make_cube(coord1, coord2, sides, bme=bme)
+        v1, v2, v3, v4, v5, v6, v7, v8 = make_cube(coord1, coord2, sides, bme=bme)[1]
 
     # make verts for slit
     slit_depth = Vector([dimensions["slit_depth"]]*2)
@@ -79,7 +78,7 @@ def make_tile(dimensions:dict, brick_type:str, brick_size:list, circle_verts:int
     coord1.xy += slit_depth
     coord2 = Vector((d_scaled.x, d_scaled.y, -d.z + dimensions["slit_height"]))
     coord2.xy -= slit_depth
-    v9, v10, v11, v12, v13, v14, v15, v16 = make_cube(coord1, coord2, [0, 1 if detail == "FLAT" and "GRILL" not in type else 0, 1, 1, 1, 1], bme=bme)
+    v9, v10, v11, v12, v13, v14, v15, v16 = make_cube(coord1, coord2, [0, 1 if detail == "FLAT" and "GRILL" not in type else 0, 1, 1, 1, 1], bme=bme)[1]
     # connect slit to outer cube
     bme.faces.new((v14, v4, v1, v13))
     bme.faces.new((v15, v3, v4, v14))
@@ -97,7 +96,7 @@ def make_tile(dimensions:dict, brick_type:str, brick_size:list, circle_verts:int
         # making verts for hollow portion
         coord1 = -d + Vector((thick.x, thick.y, 0))
         coord2 = vec_mult(d, scalar) - thick
-        v17, v18, v19, v20, v21, v22, v23, v24 = make_cube(coord1, coord2, [1, 0, 1, 1, 1, 1], flip_normals=True, bme=bme)
+        v17, v18, v19, v20, v21, v22, v23, v24 = make_cube(coord1, coord2, [1, 0, 1, 1, 1, 1], flip_normals=True, bme=bme)[1]
         # connect hollow portion to verts for slit
         bme.faces.new((v18, v17, v9, v10))
         bme.faces.new((v19, v18, v10, v11))

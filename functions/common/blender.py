@@ -468,13 +468,6 @@ def draw_bmesh(bm:bmesh, name:str="drawn_bmesh"):
     return obj
 
 
-def smooth_bm_faces(faces:iter):
-    """ set given bmesh faces to smooth """
-    faces = confirm_iter(faces)
-    for f in faces:
-        f.smooth = True
-
-
 def smooth_mesh_faces(faces:iter):
     """ set given Mesh faces to smooth """
     faces = confirm_iter(faces)
@@ -594,8 +587,28 @@ def get_annotations(cls):
     return cls.__annotations__
 
 
-def append_from(blendfile_path, attr, filename):
-    directory = os.path.join(blendfile_path, attr)
+def get_attr_folder(data_attr):
+    if data_attr == "brushes":
+        attr_folder = "Brush"
+    elif data_attr == "meshes":
+        attr_folder = "Mesh"
+    elif data_attr == "libraries":
+        attr_folder = "Library"
+    elif data_attr == "metaballs":
+        attr_folder = "MetaBall"
+    elif data_attr == "movieclips":
+        attr_folder = "MovieClip"
+    elif data_attr == "workspace":
+        attr_folder = "WorkSpace"
+    else:
+        attr_folder = data_attr.title().replace("_", "")[:-1]
+    assert hasattr(bpy.types, attr_folder)
+    return attr_folder
+
+
+def append_from(blendfile_path, data_attr, filename):
+    attr_folder = get_attr_folder(data_attr)
+    directory = os.path.join(blendfile_path, attr_folder)
     filepath = os.path.join(directory, filename)
     bpy.ops.wm.append(
         filepath=filepath,
@@ -603,29 +616,29 @@ def append_from(blendfile_path, attr, filename):
         directory=directory)
 
 
-def append_all_from(blendfile_path, attr, overwrite_data=False):
+def append_all_from(blendfile_path, data_attr, overwrite_data=False):
     data_block_infos = list()
     orig_data_names = lambda: None
     with bpy.data.libraries.load(blendfile_path) as (data_from, data_to):
-        setattr(data_to, attr, getattr(data_from, attr))
+        setattr(data_to, data_attr, getattr(data_from, data_attr))
         # store copies of loaded attributes to 'orig_data_names' object
         if overwrite_data:
-            attrib = getattr(data_from, attr)
+            attrib = getattr(data_from, data_attr)
             if len(attrib) > 0:
-                setattr(orig_data_names, attr, attrib.copy())
+                setattr(orig_data_names, data_attr, attrib.copy())
     # overwrite existing data with loaded data of the same name
     if overwrite_data:
         # get attributes to remap
-        source_attr = getattr(orig_data_names, attr)
-        target_attr = getattr(data_to, attr)
+        source_attr = getattr(orig_data_names, data_attr)
+        target_attr = getattr(data_to, data_attr)
         for i, data_name in enumerate(source_attr):
             # check that the data doesn't match
-            if not hasattr(target_attr[i], "name") or target_attr[i].name == data_name or not hasattr(bpy.data, attr): continue
+            if not hasattr(target_attr[i], "name") or target_attr[i].name == data_name or not hasattr(bpy.data, data_attr): continue
             # remap existing data to loaded data
-            data_attr = getattr(bpy.data, attr)
-            data_attr.get(data_name).user_remap(target_attr[i])
+            data_group = getattr(bpy.data, data_attr)
+            data_group.get(data_name).user_remap(target_attr[i])
             # remove remapped existing data
-            data_attr.remove(data_attr.get(data_name))
+            data_group.remove(data_group.get(data_name))
             # rename loaded data to original name
             target_attr[i].name = data_name
     return data_to

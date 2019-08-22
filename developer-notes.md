@@ -6,7 +6,7 @@
     * Add more brick types
     * Improve brick topology for 3D printing
     * Use shader-based bevel as opposed to geometry-based bevel
-    * improve intelligence of `get_first_img_tex_nodes` function
+    * improve intelligence of `get_first_img_from_nodes` function
         * choose prominent textures
         * ignore normal/bump textures
     * improve speed of `get_first_node` function

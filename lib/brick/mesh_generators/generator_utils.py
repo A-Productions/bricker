@@ -24,7 +24,6 @@ from mathutils import Vector, Matrix
 from bpy.types import Object
 
 # Addon imports
-from .geometric_shapes import *
 from .generator_utils import *
 from ....functions import *
 
@@ -78,13 +77,13 @@ def add_supports(dimensions, height, brick_size, brick_type, circle_verts, type,
                     # create support beam
                     cur_sides = sides if brick_size[0] > brick_size[1] else sides2
                     if min_s == 1:
-                        cube_verts = make_cube(Vector((x1, y3, z1)), Vector((x2, y2, z2)), sides=cur_sides, bme=bme)
+                        cube_verts = make_cube(Vector((x1, y3, z1)), Vector((x2, y2, z2)), sides=cur_sides, bme=bme)[1]
                         all_top_verts += cube_verts[4:]
                     else:
-                        cube_verts1 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=cur_sides, bme=bme)
+                        cube_verts1 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=cur_sides, bme=bme)[1]
                         all_top_verts += cube_verts1[4:]
                         if y_num <= 1:
-                            cube_verts2 = make_cube(Vector((x1, y3, z1)), Vector((x2, y4, z2)), sides=cur_sides, bme=bme)
+                            cube_verts2 = make_cube(Vector((x1, y3, z1)), Vector((x2, y4, z2)), sides=cur_sides, bme=bme)[1]
                             all_top_verts += cube_verts2[4:]
             if min_s % 2 == 0 and (brick_size[1] > brick_size[0] or min_s > 2):
                 if brick_size[1] == 3 or y_num % 2 == 1 or (brick_size == [1, 8, 3] and y_num in (0, brick_size[1] - 2)):
@@ -98,13 +97,13 @@ def add_supports(dimensions, height, brick_size, brick_type, circle_verts, type,
                     cur_sides = sides if brick_size[1] > brick_size[0] else sides2
                     # create support beam
                     if min_s == 1:
-                        cube_verts = make_cube(Vector((x3, y1, z1)), Vector((x2, y2, z2)), sides=cur_sides, bme=bme)
+                        cube_verts = make_cube(Vector((x3, y1, z1)), Vector((x2, y2, z2)), sides=cur_sides, bme=bme)[1]
                         all_top_verts += cube_verts[4:]
                     else:
-                        cube_verts1 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=cur_sides, bme=bme)
+                        cube_verts1 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=cur_sides, bme=bme)[1]
                         all_top_verts += cube_verts1[4:]
                         if x_num <= 1:
-                            cube_verts2 = make_cube(Vector((x3, y1, z1)), Vector((x4, y2, z2)), sides=cur_sides, bme=bme)
+                            cube_verts2 = make_cube(Vector((x3, y1, z1)), Vector((x4, y2, z2)), sides=cur_sides, bme=bme)[1]
                             all_top_verts += cube_verts2[4:]
     if type == "SLOPE":
         cut_verts(dimensions, height, brick_size, all_top_verts, d, scalar, thick, bme)
@@ -157,10 +156,10 @@ def add_oblong_supports(dimensions, height, circle_verts, type, detail, d, scala
     cube_y2 = round(d.y + support_width/2, 8)
     coord1 = Vector((r, cube_y1, d.z - thick.z - support_height))
     coord2 = Vector((d.x - thick.x + (dimensions["tick_depth"] if detail == "HIGH" else 0), cube_y2, d.z - thick.z))
-    make_cube(coord1, coord2, sides=[0,1,0,0,1,1], bme=bme)
+    make_cube(coord1, coord2, sides=[0,1,0,0,1,1], bme=bme)[1]
     coord1 = Vector((-d.x + thick.x, cube_y1, d.z - thick.z - support_height))
     coord2 = Vector((-r, cube_y2, d.z - thick.z))
-    make_cube(coord1, coord2, sides=[0,1,0,0,1,1], bme=bme)
+    make_cube(coord1, coord2, sides=[0,1,0,0,1,1], bme=bme)[1]
 
 
 
@@ -407,7 +406,7 @@ def add_tick_marks(dimensions, brick_size, circle_verts, detail, d, thick, bme, 
                 y1 = y_num * d.y * 2 - tick_width / 2
                 y2 = y_num * d.y * 2 + tick_width / 2
                 # CREATING SUPPORT BEAM
-                v1, v2, _, _, v5, v6, v7, v8 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=[0, 1, 1, 0, 1, 1], bme=bme)
+                v1, v2, _, _, v5, v6, v7, v8 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=[0, 1, 1, 0, 1, 1], bme=bme)[1]
                 join_verts["X-"] += [v1, v2]
                 bme.faces.new([v1, v5] + last_side_verts["X-"])
                 last_side_verts["X-"] = [v8, v2]
@@ -419,7 +418,7 @@ def add_tick_marks(dimensions, brick_size, circle_verts, detail, d, thick, bme, 
                 y1 = y_num * d.y * 2 - tick_width / 2
                 y2 = y_num * d.y * 2 + tick_width / 2
                 # CREATING SUPPORT BEAM
-                _, _, v3, v4, v5, v6, v7, v8 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=[0, 1, 0, 1, 1, 1], bme=bme)
+                _, _, v3, v4, v5, v6, v7, v8 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=[0, 1, 0, 1, 1, 1], bme=bme)[1]
                 join_verts["X+"] += [v4, v3]
                 bme.faces.new([v6, v4] + last_side_verts["X+"])
                 last_side_verts["X+"] = [v3, v7]
@@ -431,7 +430,7 @@ def add_tick_marks(dimensions, brick_size, circle_verts, detail, d, thick, bme, 
                 x1 = x_num * d.x * 2 - tick_width / 2
                 x2 = x_num * d.x * 2 + tick_width / 2
                 # CREATING SUPPORT BEAM
-                v1, _, _, v4, v5, v6, v7, v8 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=[0, 1, 1, 1, 1, 0], bme=bme)
+                v1, _, _, v4, v5, v6, v7, v8 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=[0, 1, 1, 1, 1, 0], bme=bme)[1]
                 join_verts["Y-"] += [v1, v4]
                 bme.faces.new([v5, v1] + last_side_verts["Y-"])
                 last_side_verts["Y-"] = [v4, v6]
@@ -443,7 +442,7 @@ def add_tick_marks(dimensions, brick_size, circle_verts, detail, d, thick, bme, 
                 y1 = y_num * d.y * 2 + d.y - thick.y - tick_depth
                 y2 = y_num * d.y * 2 + d.y - thick.y
                 # CREATING SUPPORT BEAM
-                _, v2, v3, _, v5, v6, v7, v8 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=[0, 1, 1, 1, 0, 1], bme=bme)
+                _, v2, v3, _, v5, v6, v7, v8 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=[0, 1, 1, 1, 0, 1], bme=bme)[1]
                 # select bottom connecting verts for exclusion from vertex group
                 join_verts["Y+"] += [v2, v3]
                 bme.faces.new([v2, v8] + last_side_verts["Y+"])
@@ -509,41 +508,41 @@ def add_grill_details(dimensions, brick_size, thick, scalar, d, v1, v2, v3, v4, 
     y2 =  dimensions["thickness"] / 2
     z1 = -d.z
     z2 = d.z - dimensions["thickness"]
-    mms = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), [0, 1, 1, 1, 1, 1], bme=bme)
+    mms = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), [0, 1, 1, 1, 1, 1], bme=bme)[1]
 
     z1 = d.z - dimensions["thickness"]
     z2 = d.z
     # upper middle x- grill
     x1 = -d.x
     x2 = -d.x + dimensions["thickness"]
-    nmg = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), [1, 0, 0, 1, 1, 1], bme=bme)
+    nmg = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), [1, 0, 0, 1, 1, 1], bme=bme)[1]
     # upper y- x- grill
     y3 = y1 - dimensions["thickness"] * 2
     y4 = y2 - dimensions["thickness"] * 2
-    nng = make_cube(Vector((x1, y3, z1)), Vector((x2, y4, z2)), [1, 0, 0, 1, 1, 1], bme=bme)
+    nng = make_cube(Vector((x1, y3, z1)), Vector((x2, y4, z2)), [1, 0, 0, 1, 1, 1], bme=bme)[1]
     bme.verts.remove(nng[3])
     nng[3] = None
     # upper y+ x- grill
     y3 = y1 + dimensions["thickness"] * 2
     y4 = y2 + dimensions["thickness"] * 2
-    npg = make_cube(Vector((x1, y3, z1)), Vector((x2, y4, z2)), [1, 0, 0, 1, 1, 1], bme=bme)
+    npg = make_cube(Vector((x1, y3, z1)), Vector((x2, y4, z2)), [1, 0, 0, 1, 1, 1], bme=bme)[1]
     bme.verts.remove(npg[2])
     npg[2] = None
 
     # upper middle x+ grill
     x1 = d.x * 3 - dimensions["thickness"]
     x2 = d.x * 3
-    pmg = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), [1, 0, 1, 0, 1, 1], bme=bme)
+    pmg = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), [1, 0, 1, 0, 1, 1], bme=bme)[1]
     # upper y- x+ grill
     y3 = y1 - dimensions["thickness"] * 2
     y4 = y2 - dimensions["thickness"] * 2
-    png = make_cube(Vector((x1, y3, z1)), Vector((x2, y4, z2)), [1, 0, 1, 0, 1, 1], bme=bme)
+    png = make_cube(Vector((x1, y3, z1)), Vector((x2, y4, z2)), [1, 0, 1, 0, 1, 1], bme=bme)[1]
     bme.verts.remove(png[0])
     png[0] = None
     # upper y+ x+ grill
     y3 = y1 + dimensions["thickness"] * 2
     y4 = y2 + dimensions["thickness"] * 2
-    ppg = make_cube(Vector((x1, y3, z1)), Vector((x2, y4, z2)), [1, 0, 1, 0, 1, 1], bme=bme)
+    ppg = make_cube(Vector((x1, y3, z1)), Vector((x2, y4, z2)), [1, 0, 1, 0, 1, 1], bme=bme)[1]
     bme.verts.remove(ppg[1])
     ppg[1] = None
 
@@ -570,7 +569,7 @@ def add_grill_details(dimensions, brick_size, thick, scalar, d, v1, v2, v3, v4, 
     coord1 = -d + Vector((thick.x, thick.y, 0))
     coord2 = vec_mult(d, scalar) - thick
     coord2.z = -d.z
-    v17, v18, v19, v20 = make_square(coord1, coord2, face=False, bme=bme)
+    v17, v18, v19, v20 = make_rectangle(coord1, coord2, face=False, bme=bme).verts
     # connect inner base to outer base
     bme.faces.new((v17, v9, v10, v20))
     bme.faces.new((v20, v10, v11, v19))

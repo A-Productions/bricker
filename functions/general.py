@@ -472,7 +472,7 @@ def update_can_run(typ):
             return common_needs_update or (cm.collection is not None and len(cm.collection.objects) == 0) or (cm.material_type != "CUSTOM" and (cm.material_type != "RANDOM" or cm.split_model or cm.last_material_type != cm.material_type or cm.material_is_dirty) and cm.material_is_dirty) or cm.has_custom_obj1 or cm.has_custom_obj2 or cm.has_custom_obj3
 
 def select_source_model(self, context):
-    """ if scn.cmlist_index changes, select and make source or Brick Model active """
+    """ if scn.cmlist_index changes, select and make source or brick model active """
     scn = bpy.context.scene
     obj = bpy.context.view_layer.objects.active if b280() else scn.objects.active
     # don't select source model if this property was set to True by timer

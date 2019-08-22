@@ -21,7 +21,7 @@ import bpy
 # Blender imports
 from mathutils import Vector, Euler, Matrix
 
-# Addon imports
+# Module imports
 from .common import *
 from .general import *
 from .logo_obj import *

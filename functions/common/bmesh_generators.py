@@ -15,23 +15,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# System imports
+import math
+
+# Blender imports
 import bpy
 import bmesh
-import math
 from mathutils import Vector
-from ....functions import *
+
+# Module imports
+from .blender import select_geom
+from .bmesh_utils import smooth_bm_faces
 
 
-def make_square(coord1:Vector, coord2:Vector, face:bool=True, flip_normal:bool=False, bme:bmesh=None):
+def make_rectangle(coord1:Vector, coord2:Vector, face:bool=True, flip_normal:bool=False, bme:bmesh=None):
     """
-    create a square with bmesh
+    create a rectangle with bmesh
 
     Keyword Arguments:
-        coord1     -- back/left/bottom corner of the square (furthest negative in all three axes)
-        coord2     -- front/right/top  corner of the square (furthest positive in all three axes)
-        face       -- draw face connecting cube verts
+        coord1      -- back/left/bottom corner of the square (furthest negative in all three axes)
+        coord2      -- front/right/top  corner of the square (furthest positive in all three axes)
+        face        -- draw face connecting cube verts
         flip_normal -- flip the normals of the cube
-        bme        -- bmesh object in which to create verts
+        bme         -- bmesh object in which to create verts
     NOTE: if coord1 and coord2 are different on all three axes, z axis will stay consistent at coord1.z
 
     Returns:
@@ -56,7 +62,27 @@ def make_square(coord1:Vector, coord2:Vector, face:bool=True, flip_normal:bool=F
     if face:
         bme.faces.new(v_list[::-1] if flip_normal else v_list)
 
-    return v_list
+    return bme
+
+
+def make_square(size:float, location:Vector=Vector((0, 0, 0)), face:bool=True, flip_normal:bool=False, bme:bmesh=None):
+    """
+    create a square with bmesh
+
+    Keyword Arguments:
+        size        -- distance of any given edge on square
+        location    -- centerpoint of square
+        face        -- draw face connecting cube verts
+        flip_normal -- flip the normals of the cube
+        bme         -- bmesh object in which to create verts
+
+    Returns:
+        v_list      -- list of vertices with normal facing in positive direction (right hand rule)
+
+    """
+    coord1 = location - Vector((size / 2, size / 2, 0))
+    coord2 = location + Vector((size / 2, size / 2, 0))
+    return make_rectangle(coord1, coord2, face, flip_normal, bme)
 
 
 def make_cube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flip_normals:bool=False, seams:bool=False, bme:bmesh=None):
@@ -111,10 +137,10 @@ def make_cube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flip_normals:b
         #     for e in new_f.edges:
         #         e.seam = True
 
-    return [v1, v3, v7, v5, v2, v6, v8, v4]
+    return bme, [v1, v3, v7, v5, v2, v6, v8, v4]
 
 
-def make_circle(r:float, N:int, co:Vector=Vector((0,0,0)), face:bool=True, flip_normals:bool=False, bme:bmesh=None):
+def make_circle(r:float, N:int, co:tuple=Vector((0, 0, 0)), face:bool=True, flip_normals:bool=False, bme:bmesh=None):
     """
     create a circle with bmesh
 
@@ -133,7 +159,7 @@ def make_circle(r:float, N:int, co:Vector=Vector((0,0,0)), face:bool=True, flip_
 
     # create verts around circumference of circle
     for i in range(N):
-        circ_val = ((2 * math.pi) / N) * i
+        circ_val = ((2 * math.pi) / N) * (i - 0.5)
         x = r * math.cos(circ_val)
         y = r * math.sin(circ_val)
         coord = co + Vector((x, y, 0))
@@ -141,8 +167,12 @@ def make_circle(r:float, N:int, co:Vector=Vector((0,0,0)), face:bool=True, flip_
     # create face
     if face:
         bme.faces.new(verts if not flip_normals else verts[::-1])
+    # create edges
+    else:
+        for i in range(len(verts)):
+            bme.edges.new((verts[i - 1], verts[i]))
 
-    return verts
+    return bme
 
 
 def make_cylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), bot_face:bool=True, top_face:bool=True, flip_normals:bool=False, seams:bool=True, bme:bmesh=None):
