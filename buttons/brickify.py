@@ -34,7 +34,7 @@ from .delete_model import BRICKER_OT_delete_model
 from .bevel import BRICKER_OT_bevel
 from .cache import *
 from ..lib.bricksdict import *
-from ..lib.background_processing.classes.job_manager import JobManager
+from ..subtrees.background_processing.classes.job_manager import JobManager
 from ..functions import *
 from ..functions.brickify_utils import *
 

@@ -1,6 +1,0 @@
-[submodule "lib/background-processing"]
-	path = lib/background_processing
-	url = https://github.com/bblanimation/background-processing/
-[submodule "lib/addon_common"]
-	path = lib/addon_common
-	url = https://github.com/CGCookie/addon_common
