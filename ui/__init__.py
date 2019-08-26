@@ -238,10 +238,8 @@ class VIEW3D_PT_bricker_brick_models(Panel):
 
         if bpy.data.texts.find("Bricker log") >= 0:
             split = layout_split(layout, factor=0.9)
-            col = split.column(align=True)
-            col.operator("bricker.report_error", text="Report Error", icon="URL")
-            col = split.column(align=True)
-            col.operator("bricker.close_report_error", text="", icon="PANEL_CLOSE")
+            split.operator("bricker.report_error", text="Report Error", icon="URL")
+            split.operator("bricker.close_report_error", text="", icon="PANEL_CLOSE")
 
 
 class VIEW3D_PT_bricker_animation(Panel):
