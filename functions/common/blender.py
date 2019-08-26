@@ -587,39 +587,18 @@ def get_annotations(cls):
     return cls.__annotations__
 
 
-def get_attr_folder(data_attr):
-    if data_attr == "brushes":
-        attr_folder = "Brush"
-    elif data_attr == "meshes":
-        attr_folder = "Mesh"
-    elif data_attr == "libraries":
-        attr_folder = "Library"
-    elif data_attr == "metaballs":
-        attr_folder = "MetaBall"
-    elif data_attr == "movieclips":
-        attr_folder = "MovieClip"
-    elif data_attr == "workspace":
-        attr_folder = "WorkSpace"
-    else:
-        attr_folder = data_attr.title().replace("_", "")[:-1]
-    assert hasattr(bpy.types, attr_folder)
-    return attr_folder
-
-
-def append_from(blendfile_path, data_attr, filename):
-    attr_folder = get_attr_folder(data_attr)
-    directory = os.path.join(blendfile_path, attr_folder)
-    filepath = os.path.join(directory, filename)
-    bpy.ops.wm.append(
-        filepath=filepath,
-        filename=filename,
-        directory=directory)
-
-
-def append_all_from(blendfile_path, data_attr, overwrite_data=False):
+def append_from(blendfile_path, data_attr, filenames=None, overwrite_data=False):
     data_block_infos = list()
     orig_data_names = lambda: None
     with bpy.data.libraries.load(blendfile_path) as (data_from, data_to):
+        # if only appending some of the filenames
+        if filenames is not None:
+            # rebuild 'data_attr' of data_from based on filenames in 'filenames' list
+            filenames = confirm_list(filenames)
+            data_group = getattr(data_from, data_attr)
+            new_data_group = [data_name for data_name in data_group if data_name in filenames]
+            setattr(data_from, data_attr, new_data_group)
+        # append data from library ('data_from') to 'data_to'
         setattr(data_to, data_attr, getattr(data_from, data_attr))
         # store copies of loaded attributes to 'orig_data_names' object
         if overwrite_data:
@@ -641,4 +620,4 @@ def append_all_from(blendfile_path, data_attr, overwrite_data=False):
             data_group.remove(data_group.get(data_name))
             # rename loaded data to original name
             target_attr[i].name = data_name
-    return data_to
+    return getattr(data_to, data_attr)
