@@ -743,10 +743,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if source is None:
                 self.report({"WARNING"}, "'%(source_name)s' could not be found" % locals())
                 return False
-            # ensure object data is mesh
-            if source.type != "MESH":
-                self.report({"WARNING"}, "Only 'MESH' objects can be Brickified. Please select another object (or press 'ALT-C to convert object to mesh).")
-                return False
             # verify source is not a rigid body
             if source.rigid_body is not None and source.rigid_body.type == "ACTIVE":
                 self.report({"WARNING"}, "First bake rigid body transformations to keyframes (SPACEBAR > Bake To Keyframes).")
@@ -774,9 +770,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 return False
             elif cm.logo_object.name.startswith("Bricker_%(source_name)s" % locals()):
                 self.report({"WARNING"}, "Bricker object cannot be used as its own logo.")
-                return False
-            elif cm.logo_object.type != "MESH":
-                self.report({"WARNING"}, "Custom logo object is not of type 'MESH'. Please select another object (or press 'ALT-C to convert object to mesh).")
                 return False
 
         return True

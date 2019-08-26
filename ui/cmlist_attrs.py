@@ -38,9 +38,11 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     # NAME OF SOURCE
     source_obj = PointerProperty(
         type=bpy.types.Object,
+        poll=lambda self, object: object.type == "MESH",
         name="Source Object",
         description="Name of the source object to Brickify",
-        update=set_default_obj_if_empty)
+        update=set_default_obj_if_empty,
+    )
 
     # TRANSFORMATION SETTINGS
     model_loc = StringProperty(default="-1,-1,-1")
@@ -268,19 +270,22 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default=True)
     custom_object1 = PointerProperty(
         type=bpy.types.Object,
+        poll=lambda self, object: object.type == "MESH" and object != self.source_obj and not object.name.startswith("Bricker_{}".format(self.source_obj.name)),
         name="Custom Object Name 1",
         description="Custom object to use as brick type",
-        update=verify_custom_object1)
+    )
     custom_object2 = PointerProperty(
         type=bpy.types.Object,
+        poll=lambda self, object: object.type == "MESH" and object != self.source_obj and not object.name.startswith("Bricker_{}".format(self.source_obj.name)),
         name="Custom Object Name 2",
         description="Custom object to use as brick type",
-        update=verify_custom_object2)
+    )
     custom_object3 = PointerProperty(
         type=bpy.types.Object,
+        poll=lambda self, object: object.type == "MESH" and object != self.source_obj and not object.name.startswith("Bricker_{}".format(self.source_obj.name)),
         name="Custom Object Name 3",
         description="Custom object to use as brick type",
-        update=verify_custom_object3)
+    )
     dist_offset = FloatVectorProperty(
         name="Offset Distance",
         description="Offset distance between custom bricks (1.0 = side-by-side)",
@@ -464,6 +469,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default=7.25)
     logo_object = PointerProperty(
         type=bpy.types.Object,
+        poll=lambda self, object: object.type == "MESH" and object != self.source_obj and not object.name.startswith("Bricker_{}".format(self.source_obj.name)),
         name="Logo Object",
         description="Select a custom logo object to use on top of each stud",
         update=dirty_bricks)

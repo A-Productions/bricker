@@ -59,20 +59,6 @@ def set_default_obj_if_empty(self, context):
                 scn.cmlist_index = i
 
 
-def verify_custom_object1(self, context):
-    scn, cm, n = get_active_context_info()
-    if cm.custom_object1 and cm.custom_object1.name.startswith("Bricker_%(n)s" % locals()):
-        cm.custom_object1 = None
-def verify_custom_object2(self, context):
-    scn, cm, n = get_active_context_info()
-    if cm.custom_object2 and cm.custom_object2.name.startswith("Bricker_%(n)s" % locals()):
-        cm.custom_object2 = None
-def verify_custom_object3(self, context):
-    scn, cm, n = get_active_context_info()
-    if cm.custom_object3 and cm.custom_object3.name.startswith("Bricker_%(n)s" % locals()):
-        cm.custom_object3 = None
-
-
 def update_bevel(self, context):
     # get bricks to bevel
     try:
