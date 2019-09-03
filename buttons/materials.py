@@ -27,7 +27,7 @@ import bpy
 from mathutils import Matrix, Vector, Euler
 props = bpy.props
 
-# Addon imports
+# Module imports
 from ..functions import *
 
 

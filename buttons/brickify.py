@@ -28,12 +28,11 @@ import bpy
 from mathutils import Matrix, Vector, Euler
 from bpy.props import *
 
-# Addon imports
-from .customize.undo_stack import *
+# Module imports
 from .delete_model import BRICKER_OT_delete_model
 from .bevel import BRICKER_OT_bevel
 from .cache import *
-from ..lib.bricksdict import *
+from ..lib.undo_stack import *
 from ..subtrees.background_processing.classes.job_manager import JobManager
 from ..functions import *
 from ..functions.brickify_utils import *
@@ -59,6 +58,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         return True
 
     def modal(self, context, event):
+        print(event.type, event.value)
         if event.type == "TIMER":
             try:
                 scn, cm, n = get_active_context_info(cm=self.cm)

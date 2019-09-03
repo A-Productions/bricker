@@ -27,12 +27,10 @@ from bpy_extras.view3d_utils import location_3d_to_region_2d, region_2d_to_locat
 from bpy.types import Operator, SpaceView3D
 from bpy.props import *
 
-# Addon imports
+# Module imports
 from .bricksculpt_tools import *
 from .draw_adjacent import *
-from ..functions import *
 from ...brickify import *
-from ....lib.brick import *
 from ....functions import *
 
 

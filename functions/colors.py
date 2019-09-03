@@ -20,7 +20,7 @@ import bpy
 import numpy as np
 import colorsys
 
-# Addon imports
+# Module imports
 from .general import *
 
 

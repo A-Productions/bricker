@@ -15,6 +15,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# from .populate_mat_obj import *
+# from .bake import *
+# from .customize import *
+# from .bevel import *
+# from .brickify import *
+# from .brickify_in_background import *
+# from .cache import *
+# from .cmlist_actions import *
+# from .delete_model import *
+# from .export_ldraw import *
+# from .materials import *
+# from .matlist_actions import *
+# from .redraw_custom_bricks import *
+# from .revert_settings import *
+# from .test_brick_generators import *
+
 __all__ = [
     "populate_mat_obj",
     "bake",
@@ -23,9 +39,12 @@ __all__ = [
     "brickify",
     "brickify_in_background",
     "cache",
+    "cmlist_actions",
     "delete_model",
     "export_ldraw",
     "materials",
+    "matlist_actions",
     "redraw_custom_bricks",
-    "revert_settings"
+    "revert_settings",
+    "test_brick_generators",
 ]

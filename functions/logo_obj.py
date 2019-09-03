@@ -18,10 +18,9 @@
 # System imports
 from os.path import dirname, abspath
 
-# Addon imports
+# Module imports
 from .common import *
 from .general import *
-from .make_bricks_utils import *
 
 def remove_doubles(obj):
     select(obj, active=True, only=True)
@@ -42,7 +41,7 @@ def get_lego_logo(scn, typ, res, decimate, dimensions):
         ref_logo = bpy.data.objects.get(ref_logo_name)
         if ref_logo is None:
             # get logo text reference with current settings
-            logo_txt_ref = get_lego_logoTxtObj(scn, res, "Bricker_LEGO_Logo_Text")
+            logo_txt_ref = get_lego_logo_txt_obj(scn, res, "Bricker_LEGO_Logo_Text")
             # convert logo_txt_ref to mesh
             ref_logo = logo_txt_ref.copy()
             ref_logo.data = logo_txt_ref.data.copy()
@@ -71,7 +70,7 @@ def get_lego_stud_font():
         lego_stud_font = bpy.data.fonts.load(font_path)
     return lego_stud_font
 
-def get_lego_logoTxtObj(scn, res, name):
+def get_lego_logo_txt_obj(scn, res, name):
     # get logo_txt_ref from Bricker_storage scene
     logo_txt = bpy.data.objects.get(name)
     if logo_txt is None:
@@ -107,3 +106,35 @@ def get_logo(scn, cm, dimensions):
         # apply transformation to duplicate of logo object and normalize size/position
         ref_logo = prepare_logo_and_get_details(scn, ref_logo, typ, cm.logo_scale / 100, dimensions)
     return ref_logo
+
+
+def prepare_logo_and_get_details(scn, logo, detail, scale, dimensions):
+    """ duplicate and normalize custom logo object; return logo and bounds(logo) """
+    if logo is None:
+        return None, logo
+    # get logo details
+    orig_logo_details = bounds(logo)
+    # duplicate logo object
+    logo = duplicate(logo, link_to_scene=True)
+    if detail != "LEGO":
+        # disable modifiers for logo object
+        for mod in logo.modifiers:
+            mod.show_viewport = False
+        # apply logo object transformation
+        logo.parent = None
+        apply_transform(logo)
+    safe_unlink(logo)
+    m = logo.data
+    # set bevel weight for logo
+    m.use_customdata_edge_bevel = True
+    for e in m.edges:
+        e.bevel_weight = 0.0
+    # create transform and scale matrices
+    t_mat = Matrix.Translation(-orig_logo_details.mid)
+    dist_max = max(logo.dimensions.xy)
+    lw = dimensions["logo_width"] * (0.78 if detail == "LEGO" else scale)
+    s_mat = Matrix.Scale(lw / dist_max, 4)
+    # run transformations on logo mesh
+    m.transform(t_mat)
+    m.transform(s_mat)
+    return logo

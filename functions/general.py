@@ -28,7 +28,7 @@ import addon_utils
 from mathutils import Vector, Euler, Matrix
 from bpy.types import Object
 
-# Addon imports
+# Module imports
 from .common import *
 
 

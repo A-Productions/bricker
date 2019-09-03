@@ -40,15 +40,15 @@ from bpy.props import *
 from bpy.types import WindowManager, Object, Scene, Material
 from bpy.utils import register_class, unregister_class
 
-# Addon imports
+# Module imports
 from .ui import *
 from .functions.general import *
+from .functions.brick.legal_brick_sizes import get_legal_brick_sizes
+from .functions.timers import *
 from .buttons import *
 from .buttons.customize import *
 from .lib import keymaps, preferences, classes_to_register
-from .lib.brick.legal_brick_sizes import get_legal_brick_sizes
-from .ui.timers import *
-from .ui.cmlist_attrs import CreatedModelProperties
+from .lib.property_groups import *
 from . import addon_updater_ops
 
 # store keymaps here to access after registration

@@ -19,7 +19,7 @@
         * this would be implemented in the `handle_animation` function
     * apply modifier to bricker model group instead of each object (requires Blender 2.81)
     * switch `use_blend_file` to `False` for backproc calls (saves memory and time)
-        * Use `cmlist_to_dict.py` code to convert cmlist item to dictionaries
+        * Use `dump_cm_props()` and `load_cm_props()` code to convert cmlist item to and from dictionaries
         * Figure out a way to maintain physics cache, parented matrix_world info, etc. for objects appended to background blender instance
     * Switch `calculation_axes` property to expanded bools in user interface
     * Fix material panel subpanels for blender 2.79?

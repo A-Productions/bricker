@@ -28,15 +28,15 @@ import numpy as np
 import bpy
 from mathutils import Vector, Matrix
 
-# Addon imports
-from .hash_object import hash_object
-from ..lib.brick import Bricks
-from ..lib.bricksdict import *
+# Module imports
+from .brick.bricks import Bricks
+from .bricksdict import *
 from .common import *
 from .general import bounds
-from ..lib.caches import bricker_mesh_cache
 from .make_bricks_utils import *
+from .hash_object import hash_object
 from .mat_utils import *
+from ..lib.caches import bricker_mesh_cache
 
 
 @timed_call("Time Elapsed")

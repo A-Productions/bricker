@@ -22,7 +22,7 @@ from os.path import join, dirname, abspath
 import bpy
 from bpy.types import Operator
 
-# Addon imports
+# Module imports
 from .job_manager import *
 
 demo_scripts_path = join(dirname(dirname(abspath(__file__))), "demo_scripts")

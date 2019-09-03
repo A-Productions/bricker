@@ -29,13 +29,13 @@ import numpy as np
 import bpy
 from mathutils import Vector, Matrix
 
-# Addon imports
-from .hash_object import hash_object
-from ..lib.brick import Bricks
-from ..lib.bricksdict import *
+# Module imports
+from .brick.bricks import Bricks
+from .bricksdict import *
 from .common import *
-from .mat_utils import *
 from .general import *
+from .hash_object import hash_object
+from .mat_utils import *
 from ..lib.caches import bricker_mesh_cache
 
 
@@ -219,38 +219,6 @@ def get_random_rot_matrix(random_rot, rand, brick_size):
     z_mat = Matrix.Rotation(z, 4, "Z")
     combined_mat = mathutils_mult(x_mat, y_mat, z_mat)
     return combined_mat
-
-
-def prepare_logo_and_get_details(scn, logo, detail, scale, dimensions):
-    """ duplicate and normalize custom logo object; return logo and bounds(logo) """
-    if logo is None:
-        return None, logo
-    # get logo details
-    orig_logo_details = bounds(logo)
-    # duplicate logo object
-    logo = duplicate(logo, link_to_scene=True)
-    if detail != "LEGO":
-        # disable modifiers for logo object
-        for mod in logo.modifiers:
-            mod.show_viewport = False
-        # apply logo object transformation
-        logo.parent = None
-        apply_transform(logo)
-    safe_unlink(logo)
-    m = logo.data
-    # set bevel weight for logo
-    m.use_customdata_edge_bevel = True
-    for e in m.edges:
-        e.bevel_weight = 0.0
-    # create transform and scale matrices
-    t_mat = Matrix.Translation(-orig_logo_details.mid)
-    dist_max = max(logo.dimensions.xy)
-    lw = dimensions["logo_width"] * (0.78 if detail == "LEGO" else scale)
-    s_mat = Matrix.Scale(lw / dist_max, 4)
-    # run transformations on logo mesh
-    m.transform(t_mat)
-    m.transform(s_mat)
-    return logo
 
 
 def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, logo_scale, logo_inset, use_stud):

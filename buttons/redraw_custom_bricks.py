@@ -22,9 +22,8 @@ import time
 import bpy
 from bpy.props import StringProperty
 
-# Addon imports
+# Module imports
 from ..functions import *
-from ..buttons.customize.functions import *
 
 
 class BRICKER_OT_redraw_custom_bricks(bpy.types.Operator):

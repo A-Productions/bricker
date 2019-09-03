@@ -27,8 +27,9 @@ from bpy.types import Object
 from mathutils import Matrix, Vector
 props = bpy.props
 
-# Addon imports
+# Module imports
 from ..functions import *
+from ..functions.make_bricks import *
 
 
 class BRICKER_OT_bevel(bpy.types.Operator):

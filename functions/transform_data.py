@@ -22,7 +22,7 @@
 import bpy
 from mathutils import Vector, Euler
 
-# Addon imports
+# Module imports
 from .common import confirm_iter
 from .general import *
 

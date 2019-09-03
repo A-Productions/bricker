@@ -23,5 +23,4 @@ from .merge_bricks import *
 from .redraw_bricks import *
 from .set_exposure import *
 from .split_bricks import *
-from .select.by_size import *
-from .select.by_type import *
+from .select import *

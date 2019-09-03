@@ -15,6 +15,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .delete_object import *
-from .duplicate_object import *
-from .move_to_layer import *
+from .overrides import *

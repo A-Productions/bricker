@@ -22,12 +22,12 @@
 import bpy
 from bpy.types import Operator
 
-# Addon imports
-from .undo_stack import *
-from ...ui.app_handlers import bricker_running_blocking_op
-from ...ui.timers import *
+# Module imports
+from ..cmlist_actions import *
+from ...lib.undo_stack import UndoStack, python_undo_state
 from ...functions import *
-from ...ui.cmlist_actions import *
+from ...functions.app_handlers import bricker_running_blocking_op
+from ...functions.timers import *
 
 
 # BLENDER 2.80 USES A TIMER INSTEAD

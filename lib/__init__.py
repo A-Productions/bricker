@@ -16,8 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from .caches import *
-from .preferences import *
-from .report_error import *
-from .bricksdict import *
-from .keymaps import *
+__all__ = [
+    "property_groups",
+    "keymaps",
+    "preferences",
+    "report_error",
+]

@@ -18,7 +18,7 @@
 # System imports
 import time
 
-# Addon imports
+# Module imports
 from .common import *
 from .general import *
 

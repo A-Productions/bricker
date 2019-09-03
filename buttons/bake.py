@@ -22,10 +22,10 @@ import os
 # Blender imports
 import bpy
 
-# Addon imports
+# Module imports
 from ..functions import *
-from ..ui.cmlist_actions import *
-from ..ui.app_handlers import handle_animation
+from ..functions.app_handlers import handle_animation
+from .cmlist_actions import *
 
 
 class BRICKER_OT_bake_model(bpy.types.Operator):

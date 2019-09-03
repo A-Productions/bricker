@@ -18,7 +18,7 @@
 # System imports
 # NONE!
 
-# Addon imports
+# Module imports
 from .common import *
 from .general import *
 

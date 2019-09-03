@@ -22,13 +22,10 @@ import marshal
 import bpy
 from bpy.types import Operator
 
-# Addon imports
-from ..undo_stack import *
-from ..functions import *
+# Module imports
 from ...brickify import *
 from ...brickify import *
-from ....lib.bricksdict.functions import get_dict_key
-from ....lib.brick.legal_brick_sizes import *
+from ....lib.undo_stack import *
 from ....functions import *
 
 

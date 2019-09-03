@@ -24,9 +24,9 @@ import bpy
 import addon_utils
 from bpy.props import StringProperty
 
-# Addon imports
+# Module imports
 from .. import bl_info
-from ..functions import *
+from ..functions.common import *
 
 # define addon name (must match name in bl_info)
 addon_name = bl_info["name"]

@@ -146,16 +146,24 @@ def select_all():
     select(bpy.context.scene.objects)
 
 
-def select_geom(geom, only:bool=False):
+def select_geom(geom):
     """ selects verts/edges/faces in list and deselects the rest """
     # confirm vertList is a list of vertices
     geom = confirm_list(geom)
-    # deselect all if selection is exclusive
-    if only: deselect_all()
     # select vertices in list
     for v in geom:
         if v is not None and not v.select:
             v.select = True
+
+
+def deselect_geom(geom):
+    """ deselects verts/edges/faces in list """
+    # confirm vertList is a list of vertices
+    geom = confirm_list(geom)
+    # select vertices in list
+    for v in geom:
+        if v is not None and v.select:
+            v.select = False
 
 
 @blender_version_wrapper("<=","2.79")
@@ -585,6 +593,13 @@ def get_annotations(cls):
 @blender_version_wrapper(">=","2.80")
 def get_annotations(cls):
     return cls.__annotations__
+
+
+@blender_version_wrapper(">=","2.80")
+def get_tool_list(space_type, context_mode):
+    from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+    cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
+    return cls._tools[context_mode]
 
 
 def append_from(blendfile_path, data_attr, filenames=None, overwrite_data=False):

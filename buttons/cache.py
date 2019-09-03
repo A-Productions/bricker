@@ -23,9 +23,9 @@ import os
 import bpy
 props = bpy.props
 
-# Addon imports
-from .customize.undo_stack import *
+# Module imports
 from ..lib.caches import *
+from ..lib.undo_stack import *
 from ..functions import *
 from ..functions.brickify_utils import *
 

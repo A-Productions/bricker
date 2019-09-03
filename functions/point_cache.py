@@ -22,7 +22,7 @@ import re
 # Blender imports
 import bpy
 
-# Addon imports
+# Module imports
 from .common import *
 from .general import *
 

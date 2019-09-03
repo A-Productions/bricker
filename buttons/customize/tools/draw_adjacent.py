@@ -23,14 +23,11 @@ import bpy
 from bpy.types import Operator
 from bpy.props import *
 
-# Addon imports
+# Module imports
 from .merge_bricks import *
-from ..undo_stack import *
-from ..functions import *
 from ...brickify import *
 from ...brickify import *
-from ....lib.bricksdict.functions import get_dict_key
-from ....lib.brick.legal_brick_sizes import *
+from ....lib.undo_stack import *
 from ....functions import *
 
 
@@ -252,7 +249,7 @@ class BRICKER_OT_draw_adjacent(Operator):
         # if key doesn't exist in bricksdict, create it
         if not adj_brick_d:
             co = BRICKER_OT_draw_adjacent.get_new_coord(cm, bricksdict, dkey, dloc, adjacent_key, adjacent_loc, dimensions)
-            bricksdict[adjacent_key] = createBricksDictEntry(
+            bricksdict[adjacent_key] = create_bricksdict_entry(
                 name=              "Bricker_%(n)s__%(adjacent_key)s" % locals(),
                 loc=               adjacent_loc,
                 co=                co,

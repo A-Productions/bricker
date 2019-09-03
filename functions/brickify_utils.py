@@ -22,14 +22,15 @@ import bpy
 from mathutils import Vector, Euler, Matrix
 
 # Module imports
+from .bricksdict import *
+from .brick.bricks import Bricks
 from .common import *
 from .general import *
+from .cmlist_utils import *
 from .logo_obj import *
 from .make_bricks import *
 from .point_cache import *
 from .transform_data import *
-from ..lib.brick import Bricks
-from ..lib.bricksdict import *
 
 
 def get_action(cm):
@@ -233,7 +234,7 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
         update_internal(bricksdict, cm, keys, clear_existing=loaded_from_cache)
         cm.build_is_dirty = True
     # update materials in bricksdict
-    if cm.material_type != "NONE" and (cm.material_is_dirty or cm.matrix_is_dirty or cm.anim_is_dirty): bricksdict = updateMaterials(bricksdict, source, keys, cur_frame)
+    if cm.material_type != "NONE" and (cm.material_is_dirty or cm.matrix_is_dirty or cm.anim_is_dirty): bricksdict = update_materials(bricksdict, source, keys, cur_frame)
     # make bricks
     coll_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
     bricks_created, bricksdict = make_bricks(source, parent, ref_logo, dimensions, bricksdict, action, cm=cm, split=split, brick_scale=brick_scale, custom_data=custom_data, coll_name=coll_name, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, keys=keys, print_status=print_status, temp_brick=temp_brick, redraw=redraw)

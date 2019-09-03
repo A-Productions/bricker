@@ -26,13 +26,11 @@ from bpy_extras.view3d_utils import location_3d_to_region_2d, region_2d_to_locat
 from bpy.types import Operator, SpaceView3D, bpy_struct
 from bpy.props import *
 
-# Addon imports
+# Module imports
 from .draw_adjacent import *
-from ..functions import *
 from ...brickify import *
-from ....lib.brick import *
 from ....functions import *
-from ....operators.delete_object import OBJECT_OT_delete_override
+from ....operators.overrides.delete_object import OBJECT_OT_delete_override
 
 
 class BricksculptTools:

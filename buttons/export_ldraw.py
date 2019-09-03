@@ -25,9 +25,8 @@ import bpy
 from bpy.types import Operator
 from bpy_extras.io_utils import ExportHelper#, path_reference_mode
 
-# Addon imports
+# Module imports
 from ..functions import *
-from ..lib.brick import *
 
 
 class BRICKER_OT_export_ldraw(Operator, ExportHelper):

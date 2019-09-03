@@ -23,17 +23,10 @@ import bpy
 from addon_utils import check, paths, enable
 from bpy.types import Panel
 from bpy.props import *
-props = bpy.props
 
-# Addon imports
-from .cmlist_attrs import *
-from .cmlist_actions import *
-from .app_handlers import *
-from .timers import *
-from .matlist_window import *
-from .matlist_actions import *
-from ..lib.bricksdict import *
-from ..lib.brick.test_brick_generators import *
+# Module imports
+from .created_model_uilist import *
+from .matslot_uilist import *
 from ..lib.caches import cache_exists
 from ..buttons.revert_settings import *
 from ..buttons.brickify import *
@@ -41,8 +34,6 @@ from ..buttons.customize.tools.bricksculpt import *
 from ..functions import *
 from ..functions.brickify_utils import get_model_resolution
 from .. import addon_updater_ops
-if b280():
-    from .other_property_groups import *
 
 
 def settings_can_be_drawn():

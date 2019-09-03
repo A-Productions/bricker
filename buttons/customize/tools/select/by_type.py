@@ -22,8 +22,7 @@ import copy
 import bpy
 from bpy.types import Operator
 
-# Addon imports
-from ...functions import *
+# Module imports
 from ....brickify import *
 from ....brickify import *
 from .....functions import *

@@ -23,7 +23,7 @@ import subprocess
 import bpy
 from bpy.types import Operator, Panel
 
-# Addon imports
+# Module imports
 from ..classes.job_manager import *
 from ..functions.common import *
 

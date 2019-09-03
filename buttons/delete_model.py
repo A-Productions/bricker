@@ -25,7 +25,7 @@ import bmesh
 from mathutils import Vector, Euler
 props = bpy.props
 
-# Addon imports
+# Module imports
 from ..functions import *
 from .cache import *
 from ..subtrees.background_processing.classes.job_manager import JobManager

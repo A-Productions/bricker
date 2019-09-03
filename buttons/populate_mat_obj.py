@@ -21,7 +21,7 @@ import time
 # Blender imports
 import bpy
 
-# Addon imports
+# Module imports
 from ..functions import *
 
 

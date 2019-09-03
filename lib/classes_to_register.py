@@ -15,14 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Addon imports
-from ..ui import *
-from ..buttons import *
-from ..buttons.customize import *
-from ..operators import *
-from ..functions.common import *
+# Module imports
+from .property_groups import *
 from .preferences import *
 from .report_error import *
+from ..ui import *
+from ..buttons import *
+from ..buttons.customize.tools import *
+from ..operators import *
+from ..functions.common import *
 from .. import addon_updater_ops
 
 
@@ -40,10 +41,17 @@ classes = [
     materials.BRICKER_OT_apply_material,
     redraw_custom_bricks.BRICKER_OT_redraw_custom_bricks,
     revert_settings.BRICKER_OT_revert_settings,
-    # bricker/buttons/customize
-    initialize.BRICKER_OT_initialize,
-    BRICKER_OT_change_brick_material,
-    BRICKER_OT_change_brick_type,
+    CMLIST_OT_list_action,
+    CMLIST_OT_copy_settings_to_others,
+    CMLIST_OT_copy_settings,
+    CMLIST_OT_paste_settings,
+    CMLIST_OT_select_bricks,
+    matlist_actions.BRICKER_OT_matlist_actions,
+    test_brick_generators.BRICKER_OT_test_brick_generators,
+    customize.initialize.BRICKER_OT_initialize,
+    # bricker/buttons/customize/tools
+    change_brick_material.BRICKER_OT_change_brick_material,
+    change_brick_type.BRICKER_OT_change_brick_type,
     BRICKER_OT_draw_adjacent,
     BRICKER_OT_merge_bricks,
     BRICKER_OT_redraw_bricks,
@@ -53,7 +61,7 @@ classes = [
     BRICKER_OT_split_bricks,
     BRICKER_OT_bricksculpt,
     # bricker/lib
-    BRICKER_OT_test_brick_generators,
+    CreatedModelProperties,
     BRICKER_AP_preferences,
     SCENE_OT_report_error,
     SCENE_OT_close_report_error,
@@ -82,16 +90,7 @@ classes = [
     VIEW3D_PT_bricker_advanced,
     VIEW3D_PT_bricker_matrix_details,
     VIEW3D_PT_bricker_export,
-    # bricker/ui/ (cmlist)
-    CMLIST_OT_list_action,
-    CMLIST_OT_copy_settings_to_others,
-    CMLIST_OT_copy_settings,
-    CMLIST_OT_paste_settings,
-    CMLIST_OT_select_bricks,
     CMLIST_UL_items,
-    CreatedModelProperties,
-    # bricker/ui/ (matlist)
-    BRICKER_OT_matlist_actions,
     MATERIAL_UL_matslots,
 ]
 

@@ -29,7 +29,7 @@ import bpy
 from bpy.types import Operator
 from bpy.props import *
 
-# Addon imports
+# Module imports
 from ..functions import *
 
 

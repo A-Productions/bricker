@@ -31,7 +31,7 @@ bl_info = {
 import bpy
 from bpy.types import Scene
 
-# Addon imports
+# Module imports
 from .classes import *
 from .ui import *
 from .functions.common import *

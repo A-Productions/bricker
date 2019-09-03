@@ -26,12 +26,11 @@ import bpy
 from mathutils import Matrix, Vector, Euler
 from bpy.props import *
 
-# Addon imports
-from .customize.undo_stack import *
+# Module imports
 from .bevel import BRICKER_OT_bevel
 from .cache import *
 from .brickify import BRICKER_OT_brickify
-from ..lib.bricksdict import *
+from ..lib.undo_stack import *
 from ..functions import *
 
 
