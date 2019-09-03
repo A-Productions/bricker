@@ -23,10 +23,9 @@ import bpy
 from bpy.types import Operator
 
 # Module imports
-from ...brickify import *
-from ...brickify import *
-from ....lib.undo_stack import *
-from ....functions import *
+from ..brickify import *
+from ...lib.undo_stack import *
+from ...functions import *
 
 
 class BRICKER_OT_split_bricks(Operator):

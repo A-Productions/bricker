@@ -25,7 +25,6 @@ from bpy.props import *
 from mathutils import Vector, Color
 
 # Module imports
-# from ..buttons.bevel import *
 from .common import *
 
 # Conditional imports

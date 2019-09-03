@@ -24,8 +24,8 @@ from bpy.types import Operator
 from bpy.props import *
 
 # Module imports
+from ..delete_model import BRICKER_OT_delete_model
 from ...functions import *
-from ...buttons.delete_model import BRICKER_OT_delete_model
 from ...lib.undo_stack import *
 
 

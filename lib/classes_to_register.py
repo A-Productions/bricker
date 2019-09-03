@@ -20,15 +20,15 @@ from .property_groups import *
 from .preferences import *
 from .report_error import *
 from ..ui import *
-from ..buttons import *
-from ..buttons.customize.tools import *
 from ..operators import *
+from ..operators.customization_tools import *
+from ..operators.overrides import *
 from ..functions.common import *
 from .. import addon_updater_ops
 
 
 classes = [
-    # bricker/buttons
+    # bricker/operators
     populate_mat_obj.BRICKER_OT_populate_mat_obj,
     bake.BRICKER_OT_bake_model,
     bevel.BRICKER_OT_bevel,
@@ -41,15 +41,15 @@ classes = [
     materials.BRICKER_OT_apply_material,
     redraw_custom_bricks.BRICKER_OT_redraw_custom_bricks,
     revert_settings.BRICKER_OT_revert_settings,
-    CMLIST_OT_list_action,
-    CMLIST_OT_copy_settings_to_others,
-    CMLIST_OT_copy_settings,
-    CMLIST_OT_paste_settings,
-    CMLIST_OT_select_bricks,
+    cmlist_actions.CMLIST_OT_list_action,
+    cmlist_actions.CMLIST_OT_copy_settings_to_others,
+    cmlist_actions.CMLIST_OT_copy_settings,
+    cmlist_actions.CMLIST_OT_paste_settings,
+    cmlist_actions.CMLIST_OT_select_bricks,
     matlist_actions.BRICKER_OT_matlist_actions,
     test_brick_generators.BRICKER_OT_test_brick_generators,
-    customize.initialize.BRICKER_OT_initialize,
-    # bricker/buttons/customize/tools
+    initialize.BRICKER_OT_initialize,
+    # bricker/operators/customization_tools
     change_brick_material.BRICKER_OT_change_brick_material,
     change_brick_type.BRICKER_OT_change_brick_type,
     BRICKER_OT_draw_adjacent,
@@ -60,17 +60,17 @@ classes = [
     BRICKER_OT_set_exposure,
     BRICKER_OT_split_bricks,
     BRICKER_OT_bricksculpt,
+    # bricker/operators/overrides
+    delete_object.OBJECT_OT_delete_override,
+    duplicate_object.OBJECT_OT_duplicate_override,
+    duplicate_object.OBJECT_OT_duplicate_move_override,
+    # move_to_layer.OBJECT_OT_move_to_layer_override,
+    # move_to_layer.OBJECT_OT_move_to_layer,
     # bricker/lib
     CreatedModelProperties,
     BRICKER_AP_preferences,
     SCENE_OT_report_error,
     SCENE_OT_close_report_error,
-    # bricker/operators
-    OBJECT_OT_delete_override,
-    OBJECT_OT_duplicate_override,
-    OBJECT_OT_duplicate_move_override,
-    # OBJECT_OT_move_to_layer_override,
-    # OBJECT_OT_move_to_layer,
     # bricker/ui
     BRICKER_MT_specials,
     VIEW3D_PT_bricker_brick_models,

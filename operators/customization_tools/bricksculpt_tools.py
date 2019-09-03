@@ -28,9 +28,9 @@ from bpy.props import *
 
 # Module imports
 from .draw_adjacent import *
-from ...brickify import *
-from ....functions import *
-from ....operators.overrides.delete_object import OBJECT_OT_delete_override
+from ..brickify import *
+from ...functions import *
+from ...operators.overrides.delete_object import OBJECT_OT_delete_override
 
 
 class BricksculptTools:

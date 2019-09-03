@@ -30,8 +30,8 @@ from bpy.props import *
 # Module imports
 from .bricksculpt_tools import *
 from .draw_adjacent import *
-from ...brickify import *
-from ....functions import *
+from ..brickify import *
+from ...functions import *
 
 
 class BricksculptDrawing:

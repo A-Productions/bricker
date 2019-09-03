@@ -28,9 +28,9 @@ from bpy.props import *
 from .created_model_uilist import *
 from .matslot_uilist import *
 from ..lib.caches import cache_exists
-from ..buttons.revert_settings import *
-from ..buttons.brickify import *
-from ..buttons.customize.tools.bricksculpt import *
+from ..operators.revert_settings import *
+from ..operators.brickify import *
+from ..operators.customization_tools.bricksculpt import *
 from ..functions import *
 from .. import addon_updater_ops
 

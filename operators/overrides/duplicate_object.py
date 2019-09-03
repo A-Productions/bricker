@@ -25,8 +25,8 @@ from bpy.types import Operator
 from bpy.props import *
 
 # Module imports
+from ..cmlist_actions import *
 from ...functions import *
-from ...buttons.cmlist_actions import *
 
 class OBJECT_OT_duplicate_override(bpy.types.Operator):
     """Duplicate selected objects (Bricker object duplicates will baked)"""

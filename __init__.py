@@ -45,8 +45,8 @@ from .ui import *
 from .functions.general import *
 from .functions.brick.legal_brick_sizes import get_legal_brick_sizes
 from .functions.timers import *
-from .buttons import *
-from .buttons.customize import *
+from .operators import *
+from .operators.customization_tools import *
 from .lib import keymaps, preferences, classes_to_register
 from .lib.property_groups import *
 from . import addon_updater_ops

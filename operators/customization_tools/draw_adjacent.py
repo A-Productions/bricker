@@ -25,10 +25,9 @@ from bpy.props import *
 
 # Module imports
 from .merge_bricks import *
-from ...brickify import *
-from ...brickify import *
-from ....lib.undo_stack import *
-from ....functions import *
+from ..brickify import *
+from ...lib.undo_stack import *
+from ...functions import *
 
 
 class BRICKER_OT_draw_adjacent(Operator):

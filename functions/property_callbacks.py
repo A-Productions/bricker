@@ -25,7 +25,7 @@ from bpy.props import *
 # Module imports
 from .general import *
 from .matlist_utils import *
-from ..buttons.bevel import *
+from ..operators.bevel import BRICKER_OT_bevel
 from ..subtrees.background_processing.classes.job_manager import JobManager
 
 

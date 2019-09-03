@@ -23,15 +23,14 @@ import bpy
 from bpy.types import Operator
 
 # Module imports
-from ....brickify import *
-from ....brickify import *
-from .....functions import *
+from ...brickify import *
+from ....functions import *
 
 
-class BRICKER_OT_select_bricks_by_type(Operator):
-    """Select bricks of specified type"""
-    bl_idname = "bricker.select_bricks_by_type"
-    bl_label = "Select Bricks by Type"
+class BRICKER_OT_select_bricks_by_size(Operator):
+    """Select bricks of specified size"""
+    bl_idname = "bricker.select_bricks_by_size"
+    bl_label = "Select Bricks by Size"
     bl_options = {"REGISTER", "UNDO"}
 
     ################################################
@@ -44,7 +43,7 @@ class BRICKER_OT_select_bricks_by_type(Operator):
 
     def execute(self, context):
         try:
-            select_bricks(self.obj_names_dict, self.bricksdicts, brick_type=self.brick_type, all_models=self.all_models, only=self.only, include=self.include)
+            select_bricks(self.obj_names_dict, self.bricksdicts, brick_size=self.brick_size, all_models=self.all_models, only=self.only, include=self.include)
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -61,7 +60,7 @@ class BRICKER_OT_select_bricks_by_type(Operator):
 
         col = layout.column(align=True)
         right_align(col)
-        col.prop(self, "brick_type")
+        col.prop(self, "brick_size")
         if len(bpy.context.selected_objects) > 0:
             col.prop(self, "only")
         if len(scn.cmlist) > 1:
@@ -75,7 +74,7 @@ class BRICKER_OT_select_bricks_by_type(Operator):
     def __init__(self):
         self.obj_names_dict = create_obj_names_dict(bpy.data.objects)
         self.bricksdicts = get_bricksdicts_from_objs(self.obj_names_dict.keys())
-        self.brick_type = "NONE"
+        self.brick_size = "NONE"
 
     ###################################################
     # class variables
@@ -84,23 +83,23 @@ class BRICKER_OT_select_bricks_by_type(Operator):
     obj_names_dict = {}
     bricksdicts = {}
 
-    # get items for brick_type prop
+    # get items for brick_size prop
     def get_items(self, context):
-        items = get_used_types()
+        items = get_used_sizes()
         return items
 
     # define props for popup
-    brick_type = bpy.props.EnumProperty(
-        name="Type",
-        description="Select all bricks of specified type",
+    brick_size = bpy.props.EnumProperty(
+        name="Size",
+        description="Select all bricks of specified size (X, Y, Z)",
         items=get_items)
     only = bpy.props.BoolProperty(
         name="Only",
-        description="Select only bricks of given type",
+        description="Select only bricks of given size",
         default=False)
     all_models = bpy.props.BoolProperty(
         name="All Models",
-        description="Select bricks of given type from all models in file",
+        description="Select bricks of given size from all models in file",
         default=False)
     include = bpy.props.EnumProperty(
         name="Include",

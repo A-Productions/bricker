@@ -31,10 +31,10 @@ from .bricksculpt_framework_backup import *
 from .bricksculpt_tools import *
 from .bricksculpt_drawing import *
 from .draw_adjacent import *
-from ...brickify import *
-from ....lib.undo_stack import *
-from ....functions import *
-from ....operators.overrides.delete_object import OBJECT_OT_delete_override
+from ..brickify import *
+from ...lib.undo_stack import *
+from ...functions import *
+from ...operators.overrides.delete_object import OBJECT_OT_delete_override
 
 
 class BRICKER_OT_bricksculpt(Operator, BricksculptFramework, BricksculptTools, BricksculptDrawing):

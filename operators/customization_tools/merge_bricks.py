@@ -24,10 +24,9 @@ from bpy.types import Operator
 from bpy.props import *
 
 # Module imports
-from ...brickify import *
-from ...brickify import *
-from ....lib.undo_stack import *
-from ....functions import *
+from ..brickify import *
+from ...lib.undo_stack import *
+from ...functions import *
 
 
 class BRICKER_OT_merge_bricks(Operator):

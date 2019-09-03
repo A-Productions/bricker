@@ -29,7 +29,7 @@ from .common import *
 from .brickify_utils import create_new_bricks
 from .general import *
 from .logo_obj import get_logo
-from ..buttons.bevel import BRICKER_OT_bevel
+from ..operators.bevel import BRICKER_OT_bevel
 
 
 def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", select_created=True, temp_brick=False):

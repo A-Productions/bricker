@@ -31,7 +31,6 @@ from .brickify_utils import finish_animation
 from .matlist_utils import create_mat_objs
 from ..lib.caches import bricker_bfm_cache
 from ..lib.undo_stack import UndoStack, python_undo_state
-# from ..buttons.customize.tools import *
 
 
 def bricker_running_blocking_op():
