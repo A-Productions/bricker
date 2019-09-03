@@ -46,3 +46,23 @@ def gamma_correct(rgba:list, val:float=2.0167):
 def get_average(rgba0:Vector, rgba1:Vector, weight:float):
     """ returns weighted average of two rgba values """
     return (rgba1 * weight + rgba0) / (weight + 1)
+
+
+def rgba_distance(c1, c2, awt=1):
+    r1, g1, b1, a1 = c1
+    r2, g2, b2, a2 = c2
+    # a1 = c1[3]
+    # # r1, g1, b1 = rgb_to_lab(c1[:3])
+    # r1, g1, b1 = colorsys.rgb_to_hsv(r1, g1, b1)
+    # a2 = c2[3]
+    # # r2, g2, b2 = rgb_to_lab(c2[:3])
+    # r2, g2, b2 = colorsys.rgb_to_hsv(r1, g1, b1)
+    # diff =  0.33 * ((r1 - r2)**2)
+    # diff += 0.33 * ((g1 - g2)**2)
+    # diff += 0.33 * ((b1 - b2)**2)
+    # diff += 1.0 * ((a1 - a2)**2)
+    diff =  0.30 * ((r1 - r2)**2)
+    diff += 0.59 * ((g1 - g2)**2)
+    diff += 0.11 * ((b1 - b2)**2)
+    diff += awt * ((a1 - a2)**2)
+    return diff

@@ -24,7 +24,7 @@ import bpy
 # Module imports
 from .generate import *
 from .modify import *
-from .functions import *
+from .exposure import *
 from ...lib.caches import bricker_bfm_cache, cache_exists
 
 def get_bricksdict(cm, dType="MODEL", cur_frame=None):

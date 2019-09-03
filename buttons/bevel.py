@@ -28,7 +28,8 @@ from mathutils import Matrix, Vector
 props = bpy.props
 
 # Module imports
-from ..functions import *
+from ..functions.common import *
+from ..functions.general import *
 from ..functions.make_bricks import *
 
 

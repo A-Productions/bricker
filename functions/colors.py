@@ -45,26 +45,6 @@ def find_nearest_brick_color_name(rgba, trans_weight, mat_obj=None):
     return find_nearest_color_name(rgba, trans_weight, colors)
 
 
-def distance(c1, c2, awt=1):
-    r1, g1, b1, a1 = c1
-    r2, g2, b2, a2 = c2
-    # a1 = c1[3]
-    # # r1, g1, b1 = rgb_to_lab(c1[:3])
-    # r1, g1, b1 = colorsys.rgb_to_hsv(r1, g1, b1)
-    # a2 = c2[3]
-    # # r2, g2, b2 = rgb_to_lab(c2[:3])
-    # r2, g2, b2 = colorsys.rgb_to_hsv(r1, g1, b1)
-    # diff =  0.33 * ((r1 - r2)**2)
-    # diff += 0.33 * ((g1 - g2)**2)
-    # diff += 0.33 * ((b1 - b2)**2)
-    # diff += 1.0 * ((a1 - a2)**2)
-    diff =  0.30 * ((r1 - r2)**2)
-    diff += 0.59 * ((g1 - g2)**2)
-    diff += 0.11 * ((b1 - b2)**2)
-    diff += awt * ((a1 - a2)**2)
-    return diff
-
-
 def find_nearest_color_name(rgba, trans_weight, colors):
     mindiff = None
     mincolorname = ""
@@ -74,3 +54,66 @@ def find_nearest_color_name(rgba, trans_weight, colors):
             mindiff = diff
             mincolorname = color_name
     return mincolorname
+
+
+def get_first_img_from_nodes(obj, mat_slot_idx):
+    """ return first image texture found in a material slot """
+    mat = obj.material_slots[mat_slot_idx].material
+    if mat is None or not mat.use_nodes:
+        return None
+    nodes_to_check = list(mat.node_tree.nodes)
+    active_node = mat.node_tree.nodes.active
+    if active_node is not None: nodes_to_check.insert(0, active_node)
+    img = None
+    for node in nodes_to_check:
+        if node.type != "TEX_IMAGE":
+            continue
+        img = verify_img(node.image)
+        if img is not None:
+            break
+    return img
+
+
+def get_uv_image(scn, obj, face_idx, uv_image=None):
+    """ returns UV image (priority to passed image, then face index, then first one found in material nodes) """
+    image = verify_img(uv_image)
+    # TODO: Reinstate this functionality for b280()
+    if not b280() and image is None and obj.data.uv_textures.active:
+        image = verify_img(obj.data.uv_textures.active.data[face_idx].image)
+    if image is None:
+        try:
+            mat_idx = obj.data.polygons[face_idx].material_index
+            image = verify_img(get_first_img_from_nodes(obj, mat_idx))
+        except IndexError:
+            mat_idx = 0
+            while image is None and mat_idx < len(obj.material_slots):
+                image = verify_img(get_first_img_from_nodes(obj, mat_idx))
+                mat_idx += 1
+    return image
+
+
+def get_pixels(image):
+    if image.name in bricker_pixel_cache:
+        return bricker_pixel_cache[image.name]
+    else:
+        pixels = image.pixels[:]
+        bricker_pixel_cache[image.name] = pixels
+        return pixels
+
+
+def get_uv_pixel_color(scn, obj, face_idx, point, pixels, uv_image=None):
+    """ get RGBA value for point in UV image at specified face index """
+    if face_idx is None:
+        return None
+    # get closest material using UV map
+    face = obj.data.polygons[face_idx]
+    # get uv_layer image for face
+    image = get_uv_image(scn, obj, face_idx, uv_image)
+    if image is None:
+        return None
+    # get uv coordinate based on nearest face intersection
+    uv_coord = get_uv_coord(obj.data, face, point, image)
+    # retrieve rgba value at uv coordinate
+    pixels = get_pixels(image)
+    rgba = get_pixel(pixels, image.size[0], uv_coord)
+    return rgba

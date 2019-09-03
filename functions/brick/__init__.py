@@ -17,5 +17,5 @@
 
 from .bricks import *
 from .mesh_generators import *
-from .get_brick_dimensions import *
 from .legal_brick_sizes import *
+from .types import *

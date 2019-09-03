@@ -24,6 +24,7 @@ from bpy.props import *
 
 # Module imports
 from .general import *
+from .matlist_utils import *
 from ..buttons.bevel import *
 from ..subtrees.background_processing.classes.job_manager import JobManager
 
@@ -203,3 +204,40 @@ def add_material_to_list(self, context):
         cm.target_material = ""
     if num_mats < len(mat_obj.data.materials) and not cm.last_split_model:
         cm.material_is_dirty = True
+
+
+def select_source_model(self, context):
+    """ if scn.cmlist_index changes, select and make source or brick model active """
+    scn = bpy.context.scene
+    obj = bpy.context.view_layer.objects.active if b280() else scn.objects.active
+    # don't select source model if this property was set to True by timer
+    if bpy.props.manual_cmlist_update:
+        bpy.props.manual_cmlist_update = False
+        return
+    if scn.cmlist_index != -1:
+        cm, n = get_active_context_info()[1:]
+        source = cm.source_obj
+        if source and cm.version[:3] != "1_0":
+            if cm.model_created:
+                bricks = get_bricks()
+                if bricks and len(bricks) > 0:
+                    select(bricks, active=True, only=True)
+                    scn.bricker_last_active_object_name = obj.name if obj is not None else ""
+            elif cm.animated:
+                cf = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
+                brick_obj = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals()).objects[0]
+                if brick_obj is not None and len(brick_objs) > 0:
+                    select(brick_obj, active=True, only=True)
+                    scn.bricker_last_active_object_name = obj.name if obj is not None else ""
+                else:
+                    set_active_obj(None)
+                    deselect_all()
+                    scn.bricker_last_active_object_name = ""
+            else:
+                select(source, active=True, only=True)
+                scn.bricker_last_active_object_name = source.name
+        else:
+            for i,cm0 in enumerate(scn.cmlist):
+                if get_source_name(cm0) == scn.bricker_active_object_name:
+                    deselect_all()
+                    break

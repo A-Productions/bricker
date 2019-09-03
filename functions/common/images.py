@@ -24,6 +24,7 @@ from mathutils import Vector
 from mathutils.interpolate import poly_3d_calc
 
 # Module imports
+from .reporting import b280
 from .maths import *
 from .colors import *
 
@@ -93,19 +94,6 @@ def get_uv_coord(mesh, face, point, image):
     return Vector(uv_coord)
 
 
-def get_uv_pixel_color(scn, obj, face_idx, point, uv_image):
-    """ get RGBA value for point in UV image at specified face index """
-    if face_idx is None:
-        return None
-    # get closest material using UV map
-    face = obj.data.polygons[face_idx]
-    # get uv_layer image for face
-    image = get_uv_image(scn, obj, face_idx, uv_image)
-    if image is None:
-        return None
-    # get uv coordinate based on nearest face intersection
-    uv_coord = get_uv_coord(obj.data, face, point, image)
-    # retrieve rgba value at uv coordinate
-    pixels = get_pixels(image)
-    rgba = get_pixel(pixels, image.size[0], uv_coord)
-    return rgba
+def verify_img(im):
+    """ verify image has pixel data """
+    return im if im is not None and im.pixels is not None and len(im.pixels) > 0 else None

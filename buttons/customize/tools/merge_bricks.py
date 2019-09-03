@@ -78,7 +78,7 @@ class BRICKER_OT_merge_bricks(Operator):
                     dkey = get_dict_key(obj_name)
 
                     # split brick in matrix
-                    split_keys = Bricks.split(bricksdict, dkey, cm.zstep, brick_type)
+                    split_keys = split_brick(bricksdict, dkey, cm.zstep, brick_type)
                     all_split_keys += split_keys
                     # delete the object that was split
                     delete(bpy.data.objects.get(obj_name))

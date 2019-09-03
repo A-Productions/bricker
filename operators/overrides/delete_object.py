@@ -161,7 +161,7 @@ class OBJECT_OT_delete_override(Operator):
                 # split up bricks before draw_updated_bricks calls attempt_merge
                 keys_to_update = uniquify1(keys_to_update)
                 for k0 in keys_to_update.copy():
-                    keys_to_update += Bricks.split(bricksdict, k0, cm.zstep, cm.brick_type)
+                    keys_to_update += split_brick(bricksdict, k0, cm.zstep, cm.brick_type)
                 keys_to_update = uniquify1(keys_to_update)
                 # remove duplicate keys from the list and delete those objects
                 for k2 in keys_to_update:

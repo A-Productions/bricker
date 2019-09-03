@@ -32,7 +32,6 @@ from ..buttons.revert_settings import *
 from ..buttons.brickify import *
 from ..buttons.customize.tools.bricksculpt import *
 from ..functions import *
-from ..functions.brickify_utils import get_model_resolution
 from .. import addon_updater_ops
 
 

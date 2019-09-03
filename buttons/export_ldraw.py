@@ -156,7 +156,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         """ convert location of brick from blender units to ldraw units """
         size = bricksdict[key]["size"]
         loc = get_brick_center(bricksdict, key, zstep)
-        dimensions = Bricks.get_dimensions(cm.brick_height, zstep, cm.gap)
+        dimensions = get_brick_dimensions(cm.brick_height, zstep, cm.gap)
         h = 8 * zstep
         loc.x = loc.x * (20 / (dimensions["width"] + dimensions["gap"]))
         loc.y = loc.y * (20 / (dimensions["width"] + dimensions["gap"]))

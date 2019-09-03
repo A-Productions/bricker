@@ -107,7 +107,7 @@ class BRICKER_OT_bricksculpt(Operator, BricksculptFramework, BricksculptTools, B
         self.parent_locs_to_merge_on_release = []
         self.keys_to_merge_on_release = []
         self.all_updated_keys = []
-        self.dimensions = Bricks.get_dimensions(cm.brick_height, cm.zstep, cm.gap)
+        self.dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
         self.obj = None
         self.cm_idx = cm.idx
         self.zstep = cm.zstep

@@ -22,7 +22,9 @@
 import bpy
 
 # Module imports
-from .functions import *
+from .exposure import *
+from ..mat_utils import *
+from ..brick import *
 
 
 def update_materials(bricksdict, source, keys, cur_frame=None):
@@ -125,7 +127,7 @@ def update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep,
                     new_size = [i+1, j+1, k+zstep]
                     if new_size in brick_sizes:
                         continue
-                    if not (new_size[2] == 1 and height_3_only) and (not legal_bricks_only or legal_brick_size(size=new_size, type=tall_type if new_size[2] == 3 else short_type)):
+                    if not (new_size[2] == 1 and height_3_only) and (not legal_bricks_only or is_legal_brick_size(size=new_size, type=tall_type if new_size[2] == 3 else short_type)):
                         brick_sizes.append(new_size)
             if break_outer1: break
         break_outer1 = False
@@ -239,9 +241,9 @@ def get_most_common_dir(i_s, i_e, norms):
 def set_brick_type_for_slope(bricksdict, key, keys_in_brick):
     norms = [bricksdict[k]["near_normal"] for k in keys_in_brick if bricksdict[k]["near_normal"] is not None]
     dir0 = get_most_common_dir(0, 1, norms) if len(norms) != 0 else ""
-    if (dir0 == "^" and legal_brick_size(size=bricksdict[key]["size"], type="SLOPE") and bricksdict[key]["top_exposed"]):
+    if (dir0 == "^" and is_legal_brick_size(size=bricksdict[key]["size"], type="SLOPE") and bricksdict[key]["top_exposed"]):
         typ = "SLOPE"
-    elif (dir0 == "v" and legal_brick_size(size=bricksdict[key]["size"], type="SLOPE_INVERTED") and bricksdict[key]["bot_exposed"]):
+    elif (dir0 == "v" and is_legal_brick_size(size=bricksdict[key]["size"], type="SLOPE_INVERTED") and bricksdict[key]["bot_exposed"]):
         typ = "SLOPE_INVERTED"
     else:
         typ = "BRICK"

@@ -23,17 +23,13 @@ import bpy
 from bpy.types import Operator
 
 # Module imports
+from .brick import *
+from .bricksdict import *
 from .common import *
-from .general import *
 from .brickify_utils import create_new_bricks
+from .general import *
 from .logo_obj import get_logo
-# from ..buttons.brickify import *
 from ..buttons.bevel import BRICKER_OT_bevel
-from .bricksdict.functions import get_details_and_bounds, set_all_brick_exposures
-from .bricksdict.generate import create_bricksdict_entry
-from .bricksdict.storage import get_bricksdict
-# from .brick.legal_brick_sizes import *
-# from ..lib.undo_stack import *
 
 
 def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", select_created=True, temp_brick=False):

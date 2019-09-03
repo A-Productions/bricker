@@ -30,7 +30,7 @@ import bpy
 from mathutils import Vector, Matrix
 
 # Module imports
-from .brick.bricks import Bricks
+from .brick import *
 from .bricksdict import *
 from .common import *
 from .general import *
@@ -243,7 +243,7 @@ def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_heig
     # if not found create new brick mesh(es) and store to cache
     if bms is None:
         # create new brick bmeshes
-        bms = Bricks.new_mesh(dimensions, brick_type, size=brick_size, type=brick_d["type"], flip=brick_d["flipped"], rotate90=brick_d["rotated"], logo=logo_to_use, logo_type=logo_type, logo_scale=logo_scale, logo_inset=logo_inset, all_vars=logo_to_use is not None, underside_detail=underside_detail, stud=use_stud, circle_verts=circle_verts)
+        bms = new_brick_mesh(dimensions, brick_type, size=brick_size, type=brick_d["type"], flip=brick_d["flipped"], rotate90=brick_d["rotated"], logo=logo_to_use, logo_type=logo_type, logo_scale=logo_scale, logo_inset=logo_inset, all_vars=logo_to_use is not None, underside_detail=underside_detail, stud=use_stud, circle_verts=circle_verts)
         # store newly created meshes to cache
         if brick_type != "CUSTOM":
             bricker_mesh_cache[bm_cache_string] = bms
@@ -273,7 +273,7 @@ def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_heig
     # # if not found create new brick mesh(es) and store to cache
     # if meshes is None:
     #     # create new brick bmeshes
-    #     bms = Bricks.new_mesh(dimensions, brick_type, size=brick_size, type=brick_d["type"], flip=brick_d["flipped"], rotate90=brick_d["rotated"], logo=logo_to_use, logo_type=logo_type, logo_scale=logo_scale, logo_inset=logo_inset, all_vars=logo_to_use is not None, underside_detail=underside_detail, stud=use_stud, circle_verts=circle_verts)
+    #     bms = new_brick_mesh(dimensions, brick_type, size=brick_size, type=brick_d["type"], flip=brick_d["flipped"], rotate90=brick_d["rotated"], logo=logo_to_use, logo_type=logo_type, logo_scale=logo_scale, logo_inset=logo_inset, all_vars=logo_to_use is not None, underside_detail=underside_detail, stud=use_stud, circle_verts=circle_verts)
     #     # create edit mesh for each bmesh
     #     meshes = []
     #     for i,bm in enumerate(bms):

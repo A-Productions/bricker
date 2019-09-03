@@ -210,7 +210,7 @@ class BRICKER_OT_change_brick_type(Operator):
 
                 # update height of brick if necessary, and update dictionary accordingly
                 if flat_brick_type(brick_type):
-                    dimensions = Bricks.get_dimensions(brick_height, cm.zstep, gap)
+                    dimensions = get_brick_dimensions(brick_height, cm.zstep, gap)
                     size = update_brick_size_and_dict(dimensions, get_source_name(cm), bricksdict, size, dkey, dloc, cur_height=size[2], target_type=target_brick_type)
 
                 # check if brick spans 3 matrix locations

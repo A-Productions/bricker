@@ -225,3 +225,8 @@ def get_types_obscuring_above():
 
 def get_types_obscuring_below():
     return ["BRICK", "PLATE", "TILE", "STUD", "SLOPE"]
+
+
+def is_legal_brick_size(size, type):
+    # access blender property for performance improvement over running 'get_legal_brick_sizes' every time
+     return size[:2] in bpy.props.bricker_legal_brick_sizes[size[2]][type]

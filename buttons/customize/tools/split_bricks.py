@@ -153,7 +153,7 @@ class BRICKER_OT_split_bricks(Operator):
 
                     if self.vertical or self.horizontal:
                         # split the bricks in the matrix and set size of active brick's bricksdict entries to 1x1x[lastZSize]
-                        split_keys = Bricks.split(bricksdict, dkey, cm.zstep, cm.brick_type, loc=dloc, v=self.vertical, h=self.horizontal)
+                        split_keys = split_brick(bricksdict, dkey, cm.zstep, cm.brick_type, loc=dloc, v=self.vertical, h=self.horizontal)
                         # append new split_keys to keys_to_update
                         keys_to_update |= set(split_keys)
                     else:

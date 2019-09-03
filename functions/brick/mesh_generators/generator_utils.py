@@ -26,6 +26,7 @@ from bpy.types import Object
 # Module imports
 from ...common import *
 from ...general import *
+from ..types import *
 
 
 def add_supports(dimensions, height, brick_size, brick_type, circle_verts, type, detail, d, scalar, thick, bme, hollow=None, add_beams=None):

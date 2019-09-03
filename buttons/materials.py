@@ -25,7 +25,6 @@ import numpy as np
 # Blender imports
 import bpy
 from mathutils import Matrix, Vector, Euler
-props = bpy.props
 
 # Module imports
 from ..functions import *

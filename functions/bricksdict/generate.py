@@ -27,10 +27,12 @@ from bpy.types import Object
 from mathutils import Matrix, Vector
 
 # Module imports
-from .functions import *
+from ..common import *
+from ..general import *
+from ..colors import *
 from ..generate_lattice import generate_lattice
 from ..smoke_sim import *
-from ..brick.bricks import Bricks
+from ..brick import *
 
 accs = [0, 0, 0, 0, 0]
 
@@ -228,7 +230,7 @@ def update_internal(bricksdict, cm, keys="ALL", clear_existing=False):
     # clear extisting internal structure
     if clear_existing:
         # set all bricks as unmerged
-        Bricks.split_all(bricksdict, cm.zstep, keys=keys)
+        split_bricks(bricksdict, cm.zstep, keys=keys)
         # clear internal
         for key in keys:
             if is_internal(bricksdict, key):

@@ -23,7 +23,8 @@ from mathutils import Vector, Euler, Matrix
 
 # Module imports
 from .bricksdict import *
-from .brick.bricks import Bricks
+from .brick.bricks import get_brick_dimensions
+from .brick.types import mergable_brick_type
 from .common import *
 from .general import *
 from .cmlist_utils import *
@@ -119,7 +120,7 @@ def get_model_resolution(source, cm):
                 round(source_details.dist.y, 2),
                 round(source_details.dist.z, 2)))
     if cm.brick_type != "CUSTOM":
-        dimensions = Bricks.get_dimensions(cm.brick_height, cm.zstep, cm.gap)
+        dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
         full_d = Vector((dimensions["width"],
                          dimensions["width"],
                          dimensions["height"]))
@@ -243,6 +244,60 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
     # store current bricksdict to cache
     cache_bricks_dict(action, cm, bricksdict, cur_frame=cur_frame)
     return coll_name, bricks_created
+
+
+def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1, 1, 3]):
+    """ returns arguments for make_bricksdict function """
+    source = source or cm.source_obj
+    split_model = cm.split_model
+    custom_data = [None] * 3
+    if dimensions is None:
+        dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
+    for i, custom_info in enumerate([[cm.has_custom_obj1, cm.custom_object1], [cm.has_custom_obj2, cm.custom_object2], [cm.has_custom_obj3, cm.custom_object3]]):
+        has_custom_obj, custom_obj = custom_info
+        if (i == 0 and cm.brick_type == "CUSTOM") or has_custom_obj:
+            scn = bpy.context.scene
+            # duplicate custom object
+            # TODO: remove this object on delete action
+            custom_obj_name = custom_obj.name + "__dup__"
+            m = new_mesh_from_object(custom_obj)
+            custom_obj0 = bpy.data.objects.get(custom_obj_name)
+            if custom_obj0 is not None:
+                custom_obj0.data = m
+            else:
+                custom_obj0 = bpy.data.objects.new(custom_obj_name, m)
+            # remove UV layers if not split (for massive performance improvement when combining meshes in `draw_brick` fn)
+            if b280() and not split_model:
+                for uv_layer in m.uv_layers:
+                    m.uv_layers.remove(uv_layer)
+            # apply transformation to custom object
+            safe_link(custom_obj0)
+            apply_transform(custom_obj0)
+            update_depsgraph()
+            safe_unlink(custom_obj0)
+            # get custom object details
+            cur_custom_obj_details = bounds(custom_obj0)
+            # set brick scale
+            scale = cm.brick_height/cur_custom_obj_details.dist.z
+            brick_scale = cur_custom_obj_details.dist * scale + Vector([dimensions["gap"]] * 3)
+            # get transformation matrices
+            t_mat = Matrix.Translation(-cur_custom_obj_details.mid)
+            max_dist = max(cur_custom_obj_details.dist)
+            s_mat_x = Matrix.Scale((brick_scale.x - dimensions["gap"]) / cur_custom_obj_details.dist.x, 4, Vector((1, 0, 0)))
+            s_mat_y = Matrix.Scale((brick_scale.y - dimensions["gap"]) / cur_custom_obj_details.dist.y, 4, Vector((0, 1, 0)))
+            s_mat_z = Matrix.Scale((brick_scale.z - dimensions["gap"]) / cur_custom_obj_details.dist.z, 4, Vector((0, 0, 1)))
+            # apply transformation to custom object dup mesh
+            custom_obj0.data.transform(t_mat)
+            custom_obj0.data.transform(mathutils_mult(s_mat_x, s_mat_y, s_mat_z))
+            # center mesh origin
+            center_mesh_origin(custom_obj0.data, dimensions, brick_size)
+            # store fresh data to custom_data variable
+            custom_data[i] = custom_obj0.data
+    if cm.brick_type != "CUSTOM":
+        brick_scale = Vector((dimensions["width"] + dimensions["gap"],
+                              dimensions["width"] + dimensions["gap"],
+                              dimensions["height"]+ dimensions["gap"]))
+    return brick_scale, custom_data
 
 
 def transform_bricks(bcoll, cm, parent, source, source_dup_details, action):

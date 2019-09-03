@@ -100,7 +100,7 @@ class BricksculptTools:
     def split_brick(self, cm, event, cur_key, cur_loc, obj_size):
         brick = bpy.data.objects.get(self.bricksdict[cur_key]["name"])
         if (event.alt and max(self.bricksdict[cur_key]["size"][:2]) > 1) or (event.shift and self.bricksdict[cur_key]["size"][2] > 1):
-            brick_keys = Bricks.split(self.bricksdict, cur_key, cm.zstep, cm.brick_type, loc=cur_loc, v=event.shift, h=event.alt)
+            brick_keys = split_brick(self.bricksdict, cur_key, cm.zstep, cm.brick_type, loc=cur_loc, v=event.shift, h=event.alt)
             self.all_updated_keys += brick_keys
             # remove large brick
             brick = bpy.data.objects.get(self.bricksdict[cur_key]["name"])
@@ -130,7 +130,7 @@ class BricksculptTools:
                     brick_name = "Bricker_%(source_name)s__%(key)s" % locals()
                     delete(bpy.data.objects.get(brick_name))
                 # split up bricks
-                Bricks.split_all(self.bricksdict, cm.zstep, keys=self.keys_to_merge_on_release)
+                split_bricks(self.bricksdict, cm.zstep, keys=self.keys_to_merge_on_release)
                 # merge bricks after they've been split
                 merged_keys = BRICKER_OT_merge_bricks.merge_bricks(self.bricksdict, self.keys_to_merge_on_release, cm, any_height=True)
                 self.all_updated_keys += merged_keys
@@ -175,7 +175,7 @@ class BricksculptTools:
         self.hidden_bricks = []
 
     def split_brick_and_get_nearest_1x1(self, cm, n, cur_key, cur_loc, obj_size):
-        brick_keys = Bricks.split(self.bricksdict, cur_key, cm.zstep, cm.brick_type, loc=cur_loc, v=True, h=True)
+        brick_keys = split_brick(self.bricksdict, cur_key, cm.zstep, cm.brick_type, loc=cur_loc, v=True, h=True)
         brick = bpy.data.objects.get(self.bricksdict[cur_key]["name"])
         delete(brick)
         cur_key = self.get_nearest_loc_to_cursor(brick_keys)
@@ -201,7 +201,7 @@ class BricksculptTools:
         self.keys_to_merge_on_commit = uniquify(self.keys_to_merge_on_commit)
         if mergable_brick_type(self.brick_type) and len(self.keys_to_merge_on_commit) > 1:
             # split up bricks
-            Bricks.split_all(self.bricksdict, cm.zstep, keys=self.keys_to_merge_on_commit)
+            split_bricks(self.bricksdict, cm.zstep, keys=self.keys_to_merge_on_commit)
             # merge split bricks
             merged_keys = BRICKER_OT_merge_bricks.merge_bricks(self.bricksdict, self.keys_to_merge_on_commit, cm, target_type="BRICK" if cm.brick_type == "BRICKS AND PLATES" else self.brick_type, any_height=cm.brick_type == "BRICKS AND PLATES")
         else:

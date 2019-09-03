@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .functions import *
+from .exposure import *
 from .generate import *
 from .modify import *
 from .storage import *

@@ -27,106 +27,171 @@ from mathutils import Vector, Matrix
 
 # Module imports
 from .mesh_generators import *
-from .get_brick_dimensions import *
+from .types import *
 from ..common import *
 from ..general import *
 
-class Bricks:
-    @staticmethod
-    def new_mesh(dimensions:list, brick_type:str, size:list=[1,1,3], type:str="BRICK", flip:bool=False, rotate90:bool=False, logo=False, logo_type="NONE", logo_scale=100, logo_inset=None, all_vars=False, underside_detail:str="FLAT", stud:bool=True, circle_verts:int=16):
-        """ create unlinked Brick at origin """
-        # create brick mesh
-        if type in ("BRICK", "PLATE") or "CUSTOM" in type:
-            brick_bm = make_standard_brick(dimensions, size, type, brick_type, circle_verts=circle_verts, detail=underside_detail, stud=stud)
-        elif type in get_round_brick_types():
-            brick_bm = make_round_1x1(dimensions, brick_type, circle_verts=circle_verts, type=type, detail=underside_detail)
-        elif type in ("TILE", "TILE_GRILL"):
-            brick_bm = make_tile(dimensions, brick_type, brick_size=size, circle_verts=circle_verts, type=type, detail=underside_detail)
-        elif type in ("SLOPE", "SLOPE_INVERTED", "TALL_SLOPE"):
-            # determine brick direction
-            directions = ["X+", "Y+", "X-", "Y-"]
-            max_idx = size.index(max(size[:2]))
-            max_idx -= 2 if flip else 0
-            max_idx += 1 if rotate90 else 0
-            # make slope brick bmesh
-            if type == "SLOPE_INVERTED":
-                brick_bm = make_inverted_slope(dimensions, size, brick_type, circle_verts=circle_verts, direction=directions[max_idx], detail=underside_detail, stud=stud)
-            else:
-                brick_bm = make_slope(dimensions, size, brick_type, circle_verts=circle_verts, direction=directions[max_idx], detail=underside_detail, stud=stud)
+def new_brick_mesh(dimensions:list, brick_type:str, size:list=[1,1,3], type:str="BRICK", flip:bool=False, rotate90:bool=False, logo=False, logo_type="NONE", logo_scale=100, logo_inset=None, all_vars=False, underside_detail:str="FLAT", stud:bool=True, circle_verts:int=16):
+    """ create unlinked Brick at origin """
+    # create brick mesh
+    if type in ("BRICK", "PLATE") or "CUSTOM" in type:
+        brick_bm = make_standard_brick(dimensions, size, type, brick_type, circle_verts=circle_verts, detail=underside_detail, stud=stud)
+    elif type in get_round_brick_types():
+        brick_bm = make_round_1x1(dimensions, brick_type, circle_verts=circle_verts, type=type, detail=underside_detail)
+    elif type in ("TILE", "TILE_GRILL"):
+        brick_bm = make_tile(dimensions, brick_type, brick_size=size, circle_verts=circle_verts, type=type, detail=underside_detail)
+    elif type in ("SLOPE", "SLOPE_INVERTED", "TALL_SLOPE"):
+        # determine brick direction
+        directions = ["X+", "Y+", "X-", "Y-"]
+        max_idx = size.index(max(size[:2]))
+        max_idx -= 2 if flip else 0
+        max_idx += 1 if rotate90 else 0
+        # make slope brick bmesh
+        if type == "SLOPE_INVERTED":
+            brick_bm = make_inverted_slope(dimensions, size, brick_type, circle_verts=circle_verts, direction=directions[max_idx], detail=underside_detail, stud=stud)
         else:
-            raise ValueError("'new_mesh' function received unrecognized value for parameter 'type': '" + str(type) + "'")
+            brick_bm = make_slope(dimensions, size, brick_type, circle_verts=circle_verts, direction=directions[max_idx], detail=underside_detail, stud=stud)
+    else:
+        raise ValueError("'new_mesh' function received unrecognized value for parameter 'type': '" + str(type) + "'")
 
-        # send brick mesh to junk edit mesh
-        junk_mesh = bpy.data.meshes.get('Bricker_junk_mesh')
-        if junk_mesh is None:
-            junk_mesh = bpy.data.meshes.new('Bricker_junk_mesh')
-        brick_bm.to_mesh(junk_mesh)
+    # send brick mesh to junk edit mesh
+    junk_mesh = bpy.data.meshes.get('Bricker_junk_mesh')
+    if junk_mesh is None:
+        junk_mesh = bpy.data.meshes.new('Bricker_junk_mesh')
+    brick_bm.to_mesh(junk_mesh)
 
-        # set bevel weights
-        junk_mesh.use_customdata_edge_bevel = True
-        for e in junk_mesh.edges:
-            e.bevel_weight = 0.0 if e.select else 1.0
+    # set bevel weights
+    junk_mesh.use_customdata_edge_bevel = True
+    for e in junk_mesh.edges:
+        e.bevel_weight = 0.0 if e.select else 1.0
 
-        # create list of bmesh variations (logo only, for now)
-        if logo and stud and (type in ("BRICK", "PLATE", "STUD", "SLOPE_INVERTED") or type == "SLOPE" and max(size[:2]) != 1):
-            bms = make_logo_variations(dimensions, size, brick_type, directions[max_idx] if type.startswith("SLOPE") else "", all_vars, logo, logo_inset, logo_type, logo_scale)
+    # create list of bmesh variations (logo only, for now)
+    if logo and stud and (type in ("BRICK", "PLATE", "STUD", "SLOPE_INVERTED") or type == "SLOPE" and max(size[:2]) != 1):
+        bms = make_logo_variations(dimensions, size, brick_type, directions[max_idx] if type.startswith("SLOPE") else "", all_vars, logo, logo_inset, logo_type, logo_scale)
+    else:
+        bms = [bmesh.new()]
+
+    # append brick mesh to each bmesh variation
+    for bm in bms:
+        bm.from_mesh(junk_mesh)
+
+    # return bmesh objects
+    return bms
+
+
+def split_bricks(bricksdict, zstep, keys=None):
+    keys = keys or list(bricksdict.keys())
+    for key in keys:
+        # set all bricks as unmerged
+        if bricksdict[key]["draw"]:
+            bricksdict[key]["parent"] = "self"
+            bricksdict[key]["size"] = [1, 1, zstep]
+
+
+def split_brick(bricksdict, key, zstep, brick_type, loc=None, v=True, h=True):
+    """split brick vertically and/or horizontally
+
+    Keyword Arguments:
+    bricksdict -- Matrix of bricks in model
+    key        -- key for brick in matrix
+    loc        -- xyz location of brick in matrix
+    v          -- split brick vertically
+    h          -- split brick horizontally
+    """
+    # set up unspecified paramaters
+    loc = loc or get_dict_loc(bricksdict, key)
+    # initialize vars
+    size = bricksdict[key]["size"]
+    new_size = [1, 1, size[2]]
+    if flat_brick_type(brick_type):
+        if not v:
+            zstep = 3
         else:
-            bms = [bmesh.new()]
+            new_size[2] = 1
+    if not h:
+        new_size[0] = size[0]
+        new_size[1] = size[1]
+        size[0] = 1
+        size[1] = 1
+    # split brick into individual bricks
+    keys_in_brick = get_keys_in_brick(bricksdict, size, zstep, loc=loc)
+    for cur_key in keys_in_brick:
+        bricksdict[cur_key]["size"] = new_size.copy()
+        bricksdict[cur_key]["type"] = "BRICK" if new_size[2] == 3 else "PLATE"
+        bricksdict[cur_key]["parent"] = "self"
+        bricksdict[cur_key]["top_exposed"] = bricksdict[key]["top_exposed"]
+        bricksdict[cur_key]["bot_exposed"] = bricksdict[key]["bot_exposed"]
+    return keys_in_brick
 
-        # append brick mesh to each bmesh variation
-        for bm in bms:
-            bm.from_mesh(junk_mesh)
 
-        # return bmesh objects
-        return bms
+def get_details_and_bounds(obj, cm=None):
+    """ returns dimensions and bounds of object """
+    cm = cm or get_active_context_info()[1]
+    obj_details = bounds(obj)
+    dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
+    return obj_details, dimensions
 
-    @staticmethod
-    def split_all(bricksdict, zstep, keys=None):
-        keys = keys or list(bricksdict.keys())
-        for key in keys:
-            # set all bricks as unmerged
-            if bricksdict[key]["draw"]:
-                bricksdict[key]["parent"] = "self"
-                bricksdict[key]["size"] = [1, 1, zstep]
 
-    def split(bricksdict, key, zstep, brick_type, loc=None, v=True, h=True):
-        """split brick vertically and/or horizontally
+def get_brick_dimensions(height=1, z_scale=1, gap_percentage=1.0):
+    """
+    returns the dimensions of a brick in Blender units
 
-        Keyword Arguments:
-        bricksdict -- Matrix of bricks in model
-        key        -- key for brick in matrix
-        loc        -- xyz location of brick in matrix
-        v          -- split brick vertically
-        h          -- split brick horizontally
-        """
-        # set up unspecified paramaters
-        loc = loc or get_dict_loc(bricksdict, key)
-        # initialize vars
-        size = bricksdict[key]["size"]
-        new_size = [1, 1, size[2]]
-        if flat_brick_type(brick_type):
-            if not v:
-                zstep = 3
-            else:
-                new_size[2] = 1
-        if not h:
-            new_size[0] = size[0]
-            new_size[1] = size[1]
-            size[0] = 1
-            size[1] = 1
-        # split brick into individual bricks
-        keys_in_brick = get_keys_in_brick(bricksdict, size, zstep, loc=loc)
-        for cur_key in keys_in_brick:
-            bricksdict[cur_key]["size"] = new_size.copy()
-            bricksdict[cur_key]["type"] = "BRICK" if new_size[2] == 3 else "PLATE"
-            bricksdict[cur_key]["parent"] = "self"
-            bricksdict[cur_key]["top_exposed"] = bricksdict[key]["top_exposed"]
-            bricksdict[cur_key]["bot_exposed"] = bricksdict[key]["bot_exposed"]
-        return keys_in_brick
+    Keyword Arguments:
+    height         -- height of a standard brick in Blender units
+    z_scale         -- height of the brick in plates (1: standard plate, 3: standard brick)
+    gap_percentage -- gap between bricks relative to brick height
+    """
 
-    @staticmethod
-    def get_dimensions(height=1, z_scale=1, gap_percentage=0.01):
-        return get_brick_dimensions(height, z_scale, gap_percentage)
+    scale = height / 9.6
+    dimensions = {}
+    dimensions["height"] = scale * 9.6 * (z_scale / 3)
+    dimensions["half_height"] = dimensions["height"] / 2
+    dimensions["width"] = scale * 8
+    dimensions["half_width"] = dimensions["width"] / 2
+    dimensions["gap"] = scale * 9.6 * (gap_percentage / 100)
+    dimensions["stud_height"] = scale * 1.8
+    dimensions["stud_radius"] = scale * 2.4
+    dimensions["thickness"] = scale * 1.6
+    dimensions["tube_thickness"] = scale * 0.855
+    dimensions["support_width"] = scale * 0.8
+    dimensions["support_height"] = dimensions["height"] * 0.65
+    dimensions["slope_support_width"] = scale * 0.6  # eyeballed
+    dimensions["slope_support_height"] = scale * 2.4  # eyeballed
+    dimensions["bar_radius"] = scale * 1.6
+    dimensions["logo_width"] = scale * 4.8 # originally scale * 3.74
+    dimensions["tick_width"] = scale * 0.6
+    dimensions["tick_depth"] = scale * 0.3
+    dimensions["slope_tick_depth"] = scale * 0.375
+    dimensions["slit_height"] = scale * 0.3
+    dimensions["slit_depth"] = scale * 0.3
+    dimensions["oblong_support_dist"] = scale
+    dimensions["oblong_support_radius"] = scale * 0.6
+    dimensions["support_height_triple"] = (dimensions["height"] * 3) * 0.65
+    dimensions["logo_offset"] = dimensions["half_height"] + dimensions["stud_height"]
+    # round all values in dimensions
+    for k in dimensions:
+        dimensions[k] = round(dimensions[k], 8)
+
+    return dimensions
+
+
+def is_on_shell(bricksdict, key, loc=None, zstep=None, shell_depth=1):
+    """ check if any locations in brick are on the shell """
+    size = bricksdict[key]["size"]
+    loc = loc or get_dict_loc(bricksdict, key)
+    brick_keys = get_keys_in_brick(bricksdict, size, zstep, loc=loc)
+    for k in brick_keys:
+        if bricksdict[k]["val"] >= 1 - (shell_depth - 1) / 100:
+            return True
+    return False
+
+
+def get_brick_center(bricksdict, key, zstep, loc=None):
+    loc = loc or get_dict_loc(bricksdict, key)
+    brick_keys = get_keys_in_brick(bricksdict, bricksdict[key]["size"], zstep, loc=loc)
+    coords = [bricksdict[k0]["co"] for k0 in brick_keys]
+    coord_ave = Vector((mean([co[0] for co in coords]), mean([co[1] for co in coords]), mean([co[2] for co in coords])))
+    return coord_ave
 
 
 def get_num_rots(direction, size):

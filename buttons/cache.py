@@ -27,7 +27,6 @@ props = bpy.props
 from ..lib.caches import *
 from ..lib.undo_stack import *
 from ..functions import *
-from ..functions.brickify_utils import *
 
 
 class BRICKER_OT_clear_cache(bpy.types.Operator):
