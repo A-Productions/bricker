@@ -9,3 +9,6 @@ bricksdict_dump.py
 buttons/customize/tools/paintbrush_framework.py
 buttons/customize/tools/bricksculpt_framework.py
 buttons/customize/tools/bricksculpt_framework?.py
+operators/customization_tools/paintbrush_framework.py
+operators/customization_tools/bricksculpt_framework.py
+operators/customization_tools/bricksculpt_framework?.py

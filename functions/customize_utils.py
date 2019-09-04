@@ -342,7 +342,7 @@ def install_bricksculpt():
     bricksculpt_mod_name = bpy.props.bricksculpt_module_name
     bricker_mod_name = bpy.props.bricker_module_name
     bricksculpt_path_old = "%(addons_path)s/%(bricksculpt_mod_name)s/bricksculpt_framework.py" % locals()
-    bricksculpt_path_new = "%(addons_path)s/%(bricker_mod_name)s/buttons/customize/tools/bricksculpt_framework.py" % locals()
+    bricksculpt_path_new = "%(addons_path)s/%(bricker_mod_name)s/operators/customization_tools/bricksculpt_framework.py" % locals()
     f_old = open(bricksculpt_path_old, "r")
     f_new = open(bricksculpt_path_new, "w")
     # write META commands
