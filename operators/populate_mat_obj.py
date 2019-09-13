@@ -36,7 +36,6 @@ class BRICKER_OT_populate_mat_obj(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns false) """
         scn = bpy.context.scene
         if scn.cmlist_index == -1:
             return False

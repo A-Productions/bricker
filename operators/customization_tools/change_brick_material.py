@@ -39,7 +39,6 @@ class BRICKER_OT_change_brick_material(Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns False) """
         scn = bpy.context.scene
         objs = bpy.context.selected_objects
         if scn.cmlist_index == -1:

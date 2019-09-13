@@ -31,13 +31,13 @@ from ..functions import *
 class CMLIST_OT_list_action(Operator):
     bl_idname = "cmlist.list_action"
     bl_label = "Brick Model List Action"
+    bl_options = {"REGISTER", "UNDO"}
 
     ################################################
     # Blender Operator methods
 
     # @classmethod
     # def poll(self, context):
-    #     """ ensures operator can execute (if not, returns false) """
     #     scn = context.scene
     #     for cm in scn.cmlist:
     #         if cm.animated:
@@ -54,12 +54,10 @@ class CMLIST_OT_list_action(Operator):
             except IndexError:
                 pass
 
-            if self.action == "REMOVE" and len(scn.cmlist) > 0 and scn.cmlist_index >= 0:
-                bpy.ops.ed.undo_push(message="Bricker: Remove Item")
+            if self.action == "REMOVE" and len(scn.cmlist) > 0 and idx >= 0:
                 self.remove_item(idx)
 
             elif self.action == "ADD":
-                bpy.ops.ed.undo_push(message="Bricker: Remove Item")
                 self.add_item()
 
             elif self.action == "DOWN" and idx < len(scn.cmlist) - 1:
@@ -74,7 +72,7 @@ class CMLIST_OT_list_action(Operator):
     ###################################################
     # class variables
 
-    action = bpy.props.EnumProperty(
+    action = EnumProperty(
         items=(
             ("UP", "Up", ""),
             ("DOWN", "Down", ""),
@@ -128,7 +126,7 @@ class CMLIST_OT_list_action(Operator):
         # create new mat_obj for current cmlist id
         create_mat_objs(item)
 
-    def remove_item(cls, idx):
+    def remove_item(self, idx):
         scn, cm, sn = get_active_context_info()
         n = cm.name
         if not cm.model_created and not cm.animated:
@@ -145,7 +143,7 @@ class CMLIST_OT_list_action(Operator):
                 # run update function of the property
                 scn.cmlist_index = scn.cmlist_index
         else:
-            cls.report({"WARNING"}, "Please delete the Brickified model before attempting to remove this item." % locals())
+            self.report({"WARNING"}, "Please delete the Brickified model before attempting to remove this item." % locals())
 
     def move_down(self, item):
         scn = bpy.context.scene
@@ -175,7 +173,6 @@ class CMLIST_OT_copy_settings_to_others(Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns false) """
         scn = context.scene
         if scn.cmlist_index == -1:
             return False
@@ -202,7 +199,6 @@ class CMLIST_OT_copy_settings(Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns false) """
         scn = context.scene
         if scn.cmlist_index == -1:
             return False
@@ -226,7 +222,6 @@ class CMLIST_OT_paste_settings(Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns false) """
         scn = context.scene
         if scn.cmlist_index == -1:
             return False
@@ -252,7 +247,6 @@ class CMLIST_OT_select_bricks(Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns false) """
         scn = context.scene
         if scn.cmlist_index == -1:
             return False

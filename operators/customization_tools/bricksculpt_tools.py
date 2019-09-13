@@ -109,16 +109,16 @@ class BricksculptTools:
         else:
             select(brick)
 
-    def merge_brick(self, cm, source_name, cur_key=None, cur_loc=None, obj_size=None, mode="DRAW", state="DRAG"):
+    def merge_bricks(self, cm, source_name, cur_key=None, cur_loc=None, obj_size=None, mode="DRAW", state="DRAG"):
         if state == "DRAG":
             # TODO: Light up bricks as they are selected to be merged
-            self.parent_locs_to_merge_on_release.append(cur_loc)
+            self.parent_locs_to_merge_on_release.append((cur_loc, cur_key))
             self.added_bricks.append(self.bricksdict[cur_key]["name"])
             select(self.obj)
         elif state == "RELEASE":
             # assemble keys_to_merge_on_release
-            for pl in self.parent_locs_to_merge_on_release:
-                brick_keys = get_keys_in_brick(self.bricksdict, self.bricksdict[pk]["size"], cm.zstep, loc=pl)
+            for pl, pk in self.parent_locs_to_merge_on_release:
+                brick_keys = get_keys_in_brick(self.bricksdict, self.bricksdict[pk]["size"], cm.zstep, key=pk)
                 self.keys_to_merge_on_release += brick_keys
             self.parent_locs_to_merge_on_release = []
             self.keys_to_merge_on_release = uniquify(self.keys_to_merge_on_release)

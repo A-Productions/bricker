@@ -38,7 +38,6 @@ class BRICKER_OT_select_bricks_by_size(Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns False) """
         return bpy.props.bricker_initialized
 
     def execute(self, context):

@@ -40,7 +40,6 @@ class BRICKER_OT_merge_bricks(Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns False) """
         scn = bpy.context.scene
         objs = bpy.context.selected_objects
         i = 0

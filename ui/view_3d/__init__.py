@@ -15,6 +15,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .created_model_uilist import *
-from .view_3d import *
-from .matslot_uilist import *
+from .advanced import *
+from .animation import *
+from .brick_models import *
+from .brick_types import *
+from .customize import *
+from .detailing import *
+from .export import *
+from .materials import *
+from .matrix_details import *
+from .merge_settings import *
+from .model_settings import *
+from .model_transform import *
+from .smoke_settings import *
+from .supports import *

@@ -43,7 +43,6 @@ class BRICKER_OT_matlist_actions(bpy.types.Operator):
 
     # @classmethod
     # def poll(self, context):
-    #     """ ensures operator can execute (if not, returns false) """
     #     scn = context.scene
     #     for cm in scn.matlist:
     #         if cm.animated:

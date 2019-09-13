@@ -140,7 +140,7 @@ def make_cube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flip_normals:b
     return bme, [v1, v3, v7, v5, v2, v6, v8, v4]
 
 
-def make_circle(radius:float, vertices:int, co:tuple=Vector((0, 0, 0)), face:bool=True, flip_normals:bool=False, bme:bmesh=None):
+def make_circle(radius:float, vertices:int, co:tuple=Vector((0, 0, 0)), fill:bool=True, flip_normals:bool=False, bme:bmesh=None):
     """
     create a circle with bmesh
 
@@ -148,7 +148,7 @@ def make_circle(radius:float, vertices:int, co:tuple=Vector((0, 0, 0)), face:boo
         radius       -- radius of circle
         vertices     -- number of verts on circumference
         co           -- coordinate of cylinder's center
-        face         -- create face between circle verts
+        cill         -- create face between circle verts
         flip_normals -- flip normals of cylinder
         bme          -- bmesh object in which to create verts
 
@@ -165,7 +165,7 @@ def make_circle(radius:float, vertices:int, co:tuple=Vector((0, 0, 0)), face:boo
         coord = co + Vector((x, y, 0))
         verts.append(bme.verts.new(coord))
     # create face
-    if face:
+    if fill:
         bme.faces.new(verts if not flip_normals else verts[::-1])
     # create edges
     else:

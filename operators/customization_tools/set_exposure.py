@@ -39,7 +39,6 @@ class BRICKER_OT_set_exposure(Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns False) """
         scn = bpy.context.scene
         objs = bpy.context.selected_objects
         # check that at least 1 selected object is a brick

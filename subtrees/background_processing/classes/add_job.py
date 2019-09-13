@@ -45,7 +45,6 @@ class SCENE_OT_add_job(Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns false) """
         return bpy.context.object is not None
 
     def execute(self, context):

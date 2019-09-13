@@ -48,7 +48,6 @@ class BRICKER_OT_bricksculpt(Operator, BricksculptFramework, BricksculptTools, B
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns False) """
         if not bpy.props.bricker_initialized:
             return False
         return True

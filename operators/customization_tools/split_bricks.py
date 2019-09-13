@@ -39,7 +39,6 @@ class BRICKER_OT_split_bricks(Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns False) """
         if not bpy.props.bricker_initialized:
             return False
         scn = bpy.context.scene

@@ -55,14 +55,12 @@ def new_brick_mesh(dimensions:list, brick_type:str, size:list=[1,1,3], type:str=
         raise ValueError("'new_mesh' function received unrecognized value for parameter 'type': '" + str(type) + "'")
 
     # send brick mesh to junk edit mesh
-    junk_mesh = bpy.data.meshes.get('Bricker_junk_mesh')
-    if junk_mesh is None:
-        junk_mesh = bpy.data.meshes.new('Bricker_junk_mesh')
-    brick_bm.to_mesh(junk_mesh)
+    junk_m = junk_mesh()
+    brick_bm.to_mesh(junk_m)
 
     # set bevel weights
-    junk_mesh.use_customdata_edge_bevel = True
-    for e in junk_mesh.edges:
+    junk_m.use_customdata_edge_bevel = True
+    for e in junk_m.edges:
         e.bevel_weight = 0.0 if e.select else 1.0
 
     # create list of bmesh variations (logo only, for now)
@@ -73,7 +71,7 @@ def new_brick_mesh(dimensions:list, brick_type:str, size:list=[1,1,3], type:str=
 
     # append brick mesh to each bmesh variation
     for bm in bms:
-        bm.from_mesh(junk_mesh)
+        bm.from_mesh(junk_m)
 
     # return bmesh objects
     return bms

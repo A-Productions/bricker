@@ -39,7 +39,6 @@ class OBJECT_OT_duplicate_override(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns false) """
         return True
 
     def execute(self, context):

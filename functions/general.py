@@ -262,7 +262,7 @@ def update_can_run(typ):
         elif typ == "MODEL":
             return common_needs_update or (cm.collection is not None and len(cm.collection.objects) == 0) or (cm.material_type != "CUSTOM" and (cm.material_type != "RANDOM" or cm.split_model or cm.last_material_type != cm.material_type or cm.material_is_dirty) and cm.material_is_dirty) or cm.has_custom_obj1 or cm.has_custom_obj2 or cm.has_custom_obj3
 
-            
+
 # loc param is more efficient than key, but one or the other must be passed
 def get_locs_in_brick(bricksdict, size, zstep, loc:list=None, key:str=None):
     x0, y0, z0 = loc or get_dict_loc(bricksdict, key)
@@ -330,3 +330,14 @@ def get_nearby_loc_from_vector(loc_diff, cur_loc, dimensions, zstep, width_divis
     elif loc_diff.y < -d.y:
         next_loc.y += math.floor((loc_diff.y + d.y) / (d.y * 2))
     return [int(next_loc.x), int(next_loc.y), int(next_loc.z)]
+
+
+def settings_can_be_drawn():
+    scn = bpy.context.scene
+    if scn.cmlist_index == -1:
+        return False
+    if bversion() < "002.079":
+        return False
+    if not bpy.props.bricker_initialized:
+        return False
+    return True

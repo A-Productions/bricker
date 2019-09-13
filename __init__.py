@@ -120,7 +120,7 @@ def register():
         keymaps.add_keymaps(km)
         addon_keymaps.append(km)
 
-    # register app handlers
+    # register app handlers and timers
     bpy.app.handlers.frame_change_pre.append(handle_animation)
     if not bpy.app.background:
         if b280():

@@ -41,7 +41,6 @@ class BRICKER_OT_draw_adjacent(Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns False) """
         scn = bpy.context.scene
         active_obj = bpy.context.active_object
         # check active object is not None

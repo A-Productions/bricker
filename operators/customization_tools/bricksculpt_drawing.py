@@ -203,37 +203,7 @@ class BricksculptDrawing:
         bgl.glPopMatrix()
     @blender_version_wrapper(">=", "2.80")
     def draw_preview(self):
-        # bgl.glEnable(bgl.GL_MULTISAMPLE)
-        # bgl.glEnable(bgl.GL_LINE_SMOOTH)
-        # bgl.glHint(bgl.GL_LINE_SMOOTH_HINT, bgl.GL_NICEST)
-        # bgl.glEnable(bgl.GL_BLEND)
-        # bgl.glEnable(bgl.GL_POINT_SMOOTH)
-        # bgl.glDisable(bgl.GL_DEPTH_TEST)
-        #
-        # bgl.glMatrixMode(bgl.GL_MODELVIEW)
-        # bgl.glPushMatrix()
-        # bgl.glLoadIdentity()
-        # bgl.glMatrixMode(bgl.GL_PROJECTION)
-        # bgl.glPushMatrix()
-        # bgl.glLoadIdentity()
-
-        # add background gradient
-        bgl.glBegin(bgl.GL_TRIANGLES)
-        for i in range(0,360,10):
-            r0,r1 = i*math.pi/180.0, (i+10)*math.pi/180.0
-            x0,y0 = math.cos(r0)*2,math.sin(r0)*2
-            x1,y1 = math.cos(r1)*2,math.sin(r1)*2
-            bgl.glColor4f(0,0,0.01,0.0)
-            bgl.glVertex2f(0,0)
-            bgl.glColor4f(0,0,0.01,0.8)
-            bgl.glVertex2f(x0,y0)
-            bgl.glVertex2f(x1,y1)
-        bgl.glEnd()
-
-        # bgl.glMatrixMode(bgl.GL_PROJECTION)
-        # bgl.glPopMatrix()
-        # bgl.glMatrixMode(bgl.GL_MODELVIEW)
-        # bgl.glPopMatrix()
+        pass
 
     # @blender_version_wrapper("<=", "2.79")
     def draw_postpixel(self):
@@ -300,12 +270,7 @@ class BricksculptDrawing:
         bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
     @blender_version_wrapper(">=", "2.80")
     def draw_text_2d(self, text, font_id=0, color=(1, 1, 1, 1), position=(0, 0)):
-        # draw some text
-        bgl.glColor4f(*color)
-        blf.position(font_id, position[0], position[1], 0)
-        blf.size(font_id, 11, self.dpi)
-        blf.draw(font_id, text)
-        bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
+        pass
 
     # def draw_centerpoint(color, point, width=1):
     #     bgl.glLineWidth(width)

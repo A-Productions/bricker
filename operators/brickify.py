@@ -48,7 +48,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns false) """
         scn = bpy.context.scene
         if scn.cmlist_index == -1:
             return False

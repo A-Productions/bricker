@@ -38,7 +38,6 @@ class BRICKER_OT_revert_settings(Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns False) """
         scn = bpy.context.scene
         if scn.cmlist_index == -1:
             return False

@@ -22,10 +22,12 @@ from math import *
 # Blender imports
 import bpy
 import bmesh
+import mathutils
 from mathutils import Vector, Euler, Matrix
+from bpy_extras import view3d_utils
 from bpy.types import Object, Scene
 try:
-    from bpy.types import ViewLayer
+    from bpy.types import ViewLayer, LayerCollection
 except ImportError:
     ViewLayer = None
 
@@ -147,22 +149,22 @@ def select_all():
 
 
 def select_geom(geom):
-    """ selects verts/edges/faces in list and deselects the rest """
-    # confirm vertList is a list of vertices
-    geom = confirm_list(geom)
+    """ selects verts/edges/faces in 'geom' iterable and deselects the rest """
+    # confirm geom is an iterable of vertices
+    geom = confirm_iter(geom)
     # select vertices in list
     for v in geom:
-        if v is not None and not v.select:
+        if v and not v.select:
             v.select = True
 
 
 def deselect_geom(geom):
-    """ deselects verts/edges/faces in list """
-    # confirm vertList is a list of vertices
-    geom = confirm_list(geom)
+    """ deselects verts/edges/faces  in 'geom' iterable """
+    # confirm geom is an iterable of vertices
+    geom = confirm_iter(geom)
     # select vertices in list
     for v in geom:
-        if v is not None and v.select:
+        if v and v.select:
             v.select = False
 
 
@@ -241,15 +243,7 @@ def is_obj_visible_in_viewport(obj:Object):
     return any([obj.layers[i] and scn.layers[i] for i in range(20)])
 @blender_version_wrapper(">=","2.80")
 def is_obj_visible_in_viewport(obj:Object):
-    if obj is None:
-        return False
-    obj_visible = not obj.hide_viewport
-    if obj_visible:
-        for cn in obj.users_collection:
-            if cn.hide_viewport:
-                obj_visible = False
-                break
-    return obj_visible
+    return obj.visible_get()
 
 
 @blender_version_wrapper("<=","2.79")
@@ -263,12 +257,16 @@ def link_object(o:Object, scene:Scene=None):
 
 
 @blender_version_wrapper("<=","2.79")
-def unlink_object(o:Object):
+def unlink_object(o:Object, scene:Scene=None, all:bool=False):
     bpy.context.scene.objects.unlink(o)
 @blender_version_wrapper(">=","2.80")
-def unlink_object(o:Object):
-    for coll in o.users_collection:
-        coll.objects.unlink(o)
+def unlink_object(o:Object, scene:Scene=None, all:bool=False):
+    if not all:
+        scene = scene or bpy.context.scene
+        scene.collection.objects.unlink(o)
+    else:
+        for coll in o.users_collection:
+            coll.objects.unlink(o)
 
 
 @blender_version_wrapper("<=","2.79")
@@ -302,7 +300,7 @@ def safe_link(obj:Object, protect:bool=False, collections=None):
 def safe_unlink(obj:Object, protect:bool=True):
     # unlink object from scene
     try:
-        unlink_object(obj)
+        unlink_object(obj, all=True)
     except RuntimeError:
         pass
     # prevent object data from being tossed on Blender exit
@@ -411,6 +409,17 @@ def disable_relationship_lines():
             area.spaces[0].overlay.show_relationship_lines = False
 
 
+def get_layer_collection(name:str, layer_collection:LayerCollection=None):
+    """ recursivly transverse view_layer.layer_collection for a particular name """
+    layer_collection = layer_collection or bpy.context.window.view_layer.layer_collection
+    if (layer_collection.name == name):
+        return layer_collection
+    for lc in layer_collection.children:
+        found_layer_coll = get_layer_collection(name, lc)
+        if found_layer_coll:
+            return found_layer_coll
+
+
 def set_active_scene(scn:Scene):
     """ set active scene in all screens """
     for screen in bpy.data.screens:
@@ -461,6 +470,10 @@ def open_layer(layer_num:int, scn:Scene=None):
     return layer_list
 
 
+def viewport_is_orthographic(r3d, cam=None):
+    return r3d.view_perspective == "ORTHO" or (r3d.view_perspective == "CAMERA" and cam and cam.type == "ORTHO")
+
+
 #################### MESHES ####################
 
 
@@ -481,6 +494,62 @@ def smooth_mesh_faces(faces:iter):
     faces = confirm_iter(faces)
     for f in faces:
         f.use_smooth = True
+
+
+def junk_mesh():
+    """ returns junk mesh (only creates one if necessary) """
+    junk_mesh = bpy.data.meshes.get("temp_junk_mesh_deleteme")
+    if junk_mesh is None:
+        junk_mesh = bpy.data.meshes.new("temp_junk_mesh_deleteme")
+    return junk_mesh
+
+
+#################### RAY CASTING ####################
+
+
+def get_ray_target(x, y, ray_max=1000):
+    region = bpy.context.region
+    rv3d = bpy.context.region_data
+    cam = bpy.context.camera
+    coord = x, y
+    view_vector = view3d_utils.region_2d_to_vector_3d(region, rv3d, coord)
+    ray_origin = view3d_utils.region_2d_to_origin_3d(region, rv3d, coord)
+    if rv3d.view_perspective == "ORTHO" or (rv3d.view_perspective == "CAMERA" and cam and cam.type == "ORTHO"):
+        # move ortho origin back
+        ray_origin = ray_origin - (view_vector * (ray_max / 2.0))
+    ray_target = ray_origin + (view_vector * 1000)
+
+
+def get_position_on_grid(mouse_pos, ray_max=1000):
+    viewport_region = bpy.context.region
+    viewport_r3d = bpy.context.region_data
+    viewport_matrix = viewport_r3d.view_matrix.inverted()
+    cam_obj = bpy.context.space_data.camera
+
+    # Shooting a ray from the camera, through the mouse cursor towards the grid with a length of 100000
+    # If the camera is more than 100000 units away from the grid it won't detect a point
+    ray_start = viewport_matrix.to_translation()
+    ray_depth = viewport_matrix @ Vector((0, 0, -100000))
+
+    # Get the 3D vector position of the mouse
+    ray_end = view3d_utils.region_2d_to_location_3d(viewport_region, viewport_r3d, (mouse_pos[0], mouse_pos[1]), ray_depth)
+
+    # A triangle on the grid plane. We use these 3 points to define a plane on the grid
+    point_1 = Vector((0, 0, 0))
+    point_2 = Vector((0, 1, 0))
+    point_3 = Vector((1, 0, 0))
+
+    # Create a 3D position on the grid under the mouse cursor using the triangle as a grid plane
+    # and the ray cast from the camera
+    position_on_grid = mathutils.geometry.intersect_ray_tri(point_1, point_2, point_3, ray_end, ray_start, False)
+    if position_on_grid is None:
+        return None
+
+    if viewport_is_orthographic(viewport_r3d, None if cam_obj is None else cam_obj.data):
+        # multiply by ray max
+        position_on_grid = position_on_grid * ray_max
+
+    return position_on_grid
 
 
 #################### OTHER ####################
@@ -567,6 +636,15 @@ def set_cursor_location(loc:tuple):
 @blender_version_wrapper(">=","2.80")
 def set_cursor_location(loc:tuple):
     bpy.context.scene.cursor.location = loc
+
+
+def mouse_in_view3d_window(event):
+    regions = dict()
+    for region in bpy.context.area.regions:
+        regions[region.type] = region
+    mouse_pos = Vector((event.mouse_x, event.mouse_y))
+    window_dimensions = Vector((regions["WINDOW"].width - regions["UI"].width, regions["WINDOW"].height - regions["HEADER"].height))
+    return regions["TOOLS"].width < mouse_pos.x < window_dimensions.x and mouse_pos.y < window_dimensions.y
 
 
 @blender_version_wrapper("<=","2.79")

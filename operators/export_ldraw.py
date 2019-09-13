@@ -40,7 +40,6 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns False) """
         return True
 
     def execute(self, context):

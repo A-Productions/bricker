@@ -37,7 +37,6 @@ class BRICKER_OT_redraw_custom_bricks(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        """ ensures operator can execute (if not, returns false) """
         try:
             scn, cm, n = get_active_context_info()
         except IndexError:
