@@ -148,22 +148,18 @@ def select_all():
     select(bpy.context.scene.objects)
 
 
-def select_geom(geom, only=False):
-    """ selects verts/edges/faces in 'geom' iterable (deselects the rest if 'only') """
+def select_geom(geom):
+    """ selects verts/edges/faces in 'geom' iterable """
     # confirm geom is an iterable of vertices
     geom = confirm_iter(geom)
     # select vertices in list
     for v in geom:
-        if not v:
-            continue
-        if not v.select:
+        if v and not v.select:
             v.select = True
-        elif only and v.select:
-            v.select = False
 
 
 def deselect_geom(geom):
-    """ deselects verts/edges/faces  in 'geom' iterable """
+    """ deselects verts/edges/faces in 'geom' iterable """
     # confirm geom is an iterable of vertices
     geom = confirm_iter(geom)
     # select vertices in list
@@ -383,6 +379,19 @@ def is_adaptive(ob:Object):
         if mod.type == "SMOKE" and mod.domain_settings and mod.domain_settings.use_adaptive_domain:
             return True
     return False
+
+def get_vertices_in_group(obj:Object, vertex_group):
+    if isinstance(vertex_group, int):
+        if vertex_group >= len(obj.vertex_groups):
+            raise IndexError("Index out of range!")
+    elif isinstance(vertex_group, str):
+        if vertex_group not in obj.vertex_groups:
+            raise NameError("'{obj}' has no vertex group, '{vg}'!".format(obj=obj.name, vg=vertex_group))
+        vertex_group = obj.vertex_groups[vertex_group].index
+    else:
+        raise ValueError("Expecting second argument to be of type 'str', or 'int'. Got {}".format(type(vertex_group)))
+
+    return [v for v in obj.data.vertices if vertex_group in [vg.group for vg in v.groups]]
 
 
 #################### VIEWPORT ####################

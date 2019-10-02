@@ -25,6 +25,7 @@ import sys
 import zlib
 import binascii
 from io import StringIO
+import re
 
 # Blender imports
 # NONE!
@@ -154,6 +155,10 @@ def str_to_bool(s:str):
         return False
     else:
         raise ValueError("String '%(s)s' could not be evaluated as a bool" % locals())
+
+
+def find_all(val:str, string:str):
+    return [m.start() for m in re.finditer(val, string)]
 
 
 #################### OTHER ####################

@@ -26,6 +26,9 @@ from bmesh.types import BMesh, BMVert, BMEdge, BMFace
 from mathutils import Vector, Matrix, Color
 from mathutils.bvhtree import BVHTree
 
+# Module imports
+# NONE!
+
 
 def smooth_bm_faces(faces:iter):
     """ set given bmesh faces to smooth """
@@ -56,7 +59,7 @@ def face_neighbors_strict(bmface:BMFace):
     for ed in bmface.edges:
         if not (ed.verts[0].is_manifold and ed.verts[1].is_manifold):
             if len(ed.link_faces) == 1:
-                print('found an ed, with two non manifold verts')
+                print("found an ed, with two non manifold verts")
             continue
         neighbors += [f for f in ed.link_faces if f != bmface]
     return neighbors
@@ -166,8 +169,8 @@ def grow_selection(bme:BMesh, start_faces:set, max_iters:int=1000):
     for f in start_faces:
         new_faces.update(face_neighbors_by_vert(f))
 
-    print('there were %i start_faces' % len(start_faces))
-    print('there are %i new_faces' % len(new_faces))
+    print("there were %i start_faces" % len(start_faces))
+    print("there are %i new_faces" % len(new_faces))
 
     iters = 0
     while iters < max_iters and len(new_faces):
@@ -181,7 +184,7 @@ def grow_selection(bme:BMesh, start_faces:set, max_iters:int=1000):
             total_selection |= new_faces
 
     if iters == max_iters:
-        print('max iterations reached')
+        print("max iterations reached")
 
     return total_selection
 
@@ -215,10 +218,10 @@ def flood_selection_by_verts(bme:BMesh, selected_faces:set, seed_face:BMFace, ma
         if new_faces:
             total_selection |= new_faces
     if iters == max_iters:
-        print('max iterations reached')
+        print("max iterations reached")
     return total_selection
 
-def flood_selection_faces(bme:BMesh, selected_faces:set, seed_face:BMFace, max_iters:int=1000):
+def flood_selection_faces(bme:BMesh, selected_faces:set, seed_face:BMFace, max_iters:int=1000, verbose:bool=True):
     """
 
     Parameters:
@@ -227,6 +230,7 @@ def flood_selection_faces(bme:BMesh, selected_faces:set, seed_face:BMFace, max_i
                                     if an empty set, selection will grow to non manifold boundaries
         seed_face (BMFace): a face within/out selected_faces loop
         max_iters (int): maximum recursions to select neightbors
+        verbose (bool): print helpful information
 
     Returns:
         set(BMFaces)
@@ -247,12 +251,12 @@ def flood_selection_faces(bme:BMesh, selected_faces:set, seed_face:BMFace, max_i
         if new_faces:
             total_selection |= new_faces
 
-    if iters == max_iters:
-        print('max iterations reached')
+    if verbose and iters == max_iters:
+        print("max iterations reached")
 
     return total_selection
 
-def flood_selection_edge_loop(bme:BMesh, edge_loop:set, seed_face:BMFace, max_iters:int=1000):
+def flood_selection_edge_loop(bme:BMesh, edge_loop:set, seed_face:BMFace, max_iters:int=1000, verbose:bool=True):
     """
 
     Parameters:
@@ -261,6 +265,7 @@ def flood_selection_edge_loop(bme:BMesh, edge_loop:set, seed_face:BMFace, max_it
                                if an empty set, selection will grow to non manifold boundaries
         seed_face (BMFace): a face within/out selected_faces loop
         max_iters (int): maximum recursions to select neightbors
+        verbose (bool): print helpful information
 
     Returns:
         set(BMFaces)
@@ -292,12 +297,12 @@ def flood_selection_edge_loop(bme:BMesh, edge_loop:set, seed_face:BMFace, max_it
             total_selection |= new_faces
             #new_faces -= face_levy
     if iters == max_iters:
-        print('max iterations reached')
+        print("max iterations reached")
 
 
     return total_selection
 
-def grow_selection_to_find_face(bme:BMesh, start_face:BMFace, stop_face:BMFace, max_iters:int=1000):
+def grow_selection_to_find_face(bme:BMesh, start_face:BMFace, stop_face:BMFace, max_iters:int=1000, verbose:bool=True):
     """ Grows selection iterartively with neighbors until stop face is reached
 
     contemplating indexes vs faces themselves?  will try both ways for speed
@@ -307,6 +312,7 @@ def grow_selection_to_find_face(bme:BMesh, start_face:BMFace, stop_face:BMFace, 
         start_face (BMFace): face to grow selection from
         stop_face (BMFace): stop growing selection if this face is reached
         max_iters (int): maximum recursions to select neightbors
+        verbose (bool): print helpful information
 
     Returns:
         set(BMFaces)
@@ -331,17 +337,18 @@ def grow_selection_to_find_face(bme:BMesh, start_face:BMFace, stop_face:BMFace, 
             total_selection |= new_faces
 
     if iters == max_iters:
-        print('max iterations reached')
+        print("max iterations reached")
 
     return total_selection
 
-def grow_to_find_mesh_end(bme:BMesh, start_face:BMFace, max_iters:int=20):
+def grow_to_find_mesh_end(bme:BMesh, start_face:BMFace, max_iters:int=20, verbose:bool=True):
     """ Grows selection until a non manifold face is reached.
 
     Parameters:
         bme (BMesh): BMesh object
         start_face (list): first face to grow selection from
         max_iters (int): maximum recursions to select neightbors
+        verbose (bool): print helpful information
 
     Returns:
         a dictionary with keys 'VERTS' 'EDGES' containing lists of the corresponding data
@@ -367,8 +374,8 @@ def grow_to_find_mesh_end(bme:BMesh, start_face:BMFace, max_iters:int=20):
     stop_face = not_manifold(new_faces)
     if stop_face:
         total_selection |= new_faces
-        geom['end'] = stop_face
-        geom['faces'] = total_selection
+        geom["end"] = stop_face
+        geom["faces"] = total_selection
         return geom
 
     while new_faces and iters < max_iters and not stop_face:
@@ -383,19 +390,21 @@ def grow_to_find_mesh_end(bme:BMesh, start_face:BMFace, max_iters:int=20):
             stop_face = not_manifold(new_faces)
 
     if iters == max_iters:
-        print('max iterations reached')
-        geom['end'] = None
+        if verbose:
+            print("max iterations reached")
+        geom["end"] = None
     elif not stop_face:
-        print('completely manifold mesh')
-        geom['end'] = None
+        if verbose:
+            print("completely manifold mesh")
+        geom["end"] = None
     else:
-        geom['end'] = stop_face
+        geom["end"] = stop_face
 
-    geom['faces'] = total_selection
+    geom["faces"] = total_selection
     return geom
 
 # COMPLETE. TODO: support 'edges' item_type
-def bmesh_loose_parts(bme:BMesh, item_type:str="faces", selected:set=None, max_iters:int=100):
+def bmesh_loose_parts(bme:BMesh, item_type:str="faces", selected:set=None, max_iters:int=100, verbose=False):
     """ Gets list of loose parts in bmesh
 
     Parameters:
@@ -422,11 +431,11 @@ def bmesh_loose_parts(bme:BMesh, item_type:str="faces", selected:set=None, max_i
         seed = total_items.pop()
 
         if item_type == "faces":
-            island = flood_selection_faces(bme, {}, seed, max_iters=10000)
+            island = flood_selection_faces(bme, {}, seed, max_iters=10000, verbose=verbose)
         elif item_type == "edges":
             raise Exception("Edges not yet supported by bmesh_loose_parts function")
         elif item_type == "verts":
-            island = flood_island_within_selected_verts(bme, total_items, seed, max_iters=10000)
+            island = flood_island_within_selected_verts(bme, total_items, seed, max_iters=10000, verbose=verbose)
 
         islands.append(island)
         total_items.difference_update(island)
@@ -480,7 +489,7 @@ def walk_non_man_edge(bme:BMesh, start_edge:BMEdge, stop:set, max_iters:int=5000
     return chains
 
 # segmentation only
-def flood_island_within_selected_verts(bme:BMesh, selected_verts:set, seed_element, max_iters:int=10000):
+def flood_island_within_selected_verts(bme:BMesh, selected_verts:set, seed_element, max_iters:int=10000, verbose:bool=False):
     """ final all connected verts to seed element that are witin selected_verts
 
     Parameters:
@@ -490,6 +499,7 @@ def flood_island_within_selected_verts(bme:BMesh, selected_verts:set, seed_eleme
         seed_element (BMVert, BMFace): a vertex or face within/out perimeter verts loop
         stop (set): set of verts or edges to stop when reached
         max_iters (int): maximum recursions to select neightbors
+        verbose (bool): print helpful information
 
     Returns:
         set of verticies
@@ -501,7 +511,8 @@ def flood_island_within_selected_verts(bme:BMesh, selected_verts:set, seed_eleme
     flood_selection.add(seed_element)
     new_verts = set([v for v in vert_neighbors(seed_element) if v in selected_verts])
 
-    print('print there are %i new_verts at first iteration' % len(new_verts))
+    if verbose:
+        print("there are %i new_verts at first iteration" % len(new_verts))
     iters = 0
     while iters < max_iters and new_verts:
         iters += 1
@@ -510,14 +521,15 @@ def flood_island_within_selected_verts(bme:BMesh, selected_verts:set, seed_eleme
             new_candidates.update(vert_neighbors(v))
 
         new_verts = new_candidates & selected_verts
-        print('at iteration %i there are %i new_verts' % (iters, len(new_verts)))
+        if verbose:
+            print("at iteration %i there are %i new_verts" % (iters, len(new_verts)))
 
         if new_verts:
             flood_selection |= new_verts
             selected_verts -= new_verts
 
-    if iters == max_iters:
-        print('max iterations reached')
+    if verbose and iters == max_iters:
+        print("max iterations reached")
 
     return flood_selection
 
@@ -561,7 +573,7 @@ def flood_selection_vertex_perimeter(bme:BMesh, perimeter_verts:set, seed_elemen
             flood_selection |= new_verts
 
     if iters == max_iters:
-        print('max iterations reached')
+        print("max iterations reached")
 
     return flood_selection
 
@@ -597,7 +609,7 @@ def partition_faces_between_edge_boundaries(bme:BMesh, input_faces:set, boundary
     return islands
 
 
-def edge_loops_from_bmedges(bme:BMesh, bm_edges:list, ret:dict={'VERTS'}):
+def edge_loops_from_bmedges(bme:BMesh, bm_edges:list, ret:dict={"VERTS"}):
     """
     Parameters:
         bme (BMesh): BMEsh object
@@ -619,8 +631,8 @@ def edge_loops_from_bmedges(bme:BMesh, bm_edges:list, ret:dict={'VERTS'}):
     There will be better methods regardless that utilize walking some day....
     """
     geom_dict = dict()
-    geom_dict['VERTS'] = []
-    geom_dict['EDGES'] = []
+    geom_dict["VERTS"] = []
+    geom_dict["EDGES"] = []
     edges = bm_edges.copy()
 
     while edges:
@@ -669,11 +681,11 @@ def edge_loops_from_bmedges(bme:BMesh, bm_edges:list, ret:dict={'VERTS'}):
                     del edges[i]
                     # break
 
-        if 'VERTS' in ret:
-            geom_dict['VERTS'] += [line_poly]
-        if 'EDGES' in ret:
-            print('adding edge loop to dict')
-            geom_dict['EDGES'] += [ed_loop]
+        if "VERTS" in ret:
+            geom_dict["VERTS"] += [line_poly]
+        if "EDGES" in ret:
+            print("adding edge loop to dict")
+            geom_dict["EDGES"] += [ed_loop]
 
     return geom_dict
 
@@ -749,7 +761,7 @@ def face_region_boundary_loops(bme:BMesh, sel_faces:list):
     face_set = set(sel_faces)
     edges_raw = [ed.index for ed in bme.edges if ed.select and len([f.index for f in ed.link_faces if f.index in face_set]) == 1]
 
-    geom_dict = edge_loops_from_bmedges(bme, edges_raw, ret={'VERTS','EDGES'})
+    geom_dict = edge_loops_from_bmedges(bme, edges_raw, ret={"VERTS", "EDGES"})
 
     return geom_dict
 
@@ -853,7 +865,7 @@ def find_face_loop(bme:BMesh, edge:BMEdge, select:bool=False):
     return  face_loop_fs, face_loop_eds
 
 
-def edge_loop_neighbors(bme:BMesh, edge_loop:list, strict:bool=False, trim_tails:bool=True, expansion:str='EDGES', quad_only:bool=True):
+def edge_loop_neighbors(bme:BMesh, edge_loop:list, strict:bool=False, trim_tails:bool=True, expansion:str="EDGES", quad_only:bool=True):
     """
 
     Parameters:
@@ -882,14 +894,14 @@ def edge_loop_neighbors(bme:BMesh, edge_loop:list, strict:bool=False, trim_tails
     """
 
 
-    ed_loops = edge_loops_from_bmedges(bme, edge_loop, ret = {'VERTS','EDGES'})
+    ed_loops = edge_loops_from_bmedges(bme, edge_loop, ret={"VERTS", "EDGES"})
 
     geom_dict = dict()
-    geom_dict['VERTS'] = []
-    geom_dict['EDGES'] = []
-    geom_dict['FACES'] = []
+    geom_dict["VERTS"] = []
+    geom_dict["EDGES"] = []
+    geom_dict["FACES"] = []
 
-    for v_inds, ed_inds in zip(ed_loops['VERTS'],ed_loops['EDGES']):
+    for v_inds, ed_inds in zip(ed_loops["VERTS"], ed_loops["EDGES"]):
 
         v0 = bme.verts[v_inds[0]]
         e0 = bme.edges[ed_inds[0]]
@@ -900,11 +912,11 @@ def edge_loop_neighbors(bme:BMesh, edge_loop:list, strict:bool=False, trim_tails
         all_faces = set()
 
         if quad_only:
-            if expansion == 'EDGES':
+            if expansion == "EDGES":
                 for e_ind in ed_inds:
                     all_faces.update([f.index for f in bme.edges[e_ind].link_faces if len(f.verts) == 4])
 
-            elif expansion == 'VERTS':
+            elif expansion == "VERTS":
                 for v_ind in v_inds:
                     all_faces.update([f.index for f in bme.verts[v_ind].link_faces if len(f.verts) == 4])
 
@@ -932,10 +944,10 @@ def edge_loop_neighbors(bme:BMesh, edge_loop:list, strict:bool=False, trim_tails
                                  ed.index not in orig_eds
                                  and not all([f.index in all_faces for f in ed.link_faces])]
 
-            print('Triangle Problems ')
+            print("Triangle Problems ")
             print(parallel_eds)
         #sort them!
-        parallel_loops =  edge_loops_from_bmedges(bme, parallel_eds, ret = {'VERTS','EDGES'})
+        parallel_loops =  edge_loops_from_bmedges(bme, parallel_eds, ret = {"VERTS", "EDGES"})
 
         #get the face loops, a little differently, just walk from 2 perpendicular edges
 
@@ -946,29 +958,29 @@ def edge_loop_neighbors(bme:BMesh, edge_loop:list, strict:bool=False, trim_tails
             #keep only the part of face loop direclty next door
             if strict:
                 f_inds = [f for f in f_inds if f in all_faces]
-            geom_dict['FACES'] += [f_inds]
+            geom_dict["FACES"] += [f_inds]
 
         if strict:
-            if all([len(e_loop) == len(ed_inds) for e_loop in parallel_loops['EDGES']]):
-                for v_loop in parallel_loops['VERTS']:
-                    geom_dict['VERTS'] += [v_loop]
-                for e_loop in parallel_loops['EDGES']:
-                    geom_dict['EDGES'] += [e_loop]
+            if all([len(e_loop) == len(ed_inds) for e_loop in parallel_loops["EDGES"]]):
+                for v_loop in parallel_loops["VERTS"]:
+                    geom_dict["VERTS"] += [v_loop]
+                for e_loop in parallel_loops["EDGES"]:
+                    geom_dict["EDGES"] += [e_loop]
 
 
-            elif any([len(e_loop) == len(ed_inds) for e_loop in parallel_loops['EDGES']]):
+            elif any([len(e_loop) == len(ed_inds) for e_loop in parallel_loops["EDGES"]]):
 
-                for pvs, peds in zip(parallel_loops['VERTS'],parallel_loops['EDGES']):
+                for pvs, peds in zip(parallel_loops["VERTS"],parallel_loops["EDGES"]):
                     if len(peds) == len(ed_inds):
-                        geom_dict['VERTS'] += [pvs]
-                        geom_dict['EDGES'] += [peds]
+                        geom_dict["VERTS"] += [pvs]
+                        geom_dict["EDGES"] += [peds]
 
 
         else:
-            for v_loop in parallel_loops['VERTS']:
-                geom_dict['VERTS'] += [v_loop]
-            for e_loop in parallel_loops['EDGES']:
-                geom_dict['EDGES'] += [e_loop]
+            for v_loop in parallel_loops["VERTS"]:
+                geom_dict["VERTS"] += [v_loop]
+            for e_loop in parallel_loops["EDGES"]:
+                geom_dict["EDGES"] += [e_loop]
 
 
     return geom_dict
@@ -982,11 +994,11 @@ def join_bmesh(source, target, src_trg_map, src_mx=None, trg_mx=None):
 
     """
     L = len(target.verts)
-    print('Target has %i verts' % L)
+    print("Target has %i verts" % L)
 
-    print('Source has %i verts' % len(source.verts))
+    print("Source has %i verts" % len(source.verts))
     l = len(src_trg_map)
-    print('is the src_trg_map being sticky...%i' % l)
+    print("is the src_trg_map being sticky...%i" % l)
     if not src_mx:
         src_mx = Matrix.Identity(4)
 
@@ -1027,7 +1039,7 @@ def join_bmesh(source, target, src_trg_map, src_mx=None, trg_mx=None):
     target.verts.index_update()
     # target.verts.sort()  # does this still work?
     target.verts.ensure_lookup_table()
-    # print('new faces')
+    # print("new faces")
     # for f in source.faces:
         # print(tuple(src_to_trg_ind(v) for v in f.verts))
 
@@ -1063,7 +1075,7 @@ def join_bmesh(source, target, src_trg_map, src_mx=None, trg_mx=None):
 
     if src_trg_map:
         if new_L != L + len(source.verts) -l:
-            print('seems some verts were left in that should not have been')
+            print("seems some verts were left in that should not have been")
 
     del src_trg_map
 
@@ -1117,7 +1129,7 @@ def join_bmesh2(source, target, src_mx=None, trg_mx=None):
 
 
     if new_L != L + len(source.verts):
-        print('seems some verts were left out')
+        print("seems some verts were left out")
 
 
 def new_bmesh_from_bmelements(geom):
@@ -1198,7 +1210,7 @@ def join_objects(obs, name:str=""):
             if ob.type == "MESH":
                 src_bme.from_object(ob, bpy.context.scene)
             else:
-                me = ob.to_mesh(bpy.context.scene, apply_modifiers=True, settings='PREVIEW')
+                me = ob.to_mesh(bpy.context.scene, apply_modifiers=True, settings="PREVIEW")
                 src_bme.from_mesh(me)
                 bpy.data.meshes.remove(me)
         join_bmesh(src_bme, target_bme, src_mx, trg_mx)
@@ -1510,7 +1522,7 @@ def remove_undercuts(context:BMesh, ob:Object, view:Vector, world:bool=True, smo
 
 
     # careful, this can get expensive with multires
-    me = ob.to_mesh(context.scene, True, 'RENDER')
+    me = ob.to_mesh(context.scene, True, "RENDER")
     bme = bmesh.new()
     bme.from_mesh(me)
     bme.normal_update()
@@ -1543,8 +1555,8 @@ def remove_undercuts(context:BMesh, ob:Object, view:Vector, world:bool=True, smo
 
         face_directions[f.index] = direction
 
-    print('there are %i up_faces' % len(up_faces))
-    print('there are %i down_faces' % len(overhang_faces))
+    print("there are %i up_faces" % len(up_faces))
+    print("there are %i down_faces" % len(overhang_faces))
 
 
     # for f in bme.faces:
@@ -1591,8 +1603,8 @@ def remove_undercuts(context:BMesh, ob:Object, view:Vector, world:bool=True, smo
         else:
             upfacing_islands += [island]
 
-    print('%i upfacing islands removed' % islands_removed)
-    print('there are now %i down faces' % len(overhang_faces))
+    print("%i upfacing islands removed" % islands_removed)
+    print("there are now %i down faces" % len(overhang_faces))
 
     def face_neighbors_down(bmface:BMFace):
         return [n for n in face_neighbors(bmface) if n in overhang_faces]
@@ -1675,8 +1687,8 @@ def remove_undercuts(context:BMesh, ob:Object, view:Vector, world:bool=True, smo
     ret = bmesh.ops.extrude_edge_only(bme, edges = loop_edges)
 
 
-    new_fs = [ele for ele in ret['geom'] if type(ele) is BMFace]
-    new_vs = [ele for ele in ret['geom'] if type(ele) is BMVert]
+    new_fs = [ele for ele in ret["geom"] if type(ele) is BMFace]
+    new_vs = [ele for ele in ret["geom"] if type(ele) is BMVert]
 
     #TODO, ray cast down to base plane?
     for v in new_vs:
@@ -1698,13 +1710,13 @@ def remove_undercuts(context:BMesh, ob:Object, view:Vector, world:bool=True, smo
     for ed in bme.edges:
         if len(ed.link_faces) == 0:
             del_edges += [ed]
-    print('deleting %i edges' % len(del_edges))
+    print("deleting %i edges" % len(del_edges))
     bmesh_ops_delete(bme, geom=del_edges, context="EDGES_FACES")
     bmesh.ops.recalc_face_normals(bme, faces=new_fs)
 
     bme.normal_update()
 
-    new_me = bpy.data.meshes.new(ob.name + '_blockout')
+    new_me = bpy.data.meshes.new(ob.name + "_blockout")
 
     obj = bpy.data.objects.new(new_me.name, new_me)
     context.scene.objects.link(obj)
@@ -1717,13 +1729,13 @@ def remove_undercuts(context:BMesh, ob:Object, view:Vector, world:bool=True, smo
     mat = bpy.data.materials.get("Model Material")
     if mat is None:
         # create material
-        print('creating model material')
+        print("creating model material")
         mat = bpy.data.materials.new(name="Model Material")
         # mat.diffuse_color = Color((0.8, .8, .8))
 
     # Assign it to object
     obj.data.materials.append(mat)
-    print('Model material added')
+    print("Model material added")
 
     mat2 = bpy.data.materials.get("Undercut Material")
     if mat2 is None:
@@ -1734,7 +1746,7 @@ def remove_undercuts(context:BMesh, ob:Object, view:Vector, world:bool=True, smo
 
     obj.data.materials.append(mat2)
     mat_ind = obj.data.materials.find("Undercut Material")
-    print('Undercut material is %i' % mat_ind)
+    print("Undercut material is %i" % mat_ind)
 
     for f in new_faces:
         obj.data.polygons[f.index].material_index = mat_ind
