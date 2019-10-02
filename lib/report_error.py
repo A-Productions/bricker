@@ -46,7 +46,8 @@ class SCENE_OT_report_error(bpy.types.Operator):
         # write necessary debugging information to text file
         write_error_to_file(library_servers_path, bpy.data.texts[addon_name + " log"].as_string(), str(self.version)[1:-1], self.github_path)
         # open error report in UI with text editor
-        last_type = change_context(context, "TEXT_EDITOR")
+        bpy.ops.screen.userpref_show("INVOKE_DEFAULT")
+        bpy.context.window_manager.windows[-1].screen.areas[0].type = "TEXT_EDITOR"
         try:
             bpy.ops.text.open(filepath=library_servers_path)
             bpy.context.space_data.show_word_wrap = True

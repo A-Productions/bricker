@@ -107,7 +107,7 @@ def get_available_types(by="SELECTION", include_sizes=[]):
             if flat_brick_type(brick_type):
                 items += [iter_from_type(typ) for typ in legal_bs[1] if include_sizes == "ALL" or obj_size[:2] in legal_bs[1][typ] + include_sizes]
     # uniquify items
-    items = uniquify2(items, innerType=tuple)
+    items = uniquify2(items, inner_type=tuple)
     # remove invalid items
     for item in invalid_items:
         remove_item(items, item)

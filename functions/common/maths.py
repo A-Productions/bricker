@@ -66,9 +66,9 @@ def vec_abs(v1:Vector):
     return Vector(abs(e1) for e1 in v1)
 
 
-def vec_conv(v1, innerType:type=int, outerType:type=Vector):
+def vec_conv(v1, inner_type:type=int, outer_type:type=Vector):
     """ convert type of items in iterable """
-    return outerType([innerType(e1) for e1 in v1])
+    return outer_type([inner_type(e1) for e1 in v1])
 
 
 def vec_round(v1:Vector, precision:int=0, round_type="ROUND"):

@@ -22,26 +22,41 @@
 import bpy
 from mathutils import Vector
 from mathutils.interpolate import poly_3d_calc
+import numpy as np
 
 # Module imports
+from .reporting import b280
 from .maths import *
 from .colors import *
 
 
 # reference: https://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts/addons/uv_bake_texture_to_vcols.py
-def get_pixel(pixels, pixel_width, uv_coord, gamma_correction=2.0167):
+def get_pixel(pixels, pixel_width, uv_coord, channels=4):
     """ get RGBA value for specified coordinate in UV image
     pixels    -- list of pixel data from UV texture image
     size      -- image width
     uv_coord  -- UV coordinate of desired pixel value
-    gamma_correction -- raise final RGBA value to this value for gamma correction
     """
-    pixel_number = (pixel_width * int(uv_coord.y) + int(uv_coord.x)) * 4
+    pixel_number = (pixel_width * int(uv_coord.y) + int(uv_coord.x)) * channels
     assert 0 <= pixel_number < len(pixels)
-    rgba = pixels[pixel_number:pixel_number + 4]
-    # gamma correct RGB value
-    rgba = gamma_correct(rgba, gamma_correction)
+    rgba = pixels[pixel_number:pixel_number + channels]
     return rgba
+
+
+def get_1d_pixel_array(pixels, size, channels):
+    pixels_1d = [pixels[i:i + channels] for i in range(0, len(pixels), channels)]
+    return pixels_1d
+
+
+def get_2d_pixel_array(pixels, size, channels):
+    pixels_2d = np.zeros((size[0], size[1], channels)).tolist()
+    for row in range(size[0]):
+        for col in range(size[1]):
+            pixel_number = (col * size[0] + row) * channels
+            pixels_2d[row][col] = pixels[pixel_number:pixel_number + channels]
+
+    return pixels_2d
+
 
 def nearest_uv_coord(loc, img_obj):
     img_size = Vector(img_obj.data.size)
@@ -93,7 +108,7 @@ def get_uv_coord(mesh, face, point, image):
     return Vector(uv_coord)
 
 
-def get_uv_pixel_color(scn, obj, face_idx, point, uv_image):
+def get_uv_pixel_color(scn, obj, face_idx, point, pixels, uv_image=None):
     """ get RGBA value for point in UV image at specified face index """
     if face_idx is None:
         return None
@@ -108,4 +123,12 @@ def get_uv_pixel_color(scn, obj, face_idx, point, uv_image):
     # retrieve rgba value at uv coordinate
     pixels = get_pixels(image)
     rgba = get_pixel(pixels, image.size[0], uv_coord)
+    # gamma correct color value
+    if image.colorspace_settings.name == "sRGB":
+        rgba = gamma_correct_linear_to_srgb(rgba)
     return rgba
+
+
+def verify_img(im):
+    """ verify image has pixel data """
+    return im if im is not None and im.pixels is not None and len(im.pixels) > 0 else None

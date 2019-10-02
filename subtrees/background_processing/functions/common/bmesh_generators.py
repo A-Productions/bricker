@@ -62,7 +62,7 @@ def make_rectangle(coord1:Vector, coord2:Vector, face:bool=True, flip_normal:boo
     if face:
         bme.faces.new(v_list[::-1] if flip_normal else v_list)
 
-    return bme
+    return bme, v_list
 
 
 def make_square(size:float, location:Vector=Vector((0, 0, 0)), face:bool=True, flip_normal:bool=False, bme:bmesh=None):
@@ -90,12 +90,12 @@ def make_cube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flip_normals:b
     create a cube with bmesh
 
     Keyword Arguments:
-        coord1      -- back/left/bottom corner of the cube (furthest negative in all three axes)
-        coord2      -- front/right/top  corner of the cube (furthest positive in all three axes)
-        sides       -- draw sides [+z, -z, +x, -x, +y, -y]
+        coord1       -- back/left/bottom corner of the cube (furthest negative in all three axes)
+        coord2       -- front/right/top  corner of the cube (furthest positive in all three axes)
+        sides        -- draw sides [+z, -z, +x, -x, +y, -y]
         flip_normals -- flip the normals of the cube
-        seams       -- make all edges seams
-        bme         -- bmesh object in which to create verts
+        seams        -- make all edges seams
+        bme          -- bmesh object in which to create verts
 
     Returns:
         v_list       -- list of vertices in the following x,y,z order: [---, -+-, ++-, +--, --+, +-+, +++, -++]
@@ -140,17 +140,17 @@ def make_cube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flip_normals:b
     return bme, [v1, v3, v7, v5, v2, v6, v8, v4]
 
 
-def make_circle(r:float, N:int, co:tuple=Vector((0, 0, 0)), face:bool=True, flip_normals:bool=False, bme:bmesh=None):
+def make_circle(radius:float, vertices:int, co:tuple=Vector((0, 0, 0)), fill:bool=True, flip_normals:bool=False, bme:bmesh=None):
     """
     create a circle with bmesh
 
     Keyword Arguments:
-        r           -- radius of circle
-        N           -- number of verts on circumference
-        co          -- coordinate of cylinder's center
-        face        -- create face between circle verts
+        radius       -- radius of circle
+        vertices     -- number of verts on circumference
+        co           -- coordinate of cylinder's center
+        cill         -- create face between circle verts
         flip_normals -- flip normals of cylinder
-        bme         -- bmesh object in which to create verts
+        bme          -- bmesh object in which to create verts
 
     """
     # initialize vars
@@ -158,14 +158,14 @@ def make_circle(r:float, N:int, co:tuple=Vector((0, 0, 0)), face:bool=True, flip
     verts = []
 
     # create verts around circumference of circle
-    for i in range(N):
-        circ_val = ((2 * math.pi) / N) * (i - 0.5)
-        x = r * math.cos(circ_val)
-        y = r * math.sin(circ_val)
+    for i in range(vertices):
+        circ_val = ((2 * math.pi) / vertices) * (i - 0.5)
+        x = radius * math.cos(circ_val)
+        y = radius * math.sin(circ_val)
         coord = co + Vector((x, y, 0))
         verts.append(bme.verts.new(coord))
     # create face
-    if face:
+    if fill:
         bme.faces.new(verts if not flip_normals else verts[::-1])
     # create edges
     else:
@@ -175,20 +175,20 @@ def make_circle(r:float, N:int, co:tuple=Vector((0, 0, 0)), face:bool=True, flip
     return bme
 
 
-def make_cylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), bot_face:bool=True, top_face:bool=True, flip_normals:bool=False, seams:bool=True, bme:bmesh=None):
+def make_cylinder(radius:float, height:float, vertices:int, co:Vector=Vector((0,0,0)), bot_face:bool=True, top_face:bool=True, flip_normals:bool=False, seams:bool=True, bme:bmesh=None):
     """
     create a cylinder with bmesh
 
     Keyword Arguments:
-        r           -- radius of cylinder
-        h           -- height of cylinder
-        N           -- number of verts per circle
-        co          -- coordinate of cylinder's center
+        radius       -- radius of cylinder
+        height       -- height of cylinder
+        vertices     -- number of verts per circle
+        co           -- coordinate of cylinder's center
         bot_face     -- create face on bottom of cylinder
         top_face     -- create face on top of cylinder
         flip_normals -- flip normals of cylinder
-        seams       -- make horizontal edges seams
-        bme         -- bmesh object in which to create verts
+        seams        -- make horizontal edges seams
+        bme          -- bmesh object in which to create verts
 
     """
     # initialize vars
@@ -198,11 +198,11 @@ def make_cylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), bot_face:b
     side_faces = []
 
     # create upper and lower circles
-    for i in range(N):
-        circ_val = ((2 * math.pi) / N) * i
-        x = r * math.cos(circ_val)
-        y = r * math.sin(circ_val)
-        z = h / 2
+    for i in range(vertices):
+        circ_val = ((2 * math.pi) / vertices) * i
+        x = radius * math.cos(circ_val)
+        y = radius * math.sin(circ_val)
+        z = height / 2
         coord_t = co + Vector((x, y, z))
         coord_b = co + Vector((x, y, -z))
         top_verts.append(bme.verts.new(coord_t))
@@ -232,23 +232,23 @@ def make_cylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), bot_face:b
     return bme, {"bottom":bot_verts[::-1], "top":top_verts}
 
 
-def make_tube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), top_face:bool=True, bot_face:bool=True, top_face_inner:bool=False, bot_face_inner:bool=False, flip_normals:bool=False, seams:bool=True, bme:bmesh=None):
+def make_tube(radius:float, height:float, thickness:float, vertices:int, co:Vector=Vector((0,0,0)), top_face:bool=True, bot_face:bool=True, top_face_inner:bool=False, bot_face_inner:bool=False, flip_normals:bool=False, seams:bool=True, bme:bmesh=None):
     """
     create a tube with bmesh
 
     Keyword Arguments:
-        r            -- radius of inner cylinder
-        h            -- height of cylinder
-        t            -- thickness of tube
-        N            -- number of verts per circle
-        co           -- coordinate of cylinder's center
-        bot_face      -- create face on bottom of cylinder
-        top_face      -- create face on top of cylinder
+        radius         -- radius of inner cylinder
+        height         -- height of cylinder
+        thickness      -- thickness of tube
+        vertices       -- number of verts per circle
+        co             -- coordinate of cylinder's center
+        bot_face       -- create face on bottom of cylinder
+        top_face       -- create face on top of cylinder
         bot_face_inner -- create inner circle on bottom of cylinder
         top_face_inner -- create inner circle on top of cylinder
-        flip_normals  -- flip normals of cylinder
-        seams       -- make horizontal edges seams
-        bme          -- bmesh object in which to create verts
+        flip_normals   -- flip normals of cylinder
+        seams          -- make horizontal edges seams
+        bme            -- bmesh object in which to create verts
 
     """
     # create new bmesh object
@@ -256,8 +256,8 @@ def make_tube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), top_f
         bme = bmesh.new()
 
     # create upper and lower circles
-    bme, inner_verts = make_cylinder(r, h, N, co=co, bot_face=False, top_face=False, flip_normals=not flip_normals, bme=bme)
-    bme, outer_verts = make_cylinder(r + t, h, N, co=co, bot_face=False, top_face=False, flip_normals=flip_normals, bme=bme)
+    bme, inner_verts = make_cylinder(radius, height, vertices, co=co, bot_face=False, top_face=False, flip_normals=not flip_normals, bme=bme)
+    bme, outer_verts = make_cylinder(radius + thickness, height, vertices, co=co, bot_face=False, top_face=False, flip_normals=flip_normals, bme=bme)
     if top_face:
         connect_circles(outer_verts["top"], inner_verts["top"], bme, flip_normals=flip_normals, select=False)
     if bot_face:

@@ -25,7 +25,7 @@ import bmesh
 import mathutils
 from mathutils import Vector, Euler, Matrix
 from bpy_extras import view3d_utils
-from bpy.types import Object, Scene
+from bpy.types import Object, Scene, Event
 try:
     from bpy.types import ViewLayer, LayerCollection
 except ImportError:
@@ -148,14 +148,18 @@ def select_all():
     select(bpy.context.scene.objects)
 
 
-def select_geom(geom):
-    """ selects verts/edges/faces in 'geom' iterable and deselects the rest """
+def select_geom(geom, only=False):
+    """ selects verts/edges/faces in 'geom' iterable (deselects the rest if 'only') """
     # confirm geom is an iterable of vertices
     geom = confirm_iter(geom)
     # select vertices in list
     for v in geom:
-        if v and not v.select:
+        if not v:
+            continue
+        if not v.select:
             v.select = True
+        elif only and v.select:
+            v.select = False
 
 
 def deselect_geom(geom):
@@ -678,6 +682,24 @@ def get_tool_list(space_type, context_mode):
     from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
     return cls._tools[context_mode]
+
+
+def get_keymap_item(operator:str, keymap:str=None):
+    keymaps = bpy.context.window_manager.keyconfigs.user.keymaps
+    keymap = keymaps[keymap] if keymap else next(km for km in keymaps if operator in km.keymap_items.keys())
+    return keymap.keymap_items[operator]
+
+
+def called_from_shortcut(event:Event, operator:str, keymap:str=None):
+    kmi = get_keymap_item(operator, keymap)
+    return (
+        kmi.type == event.type and \
+        kmi.alt == event.alt and \
+        kmi.ctrl == event.ctrl and \
+        kmi.oskey == event.oskey and \
+        kmi.shift == event.shift and \
+        kmi.value == event.value
+    )
 
 
 def append_from(blendfile_path, data_attr, filenames=None, overwrite_data=False):

@@ -64,8 +64,8 @@ def uniquify1(seq:iter):
         keys[e] = 1
     return list(keys.keys())
 
-def uniquify2(seq:list, innerType:type=list):
-    return [innerType(x) for x in set(tuple(x) for x in seq)]
+def uniquify2(seq:list, inner_type:type=list):
+    return [inner_type(x) for x in set(tuple(x) for x in seq)]
 
 
 # efficient removal from list if unordered

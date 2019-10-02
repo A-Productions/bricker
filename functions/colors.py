@@ -99,21 +99,3 @@ def get_pixels(image):
         pixels = image.pixels[:]
         bricker_pixel_cache[image.name] = pixels
         return pixels
-
-
-def get_uv_pixel_color(scn, obj, face_idx, point, pixels, uv_image=None):
-    """ get RGBA value for point in UV image at specified face index """
-    if face_idx is None:
-        return None
-    # get closest material using UV map
-    face = obj.data.polygons[face_idx]
-    # get uv_layer image for face
-    image = get_uv_image(scn, obj, face_idx, uv_image)
-    if image is None:
-        return None
-    # get uv coordinate based on nearest face intersection
-    uv_coord = get_uv_coord(obj.data, face, point, image)
-    # retrieve rgba value at uv coordinate
-    pixels = get_pixels(image)
-    rgba = get_pixel(pixels, image.size[0], uv_coord)
-    return rgba
