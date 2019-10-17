@@ -711,6 +711,35 @@ def called_from_shortcut(event:Event, operator:str, keymap:str=None):
     )
 
 
+def new_window(area_type, width=640, height=480):
+    # Modify scene settings
+    render = bpy.context.scene.render
+    orig_settings = {
+        "resolution_x": render.resolution_x,
+        "resolution_y": render.resolution_y,
+        "resolution_percentage": render.resolution_percentage,
+        "display_mode": render.display_mode,
+    }
+
+    render.resolution_x = width
+    render.resolution_y = height
+    render.resolution_percentage = 100
+    render.display_mode = "WINDOW"  # Call user prefs window
+
+    bpy.ops.render.view_show("INVOKE_DEFAULT")
+
+    # Change area type
+    window = bpy.context.window_manager.windows[-1]
+    area = window.screen.areas[0]
+    area.type = area_type
+
+    # reset scene settings
+    for key in orig_settings:
+        setattr(render, key, orig_settings[key])
+
+    return window
+
+
 def append_from(blendfile_path, data_attr, filenames=None, overwrite_data=False):
     data_block_infos = list()
     orig_data_names = lambda: None
