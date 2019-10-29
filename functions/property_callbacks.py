@@ -23,7 +23,9 @@ import bpy
 from bpy.props import *
 
 # Module imports
+from .brick.types import *
 from .general import *
+from .transform_data import *
 from .matlist_utils import *
 from ..operators.bevel import BRICKER_OT_bevel
 from ..subtrees.background_processing.classes.job_manager import JobManager
@@ -80,13 +82,15 @@ def update_parent_exposure(self, context):
     parent_ob = cm.parent_obj
     if parent_ob:
         if cm.expose_parent:
-            safe_link(parent_ob, protect=True)
+            # safe_link(parent_ob, protect=True)
+            unhide(parent_ob)
             select(parent_ob, active=True, only=True)
         else:
-            try:
-                safe_unlink(parent_ob)
-            except RuntimeError:
-                pass
+            hide(parent_ob)
+            # try:
+            #     safe_unlink(parent_ob)
+            # except RuntimeError:
+            #     pass
 
 
 def update_model_scale(self, context):
@@ -225,9 +229,9 @@ def select_source_model(self, context):
                     scn.bricker_last_active_object_name = obj.name if obj is not None else ""
             elif cm.animated:
                 cf = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
-                brick_obj = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals()).objects[0]
-                if brick_obj is not None and len(brick_objs) > 0:
-                    select(brick_obj, active=True, only=True)
+                brick_coll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
+                if brick_coll is not None and len(brick_coll.objects) > 0 and brick_coll.objects[0] is not None:
+                    select(brick_coll.objects[0], active=True, only=True)
                     scn.bricker_last_active_object_name = obj.name if obj is not None else ""
                 else:
                     set_active_obj(None)

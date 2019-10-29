@@ -31,6 +31,7 @@ from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
 from ...operators.customization_tools.bricksculpt import *
+from ...operators.test_brick_generators import *
 from ...functions import *
 from ... import addon_updater_ops
 
@@ -131,18 +132,15 @@ class VIEW3D_PT_bricker_brick_models(Panel):
             # if use animation is selected, draw animation options
             elif cm.use_animation:
                 if cm.animated:
-                    row = col1.row(align=True)
-                    row.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
+                    row1 = col1.row(align=True)
                     col = layout.column(align=True)
                     row = col.row(align=True)
                     if cm.brickifying_in_background and cm.frames_to_animate > 0:
-                        col.scale_y = 0.75
-                        row.label(text="Animating...")
-                        row.operator("bricker.stop_brickifying_in_background", text="Stop", icon="PAUSE")
+                        row1.operator("bricker.stop_brickifying_in_background", text="Stop Brickifying", icon="PAUSE")
                         row = col.row(align=True)
-                        percentage = round(cm.num_animated_frames * 100 / cm.frames_to_animate, 2)
-                        row.label(text=str(percentage) + "% completed")
+                        row.prop(cm, "job_progress")
                     else:
+                        row1.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                         row.active = brickify_should_run(cm)
                         row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
                     if created_with_unsupported_version(cm):
@@ -186,15 +184,11 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                             col.label(text="be lost.")
                 else:
                     row = col1.row(align=True)
-                    row.operator("bricker.delete_model", text="Delete Brickified Model", icon="CANCEL")
+                    row.operator("bricker.delete_model", text="Stop Brickifying" if cm.brickifying_in_background and cm.frames_to_animate > 0 else "Delete Brick Animation", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
                     if cm.brickifying_in_background:
                         row.label(text="Brickifying...")
-                        row.operator("bricker.stop_brickifying_in_background", text="Stop", icon="PAUSE")
-                        # row = col.row(align=True)
-                        # percentage = round(cm.num_animated_frames * 100 / cm.frames_to_animate, 2)
-                        # row.label(text=str(percentage) + "% completed")
                     else:
                         row.active = brickify_should_run(cm)
                         row.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")

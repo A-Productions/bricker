@@ -31,6 +31,7 @@ from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
 from ...operators.customization_tools.bricksculpt import *
+from ...operators.test_brick_generators import *
 from ...functions import *
 from ... import addon_updater_ops
 

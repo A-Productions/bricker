@@ -105,7 +105,8 @@ class BRICKER_OT_bevel(bpy.types.Operator):
         show_viewport = cm.bevel_show_viewport
         show_in_editmode = cm.bevel_show_edit_mode
         # create bevel modifiers for each object
-        for obj in objs:
+        brick_objs = [obj for obj in objs if not obj.name.endswith("parent")]
+        for obj in brick_objs:
             self.create_bevel_mod(obj=obj, width=cm.bevel_width * cm.brick_height, segments=segments, profile=profile, limit_method="WEIGHT", offset_type="OFFSET", angle_limit=1.55334, show_render=show_render, show_viewport=show_viewport, show_in_editmode=show_in_editmode)
 
     @classmethod

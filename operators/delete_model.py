@@ -84,7 +84,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
     # class methods
 
     @classmethod
-    def cleanUp(cls, model_type, cm=None, skip_source=False, skip_dupes=False, skip_parents=False, skip_bricks=False, skip_trans_and_anim_data=True, preserved_frames=None, source_name=None):
+    def clean_up(cls, model_type, cm=None, skip_source=False, skip_dupes=False, skip_parents=False, skip_bricks=False, skip_trans_and_anim_data=True, preserved_frames=None, source_name=None):
         """ externally callable cleanup function for bricks, source, dupes, and parents """
         # set up variables
         scn, cm, n = get_active_context_info(cm=cm)
@@ -135,7 +135,8 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         scn, cm, n = get_active_context_info(cm=cm)
         model_type = get_model_type(cm)
         orig_frame = scn.frame_current
-        scn.frame_set(cm.model_created_on_frame)
+        if cm.model_created_on_frame != orig_frame:
+            scn.frame_set(cm.model_created_on_frame)
         bricks = get_bricks()
         # store pivot point for model
         if cm.last_split_model or cm.animated:
@@ -148,7 +149,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             job_manager = JobManager.get_instance(cm.id)
             job_manager.kill_all()
 
-        source, brick_loc, brick_rot, brick_scl, _ = cls.cleanUp(model_type, cm=cm, skip_source=cm.source_obj is None)
+        source, brick_loc, brick_rot, brick_scl, _ = cls.clean_up(model_type, cm=cm, skip_source=cm.source_obj is None)
 
         # select source
         if source is None:
@@ -198,7 +199,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 except KeyError:
                     pass
 
-        BRICKER_OT_clear_cache.clear_cache(cm, brick_mesh=False)
+        # BRICKER_OT_clear_cache.clear_cache(cm, brick_mesh=False)
 
         # Scale brick height according to scale value applied to source
         cm.brick_height = cm.brick_height * cm.transform_scale
@@ -219,7 +220,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         if b280():
             # link source to all collections containing Bricker model
             brick_coll = cm.collection
-            brick_col_users = [cn for cn in bpy.data.collections if brick_coll.name in cn.children] if brick_coll is not None else [item.collection for item in source.stored_parents]
+            brick_col_users = [cn for cn in bpy.data.collections if brick_coll.name in cn.children and cn is not None] if brick_coll is not None else [item.collection for item in source.stored_parents if item.collection is not None]
         else:
             # set source layers to brick layers
             frame = cm.last_start_frame
@@ -361,6 +362,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             "last_matrix_settings",
             "last_material_type",
             "last_is_smoke",
+            "brickifying_in_background",
             "anim_is_dirty",
             "material_is_dirty",
             "model_is_dirty",
