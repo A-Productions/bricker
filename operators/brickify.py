@@ -125,7 +125,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         print_exception("Bricker log", errormsg=errormsg)
                         report_frames_str = " frame %(frame)s of" % locals() if anim_action else ""
                         self.report({"WARNING"}, "Dropped%(report_frames_str)s model '%(n)s'" % locals())
-                        tag_redraw_areas("VIEW_3D")
                         if anim_action: cm.num_animated_frames += 1
                         self.jobs.remove(job)
                 # cancel and save finished frames if stopped
@@ -148,6 +147,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 elif remaining_jobs == 0:
                     self.report({"WARNING"}, "Background process failed for model '%(n)s'. Try disabling background processing in the Bricker addon preferences." % locals())
                     bpy.ops.bricker.stop_brickifying_in_background()
+                tag_redraw_areas("VIEW_3D")
             except:
                 bricker_handle_exception()
                 return {"CANCELLED"}

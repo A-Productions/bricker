@@ -93,7 +93,7 @@ class BRICKER_OT_stop_brickifying_in_background(bpy.types.Operator):
                     # set end frame to last consecutive completed frame
                     updated_stop_frame = True
                     cm.last_stop_frame = frame - 1
-                    cm.stop_frame = frame - 1
+                    # cm.stop_frame = frame - 1
                 if frame in completed_frames and updated_stop_frame:
                     # remove frames that cannot be saved
                     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())

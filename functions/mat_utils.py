@@ -40,7 +40,8 @@ def clear_existing_materials(obj, from_idx=0, from_data=False):
 
 def set_material(obj, mat, to_data=False, overwrite=True):
     if len(obj.data.materials) == 1 and overwrite:
-        obj.data.materials[0] = mat
+        if obj.data.materials[0] != mat:
+            obj.data.materials[0] = mat
     else:
         obj.data.materials.append(mat)
     if not to_data:
@@ -49,7 +50,8 @@ def set_material(obj, mat, to_data=False, overwrite=True):
 
 def link_material_to_object(obj, mat, index=-1):
     obj.material_slots[index].link = "OBJECT"
-    obj.material_slots[index].material = mat
+    if obj.material_slots[index].material != mat:
+        obj.material_slots[index].material = mat
 
 
 def brick_materials_installed():

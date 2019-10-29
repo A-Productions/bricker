@@ -17,6 +17,7 @@
 
 # System imports
 import os
+import signal
 import subprocess
 import time
 import json
@@ -108,7 +109,7 @@ class JobManager():
         self.job_timeouts[job] = timeout
         self.job_statuses[job] = {"started":False, "returncode":None, "stdout":None, "stderr":None, "start_time":time.time(), "end_time":None, "attempts":0, "progress":0.0, "timed_out":False}
         # send passed_data_blocks to library file
-        sent_data_blocks_path = os.path.join(self.temp_path, job + '_sent_data.blend')
+        sent_data_blocks_path = os.path.join(self.temp_path, job + "_sent_data.blend")
         if len(passed_data_blocks) > 0:
             bpy.data.libraries.write(sent_data_blocks_path, passed_data_blocks, fake_user=True)
         # save the active blend file to be used in Blender instance
@@ -329,7 +330,8 @@ class JobManager():
     def kill_job(self, job:str):
         p = self.job_processes[job]
         if platform.system() == "Windows":
-            subprocess.call(['taskkill', '/F', '/T', '/PID', str(self.job_processes[job].pid)])
+            # os.kill(p.pid, signal.CTRL_C_EVENT)
+            subprocess.call(["taskkill", "/F", "/T", "/PID", str(self.job_processes[job].pid)])  # causes CPU issues
         else:
             self.job_processes[job].kill()
 

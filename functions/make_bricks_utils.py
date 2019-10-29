@@ -39,7 +39,7 @@ from .mat_utils import *
 from ..lib.caches import bricker_mesh_cache
 
 
-def draw_brick(cm_id, bricksdict, key, loc, seed_keys, parent, dimensions, zstep, brick_size, brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_bricks, rand_s1, rand_s2, rand_s3):
+def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, brick_size, brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_bricks, rand_s1, rand_s2, rand_s3):
     brick_d = bricksdict[key]
     # check exposure of current [merged] brick
     if brick_d["top_exposed"] is None or brick_d["bot_exposed"] is None or build_is_dirty:
@@ -66,9 +66,9 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, parent, dimensions, zstep
     # duplicate data if cm.instance_bricks is disabled
     m = m if instance_bricks else m.copy()
     # apply random rotation to edit mesh according to parameters
-    random_rot_matrix = get_random_rot_matrix(random_rot, rand_s2, brick_size) if random_rot > 0 else None
+    random_rot_matrix = get_random_rot_matrix(random_rot, rand_s2, brick_size)
     # get brick location
-    loc_offset = get_random_loc(random_loc, rand_s2, dimensions["half_width"], dimensions["half_height"]) if random_loc > 0 else Vector((0, 0, 0))
+    loc_offset = get_random_loc(random_loc, rand_s2, dimensions["half_width"], dimensions["half_height"])
     brick_loc = get_brick_center(bricksdict, key, zstep, loc) + loc_offset
 
     if split:
@@ -94,18 +94,26 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, parent, dimensions, zstep
         # rotate brick by random rotation
         if random_rot_matrix is not None:
             # resets rotation_euler in case object is reused
-            brick.rotation_euler = Euler((0, 0, 0), "XYZ")
+            brick.rotation_euler = (0, 0, 0)
             brick.rotation_euler.rotate(random_rot_matrix)
         # set brick location
         brick.location = brick_loc
         # set brick material
-        set_material(brick, mat or internal_mat)
-        if mat or internal_mat:
+        mat = mat or internal_mat
+        set_material(brick, mat)
+        if mat:
             keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc)
             for k in keys_in_brick:
-                bricksdict[k]["mat_name"] = (mat or internal_mat).name
+                bricksdict[k]["mat_name"] = mat.name
         # append to bricks_created
         bricks_created.append(brick)
+        # set remaining brick info if brick object just created
+        brick.parent = parent
+        if not brick.is_brick:
+            brick.is_brick = True
+        # link bricks to brick collection
+        if clear_existing_collection or brick.name not in bcoll.objects.keys():
+            bcoll.objects.link(brick)
     else:
         # duplicates mesh – prevents crashes in 2.79 (may need to add back if experiencing crashes in b280)
         if not b280():
@@ -200,13 +208,16 @@ def skip_this_row(time_through, lowest_z, z, offset_brick_layers):
 def get_random_loc(random_loc, rand, half_width, half_height):
     """ get random location between (0,0,0) and (width/2, width/2, height/2) """
     loc = Vector((0,0,0))
-    loc.xy = [rand.uniform(-half_width * random_loc, half_width * random_loc)]*2
-    loc.z = rand.uniform(-half_height * random_loc, half_height * random_loc)
+    if random_loc > 0:
+        loc.xy = [rand.uniform(-half_width * random_loc, half_width * random_loc)] * 2
+        loc.z = rand.uniform(-half_height * random_loc, half_height * random_loc)
     return loc
 
 
 def get_random_rot_matrix(random_rot, rand, brick_size):
     """ get rotation matrix randomized by random_rot """
+    if random_rot == 0:
+        return None
     denom = 0.75 if max(brick_size) == 0 else brick_size[0] * brick_size[1]
     mult = random_rot / denom
     # calculate rotation angles in radians

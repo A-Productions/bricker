@@ -105,19 +105,19 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     max_depth = cm.max_depth
     merge_internals_h = cm.merge_internals in ["BOTH", "HORIZONTAL"]
     merge_internals_v = cm.merge_internals in ["BOTH", "VERTICAL"]
-    merge_type = cm.merge_type
+    merge_type = cm.merge_type if mergable_brick_type(brick_type) else "NONE"
     merge_seed = cm.merge_seed
     material_type = cm.material_type
     offset_brick_layers = cm.offset_brick_layers
     random_mat_seed = cm.random_mat_seed
-    random_rot = 0 if temp_brick else cm.random_rot
-    random_loc = 0 if temp_brick else cm.random_loc
+    random_rot = 0 if temp_brick else round(cm.random_rot, 6)
+    random_loc = 0 if temp_brick else round(cm.random_loc, 6)
     stud_detail = "ALL" if temp_brick else cm.stud_detail
     zstep = cm.zstep
     # initialize random states
     rand_s1 = None if temp_brick else np.random.RandomState(cm.merge_seed)  # for brick_size calc
-    rand_s2 = None if temp_brick else np.random.RandomState(cm.merge_seed+1)
-    rand_s3 = None if temp_brick else np.random.RandomState(cm.merge_seed+2)
+    rand_s2 = None if temp_brick else np.random.RandomState(cm.merge_seed + 1)
+    rand_s3 = None if temp_brick else np.random.RandomState(cm.merge_seed + 2)
     # initialize other variables
     brick_mats = get_brick_mats(cm)
     brick_size_strings = {}
@@ -252,7 +252,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
                 continue
             loc = get_dict_loc(bricksdict, k2)
             # create brick based on the current brick info
-            draw_brick(cm_id, bricksdict, k2, loc, seed_keys, parent, dimensions, zstep, bricksdict[k2]["size"], brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_bricks, rand_s1, rand_s2, rand_s3)
+            draw_brick(cm_id, bricksdict, k2, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, bricksdict[k2]["size"], brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_bricks, rand_s1, rand_s2, rand_s3)
             # print status to terminal and cursor
             old_percent = update_progress_bars(print_status, cursor_status, i/denom, old_percent, "Building")
 
@@ -265,27 +265,8 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
 
     denom2 = len(bricksdict.keys())
 
-    # combine meshes, link to scene, and add relevant data to the new Blender MESH object
-    if split:
-        # iterate through keys
-        old_percent = 0
-        for i, key in enumerate(keys):
-            if bricksdict[key]["parent"] != "self" or not bricksdict[key]["draw"]:
-                continue
-            # print status to terminal and cursor
-            old_percent = update_progress_bars(print_status, cursor_status, i/denom2, old_percent, "Linking to Scene")
-            # get brick
-            name = bricksdict[key]["name"]
-            brick = bpy.data.objects.get(name)
-            # set up remaining brick info if brick object just created
-            if clear_existing_collection or brick.name not in bcoll.objects.keys():
-                bcoll.objects.link(brick)
-            brick.parent = parent
-            if not brick.is_brick:
-                brick.is_brick = True
-        # end progress bars
-        update_progress_bars(print_status, cursor_status, 1, 0, "Linking to Scene", end=True)
-    else:
+    # combine meshes to a single object, link to scene, and add relevant data to the new Blender MESH object
+    if not split:
         name = "Bricker_%(n)s_bricks" % locals()
         if frame_num is not None:
             name = "%(name)s_f_%(frame_num)s" % locals()

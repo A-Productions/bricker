@@ -257,8 +257,11 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     merge_type = EnumProperty(
         name="Merge Type",
         description="Type of algorithm used for merging bricks together",
-        items=[("GREEDY", "Greedy", "Creates fewest amount of bricks possible"),
-               ("RANDOM", "Random", "Merges randomly for realistic build"),],
+        items=[
+            ("NONE", "None (fast)", "Bricks are not merged"),
+            ("GREEDY", "Greedy", "Creates fewest amount of bricks possible"),
+            ("RANDOM", "Random", "Merges randomly for realistic build"),
+        ],
         update=dirty_build,
         default="RANDOM")
     legal_bricks_only = BoolProperty(
