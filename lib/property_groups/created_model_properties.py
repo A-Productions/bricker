@@ -69,7 +69,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     # ANIMATION SETTINGS
     use_animation = BoolProperty(
         name="Use Animation",
-        description="Create Brick Model for each frame, from start to stop frame (WARNING: Calculation takes time, and may result in large blend file )",
+        description="Create Brick Model for each frame, from start to stop frame (WARNING: Calculation takes time, and may result in large blend file)",
         default=False)
     start_frame = IntProperty(
         name="Start",
@@ -647,8 +647,17 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     # Internal Model Properties
     model_created = BoolProperty(default=False)
     brickifying_in_background = BoolProperty(default=False)
+    job_progress = IntProperty(
+        name="",
+        description="",
+        subtype="PERCENTAGE",
+        default=0,
+        soft_min=0,
+        soft_max=100,
+    )
     num_animated_frames = IntProperty(default=0)
-    frames_to_animate = IntProperty(default=0)
+    completed_frames = StringProperty(default="")
+    frames_to_animate = IntProperty(default=1)
     stop_background_process = BoolProperty(default=False)
     animated = BoolProperty(default=False)
     armature = BoolProperty(default=False)

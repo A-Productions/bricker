@@ -26,7 +26,7 @@ from mathutils import Vector, Euler
 # Module imports
 from .common import *
 from .general import *
-from .bricksdict import light_to_deep_cache, deep_to_light_cache
+from .bricksdict import *
 from .brickify_utils import finish_animation
 from .matlist_utils import create_mat_objs
 from ..lib.caches import bricker_bfm_cache

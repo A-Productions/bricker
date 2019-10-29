@@ -102,9 +102,8 @@ class VIEW3D_PT_bricker_detailing(Panel):
         row.prop(cm, "circle_verts", text="Vertices")
 
         col = layout.column(align=True)
-        row = col.row(align=True)
-        split = layout_split(row, factor=0.5)
-        col1 = split.column(align=True)
+        row1 = col.row(align=True)
+        col1 = row1.column(align=True)
         col1.label(text="Bevel:")
         if not (cm.model_created or cm.animated) or cm.brickifying_in_background:
             row = col.row(align=True)
@@ -114,11 +113,11 @@ class VIEW3D_PT_bricker_detailing(Panel):
         try:
             test_brick = get_bricks()[0]
             bevel = test_brick.modifiers[test_brick.name + "_bvl"]
-            col2 = split.column(align=True)
+            col2 = row1.column(align=True)
             row = col2.row(align=True)
-            row.prop(cm, "bevel_show_render", icon="RESTRICT_RENDER_OFF", toggle=True)
-            row.prop(cm, "bevel_show_viewport", icon="RESTRICT_VIEW_OFF", toggle=True)
-            row.prop(cm, "bevel_show_edit_mode", icon="EDITMODE_HLT", toggle=True)
+            row.prop(cm, "bevel_show_render", text="", icon="RESTRICT_RENDER_OFF", toggle=True)
+            row.prop(cm, "bevel_show_viewport", text="", icon="RESTRICT_VIEW_OFF", toggle=True)
+            row.prop(cm, "bevel_show_edit_mode", text="", icon="EDITMODE_HLT", toggle=True)
             row = col.row(align=True)
             row.prop(cm, "bevel_width", text="Width")
             row = col.row(align=True)

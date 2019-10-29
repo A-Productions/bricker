@@ -53,7 +53,8 @@ def handle_selections(junk=None):
     scn = bpy.context.scene
     obj = bpy.context.view_layer.objects.active if b280() else scn.objects.active
     # if active object changes, open Brick Model settings for active object
-    if obj and len(scn.cmlist) > 0 and not obj.name.startswith(scn.mod_active_object_name) and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and obj.type == "MESH":
+    cm_obj_names = (scn.bricker_active_object_name, "Bricker_" + scn.bricker_active_object_name + "_bricks", "Bricker_" + scn.bricker_active_object_name + "_parent")
+    if obj and len(scn.cmlist) > 0 and obj.name not in cm_obj_names and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and obj.type == "MESH":
         if obj.name.startswith("Bricker_"):
             using_source = False
             frame_loc = obj.name.rfind("_bricks")
@@ -62,20 +63,23 @@ def handle_selections(junk=None):
                 if frame_loc == -1:
                     frame_loc = obj.name.rfind("__")
             if frame_loc != -1:
-                scn.mod_active_object_name = obj.name[len("Bricker_"):frame_loc]
+                scn.bricker_active_object_name = obj.name[len("Bricker_"):frame_loc]
         else:
             using_source = True
-            scn.mod_active_object_name = obj.name
+            scn.bricker_active_object_name = obj.name
         for i, cm0 in enumerate(scn.cmlist):
-            if created_with_unsupported_version(cm0) or get_source_name(cm0) != scn.bricker_active_object_name or (using_source and cm0.model_created):
+            if get_source_name(cm0) != scn.bricker_active_object_name or (using_source and cm0.model_created):
                 continue
-            if scn.cmlist_index != i:
-                bpy.props.manual_cmlist_update = True
-                scn.cmlist_index = i
-            if obj.is_brick:
-                # adjust scn.active_brick_detail based on active brick
-                x0, y0, z0 = str_to_list(get_dict_key(obj.name))
-                cm0.active_key = (x0, y0, z0)
+            try:
+                if scn.cmlist_index != i:
+                    bpy.props.manual_cmlist_update = True
+                    scn.cmlist_index = i
+                if obj.is_brick:
+                    # adjust scn.active_brick_detail based on active brick
+                    x0, y0, z0 = str_to_list(get_dict_key(obj.name))
+                    cm0.active_key = (x0, y0, z0)
+            except AttributeError:
+                pass
             tag_redraw_areas("VIEW_3D")
             return 0.05
         # if no matching cmlist item found, set cmlist_index to -1

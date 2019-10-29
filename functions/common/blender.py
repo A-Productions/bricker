@@ -282,7 +282,7 @@ def safe_link(obj:Object, protect:bool=False, collections=None):
     if hasattr(obj, "protected"):
         obj.protected = protect
 @blender_version_wrapper(">=","2.80")
-def safe_link(obj:Object, protect:bool=False, collections=None):
+def safe_link(obj:Object, protect:bool=False, collections=[]):
     # link object to target collections (scene collection by default)
     collections = collections or [bpy.context.scene.collection]
     for coll in collections:
@@ -511,9 +511,9 @@ def smooth_mesh_faces(faces:iter):
 
 def junk_mesh():
     """ returns junk mesh (only creates one if necessary) """
-    junk_mesh = bpy.data.meshes.get("temp_junk_mesh_deleteme")
+    junk_mesh = bpy.data.meshes.get("Bricker_junk_mesh")
     if junk_mesh is None:
-        junk_mesh = bpy.data.meshes.new("temp_junk_mesh_deleteme")
+        junk_mesh = bpy.data.meshes.new("Bricker_junk_mesh")
     return junk_mesh
 
 

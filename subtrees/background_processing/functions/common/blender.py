@@ -511,9 +511,9 @@ def smooth_mesh_faces(faces:iter):
 
 def junk_mesh():
     """ returns junk mesh (only creates one if necessary) """
-    junk_mesh = bpy.data.meshes.get("temp_junk_mesh_deleteme")
+    junk_mesh = bpy.data.meshes.get("Bricker_junk_mesh")
     if junk_mesh is None:
-        junk_mesh = bpy.data.meshes.new("temp_junk_mesh_deleteme")
+        junk_mesh = bpy.data.meshes.new("Bricker_junk_mesh")
     return junk_mesh
 
 

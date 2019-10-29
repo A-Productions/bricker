@@ -64,7 +64,7 @@ class VIEW3D_PT_bricker_animation(Panel):
 
         col1 = layout.column(align=True)
         col1.active = cm.animated or cm.use_animation
-        col1.scale_y = 0.85
+        # col1.scale_y = 0.85
         row = col1.row(align=True)
         split = layout_split(row, factor=0.5)
         col = split.column(align=True)
