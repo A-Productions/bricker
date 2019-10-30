@@ -116,8 +116,24 @@ def clear_bfm_cache(dummy):
 
 # reset undo stack on load
 @persistent
-def reset_undo_stack(scene):
+def reset_properties(dummy):
+    scn = bpy.context.scene
     undo_stack = UndoStack.get_instance(reset=True)
+    for cm in scn.cmlist:
+        # if file was saved in the middle of a brickify process, reset necessary props
+        if cm.brickifying_in_background and cm.source_obj is not None:
+            cm.brickifying_in_background = False
+            n = cm.source_obj.name
+            for cf in range(cm.last_start_frame, cm.last_stop_frame):
+                cur_bricks_coll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
+                if cur_bricks_coll is None:
+                    cm.last_stop_frame = max(cm.last_start_frame, cf - 1)
+                    # cm.stop_frame = max(cm.last_start_frame, cf - 1)
+                    cm.stop_frame = cm.stop_frame  # run updater to allow 'update_model'
+                    # hide obj unless on scene current frame
+                    if scn.frame_current > cm.last_stop_frame and cf > cm.last_start_frame:
+                        set_frame_visibility(cm.last_stop_frame)
+                    break
 
 
 @persistent

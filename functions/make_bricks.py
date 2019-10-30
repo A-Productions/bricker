@@ -65,7 +65,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
         for obj0 in bcoll.objects:
             bcoll.objects.unlink(obj0)
 
-    # get bricksdict keys in sorted order
+    # get bricksdict keys
     if keys == "ALL":
         keys = list(bricksdict.keys())
     if len(keys) == 0:
@@ -93,7 +93,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     custom_mat = cm.custom_mat
     exposed_underside_detail = "FLAT" if temp_brick else cm.exposed_underside_detail
     hidden_underside_detail = "FLAT" if temp_brick else cm.hidden_underside_detail
-    instance_bricks = cm.instance_bricks
+    instance_method = cm.instance_method
     last_split_model = cm.last_split_model
     legal_bricks_only = cm.legal_bricks_only
     logo_type = "NONE" if temp_brick else cm.logo_type
@@ -252,7 +252,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
                 continue
             loc = get_dict_loc(bricksdict, k2)
             # create brick based on the current brick info
-            draw_brick(cm_id, bricksdict, k2, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, bricksdict[k2]["size"], brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_bricks, rand_s1, rand_s2, rand_s3)
+            draw_brick(cm_id, bricksdict, k2, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, bricksdict[k2]["size"], brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_method, rand_s1, rand_s2, rand_s3)
             # print status to terminal and cursor
             old_percent = update_progress_bars(print_status, cursor_status, i/denom, old_percent, "Building")
 

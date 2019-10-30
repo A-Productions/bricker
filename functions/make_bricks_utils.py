@@ -39,7 +39,7 @@ from .mat_utils import *
 from ..lib.caches import bricker_mesh_cache
 
 
-def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, brick_size, brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_bricks, rand_s1, rand_s2, rand_s3):
+def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, brick_size, brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_method, rand_s1, rand_s2, rand_s3):
     brick_d = bricksdict[key]
     # check exposure of current [merged] brick
     if brick_d["top_exposed"] is None or brick_d["bot_exposed"] is None or build_is_dirty:
@@ -63,8 +63,8 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
     else:
         # get brick mesh
         m = get_brick_data(brick_d, rand_s3, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, logo_scale, logo_inset, use_stud)
-    # duplicate data if cm.instance_bricks is disabled
-    m = m if instance_bricks else m.copy()
+    # duplicate data if not instancing by mesh data
+    m = m if instance_method == "LINK_DATA" else m.copy()
     # apply random rotation to edit mesh according to parameters
     random_rot_matrix = get_random_rot_matrix(random_rot, rand_s2, brick_size)
     # get brick location
@@ -218,12 +218,7 @@ def get_random_rot_matrix(random_rot, rand, brick_size):
     """ get rotation matrix randomized by random_rot """
     if random_rot == 0:
         return None
-    denom = 0.75 if max(brick_size) == 0 else brick_size[0] * brick_size[1]
-    mult = random_rot / denom
-    # calculate rotation angles in radians
-    x = rand.uniform(-math.radians(11.25) * mult, math.radians(11.25) * mult)
-    y = rand.uniform(-math.radians(11.25) * mult, math.radians(11.25) * mult)
-    z = rand.uniform(-math.radians(45)    * mult, math.radians(45)    * mult)
+    x, y, z = get_random_rot_angle(random_rot, rand, brick_size)
     # get rotation matrix
     x_mat = Matrix.Rotation(x, 4, "X")
     y_mat = Matrix.Rotation(y, 4, "Y")
@@ -232,21 +227,36 @@ def get_random_rot_matrix(random_rot, rand, brick_size):
     return combined_mat
 
 
-def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, logo_scale, logo_inset, use_stud):
+def get_random_rot_angle(random_rot, rand, brick_size):
+    """ get rotation angles randomized by random_rot """
+    if random_rot == 0:
+        return None
+    denom = 0.75 if max(brick_size) == 0 else brick_size[0] * brick_size[1]
+    mult = random_rot / denom
+    # calculate rotation angles in radians
+    x = rand.uniform(-math.radians(11.25) * mult, math.radians(11.25) * mult)
+    y = rand.uniform(-math.radians(11.25) * mult, math.radians(11.25) * mult)
+    z = rand.uniform(-math.radians(45)    * mult, math.radians(45)    * mult)
+    return x, y, z
+
+
+def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, use_stud, logo_scale=None, logo_inset=None):
     # get bm_cache_string
     bm_cache_string = ""
     if "CUSTOM" not in brick_type:
         custom_logo_used = logo_to_use is not None and logo_type == "CUSTOM"
-        bm_cache_string = marshal.dumps((brick_height, brick_size, underside_detail,
-                                         logo_resolution if logo_to_use is not None else None,
-                                         logo_decimate if logo_to_use is not None else None,
-                                         logo_inset if logo_to_use is not None else None,
-                                         hash_object(logo_to_use) if custom_logo_used else None,
-                                         logo_scale if custom_logo_used else None,
-                                         logo_type, use_stud, circle_verts,
-                                         brick_d["type"], dimensions["gap"],
-                                         brick_d["flipped"] if brick_d["type"] in ("SLOPE", "SLOPE_INVERTED") else None,
-                                         brick_d["rotated"] if brick_d["type"] in ("SLOPE", "SLOPE_INVERTED") else None)).hex()
+        bm_cache_string = marshal.dumps((
+            brick_height, brick_size, underside_detail,
+            logo_resolution if logo_to_use is not None else None,
+            logo_decimate if logo_to_use is not None else None,
+            logo_inset if logo_to_use is not None else None,
+            hash_object(logo_to_use) if custom_logo_used else None,
+            logo_scale if custom_logo_used else None,
+            logo_type, use_stud, circle_verts,
+            brick_d["type"], dimensions["gap"],
+            brick_d["flipped"] if brick_d["type"] in ("SLOPE", "SLOPE_INVERTED") else None,
+            brick_d["rotated"] if brick_d["type"] in ("SLOPE", "SLOPE_INVERTED") else None,
+        )).hex()
 
     # NOTE: Stable implementation for Blender 2.79
     # check for bmesh in cache

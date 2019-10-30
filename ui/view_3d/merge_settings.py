@@ -60,7 +60,8 @@ class VIEW3D_PT_bricker_merge_settings(Panel):
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.prop(cm, "merge_type")#, expand=True)
+        row.prop(cm, "merge_type")
+        col = layout.column(align=True)
         if cm.merge_type == "RANDOM":
             row = col.row(align=True)
             row.prop(cm, "merge_seed")

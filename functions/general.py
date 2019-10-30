@@ -341,3 +341,18 @@ def settings_can_be_drawn():
     if not bpy.props.bricker_initialized:
         return False
     return True
+
+
+def set_frame_visibility(frame):
+    scn, cm, n = get_active_context_info()
+    cur_bricks_coll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
+    if cur_bricks_coll is None:
+        return
+    adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
+    if b280():
+        cur_bricks_coll.hide_viewport = frame != adjusted_frame_current
+        cur_bricks_coll.hide_render   = frame != adjusted_frame_current
+    elif frame != adjusted_frame_current:
+        [hide(obj) for obj in cur_bricks_coll.objects]
+    else:
+        [unhide(obj) for obj in cur_bricks_coll.objects]

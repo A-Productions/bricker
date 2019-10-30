@@ -116,14 +116,18 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame):
 def get_model_resolution(source, cm):
     res = None
     source_details = bounds(source, use_adaptive_domain=False)
-    s = Vector((round(source_details.dist.x, 2),
-                round(source_details.dist.y, 2),
-                round(source_details.dist.z, 2)))
+    s = Vector((
+        round(source_details.dist.x, 6),
+        round(source_details.dist.y, 6),
+        round(source_details.dist.z, 6),
+    ))
     if cm.brick_type != "CUSTOM":
         dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
-        full_d = Vector((dimensions["width"],
-                         dimensions["width"],
-                         dimensions["height"]))
+        full_d = Vector((
+            dimensions["width"],
+            dimensions["width"],
+            dimensions["height"],
+        ))
         res = vec_div(s, full_d)
     else:
         custom_obj = cm.custom_object1
@@ -131,9 +135,11 @@ def get_model_resolution(source, cm):
             custom_details = bounds(custom_obj)
             if 0 not in custom_details.dist.to_tuple():
                 mult = cm.brick_height / custom_details.dist.z
-                full_d = Vector((custom_details.dist.x * mult,
-                                 custom_details.dist.y * mult,
-                                 cm.brick_height))
+                full_d = Vector((
+                    custom_details.dist.x * mult,
+                    custom_details.dist.y * mult,
+                    cm.brick_height,
+                ))
                 full_d_offset = vec_mult(full_d, cm.dist_offset)
                 res = vec_div(s, full_d_offset)
     return res
@@ -197,12 +203,7 @@ def get_args_for_background_processor(cm, bricker_addon_path, source_dup):
     return script, cmlist_props, cmlist_pointer_props, data_blocks_to_send
 
 
-
-def create_new_bricks(source, parent, source_details, dimensions, ref_logo, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
-    """ gets/creates bricksdict, runs make_bricks, and caches the final bricksdict """
-    scn, cm, n = get_active_context_info(cm=cm)
-    brick_scale, custom_data = get_arguments_for_bricksdict(cm, source=source, dimensions=dimensions)
-    update_cursor = action in ("CREATE", "UPDATE_MODEL")
+def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, brick_scale, bricksdict, keys, redraw, update_cursor):
     # uv_images = get_uv_images(source) if cm.material_type == "SOURCE" and cm.use_uv_map and len(source.data.uv_layers) > 0 else {}  # get uv_layer image and pixels for material calculation
     if bricksdict is None:
         # load bricksdict from cache
@@ -239,15 +240,92 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
         update_internal(bricksdict, cm, keys, clear_existing=loaded_from_cache)
         cm.build_is_dirty = True
     # update materials in bricksdict
-    if cm.material_type != "NONE" and (cm.material_is_dirty or cm.matrix_is_dirty or cm.anim_is_dirty): bricksdict = update_materials(bricksdict, source, keys, cur_frame)
+    if cm.material_type != "NONE" and (cm.material_is_dirty or cm.matrix_is_dirty or cm.anim_is_dirty):
+        bricksdict = update_materials(bricksdict, source, keys, cur_frame)
+    return bricksdict, brick_scale
+
+
+def create_new_bricks(source, parent, source_details, dimensions, ref_logo, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
+    """ gets/creates bricksdict, runs make_bricks, and caches the final bricksdict """
+    scn, cm, n = get_active_context_info(cm=cm)
+    brick_scale, custom_data = get_arguments_for_bricksdict(cm, source=source, dimensions=dimensions)
+    update_cursor = action in ("CREATE", "UPDATE_MODEL")
+    # get bricksdict
+    bricksdict, brick_scale = get_bricksdict_for_model(cm, source, source_details, action, cur_frame, brick_scale, bricksdict, keys, redraw, update_cursor)
     # make bricks
-    coll_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
-    bricks_created, bricksdict = make_bricks(source, parent, ref_logo, dimensions, bricksdict, action, cm=cm, split=split, brick_scale=brick_scale, custom_data=custom_data, coll_name=coll_name, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, keys=keys, print_status=print_status, temp_brick=temp_brick, redraw=redraw)
-    if select_created and len(bricks_created) > 0:
-        select(bricks_created)
+    model_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
+    if cm.instance_method == "POINT_CLOUD":
+        # generate point cloud
+        point_cloud = bpy.data.meshes.new(model_name + "_instancer")
+        point_cloud_obj = bpy.data.objects.new(model_name + "_instancer", point_cloud)
+        coll = bpy.data.collections.new(model_name)
+        coll.objects.link(point_cloud_obj)
+        scn.collection.children.link(coll)
+        point_cloud.vertices.add(len(bricksdict))
+        # initialize vars
+        keys = list(bricksdict.keys())
+        rand_s2 = np.random.RandomState(cm.merge_seed + 1)
+        random_rot = cm.random_rot
+        random_loc = cm.random_loc
+        zstep = get_zstep(cm)
+        keys_dict = get_keys_dict(bricksdict, keys)
+        i = 0
+        # set coordinates and normals for points in cloud
+        for z in sorted(keys_dict.keys()):
+            for key in keys_dict[z]:
+                brick_d = bricksdict[key]
+                brick_d["size"] = (1, 1, 1)
+                # apply random rotation to edit mesh according to parameters
+                random_rot_angle = get_random_rot_angle(random_rot * 2, rand_s2, brick_d["size"])
+                # get brick location
+                loc_offset = get_random_loc(random_loc, rand_s2, dimensions["half_width"], dimensions["half_height"])
+                brick_loc = get_brick_center(bricksdict, key, zstep, str_to_list(key)) + loc_offset
+                # set vert
+                v = point_cloud.vertices[i]
+                v.co = brick_loc
+                v.normal.x = 1
+                v.normal.y = random_rot_angle[0]
+                v.normal.z = random_rot_angle[1]
+                i += 1
+        bricks_created = point_cloud_obj
+        # set up point cloud as instancer
+        point_cloud_obj.instance_type = "VERTS"
+        point_cloud_obj.show_instancer_for_viewport = False
+        point_cloud_obj.show_instancer_for_render = False
+        point_cloud_obj.use_instance_vertices_rotation = True
+        # create instance obj
+        brick = generate_brick_object(model_name)
+        coll.objects.link(brick)
+        brick.parent = point_cloud_obj
+    else:
+        # make bricks
+        bricks_created, bricksdict = make_bricks(source, parent, ref_logo, dimensions, bricksdict, action, cm=cm, split=split, brick_scale=brick_scale, custom_data=custom_data, coll_name=model_name, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, keys=keys, print_status=print_status, temp_brick=temp_brick, redraw=redraw)
+        # select bricks
+        if select_created and len(bricks_created) > 0:
+            select(bricks_created)
     # store current bricksdict to cache
     cache_bricks_dict(action, cm, bricksdict, cur_frame=cur_frame)
-    return coll_name, bricks_created
+    return model_name, bricks_created
+
+
+def generate_brick_object(brick_name="New Brick", brick_size=(1, 1, 1)):
+    scn, cm, n = get_active_context_info()
+    brick_d = create_bricksdict_entry(
+        name=brick_name,
+        loc=(1, 1, 1),
+        val=1,
+        draw=True,
+        b_type=get_brick_type(cm.brick_type),
+    )
+    rand = np.random.RandomState(cm.merge_seed)
+    dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
+    use_stud = cm.stud_detail != "NONE"
+    logo_to_use = get_logo(scn, cm, dimensions) if use_stud and cm.logo_type != "NONE" else None
+    m = get_brick_data(brick_d, rand, dimensions, brick_size, cm.brick_type, cm.brick_height, cm.logo_resolution, cm.logo_decimate, cm.circle_verts, cm.exposed_underside_detail, logo_to_use, cm.logo_type, use_stud)
+    brick = bpy.data.objects.new(brick_name, m)
+    add_edge_split_mod(brick)
+    return brick
+
 
 
 def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1, 1, 3]):

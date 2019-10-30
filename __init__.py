@@ -131,7 +131,7 @@ def register():
     bpy.app.handlers.load_post.append(handle_loading_to_light_cache)
     bpy.app.handlers.save_pre.append(handle_storing_to_deep_cache)
     bpy.app.handlers.load_post.append(handle_upconversion)
-    bpy.app.handlers.load_post.append(reset_undo_stack)
+    bpy.app.handlers.load_post.append(reset_properties)
 
     # addon updater code and configurations
     addon_updater_ops.register(bl_info)
@@ -142,7 +142,7 @@ def unregister():
     addon_updater_ops.unregister()
 
     # unregister app handlers
-    bpy.app.handlers.load_post.remove(reset_undo_stack)
+    bpy.app.handlers.load_post.remove(reset_properties)
     bpy.app.handlers.load_post.remove(handle_upconversion)
     bpy.app.handlers.save_pre.remove(handle_storing_to_deep_cache)
     bpy.app.handlers.load_post.remove(handle_loading_to_light_cache)

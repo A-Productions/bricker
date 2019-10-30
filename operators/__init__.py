@@ -44,6 +44,7 @@ __all__ = [
     "cmlist_actions",
     "delete_model",
     "export_ldraw",
+    "generate_brick",
     "initialize",
     "materials",
     "matlist_actions",

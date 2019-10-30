@@ -166,6 +166,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 self.action = "CREATE" if self.action == "UPDATE_MODEL" else "ANIMATE"
             cm.version = bpy.props.bricker_version
             cm.job_progress = 0
+            cm.stop_background_process = False
             previously_animated = cm.animated
             previously_model_created = cm.model_created
             success = self.run_brickify(context)
@@ -236,6 +237,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         bricker_pixel_cache = dict()
         if self.source is not None:
             # set up model dimensions variables sX, sY, and sZ
+            if self.action.startswith("UPDATE"):
+                link_object(self.source)
+            update_depsgraph()
             r = get_model_resolution(self.source, cm)
             self.brickify_in_background = should_brickify_in_background(cm, r, self.action)
 
@@ -514,7 +518,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if self.updated_frames_only and cm.last_start_frame <= cur_frame and cur_frame <= cm.last_stop_frame:
                 print("skipped frame %(cur_frame)s" % locals())
                 add_completed_frame(cm, cur_frame)
-                cm.frames_to_animate -= 1
+                cm.num_animated_frames += 1
                 continue
             if self.brickify_in_background:
                 cur_job = "%(filename)s__%(n)s__%(cur_frame)s" % locals()
@@ -541,8 +545,14 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         for obj in duplicates.values():
             safe_unlink(obj)
 
+        original_stop_frame = cm.last_stop_frame
         cm.last_start_frame = cm.start_frame
         cm.last_stop_frame = cm.stop_frame
+
+        # hide last frame of previous anim unless on scene current frame
+        if self.action == "UPDATE_ANIM" and cm.stop_frame > original_stop_frame and scn.frame_current > original_stop_frame:
+            set_frame_visibility(original_stop_frame)
+
 
     @staticmethod
     def brickify_current_frame(cur_frame, action, in_background=False):

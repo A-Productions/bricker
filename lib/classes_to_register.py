@@ -33,6 +33,7 @@ classes = [
     bake.BRICKER_OT_bake_model,
     bevel.BRICKER_OT_bevel,
     brickify.BRICKER_OT_brickify,
+    generate_brick.BRICKER_OT_generate_brick,
     brickify_in_background.BRICKER_OT_brickify_in_background,
     brickify_in_background.BRICKER_OT_stop_brickifying_in_background,
     cache.BRICKER_OT_clear_cache,

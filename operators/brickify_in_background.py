@@ -92,8 +92,9 @@ class BRICKER_OT_stop_brickifying_in_background(bpy.types.Operator):
                 if frame not in completed_frames and not updated_stop_frame:
                     # set end frame to last consecutive completed frame
                     updated_stop_frame = True
-                    cm.last_stop_frame = frame - 1
-                    # cm.stop_frame = frame - 1
+                    cm.last_stop_frame = max(cm.last_start_frame, frame - 1)
+                    # cm.stop_frame = max(cm.last_start_frame, frame - 1)
+                    cm.stop_frame = cm.stop_frame  # run updater to allow 'update_model'
                 if frame in completed_frames and updated_stop_frame:
                     # remove frames that cannot be saved
                     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())
@@ -101,17 +102,9 @@ class BRICKER_OT_stop_brickifying_in_background(bpy.types.Operator):
                     bricker_bricks_coll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
                     delete(bricker_bricks_coll.objects)
                     bpy_collections().remove(bricker_bricks_coll)
+            # hide objs unless on scene current frame
             for frame in range(cm.last_start_frame, cm.last_stop_frame + 1):
-                bricker_bricks_coll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
-                # hide obj unless on scene current frame
-                adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
-                if b280():
-                    bricker_bricks_coll.hide_viewport = frame != adjusted_frame_current
-                    bricker_bricks_coll.hide_render   = frame != adjusted_frame_current
-                elif frame != adjusted_frame_current:
-                    [hide(obj) for obj in bricker_bricks_coll.objects]
-                else:
-                    [unhide(obj) for obj in bricker_bricks_coll.objects]
+                set_frame_visibility(frame)
             # finish animation and kill running jobs
             finish_animation(cm)
         else:
