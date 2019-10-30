@@ -509,13 +509,13 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         wm.progress_begin(0, cm.stop_frame + 1 - cm.start_frame)
 
         # prepare duplicate objects for animation
-        duplicates = get_duplicate_objects(scn, cm, self.action, cm.start_frame, cm.stop_frame)
+        duplicates = get_duplicate_objects(scn, cm, self.action, cm.start_frame, cm.stop_frame, self.updated_frames_only)
 
         filename = bpy.path.basename(bpy.data.filepath)[:-6]
         overwrite_blend = True
         # iterate through frames of animation and generate Brick Model
         for cur_frame in range(cm.start_frame, cm.stop_frame + 1):
-            if self.updated_frames_only and cm.last_start_frame <= cur_frame and cur_frame <= cm.last_stop_frame:
+            if frame_unchanged(self.updated_frames_only, cm, cur_frame)
                 print("skipped frame %(cur_frame)s" % locals())
                 add_completed_frame(cm, cur_frame)
                 cm.num_animated_frames += 1

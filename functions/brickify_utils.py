@@ -42,7 +42,7 @@ def get_action(cm):
         return "UPDATE_MODEL" if cm.model_created else "CREATE"
 
 
-def get_duplicate_objects(scn, cm, action, start_frame, stop_frame):
+def get_duplicate_objects(scn, cm, action, start_frame, stop_frame, updated_frames_only):
     """ returns list of duplicates from source with all traits applied """
     source = cm.source_obj
     n = source.name
@@ -80,6 +80,9 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame):
                 duplicates[cur_frame] = source_dup
                 safe_link(source_dup)
                 continue
+        # skip unchanged frames
+        if frame_unchanged(updated_frames_only, cm, cur_frame)
+            continue
         # set active frame for applying modifiers
         scn.frame_set(cur_frame)
         # duplicate source for current frame
@@ -111,6 +114,10 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame):
     update_depsgraph()
     update_progress("Applying Modifiers", 1)
     return duplicates
+
+
+def frame_unchanged(updated_frames_only, cm, cur_frame):
+    return updated_frames_only and cm.last_start_frame <= cur_frame and cur_frame <= cm.last_stop_frame
 
 
 def get_model_resolution(source, cm):
