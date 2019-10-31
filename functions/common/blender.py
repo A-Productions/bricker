@@ -741,6 +741,55 @@ def new_window(area_type, width=640, height=480):
     return window
 
 
+def is_navigation_event(event:Event):
+    navigation_events = {
+        'Rotate View': 'view3d.rotate',
+        'Move View': 'view3d.move',
+        'Zoom View': 'view3d.zoom',
+        'Dolly View': 'view3d.dolly',
+        'View Pan': 'view3d.view_pan',
+        'View Orbit': 'view3d.view_orbit',
+        'View Persp/Ortho': 'view3d.view_persportho',
+        'View Numpad': 'view3d.viewnumpad',
+        'NDOF Pan Zoom': 'view2d.ndof',
+        'NDOF Orbit View with Zoom': 'view3d.ndof_orbit_zoom',
+        'NDOF Orbit View': 'view3d.ndof_orbit',
+        'NDOF Pan View': 'view3d.ndof_pan',
+        'NDOF Move View': 'view3d.ndof_all',
+        'View Selected': 'view3d.view_selected',
+        'Center View to Cursor': 'view3d.view_center_cursor',
+        #'View Navigation': 'view3d.navigate',
+    }
+    keyconfig_name = "blender" if b280() else "Blender"
+    # keyconfig_name = "blender user" if b280() else "Blender"
+    if keyconfig_name not in bpy.context.window_manager.keyconfigs:
+        print('No keyconfig named "%s"' % keyconfig_name)
+        return
+    keyconfig = bpy.context.window_manager.keyconfigs[keyconfig_name]
+    def translate(text):
+        return bpy.app.translations.pgettext(text)
+    def get_keymap_items(key):
+        nonlocal keyconfig
+        if key in keyconfig.keymaps:
+            keymap = keyconfig.keymaps[key]
+        else:
+            keymap = keyconfig.keymaps[translate(key)]
+        return keymap.keymap_items
+    #navigation_events = { translate(key): val for key,val in navigation_events.items() }
+    navigation_idnames = navigation_events.values()
+    for kmi in get_keymap_items('3D View'):
+        if kmi.name not in navigation_events and kmi.idname not in navigation_idnames:
+            continue
+        event_type = event.type
+        if event_type == "WHEELUPMOUSE":
+            event_type = "WHEELINMOUSE"
+        if event_type == "WHEELDOWNMOUSE":
+            event_type = "WHEELOUTMOUSE"
+        if event_type == kmi.type and kmi.value in (event.value, "ANY") and kmi.shift == event.shift and kmi.alt == event.alt and kmi.ctrl == event.ctrl and kmi.oskey == event.oskey:
+            return True
+    return False
+
+
 def load_from_library(blendfile_path, data_attr, filenames=None, overwrite_data=False, action="APPEND"):
     data_block_infos = list()
     orig_data_names = lambda: None
