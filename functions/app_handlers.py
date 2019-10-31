@@ -132,7 +132,7 @@ def reset_properties(dummy):
                     cm.stop_frame = cm.stop_frame  # run updater to allow 'update_model'
                     # hide obj unless on scene current frame
                     if scn.frame_current > cm.last_stop_frame and cf > cm.last_start_frame:
-                        set_frame_visibility(cm.last_stop_frame)
+                        set_frame_visibility(cm, cm.last_stop_frame)
                     break
 
 
@@ -158,6 +158,23 @@ def handle_loading_to_light_cache(dummy):
 @persistent
 def handle_storing_to_deep_cache(dummy):
     light_to_deep_cache(bricker_bfm_cache)
+
+
+@persistent
+def show_all_anim_frames(dummy):
+    for cm in bpy.context.scene.cmlist:
+        if not cm.animated:
+            continue
+        for coll in cm.collection.children:
+            unhide(coll)
+
+
+def set_anim_frames_visibility(dummy):
+    for cm in bpy.context.scene.cmlist:
+        if not cm.animated:
+            continue
+        for frame in range(cm.last_start_frame, cm.last_stop_frame):
+            set_frame_visibility(cm, frame)
 
 
 # @persistent

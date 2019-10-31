@@ -340,13 +340,13 @@ def settings_can_be_drawn():
         return False
     if not bpy.props.bricker_initialized:
         return False
-    if scn.cmlist[scn.cmlist_index].anim_only:
+    if scn.cmlist[scn.cmlist_index].linked_from_external:
         return False
     return True
 
 
-def set_frame_visibility(frame):
-    scn, cm, n = get_active_context_info()
+def set_frame_visibility(cm, frame):
+    scn, cm, n = get_active_context_info(cm=cm)
     cur_bricks_coll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
     if cur_bricks_coll is None:
         return

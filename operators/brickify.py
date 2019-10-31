@@ -551,7 +551,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # hide last frame of previous anim unless on scene current frame
         if self.action == "UPDATE_ANIM" and cm.stop_frame > original_stop_frame and scn.frame_current > original_stop_frame:
-            set_frame_visibility(original_stop_frame)
+            set_frame_visibility(cm, original_stop_frame)
 
 
     @staticmethod

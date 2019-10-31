@@ -770,7 +770,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         soft_min=0,
         soft_max=100,
     )
-    anim_only = BoolProperty(default=False)
+    linked_from_external = BoolProperty(default=False)
     num_animated_frames = IntProperty(default=0)
     completed_frames = StringProperty(default="")
     frames_to_animate = IntProperty(default=1)

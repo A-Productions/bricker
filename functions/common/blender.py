@@ -741,10 +741,10 @@ def new_window(area_type, width=640, height=480):
     return window
 
 
-def append_from(blendfile_path, data_attr, filenames=None, overwrite_data=False):
+def load_from_library(blendfile_path, data_attr, filenames=None, overwrite_data=False, action="APPEND"):
     data_block_infos = list()
     orig_data_names = lambda: None
-    with bpy.data.libraries.load(blendfile_path) as (data_from, data_to):
+    with bpy.data.libraries.load(blendfile_path, link=action == "LINK") as (data_from, data_to):
         # if only appending some of the filenames
         if filenames is not None:
             # rebuild 'data_attr' of data_from based on filenames in 'filenames' list

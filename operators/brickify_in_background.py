@@ -104,7 +104,7 @@ class BRICKER_OT_stop_brickifying_in_background(bpy.types.Operator):
                     bpy_collections().remove(bricker_bricks_coll)
             # hide objs unless on scene current frame
             for frame in range(cm.last_start_frame, cm.last_stop_frame + 1):
-                set_frame_visibility(frame)
+                set_frame_visibility(cm, frame)
             # finish animation and kill running jobs
             finish_animation(cm)
         else:

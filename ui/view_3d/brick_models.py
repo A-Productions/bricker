@@ -50,9 +50,7 @@ class BRICKER_MT_specials(bpy.types.Menu):
         layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_OFF", text="Select Bricks").deselect = False
         layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_ON", text="Deselect Bricks").deselect = True
         layout.separator()
-        layout.operator("cmlist.animate_linked_model", icon="ANIM", text="Animate Linked Model")
-        # layout.operator("cmlist.export_settings", icon="EXPORT")
-        # layout.operator("cmlist.load_settings", icon="FILE_TICK")
+        layout.operator("cmlist.link_animated_model", icon="LINK_BLEND")
 
 
 class VIEW3D_PT_bricker_brick_models(Panel):
@@ -115,10 +113,11 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                     col2.prop_search(cm, "source_obj", scn, "objects", text="")
 
             # draw anim only ui
-            if cm.anim_only:
-                split = layout_split(layout, align=True)
-                split.prop(cm, "last_start_frame", text="S (cur)")
-                split.prop(cm, "last_stop_frame", text="E (cur)")
+            if cm.linked_from_external:
+                if cm.animated:
+                    split = layout_split(layout, align=True)
+                    split.prop(cm, "last_start_frame", text="S (cur)")
+                    split.prop(cm, "last_stop_frame", text="E (cur)")
                 return
 
             # initialize variables
