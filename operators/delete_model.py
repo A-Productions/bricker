@@ -199,7 +199,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 except KeyError:
                     pass
 
-        # BRICKER_OT_clear_cache.clear_cache(cm, brick_mesh=False)
+        # BRICKER_OT_clear_cache.clear_cache(cm, brick_mesh=False, dupes=False)
 
         # Scale brick height according to scale value applied to source
         cm.brick_height = cm.brick_height * cm.transform_scale

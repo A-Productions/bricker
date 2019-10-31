@@ -87,3 +87,5 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
         CMLIST_OT_list_action.remove_item(self, scn.cmlist_index)
         scn.cmlist_index = -1
         return{"FINISHED"}
+
+    ################################################

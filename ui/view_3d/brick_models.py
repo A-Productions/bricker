@@ -46,8 +46,13 @@ class BRICKER_MT_specials(bpy.types.Menu):
         layout.operator("cmlist.copy_settings_to_others", icon="COPY_ID", text="Copy Settings to Others")
         layout.operator("cmlist.copy_settings", icon="COPYDOWN", text="Copy Settings")
         layout.operator("cmlist.paste_settings", icon="PASTEDOWN", text="Paste Settings")
+        layout.separator()
         layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_OFF", text="Select Bricks").deselect = False
         layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_ON", text="Deselect Bricks").deselect = True
+        layout.separator()
+        layout.operator("cmlist.animate_linked_model", icon="ANIM", text="Animate Linked Model")
+        # layout.operator("cmlist.export_settings", icon="EXPORT")
+        # layout.operator("cmlist.load_settings", icon="FILE_TICK")
 
 
 class VIEW3D_PT_bricker_brick_models(Panel):
@@ -99,6 +104,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
             layout.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="New Brick Model", icon="ADD" if b280() else "ZOOMIN").action = "ADD"
         else:
             cm, n = get_active_context_info()[1:]
+
             if not created_with_newer_version(cm):
                 # first, draw source object text
                 source_name = " %(n)s" % locals() if cm.animated or cm.model_created else ""
@@ -107,6 +113,13 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                 if not (cm.animated or cm.model_created):
                     col2 = layout.column(align=True)
                     col2.prop_search(cm, "source_obj", scn, "objects", text="")
+
+            # draw anim only ui
+            if cm.anim_only:
+                split = layout_split(layout, align=True)
+                split.prop(cm, "last_start_frame", text="S (cur)")
+                split.prop(cm, "last_stop_frame", text="E (cur)")
+                return
 
             # initialize variables
             obj = cm.source_obj

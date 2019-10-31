@@ -455,12 +455,13 @@ def assemble_override_context(area_type="VIEW_3D"):
     scr      = win.screen
     areas3d  = [area for area in scr.areas if area.type == area_type]
     region   = [region for region in areas3d[0].regions if region.type == "WINDOW"]
-    override = {"window": win,
-                "screen": scr,
-                "area"  : areas3d[0],
-                "region": region[0],
-                "scene" : bpy.context.scene,
-                }
+    override = {
+        "window": win,
+        "screen": scr,
+        "area"  : areas3d[0],
+        "region": region[0],
+        "scene" : bpy.context.scene,
+    }
     return override
 
 

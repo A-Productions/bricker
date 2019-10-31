@@ -770,6 +770,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         soft_min=0,
         soft_max=100,
     )
+    anim_only = BoolProperty(default=False)
     num_animated_frames = IntProperty(default=0)
     completed_frames = StringProperty(default="")
     frames_to_animate = IntProperty(default=1)
@@ -801,8 +802,16 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     internal_is_dirty = BoolProperty(default=True)
     last_logo_type = StringProperty(default="NONE")
     last_split_model = BoolProperty(default=False)
-    last_start_frame = IntProperty(default=-1)
-    last_stop_frame = IntProperty(default=-1)
+    last_start_frame = IntProperty(
+        name="S (cur)",
+        description="Current start frame of brickified animation",
+        default=-1,
+    )
+    last_stop_frame = IntProperty(
+        name="E (cur)",
+        description="Current end frame of brickified animation",
+        default=-1,
+    )
     last_source_mid = StringProperty(default="-1,-1,-1")
     last_material_type = StringProperty(default="SOURCE")
     last_shell_thickness = IntProperty(default=1)

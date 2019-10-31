@@ -66,11 +66,14 @@ class VIEW3D_PT_bricker_animation(Panel):
         col1.active = cm.animated or cm.use_animation
         # col1.scale_y = 0.85
         row = col1.row(align=True)
-        split = layout_split(row, factor=0.5)
-        col = split.column(align=True)
-        col.prop(cm, "start_frame")
-        col = split.column(align=True)
-        col.prop(cm, "stop_frame")
+        row.prop(cm, "start_frame")
+        row.prop(cm, "stop_frame")
+        if cm.animated:
+            col1 = layout.column()
+            row = col1.row(align=True)
+            row.enabled = False
+            row.prop(cm, "last_start_frame")
+            row.prop(cm, "last_stop_frame")
         source = cm.source_obj
         self.applied_mods = False
         if source:

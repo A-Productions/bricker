@@ -340,6 +340,8 @@ def settings_can_be_drawn():
         return False
     if not bpy.props.bricker_initialized:
         return False
+    if scn.cmlist[scn.cmlist_index].anim_only:
+        return False
     return True
 
 

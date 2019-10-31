@@ -116,7 +116,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         else:
                             link_brick_collection(cm, bricker_bricks_coll)
                         # link parent object to brick collection
-                        cm.collection.objects.link(bricker_parent)
+                        bricker_bricks_coll.objects.link(bricker_parent)
                         hide(bricker_parent)
                         # remove job from queue
                         self.jobs.remove(job)
@@ -483,7 +483,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             cm.frames_to_animate = (cm.stop_frame - cm.start_frame + 1)
 
         if (self.action == "ANIMATE" or cm.matrix_is_dirty or cm.anim_is_dirty) and not self.updated_frames_only:
-            BRICKER_OT_clear_cache.clear_cache(cm, brick_mesh=False)
+            BRICKER_OT_clear_cache.clear_cache(cm, brick_mesh=False, dupes=False)
 
         if cm.split_model:
             cm.split_model = False
@@ -515,7 +515,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         overwrite_blend = True
         # iterate through frames of animation and generate Brick Model
         for cur_frame in range(cm.start_frame, cm.stop_frame + 1):
-            if frame_unchanged(self.updated_frames_only, cm, cur_frame)
+            if frame_unchanged(self.updated_frames_only, cm, cur_frame):
                 print("skipped frame %(cur_frame)s" % locals())
                 add_completed_frame(cm, cur_frame)
                 cm.num_animated_frames += 1

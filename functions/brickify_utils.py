@@ -81,7 +81,7 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame, updated_fram
                 safe_link(source_dup)
                 continue
         # skip unchanged frames
-        if frame_unchanged(updated_frames_only, cm, cur_frame)
+        if frame_unchanged(updated_frames_only, cm, cur_frame):
             continue
         # set active frame for applying modifiers
         scn.frame_set(cur_frame)
@@ -194,7 +194,7 @@ def should_brickify_in_background(cm, r, action):
     )
 
 
-def get_args_for_background_processor(cm, bricker_addon_path, source_dup):
+def get_args_for_background_processor(cm, bricker_addon_path, source_dup=None):
     script = os.path.join(bricker_addon_path, "lib", "brickify_in_background_template.py")
 
     cmlist_props, cmlist_pointer_props = dump_cm_props(cm)

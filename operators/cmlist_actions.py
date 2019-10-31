@@ -16,7 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-# NONE!
+import os
+import json
+from zipfile import ZipFile
 
 # Blender imports
 import bpy
@@ -129,21 +131,21 @@ class CMLIST_OT_list_action(Operator):
     def remove_item(self, idx):
         scn, cm, sn = get_active_context_info()
         n = cm.name
-        if not cm.model_created and not cm.animated:
-            for idx0 in range(idx + 1, len(scn.cmlist)):
-                scn.cmlist[idx0].idx -= 1
-            if len(scn.cmlist) - 1 == scn.cmlist_index:
-                scn.cmlist_index -= 1
-            # remove mat_obj for current cmlist id
-            remove_mat_objs(cm.id)
-            scn.cmlist.remove(idx)
-            if scn.cmlist_index == -1 and len(scn.cmlist) > 0:
-                scn.cmlist_index = 0
-            else:
-                # run update function of the property
-                scn.cmlist_index = scn.cmlist_index
-        else:
+        if cm.model_created or (cm.animated and not cm.anim_only):
             self.report({"WARNING"}, "Please delete the Brickified model before attempting to remove this item." % locals())
+            return
+        for idx0 in range(idx + 1, len(scn.cmlist)):
+            scn.cmlist[idx0].idx -= 1
+        if len(scn.cmlist) - 1 == scn.cmlist_index:
+            scn.cmlist_index -= 1
+        # remove mat_obj for current cmlist id
+        remove_mat_objs(cm.id)
+        scn.cmlist.remove(idx)
+        if scn.cmlist_index == -1 and len(scn.cmlist) > 0:
+            scn.cmlist_index = 0
+        else:
+            # run update function of the property
+            scn.cmlist_index = scn.cmlist_index
 
     def move_down(self, item):
         scn = bpy.context.scene
@@ -267,3 +269,180 @@ class CMLIST_OT_select_bricks(Operator):
 
     def __init__(self):
         self.bricks = get_bricks()
+
+
+class CMLIST_OT_export_settings(bpy.types.Operator):
+    """ export Bricker settings for linking animation in separate file """
+    bl_idname = "cmlist.export_settings"
+    bl_label = "Export Model Settings"
+    bl_options = {"REGISTER", "UNDO"}
+
+    ################################################
+    # Blender Operator methods
+
+    @classmethod
+    def poll(self, context):
+        return bpy.data.filepath
+
+    def execute(self, context):
+        cm = get_active_context_info()[1]
+        bricker_addon_path = get_addon_directory()
+        _, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, bricker_addon_path)
+        filepath, filename = os.path.split(bpy.data.filepath)
+        base_filename = filename[:filename.rfind(".")]
+        # write cmlist_props to text file
+        cmlist_props_filepath = os.path.join(filepath, base_filename + ".txt")
+        f = open(cmlist_props_filepath, "w")
+        f.write(compress_str(json.dumps(cmlist_props)) + "\n")
+        f.write(compress_str(json.dumps(cmlist_pointer_props)) + "\n")
+        f.close()
+        # # write cmlist_pointer_props to library file
+        # cmlist_pointer_props_filepath = os.path.join(filepath, base_filename + ".blend")
+        # bpy.data.libraries.write(filepath=cmlist_props_filepath, datablocks=cmlist_pointer_props)
+        # # zip everything up
+        # with ZipFile(base_filename + ".zip", "w") as zip:
+        #     # writing each file one by one
+        #     for file in (cmlist_props_filepath, cmlist_pointer_props_filepath):
+        #         zip.write(file)
+
+        return{"FINISHED"}
+
+    ################################################
+
+
+class CMLIST_OT_load_settings(bpy.types.Operator):
+    """ load Bricker settings from separate file for linking animations """
+    bl_idname = "cmlist.load_settings"
+    bl_label = "Load Model Settings"
+    bl_options = {"REGISTER", "UNDO"}
+
+    ################################################
+    # Blender Operator methods
+
+    @classmethod
+    def poll(self, context):
+        # scn = bpy.context.scene
+        # if scn.cmlist_index == -1:
+        #     return False
+        return True
+
+    def execute(self, context):
+        # with ZipFile(self.filepath, "r") as zip:
+        #     zip.extractall()
+        # filepath, filename = os.path.split(self.filepath)
+        # base_filename = filename[:filename.rfind(".")]
+        # # load cmlist_props
+        # cmlist_props_path = os.path.join(filepath, filename + ".txt")
+        # read data
+        cmlist_props_path = self.filepath
+        f = open(cmlist_props_path, "r")
+        cmlist_props = json.loads(decompress_str(f.readline()[:-1]))
+        cmlist_pointer_props = json.loads(decompress_str(f.readline()[:-1]))
+        # apply cmlist_props to current model
+        bpy.ops.cmlist.list_action(action="ADD")
+        scn = bpy.context.scene
+        scn.cmlist_index = len(scn.cmlist) - 1
+        cm = scn.cmlist[scn.cmlist_index]
+        for key in cmlist_props:
+            setattr(cm, key, cmlist_props[key])
+        # cm.loaded_from_filepath = self.filepath
+        # apply relevant cmlist_pointer_props to current model
+        source_name = cmlist_pointer_props["source_obj"]["name"]
+        source_obj = bpy.data.objects.get(source_name)
+        if source_obj is None:
+            source_obj = bpy.data.objects.new(source_name, None)
+            setattr(cm, "source_obj", source_obj)
+        # close file
+        f.close()
+
+        # os.remove()
+        # # load cmlist_pointer_props
+        # cmlist_pointer_props_path = os.path.join(filepath, filename + ".blend")
+        # bpy.data.libraries.load(filepath=cmlist_pointer_props_path, link=True)
+
+        return{"FINISHED"}
+
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+    ###################################################
+    # class variables
+
+    filepath = StringProperty(subtype="FILE_PATH")
+
+    ################################################
+
+
+class CMLIST_OT_animate_linked_model(bpy.types.Operator):
+    """ animate linked collection from external file """
+    bl_idname = "cmlist.animate_linked_model"
+    bl_label = "Animate Linked Frames"
+    bl_options = {"REGISTER", "UNDO"}
+
+    ################################################
+    # Blender Operator methods
+
+    @classmethod
+    def poll(self, context):
+        # scn = bpy.context.scene
+        # if scn.cmlist_index == -1:
+        #     return False
+        return True
+
+    def execute(self, context):
+        # create new collection
+        self.collection = bpy.data.collections.new("Bricker_" + self.model_name + "_bricks")
+        # get start and stop frames
+        start_frame = 1048574  # max frame number for blender timeline
+        stop_frame = -1
+        parents = None
+        for obj in bpy.data.objects:
+            # if obj.instance_type == "COLLECTION" and obj.name.startswith("Bricker_" + self.model_name + "_bricks_f_"):
+            if obj.name.startswith("Bricker_" + self.model_name + "_bricks_f_"):
+                cur_f = int(obj.name[obj.name.rfind("_") + 1:])
+                start_frame = min(cur_f, start_frame)
+                stop_frame = max(cur_f, stop_frame)
+                if parents is None:
+                    parents = obj.users_collection
+                unlink_object(obj, all=True)
+                self.collection.objects.link(obj)
+        update_depsgraph()
+        for obj in list(self.collection.objects):
+            if obj.instance_type != "COLLECTION":
+                self.collection.objects.unlink(obj)
+        if parents is None:
+            bpy.data.collections.remove(self.collection)
+            self.report({"WARNING"}, "Existing frames for '" + self.model_name + "' could not be found (e.g. 'Bricker_" + self.model_name + "_bricks_f_1')")
+            return {"CANCELLED"}
+        else:
+            for p in parents:
+                p.children.link(self.collection)
+        # create new cmlist item
+        bpy.ops.cmlist.list_action(action="ADD")
+        scn = bpy.context.scene
+        scn.cmlist_index = len(scn.cmlist) - 1
+        cm = scn.cmlist[scn.cmlist_index]
+        # set properties for new cmlist item
+        cm.name = self.model_name
+        cm.animated = True
+        cm.anim_only = True
+        cm.collection = self.collection
+        cm.source_obj = bpy.data.objects.new(self.model_name, None)
+        cm.last_start_frame = start_frame
+        cm.last_stop_frame = stop_frame
+        return{"FINISHED"}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    ###################################################
+    # class variables
+
+    model_name = StringProperty(
+        name="Model Name",
+        description="Name of the source object of the brick model to animate linked frames for (e.g. 'Cube' if anim frame collection name is 'Bricker_Cube_bricks_f_1')",
+    )
+
+    ################################################

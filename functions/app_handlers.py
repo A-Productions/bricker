@@ -114,13 +114,13 @@ def clear_bfm_cache(dummy):
         bricker_bfm_cache[key] = None
 
 
-# reset undo stack on load
 @persistent
 def reset_properties(dummy):
     scn = bpy.context.scene
+    # reset undo stack on load
     undo_stack = UndoStack.get_instance(reset=True)
+    # if file was saved in the middle of a brickify process, reset necessary props
     for cm in scn.cmlist:
-        # if file was saved in the middle of a brickify process, reset necessary props
         if cm.brickifying_in_background and cm.source_obj is not None:
             cm.brickifying_in_background = False
             n = cm.source_obj.name
