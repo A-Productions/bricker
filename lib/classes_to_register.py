@@ -48,6 +48,7 @@ classes = [
     cmlist_actions.CMLIST_OT_paste_settings,
     cmlist_actions.CMLIST_OT_select_bricks,
     cmlist_actions.CMLIST_OT_link_animated_model,
+    cmlist_actions.CMLIST_OT_link_frames,
     matlist_actions.BRICKER_OT_matlist_actions,
     test_brick_generators.BRICKER_OT_test_brick_generators,
     initialize.BRICKER_OT_initialize,

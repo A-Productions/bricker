@@ -51,6 +51,7 @@ class BRICKER_MT_specials(bpy.types.Menu):
         layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_ON", text="Deselect Bricks").deselect = True
         layout.separator()
         layout.operator("cmlist.link_animated_model", icon="LINK_BLEND")
+        # layout.operator("cmlist.link_frames", icon="LINK_BLEND")
 
 
 class VIEW3D_PT_bricker_brick_models(Panel):
