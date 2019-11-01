@@ -566,12 +566,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         parent0 = bpy.data.objects.get(bricker_parent_on)
         orig_frame = scn.frame_current
-        # if in_background and cm.is_smoke:
-        #     smoke_mod = [mod for mod in cm.source_obj.modifiers if mod.type == "SMOKE"][0]
-        #     point_cache = smoke_mod.domain_settings.point_cache
-        #     point_cache.name = str(cur_frame)
-        #     for frame in range(point_cache.frame_start, cur_frame):
-        #         scn.frame_set(frame)
         scn.frame_set(orig_frame)
         # get duplicated source
         source = bpy.data.objects.get("Bricker_%(n)s_f_%(cur_frame)s" % locals())

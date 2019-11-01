@@ -363,6 +363,9 @@ def get_brick_matrix_smoke(cm, source, face_idx_matrix, brick_shell, source_deta
     brightness = Vector([(cm.smoke_brightness - 1) / 5]*3)
     sat_mat = get_saturation_matrix(cm.smoke_saturation)
     quality = cm.smoke_quality
+    flame_intensity = cm.flame_intensity
+    flame_color = cm.flame_color
+    smoke_density = cm.smoke_density
 
     # get starting and ending idx
     if adapt:
@@ -387,16 +390,12 @@ def get_brick_matrix_smoke(cm, source, face_idx_matrix, brick_shell, source_deta
     # verify bounding box is larger than 0 in all directions
     if 0 in d:
         return brick_freq_matrix, color_matrix
+
     # get x/y/z distances
     xn0 = domain_res[0] / d.x
     yn0 = domain_res[1] / d.y
     zn0 = domain_res[2] / d.z
     denom = d.x
-
-    # initialize variables
-    flame_intensity = cm.flame_intensity
-    flame_color = cm.flame_color
-    smoke_density = cm.smoke_density
 
     # set up brick_freq_matrix values
     for x in range(int(s_idx[0]), int(e_idx[0])):

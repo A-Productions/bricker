@@ -165,7 +165,9 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
     mat = mat or bpy.data.materials.new(name=mat_name)
     # set diffuse and transparency of material
     if mat_is_new:
-        mat.diffuse_color = rgba if b280() else rgba[:3]
+        mat.diffuse_color[:3] = rgba[:3]
+        if b280():
+            mat.diffuse_color[3] = rgba[3] if include_transparency else 1
         if scn.render.engine == "BLENDER_RENDER":
             mat.diffuse_intensity = 1.0
             if a0 < 1.0:
@@ -239,11 +241,8 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
             # make sure 'use_nodes' is disabled
             mat.use_nodes = False
             # update material color
-            if b280():
-                r1, g1, b1, a1 = mat.diffuse_color
-            else:
-                r1, g1, b1 = mat.diffuse_color
-                a1 = mat.alpha
+            r1, g1, b1 = mat.diffuse_color
+            a1 = mat.alpha
             r2, g2, b2, a2 = get_average(Vector(rgba), Vector((r1, g1, b1, a1)), mat.num_averaged)
             mat.diffuse_color = [r2, g2, b2]
             mat.alpha = a2
@@ -256,6 +255,7 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
             # update first node's color
             if first_node:
                 rgba1 = first_node.inputs[0].default_value
+                mat.diffuse_color[3] = rgba1[3] if include_transparency else 1
                 new_rgba = get_average(Vector(rgba), Vector(rgba1), mat.num_averaged)
                 first_node.inputs[0].default_value = new_rgba
                 first_node.inputs[3].default_value[:3] = mathutils_mult(Vector(new_rgba[:3]), sat_mat).to_tuple()
