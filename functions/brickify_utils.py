@@ -111,7 +111,7 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame, updated_fram
             update_progress("Applying Modifiers", percent)
     # update progress bar
     scn.frame_set(orig_frame)
-    update_depsgraph()
+    depsgraph_update()
     update_progress("Applying Modifiers", 1)
     return duplicates
 
@@ -362,7 +362,7 @@ def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1
             # apply transformation to custom object
             safe_link(custom_obj0)
             apply_transform(custom_obj0)
-            update_depsgraph()
+            depsgraph_update()
             safe_unlink(custom_obj0)
             # get custom object details
             cur_custom_obj_details = bounds(custom_obj0)

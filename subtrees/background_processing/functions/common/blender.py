@@ -580,10 +580,10 @@ def active_render_engine():
 
 
 @blender_version_wrapper("<=","2.79")
-def update_depsgraph():
+def depsgraph_update():
     bpy.context.scene.update()
 @blender_version_wrapper(">=","2.80")
-def update_depsgraph():
+def depsgraph_update():
     bpy.context.view_layer.depsgraph.update()
 
 

@@ -434,12 +434,9 @@ def get_brick_matrix_smoke(face_idx_matrix, brick_shell, source_details, print_s
                             cur_idx = (z1 * domain_res[1] + y1) * domain_res[0] + x1
                             _d = density_grid[cur_idx]
                             f = flame_grid[cur_idx]
-                            print(type(_d))
-                            print(type(f))
                             d_acc += _d
                             f_acc += f
                             cur_idx_ext = cur_idx * 4
-                            print(type(color_grid[cur_idx_ext]))
                             cs_acc += _d * Vector((color_grid[cur_idx_ext], color_grid[cur_idx_ext + 1], color_grid[cur_idx_ext + 2]))
                             cf_acc += Vector(f * flame_intensity * f * flame_color)
                             ave_denom += 1

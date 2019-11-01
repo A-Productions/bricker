@@ -347,7 +347,7 @@ def new_mesh_from_object(obj:Object):
 
 
 def apply_modifiers(obj:Object):
-    """ apply modifiers to object """
+    """ apply modifiers to object (may require a depsgraph update before running) """
     m = new_mesh_from_object(obj)
     obj.modifiers.clear()
     obj.data = m
@@ -580,10 +580,10 @@ def active_render_engine():
 
 
 @blender_version_wrapper("<=","2.79")
-def update_depsgraph():
+def depsgraph_update():
     bpy.context.scene.update()
 @blender_version_wrapper(">=","2.80")
-def update_depsgraph():
+def depsgraph_update():
     bpy.context.view_layer.depsgraph.update()
 
 

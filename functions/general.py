@@ -287,7 +287,7 @@ def get_keys_dict(bricksdict, keys=None):
                 keys_dict[z].append(k0)
             else:
                 keys_dict[z] = [k0]
-    return keys_dict
+    return keys_dict, keys
 
 
 def get_parent_key(bricksdict, key):

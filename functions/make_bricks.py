@@ -71,7 +71,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     if len(keys) == 0:
         return False, None
     # get dictionary of keys based on z value
-    keys_dict = get_keys_dict(bricksdict, keys)
+    keys_dict, sorted_keys = get_keys_dict(bricksdict, keys)
     denom = sum([len(keys_dict[z0]) for z0 in keys_dict.keys()])
     # store first key to active keys
     if cm.active_key[0] == -1 and len(keys) > 0:
@@ -243,7 +243,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     old_percent = update_progress_bars(print_status, cursor_status, 0.0, -1, "Building")
 
     # draw merged bricks
-    seed_keys = sorted(list(bricksdict.keys())) if material_type == "RANDOM" else None
+    seed_keys = sorted_keys if material_type == "RANDOM" else None
     i = 0
     for z in sorted(keys_dict.keys()):
         for k2 in keys_dict[z]:

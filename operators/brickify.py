@@ -240,7 +240,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # set up model dimensions variables sX, sY, and sZ
             if self.action.startswith("UPDATE"):
                 link_object(self.source)
-            update_depsgraph()
+            depsgraph_update()
             r = get_model_resolution(self.source, cm)
             self.brickify_in_background = should_brickify_in_background(cm, r, self.action)
 
@@ -399,7 +399,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # apply transformation data
             apply_transform(source_dup)
             source_dup.animation_data_clear()
-            update_depsgraph()
+            depsgraph_update()
         else:
             # get previously created source duplicate
             source_dup = bpy.data.objects.get(n + "__dup__")
@@ -409,7 +409,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # link source_dup if it isn't in scene
         if source_dup.name not in scn.objects.keys():
             safe_link(source_dup)
-            update_depsgraph()
+            depsgraph_update()
 
         # get parent object
         bricker_parent_on = "Bricker_%(n)s_parent" % locals()
@@ -574,7 +574,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # get source info to update
         if in_background and scn not in source.users_scene:
             safe_link(source)
-            update_depsgraph()
+            depsgraph_update()
 
         # get source_details and dimensions
         source_details, dimensions = get_details_and_bounds(source)

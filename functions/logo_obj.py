@@ -56,7 +56,8 @@ def get_lego_logo(scn, typ, res, decimate, dimensions):
             # decimate mesh
             if decimate != 0:
                 d_mod = ref_logo.modifiers.new("Decimate", type="DECIMATE")
-                d_mod.ratio = 1 - (decimate / 10)
+                d_mod.ratio = 1.001 - (decimate / 10)
+                depsgraph_update()
                 apply_modifiers(ref_logo)
             safe_unlink(ref_logo)
     return ref_logo
