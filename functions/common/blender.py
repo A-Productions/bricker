@@ -422,6 +422,7 @@ def disable_relationship_lines():
             area.spaces[0].overlay.show_relationship_lines = False
 
 
+@blender_version_wrapper(">=", "2.80")
 def get_layer_collection(name:str, layer_collection:LayerCollection=None):
     """ recursivly transverse view_layer.layer_collection for a particular name """
     layer_collection = layer_collection or bpy.context.window.view_layer.layer_collection

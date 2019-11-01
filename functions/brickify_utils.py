@@ -455,13 +455,14 @@ def store_parent_collections_to_source(cm, source):
 def get_new_parent(name, loc):
     parent = bpy.data.objects.new(name, None)
     parent.location = loc
-    parent.use_fake_user = True
     return parent
 
 
 def link_brick_collection(cm, coll):
     cm.collection = coll
     source = cm.source_obj
+    if cm.parent_obj.name not in coll.objects:
+        coll.objects.link(cm.parent_obj)
     if b280():
         for item in source.stored_parents:
             if coll.name not in item.collection.children:
