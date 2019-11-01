@@ -30,6 +30,7 @@ from mathutils import Matrix, Vector
 from ..common import *
 from ..general import *
 from ..colors import *
+from ..mat_utils import *
 from ..generate_lattice import generate_lattice
 from ..smoke_sim import *
 from ..brick import *
@@ -696,7 +697,7 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
                 b_type = get_brick_type(brick_type)
                 flipped, rotated = get_flip_rot("" if norm_dir is None else norm_dir[1:])
                 if source_mats:
-                    rgba = smoke_colors[x][y][z] if smoke_colors else get_uv_pixel_color(scn, source, nf, ni if ni is None else Vector(ni), uv_image)
+                    rgba = smoke_colors[x][y][z] if smoke_colors else get_uv_pixel_color(scn, source, nf, ni if ni is None else Vector(ni), get_pixels, uv_image)
                 else:
                     rgba = (0, 0, 0, 1)
                 draw = brick_freq_matrix[x][y][z] >= threshold

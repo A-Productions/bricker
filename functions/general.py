@@ -71,12 +71,12 @@ def get_bricks(cm=None, typ=None):
     if typ == "MODEL":
         bcoll = bpy_collections().get("Bricker_%(n)s_bricks" % locals())
         if bcoll:
-            bricks = list(bcoll.objects)
+            bricks = [obj for obj in bcoll.objects if not (obj.name.endswith("_parent") or "_parent_f_" in obj.name)]
     elif typ == "ANIM":
         for cf in range(cm.last_start_frame, cm.last_stop_frame+1):
             bcoll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
             if bcoll:
-                bricks += list(bcoll.objects)
+                bricks += [obj for obj in bcoll.objects if not (obj.name.endswith("_parent") or "_parent_f_" in obj.name)]
     return bricks
 
 

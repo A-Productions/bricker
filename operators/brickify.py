@@ -116,7 +116,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         else:
                             link_brick_collection(cm, bricker_bricks_coll)
                         # link parent object to brick collection
-                        bricker_bricks_coll.objects.link(bricker_parent)
+                        if bricker_parent.name not in bricker_bricks_coll.objects:
+                            bricker_bricks_coll.objects.link(bricker_parent)
                         hide(bricker_parent)
                         # remove job from queue
                         self.jobs.remove(job)

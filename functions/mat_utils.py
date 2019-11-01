@@ -297,9 +297,18 @@ def get_brick_rgba(scn, obj, face_idx, point, uv_image=None):
     image = get_uv_image(scn, obj, face_idx, uv_image)
     if image is not None:
         orig_mat_name = ""
-        rgba = get_uv_pixel_color(scn, obj, face_idx, point, image)
+        rgba = get_uv_pixel_color(scn, obj, face_idx, point, get_pixels, image)
     else:
         # get closest material using material slot of face
         orig_mat_name = get_mat_at_face_idx(obj, face_idx)
         rgba = get_material_color(orig_mat_name) if orig_mat_name is not None else None
     return rgba, orig_mat_name
+
+
+def get_pixels(image):
+    if image.name in bricker_pixel_cache:
+        return bricker_pixel_cache[image.name]
+    else:
+        pixels = image.pixels[:]
+        bricker_pixel_cache[image.name] = pixels
+        return pixels

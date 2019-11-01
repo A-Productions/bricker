@@ -30,6 +30,7 @@ try:
     from bpy.types import ViewLayer, LayerCollection
 except ImportError:
     ViewLayer = None
+    LayerCollection = None
 
 # Module imports
 from .python_utils import confirm_iter, confirm_list

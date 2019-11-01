@@ -23,8 +23,8 @@ import bpy
 from bpy.props import *
 
 # Module imports
-# NONE!
+from ...functions.common import *
 
 
 class BRICKER_UL_collections_tuple(bpy.types.PropertyGroup):
-    collection = PointerProperty(type=bpy.types.Collection)
+    collection = PointerProperty(type=bpy.types.Collection if b280() else bpy.types.Group)

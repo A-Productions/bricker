@@ -132,7 +132,7 @@ class CMLIST_OT_list_action(Operator):
         scn, cm, sn = get_active_context_info()
         n = cm.name
         if cm.linked_from_external:
-            bpy.data.collections.remove(cm.collection)
+            bpy_collections().remove(cm.collection)
         if cm.model_created or (cm.animated and not cm.linked_from_external):
             self.report({"WARNING"}, "Please delete the Brickified model before attempting to remove this item." % locals())
             return
@@ -320,7 +320,7 @@ class CMLIST_OT_link_animated_model(bpy.types.Operator):
                     children = list(collection.children)
                     for subcoll in children:
                         if subcoll.name in [cn.name for cn in cm.collection.children]:
-                            bpy.data.collections.remove(subcoll)
+                            bpy_collections().remove(subcoll)
                             continue
                         cm.collection.children.link(subcoll)
                         new_frame = True

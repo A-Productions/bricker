@@ -265,7 +265,7 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
         # generate point cloud
         point_cloud = bpy.data.meshes.new(model_name + "_instancer")
         point_cloud_obj = bpy.data.objects.new(model_name + "_instancer", point_cloud)
-        coll = bpy.data.collections.new(model_name)
+        coll = bpy_collections().new(model_name)
         coll.objects.link(point_cloud_obj)
         scn.collection.children.link(coll)
         point_cloud.vertices.add(len(bricksdict))
@@ -447,7 +447,7 @@ def store_parent_collections_to_source(cm, source):
         brick_coll = cm.collection
         if brick_coll is None:
             return
-        linked_colls = [cn for cn in bpy.data.collections if brick_coll.name in cn.children]
+        linked_colls = [cn for cn in bpy_collections() if brick_coll.name in cn.children]
     for cn in linked_colls:
         source.stored_parents.add().collection = cn
 

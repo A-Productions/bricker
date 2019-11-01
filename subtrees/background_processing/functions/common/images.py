@@ -16,13 +16,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-# NONE!
+import numpy as np
 
 # Blender imports
 import bpy
 from mathutils import Vector
 from mathutils.interpolate import poly_3d_calc
-import numpy as np
 
 # Module imports
 from .reporting import b280

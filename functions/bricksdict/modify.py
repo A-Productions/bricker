@@ -24,6 +24,7 @@ import bpy
 # Module imports
 from .exposure import *
 from ..mat_utils import *
+from ..matlist_utils import *
 from ..brick import *
 
 

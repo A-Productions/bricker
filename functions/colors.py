@@ -49,53 +49,8 @@ def find_nearest_color_name(rgba, trans_weight, colors):
     mindiff = None
     mincolorname = ""
     for color_name in colors:
-        diff = distance(rgba, colors[color_name], trans_weight)
+        diff = rgba_distance(rgba, colors[color_name], trans_weight)
         if mindiff is None or diff < mindiff:
             mindiff = diff
             mincolorname = color_name
     return mincolorname
-
-
-def get_first_img_from_nodes(obj, mat_slot_idx):
-    """ return first image texture found in a material slot """
-    mat = obj.material_slots[mat_slot_idx].material
-    if mat is None or not mat.use_nodes:
-        return None
-    nodes_to_check = list(mat.node_tree.nodes)
-    active_node = mat.node_tree.nodes.active
-    if active_node is not None: nodes_to_check.insert(0, active_node)
-    img = None
-    for node in nodes_to_check:
-        if node.type != "TEX_IMAGE":
-            continue
-        img = verify_img(node.image)
-        if img is not None:
-            break
-    return img
-
-
-def get_uv_image(scn, obj, face_idx, uv_image=None):
-    """ returns UV image (priority to passed image, then face index, then first one found in material nodes) """
-    image = verify_img(uv_image)
-    # TODO: Reinstate this functionality for b280()
-    if not b280() and image is None and obj.data.uv_textures.active:
-        image = verify_img(obj.data.uv_textures.active.data[face_idx].image)
-    if image is None:
-        try:
-            mat_idx = obj.data.polygons[face_idx].material_index
-            image = verify_img(get_first_img_from_nodes(obj, mat_idx))
-        except IndexError:
-            mat_idx = 0
-            while image is None and mat_idx < len(obj.material_slots):
-                image = verify_img(get_first_img_from_nodes(obj, mat_idx))
-                mat_idx += 1
-    return image
-
-
-def get_pixels(image):
-    if image.name in bricker_pixel_cache:
-        return bricker_pixel_cache[image.name]
-    else:
-        pixels = image.pixels[:]
-        bricker_pixel_cache[image.name] = pixels
-        return pixels
