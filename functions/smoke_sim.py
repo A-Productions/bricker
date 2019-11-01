@@ -34,8 +34,8 @@ def store_smoke_data(from_obj, to_obj):
     domain_settings = next((mod.domain_settings for mod in from_obj_eval.modifiers if hasattr(mod, "smoke_type") and mod.smoke_type == "DOMAIN"), None)
     smoke_data = {
         "density_grid": tuple(domain_settings.density_grid),
-        "flame_grid": tuple(domain_settings.density_grid),
-        "color_grid": tuple(domain_settings.density_grid),
+        "flame_grid": tuple(domain_settings.flame_grid),
+        "color_grid": tuple(domain_settings.color_grid),
         "domain_resolution": tuple(domain_settings.domain_resolution),
         "use_adaptive_domain": domain_settings.use_adaptive_domain,
         "resolution_max": domain_settings.resolution_max,
