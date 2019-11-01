@@ -76,6 +76,7 @@ def register():
     Object.is_brickified_object = BoolProperty(name="Is Brickified Object", default=False)
     Object.is_brick = BoolProperty(name="Is Brick", default=False)
     Object.cmlist_id = IntProperty(name="Custom Model ID", description="ID of cmlist entry to which this object refers", default=-1)
+    Object.smoke_data = StringProperty(name="Smoke Data", description="Smoke data stored for brickify operation", default="")
     if b280():
         Object.stored_parents = CollectionProperty(type=BRICKER_UL_collections_tuple)
     Material.num_averaged = IntProperty(name="Colors Averaged", description="Number of colors averaged together", default=0)

@@ -354,15 +354,9 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
     return brick_freq_matrix
 
 
-def get_brick_matrix_smoke(face_idx_matrix, brick_shell, source_details, print_status=True, cursor_status=False):
-    cm = get_active_context_info()[1]
-    source = cm.source_obj
-    if b280():
-        depsgraph = bpy.context.view_layer.depsgraph
-        source_eval = source.evaluated_get(depsgraph)
-    else:
-        source_eval = source
-    density_grid, flame_grid, color_grid, domain_res, max_res, adapt = get_smoke_info(source_eval)
+def get_brick_matrix_smoke(cm, source, face_idx_matrix, brick_shell, source_details, print_status=True, cursor_status=False):
+    # source = cm.source_obj
+    density_grid, flame_grid, color_grid, domain_res, max_res, adapt = get_smoke_info(source)
     brick_freq_matrix = deepcopy(face_idx_matrix)
     color_matrix = deepcopy(face_idx_matrix)
     old_percent = 0
@@ -658,7 +652,7 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
     # set up face_idx_matrix and brick_freq_matrix
     face_idx_matrix = np.zeros((len(coord_matrix), len(coord_matrix[0]), len(coord_matrix[0][0])), dtype=int).tolist()
     if cm.is_smoke:
-        brick_freq_matrix, smoke_colors = get_brick_matrix_smoke(face_idx_matrix, cm.brick_shell, source_details, cursor_status=cursor_status)
+        brick_freq_matrix, smoke_colors = get_brick_matrix_smoke(cm, source, face_idx_matrix, cm.brick_shell, source_details, cursor_status=cursor_status)
     else:
         brick_freq_matrix = get_brick_matrix(source, face_idx_matrix, coord_matrix, cm.brick_shell, axes=calculation_axes, cursor_status=cursor_status)
         smoke_colors = None

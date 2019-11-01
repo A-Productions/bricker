@@ -447,8 +447,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # select the bricks object unless it's massive
             if not cm.split_model and len(bcoll.objects) > 0:
                 obj = bcoll.objects[0]
-                if len(obj.data.vertices) < 500000:
-                    select(obj, active=True)
+                # if len(obj.data.vertices) < 500000:
+                #     select(obj, active=True)
 
         # unlink source duplicate if created
         if source_dup != self.source:
@@ -511,6 +511,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # prepare duplicate objects for animation
         duplicates = get_duplicate_objects(scn, cm, self.action, cm.start_frame, cm.stop_frame, self.updated_frames_only)
+        # [link_object(dup) for dup in duplicates]
 
         filename = bpy.path.basename(bpy.data.filepath)[:-6]
         overwrite_blend = True
@@ -562,12 +563,12 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         parent0 = bpy.data.objects.get(bricker_parent_on)
         orig_frame = scn.frame_current
-        if in_background and cm.is_smoke:
-            smoke_mod = [mod for mod in cm.source_obj.modifiers if mod.type == "SMOKE"][0]
-            point_cache = smoke_mod.domain_settings.point_cache
-            point_cache.name = str(cur_frame)
-            for frame in range(point_cache.frame_start, cur_frame):
-                scn.frame_set(frame)
+        # if in_background and cm.is_smoke:
+        #     smoke_mod = [mod for mod in cm.source_obj.modifiers if mod.type == "SMOKE"][0]
+        #     point_cache = smoke_mod.domain_settings.point_cache
+        #     point_cache.name = str(cur_frame)
+        #     for frame in range(point_cache.frame_start, cur_frame):
+        #         scn.frame_set(frame)
         scn.frame_set(orig_frame)
         # get duplicated source
         source = bpy.data.objects.get("Bricker_%(n)s_f_%(cur_frame)s" % locals())
