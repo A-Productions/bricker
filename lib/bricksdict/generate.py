@@ -356,7 +356,12 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
 def get_brick_matrix_smoke(face_idx_matrix, brick_shell, source_details, print_status=True, cursor_status=False):
     cm = get_active_context_info()[1]
     source = cm.source_obj
-    density_grid, flame_grid, color_grid, domain_res, max_res, adapt = get_smoke_info(source)
+    if b280():
+        depsgraph = bpy.context.view_layer.depsgraph
+        source_eval = source.evaluated_get(depsgraph)
+    else:
+        source_eval = source
+    density_grid, flame_grid, color_grid, domain_res, max_res, adapt = get_smoke_info(source_eval)
     brick_freq_matrix = deepcopy(face_idx_matrix)
     color_matrix = deepcopy(face_idx_matrix)
     old_percent = 0
@@ -428,9 +433,12 @@ def get_brick_matrix_smoke(face_idx_matrix, brick_shell, source_details, print_s
                             cur_idx = (z1 * domain_res[1] + y1) * domain_res[0] + x1
                             _d = density_grid[cur_idx]
                             f = flame_grid[cur_idx]
+                            print(type(_d))
+                            print(type(f))
                             d_acc += _d
                             f_acc += f
                             cur_idx_ext = cur_idx * 4
+                            print(type(color_grid[cur_idx_ext]))
                             cs_acc += _d * Vector((color_grid[cur_idx_ext], color_grid[cur_idx_ext + 1], color_grid[cur_idx_ext + 2]))
                             cf_acc += Vector(f * flame_intensity * f * flame_color)
                             ave_denom += 1
