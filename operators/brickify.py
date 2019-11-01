@@ -393,8 +393,11 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # remove source_dup parent
             if source_dup.parent:
                 parent_clear(source_dup)
-            # send to new mesh
-            if not cm.is_smoke:
+            # handle smoke
+            if cm.is_smoke:
+                store_smoke_data(self.source, source_dup)
+            else:
+                # send to new mesh
                 source_dup.data = new_mesh_from_object(self.source)
             # apply transformation data
             apply_transform(source_dup)

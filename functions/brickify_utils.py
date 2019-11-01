@@ -94,38 +94,20 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame, updated_fram
             source_dup.modifiers.remove(mod)
         for constraint in source_dup.constraints:
             source_dup.constraints.remove(constraint)
+        # apply parent transformation
+        if source_dup.parent:
+            parent_clear(source_dup)
+        # apply animated transform data
+        source_dup.matrix_world = source.matrix_world
+        source_dup.animation_data_clear()
         # handle smoke
         if smoke:
-            # get evaluated source
-            if b280():
-                depsgraph = bpy.context.view_layer.depsgraph
-                source_eval = source.evaluated_get(depsgraph)
-            else:
-                source_eval = source
-            # store point cache for frame
-            domain_settings = next((mod.domain_settings for mod in source_eval.modifiers if hasattr(mod, "smoke_type") and mod.smoke_type == "DOMAIN"), None)
-            smoke_data = {
-                "density_grid": tuple(domain_settings.density_grid),
-                "flame_grid": tuple(domain_settings.density_grid),
-                "color_grid": tuple(domain_settings.density_grid),
-                "domain_resolution": tuple(domain_settings.domain_resolution),
-                "use_adaptive_domain": domain_settings.use_adaptive_domain,
-                "resolution_max": domain_settings.resolution_max,
-                "use_high_resolution": domain_settings.use_high_resolution,
-                "amplify": domain_settings.amplify,
-            }
-            source_dup.smoke_data = compress_str(json.dumps(smoke_data))
+            store_smoke_data(source, source_dup)
         else:
-            # apply parent transformation
-            if source_dup.parent:
-                parent_clear(source_dup)
-            # apply animated transform data
-            source_dup.matrix_world = source.matrix_world
-            source_dup.animation_data_clear()
             # send to new mesh
             source_dup.data = new_mesh_from_object(source)
-            # apply transform data
-            apply_transform(source_dup)
+        # apply transform data
+        apply_transform(source_dup)
         # store duplicate to dictionary of dupes
         duplicates[cur_frame] = source_dup
         # update progress bar
