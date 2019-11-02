@@ -42,6 +42,7 @@ __all__ = [
     "brickify_in_background",
     "cache",
     "cmlist_actions",
+    "debug_toggle_view_source",
     "delete_model",
     "export_ldraw",
     "generate_brick",

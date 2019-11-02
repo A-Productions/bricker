@@ -388,9 +388,11 @@ def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1
             # store fresh data to custom_data variable
             custom_data[i] = custom_obj0.data
     if cm.brick_type != "CUSTOM":
-        brick_scale = Vector((dimensions["width"] + dimensions["gap"],
-                              dimensions["width"] + dimensions["gap"],
-                              dimensions["height"]+ dimensions["gap"]))
+        brick_scale = Vector((
+            dimensions["width"] + dimensions["gap"],
+            dimensions["width"] + dimensions["gap"],
+            dimensions["height"]+ dimensions["gap"],
+        ))
     return brick_scale, custom_data
 
 

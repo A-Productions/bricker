@@ -53,9 +53,11 @@ def make_standard_brick(dimensions:dict, brick_size:list, type:str, brick_type:s
     d = Vector((dimensions["half_width"], dimensions["half_width"], dimensions["half_height"]))
     d.z = d.z * (brick_size[2] if flat_brick_type(brick_type) else 1)
     # get scalar for d in positive xyz directions
-    scalar = Vector((brick_size[0] * 2 - 1,
-                     brick_size[1] * 2 - 1,
-                     1))
+    scalar = Vector((
+        brick_size[0] * 2 - 1,
+        brick_size[1] * 2 - 1,
+        1,
+    ))
     # get thickness of brick from inside to outside
     thick_xy = dimensions["thickness"] - (dimensions["tick_depth"] if "High" in detail and min(brick_size) != 1 else 0)
     thick = Vector((thick_xy, thick_xy, dimensions["thickness"]))

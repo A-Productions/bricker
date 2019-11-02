@@ -50,9 +50,11 @@ def center_mesh_origin(m, dimensions, size):
     # get half width
     d0 = Vector((dimensions["width"] / 2, dimensions["width"] / 2, 0))
     # get scalar for d0 in positive xy directions
-    scalar = Vector((size[0] * 2 - 1,
-                     size[1] * 2 - 1,
-                     0))
+    scalar = Vector((
+        size[0] * 2 - 1,
+        size[1] * 2 - 1,
+        0,
+    ))
     # calculate center
     center = (vec_mult(d0, scalar) - d0) / 2
     # apply translation matrix to center mesh
@@ -100,30 +102,34 @@ def get_collections(cm=None, typ=None):
 def get_matrix_settings(cm=None):
     cm = cm or get_active_context_info()[1]
     # TODO: Maybe remove custom objects from this?
-    regularSettings = [round(cm.brick_height, 6),
-                       round(cm.gap, 4),
-                       cm.brick_type,
-                       cm.dist_offset[0],
-                       cm.dist_offset[1],
-                       cm.dist_offset[2],
-                       cm.include_transparency,
-                       cm.custom_object1.name if cm.custom_object1 is not None else "",
-                       cm.custom_object2.name if cm.custom_object2 is not None else "",
-                       cm.custom_object3.name if cm.custom_object3 is not None else "",
-                       cm.use_normals,
-                       cm.verify_exposure,
-                       cm.insideness_ray_cast_dir,
-                       cm.brick_shell,
-                       cm.calc_internals,
-                       cm.calculation_axes]
-    smokeSettings = [round(cm.smoke_density, 6),
-                     round(cm.smoke_quality, 6),
-                     round(cm.smoke_brightness, 6),
-                     round(cm.smoke_saturation, 6),
-                     round(cm.flame_color[0], 6),
-                     round(cm.flame_color[1], 6),
-                     round(cm.flame_color[2], 6),
-                     round(cm.flame_intensity, 6)] if cm.last_is_smoke else []
+    regularSettings = [
+        round(cm.brick_height, 6),
+        round(cm.gap, 4),
+        cm.brick_type,
+        cm.dist_offset[0],
+        cm.dist_offset[1],
+        cm.dist_offset[2],
+        cm.include_transparency,
+        cm.custom_object1.name if cm.custom_object1 is not None else "",
+        cm.custom_object2.name if cm.custom_object2 is not None else "",
+        cm.custom_object3.name if cm.custom_object3 is not None else "",
+        cm.use_normals,
+        cm.verify_exposure,
+        cm.insideness_ray_cast_dir,
+        cm.brick_shell,
+        cm.calc_internals,
+        cm.calculation_axes,
+    ]
+    smokeSettings = [
+        round(cm.smoke_density, 6),
+        round(cm.smoke_quality, 6),
+        round(cm.smoke_brightness, 6),
+        round(cm.smoke_saturation, 6),
+        round(cm.flame_color[0], 6),
+        round(cm.flame_color[1], 6),
+        round(cm.flame_color[2], 6),
+        round(cm.flame_intensity, 6),
+    ] if cm.last_is_smoke else []
     return list_to_str(regularSettings + smokeSettings)
 
 
@@ -171,21 +177,25 @@ def get_normal_direction(normal, max_dist=0.77, slopes=False):
         return min_dir
     # set Vectors for perfect normal directions
     if slopes:
-        norm_dirs = {"^X+":Vector((1, 0, 0.5)),
-                     "^Y+":Vector((0, 1, 0.5)),
-                     "^X-":Vector((-1, 0, 0.5)),
-                     "^Y-":Vector((0, -1, 0.5)),
-                     "vX+":Vector((1, 0, -0.5)),
-                     "vY+":Vector((0, 1, -0.5)),
-                     "vX-":Vector((-1, 0, -0.5)),
-                     "vY-":Vector((0, -1, -0.5))}
+        norm_dirs = {
+            "^X+":Vector((1, 0, 0.5)),
+            "^Y+":Vector((0, 1, 0.5)),
+            "^X-":Vector((-1, 0, 0.5)),
+            "^Y-":Vector((0, -1, 0.5)),
+            "vX+":Vector((1, 0, -0.5)),
+            "vY+":Vector((0, 1, -0.5)),
+            "vX-":Vector((-1, 0, -0.5)),
+            "vY-":Vector((0, -1, -0.5)),
+        }
     else:
-        norm_dirs = {"X+":Vector((1, 0, 0)),
-                     "Y+":Vector((0, 1, 0)),
-                     "Z+":Vector((0, 0, 1)),
-                     "X-":Vector((-1, 0, 0)),
-                     "Y-":Vector((0, -1, 0)),
-                     "Z-":Vector((0, 0, -1))}
+        norm_dirs = {
+            "X+":Vector((1, 0, 0)),
+            "Y+":Vector((0, 1, 0)),
+            "Z+":Vector((0, 0, 1)),
+            "X-":Vector((-1, 0, 0)),
+            "Y-":Vector((0, -1, 0)),
+            "Z-":Vector((0, 0, -1)),
+        }
     # calculate nearest
     for dir,v in norm_dirs.items():
         dist = (v - normal).length

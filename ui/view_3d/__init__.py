@@ -20,6 +20,7 @@ from .animation import *
 from .brick_models import *
 from .brick_types import *
 from .customize import *
+from .debugging_tools import *
 from .detailing import *
 from .export import *
 from .materials import *
