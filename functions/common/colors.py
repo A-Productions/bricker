@@ -51,7 +51,7 @@ def gamma_correct_linear_to_srgb(color:list):
         if u <= 0.0031308:
             u2 = 12.92 * u
         else:
-            u2 = math.pow(1.055 * u, 1 / 2.4) - 0.055
+            u2 = (1.055 * u) ** (1 / 2.4) - 0.055
         new_color.append(u2)
     return new_color
 
@@ -64,8 +64,16 @@ def gamma_correct_srgb_to_linear(color:list):
         if u <= 0.04045:
             u2 = u / 12.92
         else:
-            u2 = math.pow((u + 0.055) / 1.055, 2.4)
-        new_color .append(u2)
+            u2 = ((u + 0.055) / 1.055) ** 2.4
+        new_color.append(u2)
+    return new_color
+
+
+def rgb_to_bw(color:list, gamma_correct:bool=True):
+    r, g, b = color[:3]
+    new_color = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    if gamma_correct:
+        new_color = gamma_correct_linear_to_srgb([new_color])[0]
     return new_color
 
 
