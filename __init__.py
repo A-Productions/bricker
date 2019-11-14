@@ -72,13 +72,35 @@ def register():
     bpy.props.manual_cmlist_update = False
     bpy.props.bfm_cache_bytes_hex = None
 
-    Object.protected = BoolProperty(name="protected", default=False)
-    Object.is_brickified_object = BoolProperty(name="Is Brickified Object", default=False)
-    Object.is_brick = BoolProperty(name="Is Brick", default=False)
-    Object.cmlist_id = IntProperty(name="Custom Model ID", description="ID of cmlist entry to which this object refers", default=-1)
+    Object.protected = BoolProperty(
+        name="protected",
+        default=False,
+    )
+    Object.is_brickified_object = BoolProperty(
+        name="Is Brickified Object",
+        default=False,
+    )
+    Object.is_brick = BoolProperty(
+        name="Is Brick",
+        default=False,
+    )
+    Object.cmlist_id = IntProperty(
+        name="Custom Model ID",
+        description="ID of cmlist entry to which this object refers",
+        default=-1,
+    )
+    Object.smoke_data = StringProperty(
+        name="Smoke Data",
+        description="Smoke data stored for brickify operation",
+        default="",
+    )
     if b280():
         Object.stored_parents = CollectionProperty(type=BRICKER_UL_collections_tuple)
-    Material.num_averaged = IntProperty(name="Colors Averaged", description="Number of colors averaged together", default=0)
+    Material.num_averaged = IntProperty(
+        name="Colors Averaged",
+        description="Number of colors averaged together",
+        default=0,
+    )
 
     WindowManager.bricker_running_blocking_operation = BoolProperty(default=False)
 
@@ -97,16 +119,19 @@ def register():
     Scene.include_transparent = BoolProperty(
         name="Include Transparent",
         description="Include transparent ABS Plastic materials",
-        default=False)
+        default=False,
+    )
     Scene.include_uncommon = BoolProperty(
         name="Include Uncommon",
         description="Include uncommon ABS Plastic materials",
-        default=False)
+        default=False,
+    )
 
     # Scene.bricker_snapping = BoolProperty(
     #     name="Bricker Snap",
     #     description="Snap to brick dimensions",
-    #     default=False)
+    #     default=False,
+    # )
     # bpy.types.VIEW3D_HT_header.append(Bricker_snap_button)
 
     # other things (UI List)
@@ -179,6 +204,7 @@ def unregister():
     del Material.num_averaged
     if hasattr(Object, "stored_parents"):
         del Object.stored_parents
+    del Object.smoke_data
     del Object.cmlist_id
     del Object.is_brick
     del Object.is_brickified_object

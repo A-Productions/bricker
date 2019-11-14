@@ -38,6 +38,7 @@ classes = [
     brickify_in_background.BRICKER_OT_stop_brickifying_in_background,
     cache.BRICKER_OT_clear_cache,
     delete_model.BRICKER_OT_delete_model,
+    debug_toggle_view_source.BRICKER_OT_debug_toggle_view_source,
     export_ldraw.BRICKER_OT_export_ldraw,
     materials.BRICKER_OT_apply_material,
     redraw_custom_bricks.BRICKER_OT_redraw_custom_bricks,
@@ -91,10 +92,11 @@ classes = [
     VIEW3D_PT_bricker_detailing,
     VIEW3D_PT_bricker_supports,
     VIEW3D_PT_bricker_advanced,
-    VIEW3D_PT_bricker_matrix_details,
     VIEW3D_PT_bricker_export,
     CMLIST_UL_items,
     MATERIAL_UL_matslots,
+    VIEW3D_PT_bricker_debugging_tools,
+    VIEW3D_PT_bricker_matrix_details,
 ]
 
 if b280():

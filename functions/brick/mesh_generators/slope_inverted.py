@@ -62,9 +62,11 @@ def make_inverted_slope(dimensions:dict, brick_size:list, brick_type:str, direct
     d = Vector((dimensions["width"] / 2, dimensions["width"] / 2, height / 2))
     # get scalar for d in positive xyz directions
     adjusted_brick_size = (brick_size[:2] if "X" in direction else brick_size[1::-1]) + brick_size[2:]
-    scalar = Vector((adjusted_brick_size[0] * 2 - 1,
-                     adjusted_brick_size[1] * 2 - 1,
-                     1))
+    scalar = Vector((
+        adjusted_brick_size[0] * 2 - 1,
+        adjusted_brick_size[1] * 2 - 1,
+        1,
+    ))
     # get thickness of brick from inside to outside
     thick = Vector([dimensions["thickness"]] * 3)
 

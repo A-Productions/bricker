@@ -100,10 +100,15 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame, updated_fram
         # apply animated transform data
         source_dup.matrix_world = source.matrix_world
         source_dup.animation_data_clear()
-        # send to new mesh
-        if not cm.is_smoke: source_dup.data = new_mesh_from_object(source)
+        # handle smoke
+        if smoke:
+            store_smoke_data(source, source_dup)
+        else:
+            # send to new mesh
+            source_dup.data = new_mesh_from_object(source)
         # apply transform data
         apply_transform(source_dup)
+        # store duplicate to dictionary of dupes
         duplicates[cur_frame] = source_dup
         # update progress bar
         percent = (cur_frame - start_frame + 1) / (denom + 2)
@@ -111,7 +116,7 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame, updated_fram
             update_progress("Applying Modifiers", percent)
     # update progress bar
     scn.frame_set(orig_frame)
-    update_depsgraph()
+    depsgraph_update()
     update_progress("Applying Modifiers", 1)
     return duplicates
 
@@ -265,7 +270,7 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
         # generate point cloud
         point_cloud = bpy.data.meshes.new(model_name + "_instancer")
         point_cloud_obj = bpy.data.objects.new(model_name + "_instancer", point_cloud)
-        coll = bpy.data.collections.new(model_name)
+        coll = bpy_collections().new(model_name)
         coll.objects.link(point_cloud_obj)
         scn.collection.children.link(coll)
         point_cloud.vertices.add(len(bricksdict))
@@ -362,7 +367,7 @@ def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1
             # apply transformation to custom object
             safe_link(custom_obj0)
             apply_transform(custom_obj0)
-            update_depsgraph()
+            depsgraph_update()
             safe_unlink(custom_obj0)
             # get custom object details
             cur_custom_obj_details = bounds(custom_obj0)
@@ -383,9 +388,11 @@ def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1
             # store fresh data to custom_data variable
             custom_data[i] = custom_obj0.data
     if cm.brick_type != "CUSTOM":
-        brick_scale = Vector((dimensions["width"] + dimensions["gap"],
-                              dimensions["width"] + dimensions["gap"],
-                              dimensions["height"]+ dimensions["gap"]))
+        brick_scale = Vector((
+            dimensions["width"] + dimensions["gap"],
+            dimensions["width"] + dimensions["gap"],
+            dimensions["height"]+ dimensions["gap"],
+        ))
     return brick_scale, custom_data
 
 
@@ -447,7 +454,7 @@ def store_parent_collections_to_source(cm, source):
         brick_coll = cm.collection
         if brick_coll is None:
             return
-        linked_colls = [cn for cn in bpy.data.collections if brick_coll.name in cn.children]
+        linked_colls = [cn for cn in bpy_collections() if brick_coll.name in cn.children]
     for cn in linked_colls:
         source.stored_parents.add().collection = cn
 
@@ -455,13 +462,14 @@ def store_parent_collections_to_source(cm, source):
 def get_new_parent(name, loc):
     parent = bpy.data.objects.new(name, None)
     parent.location = loc
-    parent.use_fake_user = True
     return parent
 
 
 def link_brick_collection(cm, coll):
     cm.collection = coll
     source = cm.source_obj
+    if cm.parent_obj.name not in coll.objects:
+        coll.objects.link(cm.parent_obj)
     if b280():
         for item in source.stored_parents:
             if coll.name not in item.collection.children:

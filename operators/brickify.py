@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# system imports
+# System imports
 import random
 import time
 import bmesh
@@ -116,7 +116,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         else:
                             link_brick_collection(cm, bricker_bricks_coll)
                         # link parent object to brick collection
-                        bricker_bricks_coll.objects.link(bricker_parent)
+                        if bricker_parent.name not in bricker_bricks_coll.objects:
+                            bricker_bricks_coll.objects.link(bricker_parent)
                         hide(bricker_parent)
                         # remove job from queue
                         self.jobs.remove(job)
@@ -239,7 +240,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # set up model dimensions variables sX, sY, and sZ
             if self.action.startswith("UPDATE"):
                 link_object(self.source)
-            update_depsgraph()
+            depsgraph_update()
             r = get_model_resolution(self.source, cm)
             self.brickify_in_background = should_brickify_in_background(cm, r, self.action)
 
@@ -392,13 +393,16 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # remove source_dup parent
             if source_dup.parent:
                 parent_clear(source_dup)
-            # send to new mesh
-            if not cm.is_smoke:
+            # handle smoke
+            if cm.is_smoke:
+                store_smoke_data(self.source, source_dup)
+            else:
+                # send to new mesh
                 source_dup.data = new_mesh_from_object(self.source)
             # apply transformation data
             apply_transform(source_dup)
             source_dup.animation_data_clear()
-            update_depsgraph()
+            depsgraph_update()
         else:
             # get previously created source duplicate
             source_dup = bpy.data.objects.get(n + "__dup__")
@@ -408,7 +412,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # link source_dup if it isn't in scene
         if source_dup.name not in scn.objects.keys():
             safe_link(source_dup)
-            update_depsgraph()
+            depsgraph_update()
 
         # get parent object
         bricker_parent_on = "Bricker_%(n)s_parent" % locals()
@@ -446,8 +450,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # select the bricks object unless it's massive
             if not cm.split_model and len(bcoll.objects) > 0:
                 obj = bcoll.objects[0]
-                if len(obj.data.vertices) < 500000:
-                    select(obj, active=True)
+                # if len(obj.data.vertices) < 500000:
+                #     select(obj, active=True)
 
         # unlink source duplicate if created
         if source_dup != self.source:
@@ -510,6 +514,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # prepare duplicate objects for animation
         duplicates = get_duplicate_objects(scn, cm, self.action, cm.start_frame, cm.stop_frame, self.updated_frames_only)
+        # [link_object(dup) for dup in duplicates]
 
         filename = bpy.path.basename(bpy.data.filepath)[:-6]
         overwrite_blend = True
@@ -561,19 +566,13 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         parent0 = bpy.data.objects.get(bricker_parent_on)
         orig_frame = scn.frame_current
-        if in_background and cm.is_smoke:
-            smoke_mod = [mod for mod in cm.source_obj.modifiers if mod.type == "SMOKE"][0]
-            point_cache = smoke_mod.domain_settings.point_cache
-            point_cache.name = str(cur_frame)
-            for frame in range(point_cache.frame_start, cur_frame):
-                scn.frame_set(frame)
         scn.frame_set(orig_frame)
         # get duplicated source
         source = bpy.data.objects.get("Bricker_%(n)s_f_%(cur_frame)s" % locals())
         # get source info to update
         if in_background and scn not in source.users_scene:
             safe_link(source)
-            update_depsgraph()
+            depsgraph_update()
 
         # get source_details and dimensions
         source_details, dimensions = get_details_and_bounds(source)

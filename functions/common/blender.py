@@ -30,6 +30,7 @@ try:
     from bpy.types import ViewLayer, LayerCollection
 except ImportError:
     ViewLayer = None
+    LayerCollection = None
 
 # Module imports
 from .python_utils import confirm_iter, confirm_list
@@ -346,7 +347,7 @@ def new_mesh_from_object(obj:Object):
 
 
 def apply_modifiers(obj:Object):
-    """ apply modifiers to object """
+    """ apply modifiers to object (may require a depsgraph update before running) """
     m = new_mesh_from_object(obj)
     obj.modifiers.clear()
     obj.data = m
@@ -422,6 +423,7 @@ def disable_relationship_lines():
             area.spaces[0].overlay.show_relationship_lines = False
 
 
+@blender_version_wrapper(">=", "2.80")
 def get_layer_collection(name:str, layer_collection:LayerCollection=None):
     """ recursivly transverse view_layer.layer_collection for a particular name """
     layer_collection = layer_collection or bpy.context.window.view_layer.layer_collection
@@ -578,10 +580,10 @@ def active_render_engine():
 
 
 @blender_version_wrapper("<=","2.79")
-def update_depsgraph():
+def depsgraph_update():
     bpy.context.scene.update()
 @blender_version_wrapper(">=","2.80")
-def update_depsgraph():
+def depsgraph_update():
     bpy.context.view_layer.depsgraph.update()
 
 

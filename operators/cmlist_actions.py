@@ -132,7 +132,7 @@ class CMLIST_OT_list_action(Operator):
         scn, cm, sn = get_active_context_info()
         n = cm.name
         if cm.linked_from_external:
-            bpy.data.collections.remove(cm.collection)
+            bpy_collections().remove(cm.collection)
         if cm.model_created or (cm.animated and not cm.linked_from_external):
             self.report({"WARNING"}, "Please delete the Brickified model before attempting to remove this item." % locals())
             return
@@ -291,81 +291,82 @@ class CMLIST_OT_link_animated_model(bpy.types.Operator):
 
     def execute(self, context):
         scn = bpy.context.scene
-        if not (self.filename.startswith("Bricker_") and self.filename.endswith("_bricks")):
-            self.report({"ERROR"}, "Collection was not Bricker model. Bricker model collection names are formatted like this: 'Bricker_{source object name}_bricks'")
-            return {"CANCELLED"}
-        data_attr = os.path.basename(os.path.normpath(self.directory))
-        if data_attr != "Collection":
-            self.report({"ERROR"}, "Selected file must be collection data block")
-            return {"CANCELLED"}
-        # load brick model collection
-        blendfile_path = self.directory[:self.directory.rfind(".blend") + 6]
-        # data_attr = os.path.basename(os.path.normpath(self.directory)).lower() + "s"
-        collection = load_from_library(blendfile_path, "collections", filenames=[self.filename], overwrite_data=False, action="LINK")[0]
-        # check if a similarly named model already exists
-        model_name = collection.name[collection.name.find("_") + 1:collection.name.rfind("_")]
-        source_names = [cm0.source_obj.name for cm0 in scn.cmlist if cm0.source_obj is not None]
-        if model_name in source_names:
-            existing_model_index = source_names.index(model_name)
-            cm1 = scn.cmlist[existing_model_index]
-            # if a similarly named model exists and both are animated, add the new frames to the existing model
-            if cm1.animated and len(collection.children) > 0:
-                cm = cm1
-                new_frame = False
-                # try:
-                #     children = sorted(list(collection.children), key=lambda cn: int(cn.name[cn.name.rfind("_") + 1:]))
-                # except ValueError:
-                #     children = list(collection.children)
-                children = list(collection.children)
-                for subcoll in children:
-                    if subcoll.name in [cn.name for cn in cm.collection.children]:
-                        bpy.data.collections.remove(subcoll)
-                        continue
-                    cm.collection.children.link(subcoll)
-                    new_frame = True
-                if new_frame:
-                    collection = cm.collection
-                    scn.cmlist_index = cm.idx
-                    self.report({"INFO"}, "Linked new frames to existing Brick model")
+        for filename in [f.name for f in self.files]:
+            if not (filename.startswith("Bricker_") and filename.endswith("_bricks")):
+                self.report({"ERROR"}, "Collection was not Bricker model. Bricker model collection names are formatted like this: 'Bricker_{source object name}_bricks'")
+                return {"CANCELLED"}
+            data_attr = os.path.basename(os.path.normpath(self.directory))
+            if data_attr != "Collection":
+                self.report({"ERROR"}, "Selected file must be collection data block")
+                return {"CANCELLED"}
+            # load brick model collection
+            blendfile_path = self.directory[:self.directory.rfind(".blend") + 6]
+            # data_attr = os.path.basename(os.path.normpath(self.directory)).lower() + "s"
+            collection = load_from_library(blendfile_path, "collections", filenames=[filename], overwrite_data=False, action="LINK")[0]
+            # check if a similarly named model already exists
+            model_name = collection.name[collection.name.find("_") + 1:collection.name.rfind("_")]
+            source_names = [cm0.source_obj.name for cm0 in scn.cmlist if cm0.source_obj is not None]
+            if model_name in source_names:
+                existing_model_index = source_names.index(model_name)
+                cm1 = scn.cmlist[existing_model_index]
+                # if a similarly named model exists and both are animated, add the new frames to the existing model
+                if cm1.animated and len(collection.children) > 0:
+                    cm = cm1
+                    new_frame = False
+                    # try:
+                    #     children = sorted(list(collection.children), key=lambda cn: int(cn.name[cn.name.rfind("_") + 1:]))
+                    # except ValueError:
+                    #     children = list(collection.children)
+                    children = list(collection.children)
+                    for subcoll in children:
+                        if subcoll.name in [cn.name for cn in cm.collection.children]:
+                            bpy_collections().remove(subcoll)
+                            continue
+                        cm.collection.children.link(subcoll)
+                        new_frame = True
+                    if new_frame:
+                        cm.collection.objects.link(collection.objects[0])
+                        collection = cm.collection
+                        scn.cmlist_index = cm.idx
+                        self.report({"INFO"}, "Linked new frames to existing Brick model")
+                    else:
+                        self.report({"WARNING"}, "Local Bricker animation contains all frames from external animation")
+                        return {"CANCELLED"}
                 else:
-                    self.report({"WARNING"}, "Local Bricker animation contains all frames from external animation")
+                    self.report({"ERROR"}, "Bricker model with the same name exists in current scene")
                     return {"CANCELLED"}
             else:
-                self.report({"ERROR"}, "Bricker model with the same name exists in current scene")
-                return {"CANCELLED"}
-        else:
-            # link new collection to scene
-            parent_coll = bpy.context.collection or scn.collection
-            parent_coll.children.link(collection)
-            # create new cmlist item
-            bpy.ops.cmlist.list_action(action="ADD")
-            scn.cmlist_index = len(scn.cmlist) - 1
-            cm = scn.cmlist[scn.cmlist_index]
-            cm.name = model_name
-            cm.collection = collection
-            cm.collection.make_local()
-            cm.source_obj = bpy.data.objects.new(cm.name, None)
-            cm.linked_from_external = True
-        # set specific properties for anim/model
-        if len(collection.children) > 0:
-            cm.animated = True
-            # get start and stop frames
-            start_frame = 1048574  # max frame number for blender timeline
-            stop_frame = -1
-            for subcoll in collection.children:
-                cur_f = subcoll.name[subcoll.name.rfind("_") + 1:]
-                try:
-                    cur_f = int(cur_f)
-                except ValueError:
-                    continue
-                start_frame = min(cur_f, start_frame)
-                stop_frame = max(cur_f, stop_frame)
-            # set properties for new cmlist item
-            cm.last_start_frame = start_frame if cm.last_start_frame == -1 else min(start_frame, cm.last_start_frame)
-            cm.last_stop_frame = max(stop_frame, cm.last_stop_frame)
-        else:
-            cm.model_created = True
-
+                # link new collection to scene
+                parent_coll = bpy.context.collection or scn.collection
+                parent_coll.children.link(collection)
+                # create new cmlist item
+                bpy.ops.cmlist.list_action(action="ADD")
+                scn.cmlist_index = len(scn.cmlist) - 1
+                cm = scn.cmlist[scn.cmlist_index]
+                cm.name = model_name
+                cm.collection = collection
+                cm.collection.make_local()
+                cm.source_obj = bpy.data.objects.new(cm.name, None)
+                cm.linked_from_external = True
+            # set specific properties for anim/model
+            if len(collection.children) > 0:
+                cm.animated = True
+                # get start and stop frames
+                start_frame = 1048574  # max frame number for blender timeline
+                stop_frame = -1
+                for subcoll in collection.children:
+                    cur_f = subcoll.name[subcoll.name.rfind("_") + 1:]
+                    try:
+                        cur_f = int(cur_f)
+                    except ValueError:
+                        continue
+                    start_frame = min(cur_f, start_frame)
+                    stop_frame = max(cur_f, stop_frame)
+                # set properties for new cmlist item
+                cm.last_start_frame = start_frame if cm.last_start_frame == -1 else min(start_frame, cm.last_start_frame)
+                cm.last_stop_frame = max(stop_frame, cm.last_stop_frame)
+            else:
+                cm.model_created = True
         return{"FINISHED"}
 
 
@@ -376,12 +377,19 @@ class CMLIST_OT_link_animated_model(bpy.types.Operator):
     ###################################################
     # class variables
 
-    filter_folder = bpy.props.BoolProperty(default=True, options={"HIDDEN"})
-    filter_blender = bpy.props.BoolProperty(default=True, options={"HIDDEN"})
-    filter_blenlib  = bpy.props.BoolProperty(default=True, options={"HIDDEN"})
-    filemode = bpy.props.IntProperty(default=1, options={"HIDDEN"})
+    filter_folder = BoolProperty(default=True, options={"HIDDEN"})
+    filter_blender = BoolProperty(default=True, options={"HIDDEN"})
+    filter_blenlib = BoolProperty(default=True, options={"HIDDEN"})
+    link = BoolProperty(default=True, options={"HIDDEN"})
+    autoselect = BoolProperty(default=True, options={"HIDDEN"})
+    active_collection = BoolProperty(default=True, options={"HIDDEN"})
+    filemode = IntProperty(default=1, options={"HIDDEN"})
     directory = StringProperty(subtype="DIR_PATH")
-    filename = StringProperty(subtype="FILE_NAME")
+    # filename = StringProperty(subtype="FILE_NAME")
+    files = CollectionProperty(
+        name="File Path",
+        type=bpy.types.OperatorFileListElement,
+    )
 
     ################################################
 

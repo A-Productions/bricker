@@ -24,6 +24,7 @@ import bpy
 # Module imports
 from .exposure import *
 from ..mat_utils import *
+from ..matlist_utils import *
 from ..brick import *
 
 
@@ -33,7 +34,7 @@ def update_materials(bricksdict, source, keys, cur_frame=None):
     use_uv_map = cm.use_uv_map and (len(source.data.uv_layers) > 0 or cm.uv_image is not None)
     rgba_vals = []
     # initialize variables
-    if keys == "ALL": keys = list(bricksdict.keys())
+    if keys == "ALL": keys = sorted(list(bricksdict.keys()))  # sort so materials are consistent for multiple frames of the same model
     is_smoke = cm.is_smoke
     material_type = cm.material_type
     color_snap = cm.color_snap

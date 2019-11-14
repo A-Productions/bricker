@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# system imports
+# System imports
 import time
 import sys
 
@@ -177,7 +177,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 last_co = source.data.vertices[0].co.to_tuple()
                 source.data.vertices[0].co = (0, 0, 0)
                 # set source origin to rotation point for transformed brick object
-                update_depsgraph()
+                depsgraph_update()
                 set_obj_origin(source, pivot_point)
                 # rotate source
                 if cm.use_local_orient and not cm.use_animation:
@@ -188,7 +188,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                     #     # TODO: convert rotateBy to local with respect to source's parent
                     source.rotation_euler.rotate(rotateBy)
                 # set source origin back to original point (tracked by last vert)
-                update_depsgraph()
+                depsgraph_update()
                 set_obj_origin(source, mathutils_mult(source.matrix_world, source.data.vertices[0].co))
                 source.data.vertices[0].co = last_co
                 source.rotation_mode = last_mode
@@ -211,7 +211,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
 
         # reset frame (for proper update), update scene and redraw 3D view
         scn.frame_set(orig_frame)
-        update_depsgraph()
+        depsgraph_update()
         tag_redraw_areas("VIEW_3D")
 
     @classmethod
@@ -241,7 +241,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         else:
             d_objects = [bpy.data.objects.get("%(n)s__dup__" % locals())]
         # # if preserve frames, remove those objects from d_objects
-        # objsToRemove = []
+        # objs_to_remove = []
         # if model_type == "ANIMATION" and preserved_frames is not None:
         #     for obj in d_objects:
         #         if obj is None:
@@ -249,8 +249,8 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         #         frame_num_idx = obj.name.rfind("_") + 1
         #         cur_frame_num = int(obj.name[frame_num_idx:])
         #         if cur_frame_num >= preserved_frames[0] and cur_frame_num <= preserved_frames[1]:
-        #             objsToRemove.append(obj)
-        #     for obj in objsToRemove:
+        #             objs_to_remove.append(obj)
+        #     for obj in objs_to_remove:
         #         d_objects.remove(obj)
         if len(d_objects) > 0:
             delete(d_objects)
@@ -274,7 +274,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 bricks = get_bricks()
                 if len(bricks) > 0:
                     b = bricks[0]
-                    update_depsgraph()
+                    depsgraph_update()
                     brick_loc = b.matrix_world.to_translation().copy()
                     brick_rot = b.matrix_world.to_euler().copy()
                     brick_scl = b.matrix_world.to_scale().copy()  # currently unused

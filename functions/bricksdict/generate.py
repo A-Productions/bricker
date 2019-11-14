@@ -30,6 +30,7 @@ from mathutils import Matrix, Vector
 from ..common import *
 from ..general import *
 from ..colors import *
+from ..mat_utils import *
 from ..generate_lattice import generate_lattice
 from ..smoke_sim import *
 from ..brick import *
@@ -353,21 +354,18 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
     return brick_freq_matrix
 
 
-def get_brick_matrix_smoke(face_idx_matrix, brick_shell, source_details, print_status=True, cursor_status=False):
-    cm = get_active_context_info()[1]
-    source = cm.source_obj
-    if b280():
-        depsgraph = bpy.context.view_layer.depsgraph
-        source_eval = source.evaluated_get(depsgraph)
-    else:
-        source_eval = source
-    density_grid, flame_grid, color_grid, domain_res, max_res, adapt = get_smoke_info(source_eval)
+def get_brick_matrix_smoke(cm, source, face_idx_matrix, brick_shell, source_details, print_status=True, cursor_status=False):
+    # source = cm.source_obj
+    density_grid, flame_grid, color_grid, domain_res, max_res, adapt = get_smoke_info(source)
     brick_freq_matrix = deepcopy(face_idx_matrix)
     color_matrix = deepcopy(face_idx_matrix)
     old_percent = 0
     brightness = Vector([(cm.smoke_brightness - 1) / 5]*3)
     sat_mat = get_saturation_matrix(cm.smoke_saturation)
     quality = cm.smoke_quality
+    flame_intensity = cm.flame_intensity
+    flame_color = cm.flame_color
+    smoke_density = cm.smoke_density
 
     # get starting and ending idx
     if adapt:
@@ -392,16 +390,12 @@ def get_brick_matrix_smoke(face_idx_matrix, brick_shell, source_details, print_s
     # verify bounding box is larger than 0 in all directions
     if 0 in d:
         return brick_freq_matrix, color_matrix
+
     # get x/y/z distances
     xn0 = domain_res[0] / d.x
     yn0 = domain_res[1] / d.y
     zn0 = domain_res[2] / d.z
     denom = d.x
-
-    # initialize variables
-    flame_intensity = cm.flame_intensity
-    flame_color = cm.flame_color
-    smoke_density = cm.smoke_density
 
     # set up brick_freq_matrix values
     for x in range(int(s_idx[0]), int(e_idx[0])):
@@ -433,12 +427,9 @@ def get_brick_matrix_smoke(face_idx_matrix, brick_shell, source_details, print_s
                             cur_idx = (z1 * domain_res[1] + y1) * domain_res[0] + x1
                             _d = density_grid[cur_idx]
                             f = flame_grid[cur_idx]
-                            print(type(_d))
-                            print(type(f))
                             d_acc += _d
                             f_acc += f
                             cur_idx_ext = cur_idx * 4
-                            print(type(color_grid[cur_idx_ext]))
                             cs_acc += _d * Vector((color_grid[cur_idx_ext], color_grid[cur_idx_ext + 1], color_grid[cur_idx_ext + 2]))
                             cf_acc += Vector(f * flame_intensity * f * flame_color)
                             ave_denom += 1
@@ -660,7 +651,7 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
     # set up face_idx_matrix and brick_freq_matrix
     face_idx_matrix = np.zeros((len(coord_matrix), len(coord_matrix[0]), len(coord_matrix[0][0])), dtype=int).tolist()
     if cm.is_smoke:
-        brick_freq_matrix, smoke_colors = get_brick_matrix_smoke(face_idx_matrix, cm.brick_shell, source_details, cursor_status=cursor_status)
+        brick_freq_matrix, smoke_colors = get_brick_matrix_smoke(cm, source, face_idx_matrix, cm.brick_shell, source_details, cursor_status=cursor_status)
     else:
         brick_freq_matrix = get_brick_matrix(source, face_idx_matrix, coord_matrix, cm.brick_shell, axes=calculation_axes, cursor_status=cursor_status)
         smoke_colors = None
@@ -696,7 +687,7 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
                 b_type = get_brick_type(brick_type)
                 flipped, rotated = get_flip_rot("" if norm_dir is None else norm_dir[1:])
                 if source_mats:
-                    rgba = smoke_colors[x][y][z] if smoke_colors else get_uv_pixel_color(scn, source, nf, ni if ni is None else Vector(ni), uv_image)
+                    rgba = smoke_colors[x][y][z] if smoke_colors else get_uv_pixel_color(scn, source, nf, ni if ni is None else Vector(ni), get_pixels, uv_image)
                 else:
                     rgba = (0, 0, 0, 1)
                 draw = brick_freq_matrix[x][y][z] >= threshold
