@@ -356,7 +356,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
 
 def get_brick_matrix_smoke(cm, source, face_idx_matrix, brick_shell, source_details, print_status=True, cursor_status=False):
     # source = cm.source_obj
-    density_grid, flame_grid, color_grid, domain_res, max_res, adapt = get_smoke_info(source)
+    density_grid, flame_grid, color_grid, domain_res, max_res, adapt, adapt_min, adapt_max = get_smoke_info(source)
     brick_freq_matrix = deepcopy(face_idx_matrix)
     color_matrix = deepcopy(face_idx_matrix)
     old_percent = 0
@@ -369,9 +369,6 @@ def get_brick_matrix_smoke(cm, source, face_idx_matrix, brick_shell, source_deta
 
     # get starting and ending idx
     if adapt:
-        source_details_adapt = bounds(source)
-        adapt_min = source_details_adapt.min
-        adapt_max = source_details_adapt.max
         full_min = source_details.min
         full_max = source_details.max
         full_dist = full_max - full_min

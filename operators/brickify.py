@@ -60,12 +60,13 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             try:
                 scn, cm, n = get_active_context_info(cm=self.cm)
                 remaining_jobs = self.job_manager.num_pending_jobs() + self.job_manager.num_running_jobs()
-                cm.job_progress = round(cm.num_animated_frames * 100 / cm.frames_to_animate, 2)
+                anim_action = "ANIM" in self.action
+                if anim_action:
+                    cm.job_progress = round(cm.num_animated_frames * 100 / cm.frames_to_animate, 2)
                 for job in self.jobs.copy():
                     # cancel if model was deleted before process completed
                     if scn in self.source.users_scene:
                         break
-                    anim_action = "ANIM" in self.action
                     frame = int(job.split("__")[-1]) if anim_action else None
                     obj_frames_str = "_f_%(frame)s" % locals() if anim_action else ""
                     self.job_manager.process_job(job, debug_level=self.debug_level, overwrite_data=True)

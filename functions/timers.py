@@ -110,7 +110,7 @@ def handle_undo_stack():
 
 @persistent
 @blender_version_wrapper(">=","2.80")
-def register_bricker_timers(scn):
+def register_bricker_timers(scn, jnk=None):
     timer_fns = (handle_selections, handle_undo_stack)
     for timer_fn in timer_fns:
         if not bpy.app.timers.is_registered(timer_fn):

@@ -32,12 +32,16 @@ def store_smoke_data(from_obj, to_obj):
         from_obj_eval = from_obj
     # store point cache for frame
     domain_settings = next((mod.domain_settings for mod in from_obj_eval.modifiers if hasattr(mod, "smoke_type") and mod.smoke_type == "DOMAIN"), None)
+    adapt = domain_settings.use_adaptive_domain
+    obj_details_adapt = bounds(from_obj) if adapt else None
     smoke_data = {
         "density_grid": tuple(domain_settings.density_grid),
         "flame_grid": tuple(domain_settings.flame_grid),
         "color_grid": tuple(domain_settings.color_grid),
         "domain_resolution": tuple(domain_settings.domain_resolution),
-        "use_adaptive_domain": domain_settings.use_adaptive_domain,
+        "use_adaptive_domain": adapt,
+        "adapt_min": tuple(obj_details_adapt.min) if adapt else None,
+        "adapt_max": tuple(obj_details_adapt.max) if adapt else None,
         "resolution_max": domain_settings.resolution_max,
         "use_high_resolution": domain_settings.use_high_resolution,
         "amplify": domain_settings.amplify,
@@ -59,11 +63,13 @@ def get_smoke_info(source):
     # get resolution
     domain_res = get_adjusted_res(smoke_data, smoke_data["domain_resolution"])
     adapt = smoke_data["use_adaptive_domain"]
+    adapt_min = Vector(smoke_data["adapt_min"])
+    adapt_max = Vector(smoke_data["adapt_max"])
     max_res_i = smoke_data["resolution_max"]
     max_res = Vector(domain_res) * (max_res_i / max(domain_res))
     max_res = get_adjusted_res(smoke_data, max_res)
 
-    return density_grid, flame_grid, color_grid, domain_res, max_res, adapt
+    return density_grid, flame_grid, color_grid, domain_res, max_res, adapt, adapt_min, adapt_max
 
 
 def get_adjusted_res(smoke_data, smoke_res):
