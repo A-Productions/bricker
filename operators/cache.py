@@ -49,7 +49,7 @@ class BRICKER_OT_clear_cache(bpy.types.Operator):
             scn, cm, n = get_active_context_info()
             self.undo_stack.iterate_states(cm)
             cm.matrix_is_dirty = True
-            self.clear_caches()
+            clear_caches()
             # clear all duplicated sources for brickified animations
             if cm.animated:
                 dup_name_base = "Bricker_%(n)s_f_" % locals()
@@ -68,34 +68,3 @@ class BRICKER_OT_clear_cache(bpy.types.Operator):
         self.undo_stack.undo_push('clear_cache')
 
     #############################################
-    # class methods
-
-    @staticmethod
-    def clear_cache(cm, brick_mesh=True, light_matrix=True, deep_matrix=True, images=True, dupes=True):
-        """clear caches for cmlist item"""
-        # clear light brick mesh cache
-        if brick_mesh:
-            bricker_mesh_cache[cm.id] = None
-        # clear light matrix cache
-        if light_matrix:
-            bricker_bfm_cache[cm.id] = None
-        # clear deep matrix cache
-        if deep_matrix:
-            cm.bfm_cache = ""
-        # clear image cache
-        if images:
-            bricker_pixel_cache = dict()
-        # remove caches of source model from data
-        if dupes:
-            if cm.model_created:
-                delete(bpy.data.objects.get("Bricker_%(n)s__dup__"), remove_meshes=True)
-            elif cm.animated:
-                for cf in range(cm.last_start_frame, cm.last_stop_frame):
-                    delete(bpy.data.objects.get("Bricker_%(n)s_f_%(cf)s"), remove_meshes=True)
-
-    @staticmethod
-    def clear_caches(brick_mesh=True, light_matrix=True, deep_matrix=True, images=True, dupes=True):
-        """clear all caches in cmlist"""
-        scn = bpy.context.scene
-        for cm in scn.cmlist:
-            BRICKER_OT_clear_cache.clear_cache(cm, brick_mesh=brick_mesh, light_matrix=light_matrix, deep_matrix=deep_matrix, images=images, dupes=dupes)

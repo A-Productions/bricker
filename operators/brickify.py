@@ -280,7 +280,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # clear cache if updating from previous version
         if created_with_unsupported_version(cm) and "UPDATE" in self.action:
-            BRICKER_OT_clear_cache.clear_cache(cm)
+            clear_cache(cm)
             cm.matrix_is_dirty = True
 
         # make sure matrix really is dirty
@@ -462,7 +462,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # unlink source duplicate if created
         if source_dup != self.source:
-            safe_unlink(source_dup)
+            unlink_object(source_dup)
 
         # set active frame to original active frame
         if self.action != "CREATE" and scn.frame_current != self.orig_frame:
@@ -494,7 +494,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             cm.frames_to_animate = (cm.stop_frame - cm.start_frame + 1)
 
         if (self.action == "ANIMATE" or cm.matrix_is_dirty or cm.anim_is_dirty) and not self.updated_frames_only:
-            BRICKER_OT_clear_cache.clear_cache(cm, brick_mesh=False, dupes=False)
+            clear_cache(cm, brick_mesh=False, dupes=False)
 
         if cm.split_model:
             cm.split_model = False
@@ -555,7 +555,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # unlink source duplicates
         for obj in duplicates.values():
-            safe_unlink(obj)
+            unlink_object(obj)
 
         original_stop_frame = cm.last_stop_frame
         cm.last_start_frame = cm.start_frame
@@ -578,7 +578,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         source = bpy.data.objects.get("Bricker_%(n)s_f_%(cur_frame)s" % locals())
         # get source info to update
         if in_background and scn not in source.users_scene:
-            safe_link(source)
+            link_object(source)
             depsgraph_update()
 
         # get source_details and dimensions

@@ -27,6 +27,7 @@ from mathutils import Vector, Euler
 from .common import *
 from .general import *
 from .bricksdict import *
+from .clear_cache import *
 from .brickify_utils import finish_animation
 from .matlist_utils import create_mat_objs
 from ..lib.caches import bricker_bfm_cache
@@ -138,7 +139,13 @@ def reset_properties(dummy):
 
 @persistent
 def handle_loading_to_light_cache(dummy):
-    deep_to_light_cache(bricker_bfm_cache)
+    bricker_bfm_cache = {}  # start with empty light cache
+    clear_caches(deep_matrix=False, dupes=False)
+    scn = bpy.context.scene
+    for cm in scn.cmlist:
+        deep_to_light_cache(bricker_bfm_cache, cm)
+    if len(bricker_bfm_cache) > 0:
+        print("[Bricker] pulled {num_pulled_ids} {pluralized_dicts} from deep cache to light cache".format(num_pulled_ids=len(bricker_bfm_cache), pluralized_dicts="dict" if len(bricker_bfm_cache) == 1 else "dicts"))
     # verify caches loaded properly
     for scn in bpy.data.scenes:
         for cm in scn.cmlist:

@@ -101,7 +101,7 @@ def get_logo(scn, cm, dimensions):
         ref_logo = None
     else:
         if typ == "LEGO":
-            ref_logo = get_lego_logo(scn, typ, cm.logo_resolution, cm.logo_decimate, dimensions)
+            ref_logo = get_lego_logo(scn, typ, cm.logo_resolution, round(cm.logo_decimate, 6), dimensions)
         else:
             ref_logo = cm.logo_object
         # apply transformation to duplicate of logo object and normalize size/position

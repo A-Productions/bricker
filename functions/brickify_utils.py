@@ -78,7 +78,7 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame, updated_fram
             source_dup = bpy.data.objects.get(source_dup_name)
             if source_dup is not None:
                 duplicates[cur_frame] = source_dup
-                safe_link(source_dup)
+                link_object(source_dup)
                 continue
         # skip unchanged frames
         if frame_unchanged(updated_frames_only, cm, cur_frame):
@@ -87,7 +87,7 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame, updated_fram
         scn.frame_set(cur_frame)
         # duplicate source for current frame
         source_dup = duplicate(source, link_to_scene=True)
-        source_dup.use_fake_user = True
+        # source_dup.use_fake_user = True
         source_dup.name = source_dup_name
         # remove modifiers and constraints
         for mod in source_dup.modifiers:
@@ -219,7 +219,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
     # uv_images = get_uv_images(source) if cm.material_type == "SOURCE" and cm.use_uv_map and len(source.data.uv_layers) > 0 else {}  # get uv_layer image and pixels for material calculation
     if bricksdict is None:
         # load bricksdict from cache
-        bricksdict = get_bricksdict(cm, dType=action, cur_frame=cur_frame)
+        bricksdict = get_bricksdict(cm, d_type=action, cur_frame=cur_frame)
         loaded_from_cache = bricksdict is not None
         # if not loaded, new bricksdict must be created
         if not loaded_from_cache:
@@ -269,13 +269,17 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
         # generate point cloud
         model_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
         instancer_name = "Bricker_%(n)s_instancer_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_instancer" % locals()
+        bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent" % locals())
         point_cloud = bpy.data.meshes.new(instancer_name)
         point_cloud_obj = bpy.data.objects.new(instancer_name, point_cloud)
-        point_cloud_obj.location = source_details.mid
+        # add point cloud to new collection
         coll = bpy_collections().new(model_name)
         coll.objects.link(point_cloud_obj)
         scn.collection.children.link(coll)
-        point_cloud.vertices.add(len(bricksdict))
+        # set point cloud location
+        coll.objects.link(parent)
+        depsgraph_update()
+        point_cloud_obj.location = source_details.mid - parent.matrix_world.to_translation()
         # initialize vars
         keys = list(bricksdict.keys())
         rand_s2 = np.random.RandomState(cm.merge_seed + 1)
@@ -284,6 +288,8 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
         zstep = get_zstep(cm)
         keys_dict, sorted_keys = get_keys_dict(bricksdict, keys)
         i = 0
+        # create points in cloud
+        point_cloud.vertices.add(len(bricksdict))
         # set coordinates and normals for points in cloud
         for z in sorted(keys_dict.keys()):
             for key in keys_dict[z]:
@@ -311,6 +317,7 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
         brick = generate_brick_object(model_name)
         coll.objects.link(brick)
         brick.parent = point_cloud_obj
+        point_cloud_obj.parent = parent
     else:
         model_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
         # make bricks

@@ -20,6 +20,7 @@ from .bricksdict import *
 from .common import *
 from .app_handlers import *
 from .brickify_utils import *
+from .clear_cache import *
 from .cmlist_utils import *
 from .colors import *
 from .customize_utils import *
