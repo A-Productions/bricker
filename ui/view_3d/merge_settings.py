@@ -57,6 +57,7 @@ class VIEW3D_PT_bricker_merge_settings(Panel):
     def draw(self, context):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
+        layout.active = cm.instance_method != "POINT_CLOUD"
 
         col = layout.column(align=True)
         row = col.row(align=True)

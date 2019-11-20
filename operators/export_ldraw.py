@@ -96,9 +96,9 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
             offset.y = offset.z % 8
             offset.z = offset.y % 10
             # get dictionary of keys based on z value
-            keys_dict = get_keys_dict(bricksdict)
+            keys_dict, sorted_keys = get_keys_dict(bricksdict)
             # get sorted keys for random merging
-            seed_keys = sorted(list(bricksdict.keys())) if material_type == "RANDOM" else None
+            seed_keys = sorted_keys if material_type == "RANDOM" else None
             # iterate through z locations in bricksdict (bottom to top)
             for z in sorted(keys_dict.keys()):
                 for key in keys_dict[z]:

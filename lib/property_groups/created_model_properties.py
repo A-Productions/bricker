@@ -294,7 +294,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Merge Type",
         description="Type of algorithm used for merging bricks together",
         items=[
-            ("NONE", "None (fast)", "Bricks are not merged"),
+            # ("NONE", "None (fast)", "Bricks are not merged"),
             ("GREEDY", "Greedy", "Creates fewest amount of bricks possible"),
             ("RANDOM", "Random", "Merges randomly for realistic build"),
         ],
@@ -744,7 +744,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         items=[
             ("NONE", "None", "No object instancing"),
             ("LINK_DATA", "Link Data", "Link mesh data for like objects"),
-            ("POINT_CLOUD", "Point Cloud (fastest)", "Instance a single mesh over a point cloud (this method does not support multiple materials or brick merging)"),
+            ("POINT_CLOUD", "Point Cloud (experimental)", "Instance a single mesh over a point cloud (this method does not support multiple materials or brick merging)"),
         ],
         update=dirty_build,
         default="LINK_DATA",
@@ -817,6 +817,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     last_shell_thickness = IntProperty(default=1)
     last_internal_supports = StringProperty(default="NONE")
     last_brick_type = StringProperty(default="BRICKS")
+    last_instance_method = StringProperty(default="LINK_DATA")
     last_matrix_settings = StringProperty(default="")
     last_legal_bricks_only = BoolProperty(default=False)
     last_mat_shell_depth = IntProperty(default=1)

@@ -265,11 +265,13 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
     # get bricksdict
     bricksdict, brick_scale = get_bricksdict_for_model(cm, source, source_details, action, cur_frame, brick_scale, bricksdict, keys, redraw, update_cursor)
     # make bricks
-    model_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
     if cm.instance_method == "POINT_CLOUD":
         # generate point cloud
-        point_cloud = bpy.data.meshes.new(model_name + "_instancer")
-        point_cloud_obj = bpy.data.objects.new(model_name + "_instancer", point_cloud)
+        model_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
+        instancer_name = "Bricker_%(n)s_instancer_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_instancer" % locals()
+        point_cloud = bpy.data.meshes.new(instancer_name)
+        point_cloud_obj = bpy.data.objects.new(instancer_name, point_cloud)
+        point_cloud_obj.location = source_details.mid
         coll = bpy_collections().new(model_name)
         coll.objects.link(point_cloud_obj)
         scn.collection.children.link(coll)
@@ -280,7 +282,7 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
         random_rot = cm.random_rot
         random_loc = cm.random_loc
         zstep = get_zstep(cm)
-        keys_dict = get_keys_dict(bricksdict, keys)
+        keys_dict, sorted_keys = get_keys_dict(bricksdict, keys)
         i = 0
         # set coordinates and normals for points in cloud
         for z in sorted(keys_dict.keys()):
@@ -302,7 +304,7 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
         bricks_created = point_cloud_obj
         # set up point cloud as instancer
         point_cloud_obj.instance_type = "VERTS"
-        point_cloud_obj.show_instancer_for_viewport = False
+        point_cloud_obj.show_instancer_for_viewport = True
         point_cloud_obj.show_instancer_for_render = False
         point_cloud_obj.use_instance_vertices_rotation = True
         # create instance obj
@@ -310,6 +312,7 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
         coll.objects.link(brick)
         brick.parent = point_cloud_obj
     else:
+        model_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
         # make bricks
         bricks_created, bricksdict = make_bricks(source, parent, ref_logo, dimensions, bricksdict, action, cm=cm, split=split, brick_scale=brick_scale, custom_data=custom_data, coll_name=model_name, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, keys=keys, print_status=print_status, temp_brick=temp_brick, redraw=redraw)
         # select bricks
@@ -333,7 +336,7 @@ def generate_brick_object(brick_name="New Brick", brick_size=(1, 1, 1)):
     dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
     use_stud = cm.stud_detail != "NONE"
     logo_to_use = get_logo(scn, cm, dimensions) if use_stud and cm.logo_type != "NONE" else None
-    m = get_brick_data(brick_d, rand, dimensions, brick_size, cm.brick_type, cm.brick_height, cm.logo_resolution, cm.logo_decimate, cm.circle_verts, cm.exposed_underside_detail, logo_to_use, cm.logo_type, use_stud)
+    m = get_brick_data(brick_d, rand, dimensions, brick_size, cm.brick_type, cm.brick_height, cm.logo_resolution, cm.logo_decimate, cm.circle_verts, cm.exposed_underside_detail, logo_to_use, cm.logo_type, use_stud, cm.logo_inset)
     brick = bpy.data.objects.new(brick_name, m)
     add_edge_split_mod(brick)
     return brick

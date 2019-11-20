@@ -91,7 +91,9 @@ class VIEW3D_PT_bricker_detailing(Panel):
         row = col.row(align=True)
         row.label(text="Underside:")
         row = col.row(align=True)
-        row.prop(cm, "hidden_underside_detail", text="")
+        col = row.column(align=True)
+        col.active = cm.instance_method != "POINT_CLOUD"
+        col.prop(cm, "hidden_underside_detail", text="")
         # row = col2.row(align=True)
         row.prop(cm, "exposed_underside_detail", text="")
 

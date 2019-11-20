@@ -87,14 +87,12 @@ class VIEW3D_PT_bricker_advanced(Panel):
             row = col.row(align=True)
             row.prop(cm, "calculation_axes", text="")
 
-        if not (cm.use_animation and cm.animated):
-            # if not b280():
-            col = layout.column(align=True)
-            row = col.row(align=True)
-            row.label(text="Meshes:")
-            row = col.row(align=True)
-            row.active = not cm.use_animation and cm.split_model
-            row.prop(cm, "instance_method")
+        # if not cm.animated:
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.label(text="Meshes:")
+        row = col.row(align=True)
+        row.prop(cm, "instance_method", text="")
 
         # model orientation preferences
         if not cm.use_animation and not (cm.model_created or cm.animated):

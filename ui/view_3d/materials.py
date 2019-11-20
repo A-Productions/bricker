@@ -72,6 +72,7 @@ class VIEW3D_PT_bricker_materials(Panel):
                 row.operator("bricker.apply_material", icon="FILE_TICK")
         elif cm.material_type == "RANDOM":
             col = layout.column(align=True)
+            col.active = cm.instance_method != "POINT_CLOUD"
             row = col.row(align=True)
             row.prop(cm, "random_mat_seed")
             if cm.model_created or cm.animated:
@@ -88,6 +89,7 @@ class VIEW3D_PT_bricker_materials(Panel):
             if cm.shell_thickness > 1 or cm.internal_supports != "NONE":
                 # if len(obj.data.uv_layers) <= 0 or len(obj.data.vertex_colors) > 0:
                 col = layout.column(align=True)
+                col.active = cm.instance_method != "POINT_CLOUD"
                 row = col.row(align=True)
                 row.label(text="Internal Material:")
                 row = col.row(align=True)
@@ -103,6 +105,7 @@ class VIEW3D_PT_bricker_materials(Panel):
 
             # color snapping info
             col = layout.column(align=True)
+            col.active = cm.instance_method != "POINT_CLOUD"
             row = col.row(align=True)
             row.label(text="Color Mapping:")
             row = col.row(align=True)
@@ -116,6 +119,7 @@ class VIEW3D_PT_bricker_materials(Panel):
 
             if not b280() and cm.color_snap != "NONE":
                 col = layout.column(align=True)
+                col.active = cm.instance_method != "POINT_CLOUD"
                 col.active = len(obj.data.uv_layers) > 0
                 row = col.row(align=True)
                 row.prop(cm, "use_uv_map", text="Use UV Map")
@@ -146,6 +150,8 @@ class VIEW3D_PT_bricker_use_uv_map(Panel):
             return False
         scn, cm, _ = get_active_context_info()
         obj = cm.source_obj
+        if cm.instance_method == "POINT_CLOUD":
+            return False
         if obj and len(obj.data.uv_layers) > 0 and cm.material_type == "SOURCE" and cm.color_snap != "NONE":
             return True
         return False
@@ -179,7 +185,12 @@ class VIEW3D_PT_bricker_included_materials(Panel):
         if not settings_can_be_drawn():
             return False
         scn, cm, _ = get_active_context_info()
-        if cm.material_type == "RANDOM" or (cm.material_type == "SOURCE" and cm.color_snap == "ABS"):
+        # order here is important
+        if cm.material_type == "RANDOM":
+            return True
+        elif cm.instance_method == "POINT_CLOUD":
+            return False
+        elif cm.material_type == "SOURCE" and cm.color_snap == "ABS":
             return True
         return False
 
@@ -242,6 +253,8 @@ class VIEW3D_PT_bricker_material_properties(Panel):
             return False
         scn, cm, _ = get_active_context_info()
         obj = cm.source_obj
+        if cm.instance_method == "POINT_CLOUD":
+            return False
         if cm.material_type == "SOURCE" and obj:
             if cm.color_snap == "RGB" or (cm.use_uv_map and len(obj.data.uv_layers) > 0 and cm.color_snap == "NONE"):
                 return True

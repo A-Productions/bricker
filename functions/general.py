@@ -288,7 +288,8 @@ def get_keys_in_brick(bricksdict, size, zstep:int, loc:list=None, key:str=None):
 def get_keys_dict(bricksdict, keys=None):
     """ get dictionary of bricksdict keys based on z value """
     keys = keys or list(bricksdict.keys())
-    if len(keys) > 1: keys.sort(key=lambda x: (get_dict_loc(bricksdict, x)[0], get_dict_loc(bricksdict, x)[1]))
+    if len(keys) > 1:
+        keys.sort(key=lambda x: (get_dict_loc(bricksdict, x)[0], get_dict_loc(bricksdict, x)[1]))
     keys_dict = {}
     for k0 in keys:
         if bricksdict[k0]["draw"]:

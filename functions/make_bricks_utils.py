@@ -62,7 +62,7 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
         m = custom_data[int(brick_d["type"][-1]) - 1]
     else:
         # get brick mesh
-        m = get_brick_data(brick_d, rand_s3, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, logo_scale, logo_inset, use_stud)
+        m = get_brick_data(brick_d, rand_s3, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, use_stud, logo_inset, logo_scale)
     # duplicate data if not instancing by mesh data
     m = m if instance_method == "LINK_DATA" else m.copy()
     # apply random rotation to edit mesh according to parameters
@@ -240,7 +240,7 @@ def get_random_rot_angle(random_rot, rand, brick_size):
     return x, y, z
 
 
-def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, use_stud, logo_scale=None, logo_inset=None):
+def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, use_stud, logo_inset, logo_scale=None):
     # get bm_cache_string
     bm_cache_string = ""
     if "CUSTOM" not in brick_type:

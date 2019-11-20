@@ -60,11 +60,12 @@ class VIEW3D_PT_bricker_brick_types(Panel):
 
         if mergable_brick_type(cm.brick_type):
             col = layout.column(align=True)
+            col.active = cm.instance_method != "POINT_CLOUD"
             col.label(text="Max Brick Size:")
             row = col.row(align=True)
             row.prop(cm, "max_width", text="Width")
             row.prop(cm, "max_depth", text="Depth")
-            col = layout.column(align=True)
+            col.active = cm.instance_method != "POINT_CLOUD"
             row = col.row(align=True)
             right_align(row)
             row.prop(cm, "legal_bricks_only")

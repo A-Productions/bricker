@@ -79,10 +79,15 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         cm.brick_types_used = retrieved_data["brick_types_used"]
                         if bricksdict is not None: cache_bricks_dict(self.action, cm, bricksdict[str(frame)] if anim_action else bricksdict, cur_frame=frame)
                         # process retrieved bricker data
+                        bricker_instancer = bpy.data.objects.get("Bricker_%(n)s_instancer%(obj_frames_str)s" % locals())
                         bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent%(obj_frames_str)s" % locals())
                         bricker_bricks_coll = bpy_collections()["Bricker_%(n)s_bricks%(obj_frames_str)s" % locals()]
                         for brick in bricker_bricks_coll.objects:
-                            brick.parent = bricker_parent
+                            if bricker_instancer is not None:
+                                # brick.parent = bricker_instancer
+                                bricker_instancer.parent = bricker_parent
+                            else:
+                                brick.parent = bricker_parent
                             # for i,mat_slot in enumerate(brick.material_slots):
                             #     mat = mat_slot.material
                             #     if mat is None:
@@ -317,6 +322,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cm.last_material_type = cm.material_type
         cm.last_shell_thickness = cm.shell_thickness
         cm.last_internal_supports = cm.internal_supports
+        cm.last_instance_method = cm.instance_method
         cm.last_mat_shell_depth = cm.mat_shell_depth
         cm.last_matrix_settings = get_matrix_settings()
         cm.last_is_smoke = cm.is_smoke
