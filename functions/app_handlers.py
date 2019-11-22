@@ -111,8 +111,7 @@ def find_3dview_space():
 # clear light cache before file load
 @persistent
 def clear_bfm_cache(dummy):
-    for key in bricker_bfm_cache.keys():
-        bricker_bfm_cache[key] = None
+    clear_caches(deep_matrix=False, dupes=False)
 
 
 @persistent
@@ -139,8 +138,6 @@ def reset_properties(dummy):
 
 @persistent
 def handle_loading_to_light_cache(dummy):
-    bricker_bfm_cache = {}  # start with empty light cache
-    clear_caches(deep_matrix=False, dupes=False)
     scn = bpy.context.scene
     for cm in scn.cmlist:
         deep_to_light_cache(bricker_bfm_cache, cm)

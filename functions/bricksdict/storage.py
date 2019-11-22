@@ -57,7 +57,7 @@ def light_to_deep_cache(bricker_bfm_cache):
         cm.bfm_cache = marshal.dumps(bricker_bfm_cache[cm_id]).hex()
         num_pushed_ids += 1
     if num_pushed_ids > 0:
-        print("[Bricker] pushed {num_keys} {pluralized_dicts} from light cache to deep cache".format(num_keys=num_pushed_ids, pluralized_dicts="dict" if numPushedIDs == 1 else "dicts"))
+        print("[Bricker] pushed {num_keys} {pluralized_dicts} from light cache to deep cache".format(num_keys=num_pushed_ids, pluralized_dicts="dict" if num_pushed_ids == 1 else "dicts"))
 
 
 def deep_to_light_cache(bricker_bfm_cache, cm):

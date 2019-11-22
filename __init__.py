@@ -18,7 +18,7 @@
 bl_info = {
     "name"        : "Bricker",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
-    "version"     : (1, 7, 0),
+    "version"     : (1, 7, 1),
     "blender"     : (2, 80, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
@@ -30,6 +30,7 @@ bl_info = {
 developer_mode = 1  # NOTE: Set to 0 for release, 1 for exposed dictionary
 # NOTE: Disable "LEGO Logo" for releases
 # NOTE: Disable "Slopes" brick type for releases
+# NOTE: Remove beta warning from bl_info
 
 # System imports
 # NONE!

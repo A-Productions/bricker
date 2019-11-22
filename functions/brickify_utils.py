@@ -315,6 +315,8 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
         point_cloud_obj.use_instance_vertices_rotation = True
         # create instance obj
         brick = generate_brick_object(model_name)
+        if cm.material_type == "CUSTOM":
+            set_material(brick, cm.custom_mat)
         coll.objects.link(brick)
         brick.parent = point_cloud_obj
         point_cloud_obj.parent = parent
