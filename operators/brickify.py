@@ -248,6 +248,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 link_object(self.source)
             depsgraph_update()
             r = get_model_resolution(self.source, cm)
+            if self.action.startswith("UPDATE"):
+                unlink_object(self.source)
             self.brickify_in_background = should_brickify_in_background(cm, r, self.action)
 
     ###################################################
@@ -383,15 +385,16 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             store_transform_data(cm, None)
             bpy.props.bricker_trans_and_anim_data = []
 
-        if self.action == "CREATE":
+        # get previously created source duplicate
+        source_dup = bpy.data.objects.get(n + "__dup__")
+        if source_dup is None:
             # duplicate source
             source_dup = duplicate(self.source, link_to_scene=True)
-            source_dup.name = self.source.name + "__dup__"
+            source_dup.name = n + "__dup__"
             if cm.use_local_orient:
                 source_dup.rotation_mode = "XYZ"
                 source_dup.rotation_euler = Euler((0, 0, 0))
             self.created_objects.append(source_dup.name)
-            deselect(self.source)
             # remove modifiers and constraints
             for mod in source_dup.modifiers:
                 source_dup.modifiers.remove(mod)
@@ -409,17 +412,13 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # apply transformation data
             apply_transform(source_dup)
             source_dup.animation_data_clear()
-            depsgraph_update()
-        else:
-            # get previously created source duplicate
-            source_dup = bpy.data.objects.get(n + "__dup__")
         # if duplicate not created, source_dup is just original source
         source_dup = source_dup or self.source
 
         # link source_dup if it isn't in scene
         if source_dup.name not in scn.objects.keys():
             safe_link(source_dup)
-            depsgraph_update()
+        depsgraph_update()
 
         # get parent object
         bricker_parent_on = "Bricker_%(n)s_parent" % locals()

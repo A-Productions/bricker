@@ -466,7 +466,8 @@ def store_parent_collections_to_source(cm, source):
         brick_coll = cm.collection
         if brick_coll is None:
             return
-        linked_colls = [cn for cn in bpy_collections() if brick_coll.name in cn.children]
+        all_collections = list(bpy_collections()) + [bpy.context.scene.collection]
+        linked_colls = [cn for cn in all_collections if brick_coll.name in cn.children]
     for cn in linked_colls:
         source.stored_parents.add().collection = cn
 
