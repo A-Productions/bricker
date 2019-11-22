@@ -34,7 +34,7 @@ def get_colors():
     return get_colors.colors
 
 
-def find_nearest_brick_color_name(rgba, trans_weight, mat_obj=None):
+def find_nearest_brick_color_name(rgba, trans_weight=1, mat_obj=None):
     if rgba is None:
         return ""
     colors = get_colors().copy()
@@ -45,9 +45,10 @@ def find_nearest_brick_color_name(rgba, trans_weight, mat_obj=None):
     return find_nearest_color_name(rgba, trans_weight, colors)
 
 
-def find_nearest_color_name(rgba, trans_weight, colors):
+def find_nearest_color_name(rgba, trans_weight=1, colors=None):
     mindiff = None
     mincolorname = ""
+    colors = colors or get_colors()
     for color_name in colors:
         diff = rgba_distance(rgba, colors[color_name], trans_weight)
         if mindiff is None or diff < mindiff:
