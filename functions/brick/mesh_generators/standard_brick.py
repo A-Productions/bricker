@@ -73,6 +73,7 @@ def make_standard_brick(dimensions:dict, brick_size:list, type:str, brick_type:s
     # add details
     if detail != "FLAT":
         draw_tick_marks = detail == "HIGH" and ((brick_size[0] == 2 and brick_size[1] > 1) or (brick_size[1] == 2 and brick_size[0] > 1)) and brick_size[2] != 1
+        print(draw_tick_marks, brick_size)
         # making verts for hollow portion
         coord1 = -d + Vector((thick.x, thick.y, 0))
         coord2 = vec_mult(d, scalar) - thick

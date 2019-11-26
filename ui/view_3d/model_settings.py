@@ -30,7 +30,6 @@ from ..matslot_uilist import *
 from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
-from ...operators.customization_tools.bricksculpt import *
 from ...functions import *
 from ... import addon_updater_ops
 

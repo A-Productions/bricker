@@ -58,7 +58,8 @@ class BRICKER_OT_generate_brick(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            brick = generate_brick_object(self.brick_name, (self.brick_width, self.brick_depth, self.brick_height))
+            scn, cm, n = get_active_context_info()
+            brick = generate_brick_object(self.brick_name, (self.brick_width, self.brick_depth, 1 if flat_brick_type(cm.brick_type) else 3))
             safe_link(brick)
             return {"FINISHED"}
         except:
@@ -66,7 +67,7 @@ class BRICKER_OT_generate_brick(bpy.types.Operator):
             return {"CANCELLED"}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_popup(self, event)
+        return context.window_manager.invoke_props_dialog(self)
 
     ################################################
     # initialization method
@@ -85,18 +86,18 @@ class BRICKER_OT_generate_brick(bpy.types.Operator):
     brick_width = IntProperty(
         name="Width",
         description="",
-        default=1,
+        default=2,
     )
     brick_depth = IntProperty(
         name="Depth",
         description="",
-        default=1,
+        default=4,
     )
-    brick_height = IntProperty(
-        name="Height",
-        description="",
-        default=1,
-    )
+    # brick_height = IntProperty(
+    #     name="Height",
+    #     description="",
+    #     default=1,
+    # )
 
     #############################################
     # class methods
