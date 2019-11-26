@@ -123,13 +123,16 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                     mat = get_material(bricksdict, key, size, cm.zstep, material_type, cm.custom_mat.name if cm.custom_mat is not None else "z", cm.random_mat_seed, cm.material_is_dirty or cm.matrix_is_dirty or cm.build_is_dirty, seed_keys, brick_mats=get_brick_mats(cm))
                     mat_name = "" if mat is None else mat.name
                     rgba = bricksdict[key]["rgba"]
-                    color = 0
                     if mat_name in get_abs_mat_names() and abs_mat_properties is not None:
-                        color = abs_mat_properties[mat_name]["LDR Code"]
+                        abs_mat_name = mat_name
                     elif rgba not in (None, "") and material_type != "NONE":
-                        mat_name = find_nearest_brick_color_name(rgba, trans_weight)
+                        abs_mat_name = find_nearest_color_name(rgba, trans_weight=trans_weight)
                     elif bpy.data.materials.get(mat_name) is not None:
                         rgba = get_material_color(mat_name)
+                        abs_mat_name = find_nearest_color_name(rgba, trans_weight=trans_weight)
+                    else:
+                        abs_mat_name = ""
+                    color = abs_mat_properties[abs_mat_name]["LDR Code"] if abs_mat_name else 0
                     # get part number and ldraw file name for brick
                     parts = legal_bricks[size[2]][typ]
                     for j,part in enumerate(parts):

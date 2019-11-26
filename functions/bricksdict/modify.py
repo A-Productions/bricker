@@ -80,7 +80,7 @@ def update_materials(bricksdict, source, keys, cur_frame=None):
                 else:
                     mat_obj = get_mat_obj(cm, typ="ABS")
                     assert len(mat_obj.data.materials) > 0
-                    mat_name = find_nearest_brick_color_name(rgba, trans_weight, mat_obj=mat_obj)
+                    mat_name = find_nearest_brick_color_name(rgba, trans_weight, mat_obj)
             elif color_snap == "RGB" or is_smoke:# or use_uv_map:
                 mat_name = create_new_material(n, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, color_snap, color_snap_amount, include_transparency, cur_frame)
             if rgba is not None:
