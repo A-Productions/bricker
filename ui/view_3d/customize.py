@@ -53,6 +53,8 @@ class VIEW3D_PT_bricker_customize(Panel):
             return False
         if not (cm.model_created or cm.animated):
             return False
+        if cm.last_instance_method == "POINT_CLOUD":
+            return False
         return True
 
     def draw(self, context):

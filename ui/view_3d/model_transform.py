@@ -72,16 +72,16 @@ class VIEW3D_PT_bricker_model_transform(Panel):
         if cm.animated or (cm.last_split_model and cm.model_created):
             row = col.row(align=True)
             row.prop(cm, "expose_parent")
-        row = col.row(align=True)
-        parent = bpy.data.objects["Bricker_%(n)s_parent" % locals()]
-        row = layout.row()
-        row.column().prop(parent, "location")
-        if parent.rotation_mode == "QUATERNION":
-            row.column().prop(parent, "rotation_quaternion", text="Rotation")
-        elif parent.rotation_mode == "AXIS_ANGLE":
-            row.column().prop(parent, "rotation_axis_angle", text="Rotation")
-        else:
-            row.column().prop(parent, "rotation_euler", text="Rotation")
-        # row.column().prop(parent, "scale")
-        layout.prop(parent, "rotation_mode")
-        layout.prop(cm, "transform_scale")
+        # row = col.row(align=True)
+        # parent = bpy.data.objects["Bricker_%(n)s_parent" % locals()]
+        # row = layout.row()
+        # row.column().prop(parent, "location")
+        # if parent.rotation_mode == "QUATERNION":
+        #     row.column().prop(parent, "rotation_quaternion", text="Rotation")
+        # elif parent.rotation_mode == "AXIS_ANGLE":
+        #     row.column().prop(parent, "rotation_axis_angle", text="Rotation")
+        # else:
+        #     row.column().prop(parent, "rotation_euler", text="Rotation")
+        # # row.column().prop(parent, "scale")
+        # layout.prop(parent, "rotation_mode")
+        # layout.prop(cm, "transform_scale")

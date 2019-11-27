@@ -76,7 +76,7 @@ class VIEW3D_PT_bricker_model_settings(Panel):
         col = layout.column()
         row = col.row(align=True)
         right_align(row)
-        row.active = not cm.use_animation
+        row.active = not cm.use_animation and cm.instance_method != "POINT_CLOUD"
         row.prop(cm, "split_model")
 
         col = layout.column()
