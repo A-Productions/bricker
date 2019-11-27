@@ -20,7 +20,7 @@ import bpy
 import numpy as np
 import colorsys
 
-# Addon imports
+# Module imports
 from .general import *
 
 
@@ -34,7 +34,7 @@ def get_colors():
     return get_colors.colors
 
 
-def find_nearest_brick_color_name(rgba, trans_weight, mat_obj=None):
+def find_nearest_brick_color_name(rgba, trans_weight=1, mat_obj=None):
     if rgba is None:
         return ""
     colors = get_colors().copy()
@@ -45,31 +45,12 @@ def find_nearest_brick_color_name(rgba, trans_weight, mat_obj=None):
     return find_nearest_color_name(rgba, trans_weight, colors)
 
 
-def distance(c1, c2, awt=1):
-    r1, g1, b1, a1 = c1
-    r2, g2, b2, a2 = c2
-    # a1 = c1[3]
-    # # r1, g1, b1 = rgb_to_lab(c1[:3])
-    # r1, g1, b1 = colorsys.rgb_to_hsv(r1, g1, b1)
-    # a2 = c2[3]
-    # # r2, g2, b2 = rgb_to_lab(c2[:3])
-    # r2, g2, b2 = colorsys.rgb_to_hsv(r1, g1, b1)
-    # diff =  0.33 * ((r1 - r2)**2)
-    # diff += 0.33 * ((g1 - g2)**2)
-    # diff += 0.33 * ((b1 - b2)**2)
-    # diff += 1.0 * ((a1 - a2)**2)
-    diff =  0.30 * ((r1 - r2)**2)
-    diff += 0.59 * ((g1 - g2)**2)
-    diff += 0.11 * ((b1 - b2)**2)
-    diff += awt * ((a1 - a2)**2)
-    return diff
-
-
-def find_nearest_color_name(rgba, trans_weight, colors):
+def find_nearest_color_name(rgba, trans_weight=1, colors=None):
     mindiff = None
     mincolorname = ""
+    colors = colors or get_colors()
     for color_name in colors:
-        diff = distance(rgba, colors[color_name], trans_weight)
+        diff = rgba_distance(rgba, colors[color_name], trans_weight)
         if mindiff is None or diff < mindiff:
             mindiff = diff
             mincolorname = color_name

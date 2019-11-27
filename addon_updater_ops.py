@@ -454,7 +454,7 @@ class addon_updater_updated_successful(bpy.types.Operator):
 	error = bpy.props.StringProperty(
 		name="Error Occurred",
 		default="",
-		options={'HIDDEN'}
+		options={"HIDDEN"}
 		)
 
 	def invoke(self, context, event):

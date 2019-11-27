@@ -30,6 +30,8 @@ bl_info = {
 developer_mode = 0  # NOTE: Set to 0 for release, 1 for exposed dictionary
 # NOTE: Disable "LEGO Logo" for releases
 # NOTE: Disable "Slopes" brick type for releases
+# NOTE: Remove beta warning from bl_info
+# NOTE: change 'bricksculpt_framework' import in 'bricker.py' to 'bricksculpt_framework_backup'
 
 # System imports
 # NONE!
@@ -40,15 +42,15 @@ from bpy.props import *
 from bpy.types import WindowManager, Object, Scene, Material
 from bpy.utils import register_class, unregister_class
 
-# Addon imports
+# Module imports
 from .ui import *
 from .functions.general import *
-from .buttons import *
-from .buttons.customize import *
+from .functions.brick.legal_brick_sizes import get_legal_brick_sizes
+from .functions.timers import *
+from .operators import *
+from .operators.customization_tools import *
 from .lib import keymaps, preferences, classes_to_register
-from .lib.brick.legal_brick_sizes import get_legal_brick_sizes
-from .ui.timers import *
-from .ui.cmlist_attrs import CreatedModelProperties
+from .lib.property_groups import *
 from . import addon_updater_ops
 
 # store keymaps here to access after registration
@@ -72,13 +74,35 @@ def register():
     bpy.props.manual_cmlist_update = False
     bpy.props.bfm_cache_bytes_hex = None
 
-    Object.protected = BoolProperty(name="protected", default=False)
-    Object.is_brickified_object = BoolProperty(name="Is Brickified Object", default=False)
-    Object.is_brick = BoolProperty(name="Is Brick", default=False)
-    Object.cmlist_id = IntProperty(name="Custom Model ID", description="ID of cmlist entry to which this object refers", default=-1)
+    Object.protected = BoolProperty(
+        name="protected",
+        default=False,
+    )
+    Object.is_brickified_object = BoolProperty(
+        name="Is Brickified Object",
+        default=False,
+    )
+    Object.is_brick = BoolProperty(
+        name="Is Brick",
+        default=False,
+    )
+    Object.cmlist_id = IntProperty(
+        name="Custom Model ID",
+        description="ID of cmlist entry to which this object refers",
+        default=-1,
+    )
+    Object.smoke_data = StringProperty(
+        name="Smoke Data",
+        description="Smoke data stored for brickify operation",
+        default="",
+    )
     if b280():
         Object.stored_parents = CollectionProperty(type=BRICKER_UL_collections_tuple)
-    Material.num_averaged = IntProperty(name="Colors Averaged", description="Number of colors averaged together", default=0)
+    Material.num_averaged = IntProperty(
+        name="Colors Averaged",
+        description="Number of colors averaged together",
+        default=0,
+    )
 
     WindowManager.bricker_running_blocking_operation = BoolProperty(default=False)
 
@@ -97,16 +121,19 @@ def register():
     Scene.include_transparent = BoolProperty(
         name="Include Transparent",
         description="Include transparent ABS Plastic materials",
-        default=False)
+        default=False,
+    )
     Scene.include_uncommon = BoolProperty(
         name="Include Uncommon",
         description="Include uncommon ABS Plastic materials",
-        default=False)
+        default=False,
+    )
 
     # Scene.bricker_snapping = BoolProperty(
     #     name="Bricker Snap",
     #     description="Snap to brick dimensions",
-    #     default=False)
+    #     default=False,
+    # )
     # bpy.types.VIEW3D_HT_header.append(Bricker_snap_button)
 
     # other things (UI List)
@@ -120,7 +147,7 @@ def register():
         keymaps.add_keymaps(km)
         addon_keymaps.append(km)
 
-    # register app handlers
+    # register app handlers and timers
     bpy.app.handlers.frame_change_pre.append(handle_animation)
     if not bpy.app.background:
         if b280():
@@ -131,7 +158,7 @@ def register():
     bpy.app.handlers.load_post.append(handle_loading_to_light_cache)
     bpy.app.handlers.save_pre.append(handle_storing_to_deep_cache)
     bpy.app.handlers.load_post.append(handle_upconversion)
-    bpy.app.handlers.load_post.append(reset_undo_stack)
+    bpy.app.handlers.load_post.append(reset_properties)
 
     # addon updater code and configurations
     addon_updater_ops.register(bl_info)
@@ -142,7 +169,7 @@ def unregister():
     addon_updater_ops.unregister()
 
     # unregister app handlers
-    bpy.app.handlers.load_post.remove(reset_undo_stack)
+    bpy.app.handlers.load_post.remove(reset_properties)
     bpy.app.handlers.load_post.remove(handle_upconversion)
     bpy.app.handlers.save_pre.remove(handle_storing_to_deep_cache)
     bpy.app.handlers.load_post.remove(handle_loading_to_light_cache)
@@ -179,6 +206,7 @@ def unregister():
     del Material.num_averaged
     if hasattr(Object, "stored_parents"):
         del Object.stored_parents
+    del Object.smoke_data
     del Object.cmlist_id
     del Object.is_brick
     del Object.is_brickified_object

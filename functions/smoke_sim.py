@@ -18,36 +18,61 @@
 # System imports
 import time
 
-# Addon imports
+# Module imports
 from .common import *
 from .general import *
 
-# code adapted from https://github.com/bwrsandman/blender-addons/blob/master/render_povray/render.py
-def get_smoke_info(smoke_obj):
-    smoke_data = None
-    # Search smoke domain target for smoke modifiers
-    for mod in smoke_obj.modifiers:
-        if hasattr(mod, "smoke_type") and mod.smoke_type == "DOMAIN":
-            smoke_data = mod.domain_settings
-            break
 
-    if smoke_data is not None:
-        # get channel data
-        density_grid = tuple(smoke_data.density_grid)
-        flame_grid = tuple(smoke_data.flame_grid)
-        color_grid = tuple(smoke_data.color_grid)
-        # get resolution
-        domain_res = get_adjusted_res(smoke_data, tuple(smoke_data.domain_resolution))
-        adapt = smoke_data.use_adaptive_domain
-        max_res_i = smoke_data.resolution_max
-        max_res = Vector(domain_res) * (max_res_i / max(domain_res))
-        max_res = get_adjusted_res(smoke_data, max_res)
-        return density_grid, flame_grid, color_grid, domain_res, max_res, adapt
+def store_smoke_data(from_obj, to_obj):
+    # get evaluated obj
+    if b280():
+        depsgraph = bpy.context.view_layer.depsgraph
+        from_obj_eval = from_obj.evaluated_get(depsgraph)
     else:
-        return [None]*6
+        from_obj_eval = from_obj
+    # store point cache for frame
+    domain_settings = next((mod.domain_settings for mod in from_obj_eval.modifiers if hasattr(mod, "smoke_type") and mod.smoke_type == "DOMAIN"), None)
+    adapt = domain_settings.use_adaptive_domain
+    obj_details_adapt = bounds(from_obj) if adapt else None
+    smoke_data = {
+        "density_grid": tuple(domain_settings.density_grid),
+        "flame_grid": tuple(domain_settings.flame_grid),
+        "color_grid": tuple(domain_settings.color_grid),
+        "domain_resolution": tuple(domain_settings.domain_resolution),
+        "use_adaptive_domain": adapt,
+        "adapt_min": tuple(obj_details_adapt.min) if adapt else None,
+        "adapt_max": tuple(obj_details_adapt.max) if adapt else None,
+        "resolution_max": domain_settings.resolution_max,
+        "use_high_resolution": domain_settings.use_high_resolution,
+        "amplify": domain_settings.amplify,
+    }
+    to_obj.smoke_data = compress_str(json.dumps(smoke_data))
+
+
+# code adapted from https://github.com/bwrsandman/blender-addons/blob/master/render_povray/render.py
+def get_smoke_info(source):
+    if not source.smoke_data:
+        return [None] * 6
+
+    smoke_data = json.loads(decompress_str(source.smoke_data))
+
+    # get channel data
+    density_grid = smoke_data["density_grid"]
+    flame_grid = smoke_data["flame_grid"]
+    color_grid = smoke_data["color_grid"]
+    # get resolution
+    domain_res = get_adjusted_res(smoke_data, smoke_data["domain_resolution"])
+    adapt = smoke_data["use_adaptive_domain"]
+    adapt_min = Vector(smoke_data["adapt_min"])
+    adapt_max = Vector(smoke_data["adapt_max"])
+    max_res_i = smoke_data["resolution_max"]
+    max_res = Vector(domain_res) * (max_res_i / max(domain_res))
+    max_res = get_adjusted_res(smoke_data, max_res)
+
+    return density_grid, flame_grid, color_grid, domain_res, max_res, adapt, adapt_min, adapt_max
 
 
 def get_adjusted_res(smoke_data, smoke_res):
-    if smoke_data.use_high_resolution:
-        smoke_res = [int((smoke_data.amplify + 1) * i) for i in smoke_res]
+    if smoke_data["use_high_resolution"]:
+        smoke_res = [int((smoke_data["amplify"] + 1) * i) for i in smoke_res]
     return smoke_res

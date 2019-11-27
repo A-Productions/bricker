@@ -6,12 +6,11 @@
     * Add more brick types
     * Improve brick topology for 3D printing
     * Use shader-based bevel as opposed to geometry-based bevel
-    * improve intelligence of `get_first_img_tex_nodes` function
+    * improve intelligence of `get_first_img_from_nodes` function
         * choose prominent textures
         * ignore normal/bump textures
     * improve speed of `get_first_node` function
         * store first nodes of materials so it doesn't have to recalculate every time
-    * Custom UV unwrapper designed specifically for LEGO bricks
     * Improve model connectivity
         * Store each brick parent as a BMVert, with vert.co being the dloc
         * connect each BMVert with an edge if the two bricks are connected
@@ -19,10 +18,9 @@
         * this would be implemented in the `handle_animation` function
     * apply modifier to bricker model group instead of each object (requires Blender 2.81)
     * switch `use_blend_file` to `False` for backproc calls (saves memory and time)
-        * Use `cmlist_to_dict.py` code to convert cmlist item to dictionaries
-        * Figure out a way to maintain physics cache, parented matrix_world info, etc. for objects appended to background blender instance
+        * Use `dump_cm_props()` and `load_cm_props()` code to convert cmlist item to and from dictionaries
+        * Figure out a way to maintain parented matrix_world info, etc. for objects appended to background blender instance
     * Switch `calculation_axes` property to expanded bools in user interface
-    * Fix material panel subpanels for blender 2.79?
 
 * Fixes
     * when brickified model's parent is rotated, bricks drawn by customizing model are often not rotated correctly

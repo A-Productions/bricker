@@ -23,7 +23,7 @@ import math
 import bpy
 from mathutils import Vector
 
-# Addon imports
+# Module imports
 from .common import *
 
 
