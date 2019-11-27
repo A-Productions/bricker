@@ -328,7 +328,7 @@ def copy_animation_data(source:Object, target:Object):
         setattr(ad2, prop, getattr(ad, prop))
 
 
-def insert_keyframes(objs, keyframeType:str, frame:int, if_needed:bool=False):
+def insert_keyframes(objs, keyframe_type:str, frame:int, if_needed:bool=False):
     """ insert key frames for given objects to given frames """
     objs = confirm_iter(objs)
     options = set(["INSERTKEY_NEEDED"] if if_needed else [])
@@ -347,7 +347,7 @@ def new_mesh_from_object(obj:Object):
 
 
 def apply_modifiers(obj:Object):
-    """ apply modifiers to object """
+    """ apply modifiers to object (may require a depsgraph update before running) """
     m = new_mesh_from_object(obj)
     obj.modifiers.clear()
     obj.data = m
@@ -404,8 +404,8 @@ def tag_redraw_areas(area_types:iter=["ALL"]):
     screens = [bpy.context.screen] if bpy.context.screen else bpy.data.screens
     for screen in screens:
         for area in screen.areas:
-            for areaType in area_types:
-                if areaType == "ALL" or area.type == areaType:
+            for area_type in area_types:
+                if area_type == "ALL" or area.type == area_type:
                     area.tag_redraw()
 
 
