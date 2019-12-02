@@ -523,7 +523,7 @@ def junk_mesh():
 #################### RAY CASTING ####################
 
 
-def get_ray_target(x, y, ray_max=1000):
+def get_ray_target(x, y, ray_max=1e4):
     region = bpy.context.region
     rv3d = bpy.context.region_data
     cam = bpy.context.camera
@@ -533,19 +533,19 @@ def get_ray_target(x, y, ray_max=1000):
     if rv3d.view_perspective == "ORTHO" or (rv3d.view_perspective == "CAMERA" and cam and cam.type == "ORTHO"):
         # move ortho origin back
         ray_origin = ray_origin - (view_vector * (ray_max / 2.0))
-    ray_target = ray_origin + (view_vector * 1000)
+    ray_target = ray_origin + (view_vector * 1e4)
 
 
-def get_position_on_grid(mouse_pos, ray_max=1000):
+def get_position_on_grid(mouse_pos, ray_max=1e4):
     viewport_region = bpy.context.region
     viewport_r3d = bpy.context.region_data
     viewport_matrix = viewport_r3d.view_matrix.inverted()
     cam_obj = bpy.context.space_data.camera
 
-    # Shooting a ray from the camera, through the mouse cursor towards the grid with a length of 100000
-    # If the camera is more than 100000 units away from the grid it won't detect a point
+    # Shooting a ray from the camera, through the mouse cursor towards the grid with a length of 1e5
+    # If the camera is more than 1e5 units away from the grid it won't detect a point
     ray_start = viewport_matrix.to_translation()
-    ray_depth = viewport_matrix @ Vector((0, 0, -100000))
+    ray_depth = viewport_matrix @ Vector((0, 0, -1e5))
 
     # Get the 3D vector position of the mouse
     ray_end = view3d_utils.region_2d_to_location_3d(viewport_region, viewport_r3d, (mouse_pos[0], mouse_pos[1]), ray_depth)
