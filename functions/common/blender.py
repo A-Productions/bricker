@@ -448,7 +448,7 @@ def change_context(context, areaType:str):
     return last_area_type
 
 
-def assemble_override_context(area_type="VIEW_3D"):
+def assemble_override_context(area_type:str="VIEW_3D", scene:Scene=None):
     """
     Iterates through the blender GUI's areas & regions to find the View3D space
     NOTE: context override can only be used with bpy.ops that were called from a window/screen with a view3d space
@@ -457,12 +457,13 @@ def assemble_override_context(area_type="VIEW_3D"):
     scr      = win.screen
     areas3d  = [area for area in scr.areas if area.type == area_type]
     region   = [region for region in areas3d[0].regions if region.type == "WINDOW"]
+    scene    = scene or bpy.context.scene
     override = {
         "window": win,
         "screen": scr,
         "area"  : areas3d[0],
         "region": region[0],
-        "scene" : bpy.context.scene,
+        "scene" : scene,
     }
     return override
 
@@ -717,17 +718,21 @@ def called_from_shortcut(event:Event, operator:str, keymap:str=None):
 def new_window(area_type, width=640, height=480):
     # Modify scene settings
     render = bpy.context.scene.render
+    prefs = get_preferences()
     orig_settings = {
         "resolution_x": render.resolution_x,
         "resolution_y": render.resolution_y,
         "resolution_percentage": render.resolution_percentage,
-        "display_mode": render.display_mode,
+        "display_mode": prefs.view.render_display_type if bpy.app.version[1] > 80 else render.display_mode,
     }
 
     render.resolution_x = width
     render.resolution_y = height
     render.resolution_percentage = 100
-    render.display_mode = "WINDOW"  # Call user prefs window
+    if bpy.app.version[1] > 80:
+        prefs.view.render_display_type = "WINDOW"
+    else:
+        render.display_mode = "WINDOW"
 
     bpy.ops.render.view_show("INVOKE_DEFAULT")
 
@@ -737,8 +742,13 @@ def new_window(area_type, width=640, height=480):
     area.type = area_type
 
     # reset scene settings
-    for key in orig_settings:
-        setattr(render, key, orig_settings[key])
+    render.resolution_x = orig_settings["resolution_x"]
+    render.resolution_y = orig_settings["resolution_y"]
+    render.resolution_percentage = orig_settings["resolution_percentage"]
+    if bpy.app.version[1] > 80:
+        prefs.view.render_display_type = orig_settings["display_mode"]
+    else:
+        render.display_mode = orig_settings["display_mode"]
 
     return window
 

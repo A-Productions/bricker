@@ -638,9 +638,11 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
     l_scale = source_details.dist
     offset = source_details.mid
     if source.parent:
-        offset = offset - source.parent.location
+        offset -= source.parent.location
+        # shift offset to ensure lattice surrounds object
+        offset -= vec_remainder(offset, brick_scale)
     # get coordinate list from intersections of edges with faces
-    coord_matrix = generate_lattice(brick_scale, l_scale, offset, extra_res=2)
+    coord_matrix = generate_lattice(brick_scale, l_scale, offset, extra_res=1)
     if len(coord_matrix) == 0:
         coord_matrix.append(source_details.mid)
     # set calculation_axes

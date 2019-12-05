@@ -39,8 +39,6 @@ def generate_lattice(vert_dist:Vector, scale:Vector, offset:Vector=Vector((0, 0,
 
     """
 
-    # shift offset to ensure lattice surrounds object
-    offset = offset - vec_remainder(offset, vert_dist)
     # calculate res of lattice
     res = Vector((scale.x / vert_dist.x,
                   scale.y / vert_dist.y,
@@ -49,7 +47,7 @@ def generate_lattice(vert_dist:Vector, scale:Vector, offset:Vector=Vector((0, 0,
     res = Vector(round_up(round(val), 2) for val in res)
     h_res = res / 2
     # populate coord matrix
-    nx, ny, nz = int(res.x) - 1 + extra_res, int(res.y) - 1 + extra_res, int(res.z) - 1 + extra_res
+    nx, ny, nz = round(res.x) - 1 + extra_res, round(res.y) - 1 + extra_res, round(res.z) - 1 + extra_res
     create_coord = lambda v: vec_mult(v - h_res, vert_dist) + offset
     coord_matrix = [[[create_coord(Vector((x, y, z))) for z in range(nz)] for y in range(ny)] for x in range(nx)]
 
