@@ -30,15 +30,25 @@ from .colors import *
 
 
 # reference: https://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts/addons/uv_bake_texture_to_vcols.py
-def get_pixel(pixels, pixel_width, uv_coord, channels=4):
+def get_pixel(pixels, image, uv_coord, premult=False):
     """ get RGBA value for specified coordinate in UV image
-    pixels    -- list of pixel data from UV texture image
-    size      -- image width
-    uv_coord  -- UV coordinate of desired pixel value
+    pixels      -- list of pixel data from UV texture image
+    image       -- Blend image holding the pixel data
+    uv_coord    -- UV coordinate of desired pixel value
+    premult     -- if the image is premultiplied
     """
-    pixel_number = (pixel_width * int(uv_coord.y) + int(uv_coord.x)) * channels
+    pixel_number = (image.size[0] * round(uv_coord.y) + round(uv_coord.x)) * image.channels
     assert 0 <= pixel_number < len(pixels)
-    rgba = pixels[pixel_number:pixel_number + channels]
+    rgba = pixels[pixel_number:pixel_number + image.channels]
+    # premultiply
+    if premult and image.alpha_mode != "PREMUL":
+        rgba = list(Vector(rgba[:3]) * rgba[3]) + [rgba[3]]
+    # undo premultiplying
+    elif not premult and image.alpha_mode == "PREMUL":
+        if rgba[3] == 0:
+            rgba = [1] * 4
+        else:
+            rgba = list(Vector(rgba[:3]) / rgba[3]) + [rgba[3]]
     return rgba
 
 
