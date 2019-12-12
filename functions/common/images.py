@@ -17,6 +17,7 @@
 
 # System imports
 import numpy as np
+import time
 
 # Blender imports
 import bpy
@@ -33,20 +34,24 @@ common_pixel_cache = dict()
 
 def get_pixels(image, frame_offset=0):
     """ get pixels from image (cached by image name; make copy of result if modifying) """
+    scn = bpy.context.scene
     frame = scn.frame_current + frame_offset
-    image_key = image.name if image.source == "FILE" else (image.name + "{im_name}_f_{frame}".format(im_name=image.name, frame=frame))
+    image_key = image.name if image.source == "FILE" else ("{im_name}_f_{frame}".format(im_name=image.name, frame=frame))
 
-    if image_key in common_pixel_cache:
-        return common_pixel_cache[image_key]
-    else:
+    if image_key not in common_pixel_cache or not common_pixel_cache[image_key]:
         pixels = image.pixels[:] if image.source in ("FILE", "GENERATED") else get_pixels_at_frame(image, frame)
         common_pixel_cache[image_key] = pixels
-        return pixels
+    return common_pixel_cache[image_key]
 
 
-def clear_pixel_cache():
+def clear_pixel_cache(image_name=None):
     """ clear the pixel cache """
-    common_pixel_cache = dict()
+    if image_name is None:
+        common_pixel_cache = dict()
+    else:
+        for key in common_pixel_cache.keys():
+            if key.startswith(image_name):
+                common_pixel_cache.pop(key)
 
 
 def get_pixels_at_frame(image, frame=None):
@@ -56,6 +61,7 @@ def get_pixels_at_frame(image, frame=None):
     viewer_area = None
     viewer_space = None
 
+    assert bpy.context.screen is not None
     viewer_area = next((area for area in bpy.context.screen.areas if area.type == "IMAGE_EDITOR"), None)
     if viewer_area is None:
         viewer_area = bpy.context.screen.areas[0]
@@ -67,10 +73,10 @@ def get_pixels_at_frame(image, frame=None):
 
     old_image = viewer_space.image
     viewer_space.image = image
-    viewer_space.image_user.frame_offset = frame
-    #switch back and forth to force refresh
-    viewer_space.display_channels = "COLOR_ALPHA"
-    viewer_space.display_channels = "COLOR"
+    viewer_space.image_user.frame_offset = frame - bpy.context.scene.frame_current
+    if viewer_space.image_user.frame_duration != image.frame_duration:
+        viewer_space.image_user.frame_duration = image.frame_duration
+    viewer_space.display_channels = "COLOR"  # force refresh of image pixels
     pixels = list(viewer_space.image.pixels)
 
     if old_viewer_area != "":
