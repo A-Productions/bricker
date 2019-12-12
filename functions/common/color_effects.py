@@ -11,6 +11,10 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 # Module imports
 # NONE!
 
+import os
+os.environ['NUMBAPRO_NVVM']      = r'C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\nvvm\bin\nvvm64_33_0.dll'
+os.environ['NUMBAPRO_LIBDEVICE'] = r'C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\nvvm\libdevice'
+
 
 @jit(nopython=True, parallel=True)
 def convert_channels(num_pix, channels, old_pixels, old_channels):
@@ -20,15 +24,15 @@ def convert_channels(num_pix, channels, old_pixels, old_channels):
             for i in prange(num_pix):
                 # gamma correct srgb value to linear
                 u = old_pixels[i]
-                # if u <= 0.04045:
-                #     u2 = u / 12.92
-                # else:
-                #     u2 = ((u + 0.055) / 1.055) ** 2.4
+                if u <= 0.04045:
+                    u2 = u / 12.92
+                else:
+                    u2 = ((u + 0.055) / 1.055) ** 2.4
                 # store new value to rgb(a) channels
                 idx = i * channels
-                new_pixels[idx + 0] = u
-                new_pixels[idx + 1] = u
-                new_pixels[idx + 2] = u
+                new_pixels[idx + 0] = u2
+                new_pixels[idx + 1] = u2
+                new_pixels[idx + 2] = u2
                 if channels == 4:
                     new_pixels[idx + 3] = 1
         elif old_channels == 3:
@@ -46,13 +50,13 @@ def convert_channels(num_pix, channels, old_pixels, old_channels):
                 idx = i * old_channels
                 r, g, b = old_pixels[idx:idx + 3]
                 u = 0.2126 * r + 0.7152 * g + 0.0722 * b
-                # # gamma correct linear value to srgb
-                # if u <= 0.0031308:
-                #     u2 = 12.92 * u
-                # else:
-                #     u2 = ((1.055 * u) ** (1 / 2.4)) - 0.055
+                # gamma correct linear value to srgb
+                if u <= 0.0031308:
+                    u2 = 12.92 * u
+                else:
+                    u2 = ((1.055 * u) ** (1 / 2.4)) - 0.055
                 # store new value to single channel
-                new_pixels[i] = u
+                new_pixels[i] = u2
         elif channels == 3:
             for i in prange(num_pix):
                 idx1 = i * 3
@@ -146,147 +150,23 @@ def pad_pixels(size, channels, old_pixels, old_size):
 
 
 @jit(nopython=True, parallel=True)
-def blend_pixels(im1_pixels, im2_pixels, width, height, channels, operation, use_clamp, factor):
+def blend_pixels(im1_pixels, im2_pixels, width, height, channels, blend_type, use_clamp, factor):
     new_pixels = np.empty(width * height * channels)
-    if operation == "MIX":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = im1_pixels[i] * (1 - factor) + im2_pixels[i] * factor
-    elif operation == "ADD":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = im1_pixels[i] + im2_pixels[i] * factor
-    elif operation == "SUBTRACT":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = im1_pixels[i] - im2_pixels[i] * factor
-    elif operation == "MULTIPLY":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = im1_pixels[i] - im2_pixels[i] * factor
-    elif operation == "DIVIDE":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = im1_pixels[i] / im2_pixels[i]
-    elif operation == "POWER":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = im1_pixels[i] ** im2_pixels[i]
-    # elif operation == "LOGARITHM":
-    #     for i in prange(new_pixels.size):
-    #         new_pixels[i] = math.log(im1_pixels[i], im2_pixels[i])
-    elif operation == "SQUARE ROOT":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = im1_pixels[i] ** 0.5
-    elif operation == "ABSOLUTE":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = abs(im1_pixels[i])
-    elif operation == "MINIMUM":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = min(im1_pixels[i], im2_pixels[i])
-    elif operation == "MAXIMUM":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = max(im1_pixels[i], im2_pixels[i])
-    elif operation == "LESS THAN":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = 1 if im1_pixels[i] < im2_pixels[i] else 0
-    elif operation == "GREATER THAN":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = 1 if im1_pixels[i] > im2_pixels[i] else 0
-    elif operation == "ROUND":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = round(im1_pixels[i])
-    elif operation == "FLOOR":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = im1_pixels[i] - (im1_pixels[i] % 1)
-    elif operation == "CEIL":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = im1_pixels[i] + (1 - (im1_pixels[i] % 1))
-    # elif operation == "FRACT":
-    #     result =
-    elif operation == "MODULO":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = im1_pixels[i] % im2_pixels[i]
-
-    if use_clamp:
+    if blend_type == "MIX":
         for i in prange(len(new_pixels)):
-            new_pixels[i] = max(0, min(1, new_pixels[i]))
-    return new_pixels
-
-
-@jit(nopython=True, parallel=True)
-def math_operation_on_pixels(pixels, operation, clamp, value):
-    new_pixels = np.empty(pixels.size)
-    if operation == "ADD":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = pixels[i] + value
-    elif operation == "SUBTRACT":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = pixels[i] - value
-    elif operation == "MULTIPLY":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = pixels[i] * value
-    elif operation == "DIVIDE":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = pixels[i] / value
-    elif operation == "POWER":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = pixels[i] ** value
-    # elif operation == "LOGARITHM":
-    #     for i in prange(new_pixels.size):
-    #         new_pixels[i] = math.log(pixels[i], value)
-    elif operation == "SQUARE ROOT":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = pixels[i] ** 0.5
-    elif operation == "ABSOLUTE":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = abs(pixels[i])
-    elif operation == "MINIMUM":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = min(pixels[i], value)
-    elif operation == "MAXIMUM":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = max(pixels[i], value)
-    elif operation == "LESS THAN":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = 1 if pixels[i] < value else 0
-    elif operation == "GREATER THAN":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = 1 if pixels[i] > value else 0
-    elif operation == "ROUND":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = round(pixels[i])
-    elif operation == "FLOOR":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = pixels[i] - (pixels[i] % 1)
-    elif operation == "CEIL":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = pixels[i] + (1 - (pixels[i] % 1))
-    # elif operation == "FRACT":
-    #     result =
-    elif operation == "MODULO":
-        for i in prange(new_pixels.size):
-            new_pixels[i] = pixels[i] % value
-    # elif operation == "SINE":
-    #     result = math.sin(pixels[i])
-    # elif operation == "COSINE":
-    #     result = math.cos(pixels[i])
-    # elif operation == "TANGENT":
-    #     result = math.tan(pixels[i])
-    # elif operation == "ARCSINE":
-    #     result = math.asin(pixels[i])
-    # elif operation == "ARCCOSINE":
-    #     result = math.acos(pixels[i])
-    # elif operation == "ARCTANGENT":
-    #     result = math.atan(pixels[i])
-    # elif operation == "ARCTAN2":
-    #     result = math.atan2(pixels[i], value)
-
-    if clamp:
-        for i in prange(new_pixels.size):
-            new_pixels[i] = max(0, min(1, new_pixels[i]))
-    return new_pixels
-
-
-@jit(nopython=True, parallel=True)
-def clamp_pixels(pixels, minimum, maximum):
-    new_pixels = np.empty(pixels.size)
-    for i in prange(new_pixels.size):
-        new_pixels[i] = max(minimum, min(maximum, pixels[i]))
+            new_pixels[i] = im1_pixels[i] * (1 - factor) + im2_pixels[i] * factor
+            if use_clamp:
+                new_pixels[i] = min(1, new_pixels[i])
+    elif blend_type == "ADD":
+        for i in prange(len(new_pixels)):
+            new_pixels[i] = im1_pixels[i] + im2_pixels[i] * factor
+            if use_clamp:
+                new_pixels[i] = min(1, new_pixels[i])
+    elif blend_type == "SUBTRACT":
+        for i in prange(len(new_pixels)):
+            new_pixels[i] = im1_pixels[i] - im2_pixels[i] * factor
+            if use_clamp:
+                new_pixels[i] = min(1, new_pixels[i])
     return new_pixels
 
 

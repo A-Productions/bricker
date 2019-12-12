@@ -27,41 +27,9 @@ from .brick.legal_brick_sizes import *
 from ..lib.caches import *
 
 
-def clear_existing_materials(obj, from_idx=0, from_data=False):
-    if from_data:
-        brick.data.materials.clear(update_data=True)
-    else:
-        select(obj, active=True)
-        obj.active_material_index = from_idx
-        for i in range(from_idx, len(obj.material_slots)):
-            # remove material slots
-            bpy.ops.object.material_slot_remove()
-
-
-def set_material(obj, mat, to_data=False, overwrite=True):
-    if len(obj.data.materials) == 1 and overwrite:
-        if obj.data.materials[0] != mat:
-            obj.data.materials[0] = mat
-    else:
-        obj.data.materials.append(mat)
-    if not to_data:
-        link_material_to_object(obj, mat)
-
-
-def link_material_to_object(obj, mat, index=-1):
-    obj.material_slots[index].link = "OBJECT"
-    if obj.material_slots[index].material != mat:
-        obj.material_slots[index].material = mat
-
-
 def brick_materials_installed():
     """ checks that 'ABS Plastic Materials' addon is installed and enabled """
     return hasattr(bpy.props, "abs_plastic_materials_module_name")
-    # NOTE: The following method was replaced as it was far too slow
-    # for mod in addon_utils.modules():
-    #     if mod.bl_info["name"] == "ABS Plastic Materials":
-    #         return addon_utils.check(mod.__name__)[1]
-    # return False
 
 
 def get_abs_mat_names(all:bool=True):
@@ -93,17 +61,6 @@ def brick_materials_imported():
     return True
 
 
-def get_mat_at_face_idx(obj, face_idx):
-    """ get material at target face index of object """
-    if len(obj.material_slots) == 0:
-        return ""
-    face = obj.data.polygons[face_idx]
-    slot = obj.material_slots[face.material_index]
-    mat = slot.material
-    mat_name = mat.name if mat else ""
-    return mat_name
-
-
 def get_uv_layer_data(obj):
     """ returns data of active uv texture for object """
     obj_uv_layers = obj.data.uv_layers if b280() else obj.data.uv_textures
@@ -114,32 +71,6 @@ def get_uv_layer_data(obj):
         obj_uv_layers.active = obj_uv_layers[0]
         active_uv = obj_uv_layers.active
     return active_uv.data
-
-
-def get_first_node(mat, types:list=None):
-    """ get first node in material of specified type """
-    scn = bpy.context.scene
-    if types is None:
-        # get material type(s) based on render engine
-        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "BLENDER_WORKBENCH"):
-            types = ("BSDF_PRINCIPLED", "BSDF_DIFFUSE")
-        elif scn.render.engine == "octane":
-            types = ("OCT_DIFFUSE_MAT")
-        # elif scn.render.engine == "LUXCORE":
-        #     types = ("CUSTOM")
-        else:
-            types = ()
-    # get first node of target type
-    mat_nodes = mat.node_tree.nodes
-    for node in mat_nodes:
-        if node.type in types:
-            return node
-    # get first node of any BSDF type
-    for node in mat_nodes:
-        if len(node.inputs) > 0 and node.inputs[0].type == "RGBA":
-            return node
-    # no valid node was found
-    return None
 
 
 def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, color_snap, color_snap_amount, include_transparency, cur_frame=None):
@@ -251,7 +182,7 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
             # make sure 'use_nodes' is enabled
             mat.use_nodes = True
             # get first node
-            first_node = get_first_node(mat, types=("BSDF_PRINCIPLED", "BSDF_DIFFUSE"))
+            first_node = get_first_bsdf_node(mat)
             # update first node's color
             if first_node:
                 rgba1 = first_node.inputs[0].default_value
@@ -261,32 +192,6 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
                 first_node.inputs[3].default_value[:3] = mathutils_mult(Vector(new_rgba[:3]), sat_mat).to_tuple()
     mat.num_averaged += 1
     return mat_name
-
-
-def get_material_color(mat_name):
-    """ get RGBA value of material """
-    mat = bpy.data.materials.get(mat_name)
-    if mat is None:
-        return None
-    if mat.use_nodes:
-        node = get_first_node(mat)
-        if not node:
-            return None
-        r, g, b = node.inputs[0].default_value[:3]
-        if node.type in ("BSDF_GLASS", "BSDF_TRANSPARENT", "BSDF_REFRACTION"):
-            a = 0.25
-        elif node.type in ("VOLUME_SCATTER", "VOLUME_ABSORPTION", "PRINCIPLED_VOLUME"):
-            a = node.inputs["Density"].default_value
-        else:
-            a = node.inputs[0].default_value[3]
-    else:
-        if b280():
-            r, g, b, a = mat.diffuse_color
-        else:
-            intensity = mat.diffuse_intensity
-            r, g, b = Vector((mat.diffuse_color)) * intensity
-            a = mat.alpha if mat.use_transparency else 1.0
-    return [r, g, b, a]
 
 
 def get_brick_rgba(scn, obj, face_idx, point, uv_image=None):

@@ -46,7 +46,7 @@ def get_pixel(pixels, image, uv_coord, premult=False):
     # undo premultiplying
     elif not premult and image.alpha_mode == "PREMUL":
         if rgba[3] == 0:
-            rgba = [1] * 4
+            rgba = [0] * 4
         else:
             rgba = list(Vector(rgba[:3]) / rgba[3]) + [rgba[3]]
     return rgba
@@ -65,23 +65,6 @@ def get_2d_pixel_array(pixels, size, channels):
             pixels_2d[row][col] = pixels[pixel_number:pixel_number + channels]
 
     return pixels_2d
-
-
-def nearest_uv_coord(loc, img_obj):
-    img_size = Vector(img_obj.data.size)
-    img_off = Vector(img_obj.empty_image_offset)
-    obj_dimensions = Vector((
-        img_obj.empty_display_size,
-        img_obj.empty_display_size * img_size.y / img_size.x,
-    ))
-    obj_dimensions = vec_mult(obj_dimensions, img_obj.scale)
-    relative_loc = loc.xy - img_obj.location.xy
-    pixel_offset = Vector((
-        relative_loc.x * (img_size.x / obj_dimensions.x),
-        relative_loc.y * (img_size.y / obj_dimensions.y),
-    ))
-    pixel_loc = Vector(pixel_offset[:2]) - vec_mult(img_size, img_off)
-    return pixel_loc
 
 
 def get_uv_coord(mesh, face, point, image):
@@ -105,7 +88,7 @@ def get_uv_coord(mesh, face, point, image):
     # multiply barycentric weights by uv coordinates
     uv_loc = sum((p*w for p,w in zip(luv,lwts)), Vector((0,0)))
     # ensure uv_loc is in range(0,1)
-    # TODO: possibly approach this differently? currently, uv verts that are outside the image are wrapped to the other side
+    # TODO: possibly approach this differently? currently, uv coords are wrapped with modulo
     uv_loc = Vector((uv_loc[0] % 1, uv_loc[1] % 1))
     # convert uv_loc in range(0,1) to uv coordinate
     image_size_x, image_size_y = image.size
@@ -117,8 +100,29 @@ def get_uv_coord(mesh, face, point, image):
     return Vector(uv_coord)
 
 
+def get_uv_coord_in_ref_image(loc, img_obj):
+    """ returns UV coordinate of target 2d point in a reference image object
+    point   -- 2d sample location
+    img_obj -- reference image to sample
+    """
+    img_size = Vector(img_obj.data.size)
+    img_off = Vector(img_obj.empty_image_offset)
+    obj_dimensions = Vector((
+        img_obj.empty_display_size,
+        img_obj.empty_display_size * img_size.y / img_size.x,
+    ))
+    obj_dimensions = vec_mult(obj_dimensions, img_obj.scale)
+    relative_loc = loc.xy - img_obj.location.xy
+    pixel_offset = Vector((
+        relative_loc.x * (img_size.x / obj_dimensions.x),
+        relative_loc.y * (img_size.y / obj_dimensions.y),
+    ))
+    pixel_loc = Vector(pixel_offset[:2]) - vec_mult(img_size, img_off)
+    return pixel_loc
+
+
 def get_uv_pixel_color(scn, obj, face_idx, point, pixels_getter, uv_image=None):
-    """ get RGBA value for point in UV image at specified face index """
+    """ get RGBA value in UV image for point at specified face index """
     if face_idx is None:
         return None
     # get closest material using UV map
@@ -162,7 +166,7 @@ def get_first_img_from_nodes(obj, mat_slot_idx):
 
 
 def get_uv_image(scn, obj, face_idx, uv_image=None):
-    """ returns UV image (priority to passed image, then face index, then first one found in material nodes) """
+    """ returns UV image for object (priority to passed image, then face index, then first one found in material nodes) """
     image = verify_img(uv_image)
     # TODO: Reinstate this functionality for b280()
     if not b280() and image is None and obj.data.uv_textures.active:
