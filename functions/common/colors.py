@@ -48,7 +48,7 @@ def gamma_correct_linear_to_srgb(color:list):
     new_color = list()
     # see https://en.wikipedia.org/wiki/SRGB#The_forward_transformation_(CIE_XYZ_to_sRGB)
     for i, u in enumerate(color):
-        # do nothing to the alpha channel
+        # skip the alpha channel
         if i == 3:
             new_color.append(u)
             continue
@@ -65,7 +65,7 @@ def gamma_correct_srgb_to_linear(color:list):
     new_color = list()
     # see https://en.wikipedia.org/wiki/SRGB#The_reverse_transformation
     for i, u in enumerate(color):
-        # do nothing to the alpha channel
+        # skip the alpha channel
         if i == 3:
             new_color.append(u)
             continue

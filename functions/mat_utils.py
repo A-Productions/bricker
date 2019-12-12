@@ -23,13 +23,25 @@ from .common import *
 from .general import *
 from .colors import *
 from .brick.legal_brick_sizes import *
-# from .brick.bricks import Bricks
-from ..lib.caches import *
 
 
 def brick_materials_installed():
     """ checks that 'ABS Plastic Materials' addon is installed and enabled """
     return hasattr(bpy.props, "abs_plastic_materials_module_name")
+
+
+def brick_materials_imported():
+    """ check that all brick materials have been imported """
+    scn = bpy.context.scene
+    # make sure abs_plastic_materials addon is installed
+    if not brick_materials_installed():
+        return False
+    # check if any of the colors haven't been loaded
+    mats = bpy.data.materials.keys()
+    for mat_name in get_abs_mat_names():
+        if mat_name not in mats:
+            return False
+    return True
 
 
 def get_abs_mat_names(all:bool=True):
@@ -46,19 +58,6 @@ def get_abs_mat_names(all:bool=True):
     if all or scn.include_uncommon:
         materials += bpy.props.abs_mats_uncommon
     return materials
-
-
-def brick_materials_imported():
-    scn = bpy.context.scene
-    # make sure abs_plastic_materials addon is installed
-    if not brick_materials_installed():
-        return False
-    # check if any of the colors haven't been loaded
-    mats = bpy.data.materials.keys()
-    for mat_name in get_abs_mat_names():
-        if mat_name not in mats:
-            return False
-    return True
 
 
 def get_uv_layer_data(obj):
@@ -202,18 +201,9 @@ def get_brick_rgba(scn, obj, face_idx, point, uv_image=None):
     image = get_uv_image(scn, obj, face_idx, uv_image)
     if image is not None:
         orig_mat_name = ""
-        rgba = get_uv_pixel_color(scn, obj, face_idx, point, get_pixels, image)
+        rgba = get_uv_pixel_color(scn, obj, face_idx, point, image)
     else:
         # get closest material using material slot of face
         orig_mat_name = get_mat_at_face_idx(obj, face_idx)
         rgba = get_material_color(orig_mat_name) if orig_mat_name is not None else None
     return rgba, orig_mat_name
-
-
-def get_pixels(image):
-    if image.name in bricker_pixel_cache:
-        return bricker_pixel_cache[image.name]
-    else:
-        pixels = image.pixels[:]
-        bricker_pixel_cache[image.name] = pixels
-        return pixels

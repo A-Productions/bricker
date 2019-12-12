@@ -28,6 +28,58 @@ from .reporting import b280
 from .maths import *
 from .colors import *
 
+common_pixel_cache = dict()
+
+
+def get_pixels(image, frame_offset=0):
+    """ get pixels from image (cached by image name; make copy of result if modifying) """
+    frame = scn.frame_current + frame_offset
+    image_key = image.name if image.source == "FILE" else (image.name + "{im_name}_f_{frame}".format(im_name=image.name, frame=frame))
+
+    if image_key in common_pixel_cache:
+        return common_pixel_cache[image_key]
+    else:
+        pixels = image.pixels[:] if image.source in ("FILE", "GENERATED") else get_pixels_at_frame(image, frame)
+        common_pixel_cache[image_key] = pixels
+        return pixels
+
+
+def clear_pixel_cache():
+    """ clear the pixel cache """
+    common_pixel_cache = dict()
+
+
+def get_pixels_at_frame(image, frame=None):
+    assert image.source in ("SEQUENCE", "MOVIE")
+    frame = frame or bpy.context.scene.frame_current
+    old_viewer_area = ""
+    viewer_area = None
+    viewer_space = None
+
+    viewer_area = next((area for area in bpy.context.screen.areas if area.type == "IMAGE_EDITOR"), None)
+    if viewer_area is None:
+        viewer_area = bpy.context.screen.areas[0]
+        old_viewer_area = viewer_area.type
+        viewer_area.type = "IMAGE_EDITOR"
+
+    assert viewer_area is not None
+    viewer_space = next(space for space in viewer_area.spaces if space.type == "IMAGE_EDITOR")
+
+    old_image = viewer_space.image
+    viewer_space.image = image
+    viewer_space.image_user.frame_offset = frame
+    #switch back and forth to force refresh
+    viewer_space.display_channels = "COLOR_ALPHA"
+    viewer_space.display_channels = "COLOR"
+    pixels = list(viewer_space.image.pixels)
+
+    if old_viewer_area != "":
+        viewer_area.type = old_viewer_area
+    else:
+        viewer_space.image = old_image
+
+    return pixels
+
 
 # reference: https://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts/addons/uv_bake_texture_to_vcols.py
 def get_pixel(pixels, image, uv_coord, premult=False):
@@ -52,19 +104,66 @@ def get_pixel(pixels, image, uv_coord, premult=False):
     return rgba
 
 
-def get_1d_pixel_array(pixels, size, channels):
-    pixels_1d = [pixels[i:i + channels] for i in range(0, len(pixels), channels)]
-    return pixels_1d
+def get_uv_pixel_color(scn, obj, face_idx, point, uv_image=None):
+    """ get RGBA value in UV image for point at specified face index """
+    if face_idx is None:
+        return None
+    # get closest material using UV map
+    face = obj.data.polygons[face_idx]
+    # get uv_layer image for face
+    image = get_uv_image(scn, obj, face_idx, uv_image)
+    if image is None:
+        return None
+    # get uv coordinate based on nearest face intersection
+    uv_coord = get_uv_coord(obj.data, face, point, image)
+    # retrieve rgba value at uv coordinate
+    pixels = get_pixels(image)
+    rgba = get_pixel(pixels, image.size[0], uv_coord)
+    # gamma correct color value
+    if image.colorspace_settings.name == "sRGB":
+        rgba = gamma_correct_srgb_to_linear(rgba)
+    return rgba
 
 
-def get_2d_pixel_array(pixels, size, channels):
-    pixels_2d = np.zeros((size[0], size[1], channels)).tolist()
-    for row in range(size[0]):
-        for col in range(size[1]):
-            pixel_number = (col * size[0] + row) * channels
-            pixels_2d[row][col] = pixels[pixel_number:pixel_number + channels]
+def get_uv_image(scn, obj, face_idx, uv_image=None):
+    """ returns UV image for object (priority to passed image, then face index, then first one found in material nodes) """
+    image = verify_img(uv_image)
+    # TODO: Reinstate this functionality for b280()
+    if not b280() and image is None and obj.data.uv_textures.active:
+        image = verify_img(obj.data.uv_textures.active.data[face_idx].image)
+    if image is None:
+        try:
+            mat_idx = obj.data.polygons[face_idx].material_index
+            image = get_first_img_from_nodes(obj, mat_idx)
+        except IndexError:
+            mat_idx = 0
+            while image is None and mat_idx < len(obj.material_slots):
+                image = get_first_img_from_nodes(obj, mat_idx)
+                mat_idx += 1
+    return image
 
-    return pixels_2d
+
+def get_first_img_from_nodes(obj, mat_slot_idx):
+    """ return first image texture found in a material slot """
+    mat = obj.material_slots[mat_slot_idx].material
+    if mat is None or not mat.use_nodes:
+        return None
+    nodes_to_check = list(mat.node_tree.nodes)
+    active_node = mat.node_tree.nodes.active
+    if active_node is not None: nodes_to_check.insert(0, active_node)
+    img = None
+    for node in nodes_to_check:
+        if node.type != "TEX_IMAGE":
+            continue
+        img = verify_img(node.image)
+        if img is not None:
+            break
+    return img
+
+
+def verify_img(im):
+    """ verify image has pixel data """
+    return im if im is not None and im.pixels is not None and len(im.pixels) > 0 else None
 
 
 def get_uv_coord(mesh, face, point, image):
@@ -121,63 +220,16 @@ def get_uv_coord_in_ref_image(loc, img_obj):
     return pixel_loc
 
 
-def get_uv_pixel_color(scn, obj, face_idx, point, pixels_getter, uv_image=None):
-    """ get RGBA value in UV image for point at specified face index """
-    if face_idx is None:
-        return None
-    # get closest material using UV map
-    face = obj.data.polygons[face_idx]
-    # get uv_layer image for face
-    image = get_uv_image(scn, obj, face_idx, uv_image)
-    if image is None:
-        return None
-    # get uv coordinate based on nearest face intersection
-    uv_coord = get_uv_coord(obj.data, face, point, image)
-    # retrieve rgba value at uv coordinate
-    pixels = pixels_getter(image)
-    rgba = get_pixel(pixels, image.size[0], uv_coord)
-    # gamma correct color value
-    if image.colorspace_settings.name == "sRGB":
-        rgba = gamma_correct_srgb_to_linear(rgba)
-    return rgba
+def get_1d_pixel_array(pixels, size, channels):
+    pixels_1d = [pixels[i:i + channels] for i in range(0, len(pixels), channels)]
+    return pixels_1d
 
 
-def verify_img(im):
-    """ verify image has pixel data """
-    return im if im is not None and im.pixels is not None and len(im.pixels) > 0 else None
+def get_2d_pixel_array(pixels, size, channels):
+    pixels_2d = np.zeros((size[0], size[1], channels)).tolist()
+    for row in range(size[0]):
+        for col in range(size[1]):
+            pixel_number = (col * size[0] + row) * channels
+            pixels_2d[row][col] = pixels[pixel_number:pixel_number + channels]
 
-
-def get_first_img_from_nodes(obj, mat_slot_idx):
-    """ return first image texture found in a material slot """
-    mat = obj.material_slots[mat_slot_idx].material
-    if mat is None or not mat.use_nodes:
-        return None
-    nodes_to_check = list(mat.node_tree.nodes)
-    active_node = mat.node_tree.nodes.active
-    if active_node is not None: nodes_to_check.insert(0, active_node)
-    img = None
-    for node in nodes_to_check:
-        if node.type != "TEX_IMAGE":
-            continue
-        img = verify_img(node.image)
-        if img is not None:
-            break
-    return img
-
-
-def get_uv_image(scn, obj, face_idx, uv_image=None):
-    """ returns UV image for object (priority to passed image, then face index, then first one found in material nodes) """
-    image = verify_img(uv_image)
-    # TODO: Reinstate this functionality for b280()
-    if not b280() and image is None and obj.data.uv_textures.active:
-        image = verify_img(obj.data.uv_textures.active.data[face_idx].image)
-    if image is None:
-        try:
-            mat_idx = obj.data.polygons[face_idx].material_index
-            image = verify_img(get_first_img_from_nodes(obj, mat_idx))
-        except IndexError:
-            mat_idx = 0
-            while image is None and mat_idx < len(obj.material_slots):
-                image = verify_img(get_first_img_from_nodes(obj, mat_idx))
-                mat_idx += 1
-    return image
+    return pixels_2d

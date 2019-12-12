@@ -15,31 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# from .populate_mat_obj import *
-# from .bake import *
-# from .customization_tools import *
-# from .bevel import *
-# from .brickify import *
-# from .brickify_in_background import *
-# from .cache import *
-# from .cmlist_actions import *
-# from .delete_model import *
-# from .export_ldraw import *
-# from .initialize import *
-# from .materials import *
-# from .matlist_actions import *
-# from .overrides import *
-# from .redraw_custom_bricks import *
-# from .revert_settings import *
-# from .test_brick_generators import *
-
 __all__ = [
-    "populate_mat_obj",
-    "bake",
     "customization_tools",
+    "overrides",
+    "apply_material",
+    "bake",
     "bevel",
-    "brickify",
     "brickify_in_background",
+    "brickify",
     "cache",
     "cmlist_actions",
     "debug_toggle_view_source",
@@ -47,9 +30,8 @@ __all__ = [
     "export_ldraw",
     "generate_brick",
     "initialize",
-    "materials",
     "matlist_actions",
-    "overrides",
+    "populate_mat_obj",
     "redraw_custom_bricks",
     "revert_settings",
     "test_brick_generators",
