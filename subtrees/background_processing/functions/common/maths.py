@@ -66,9 +66,9 @@ def vec_abs(v1:Vector, outer_type:type=Vector):
     return outer_type(abs(e1) for e1 in v1)
 
 
-def outer_type(v1:Vector, outer_type:type=Vector):
-    """ clamp items in iterable to the 0..1 range """
-    return outer_type([max(0, min(1, e1)) for e1 in v1])
+def vec_clamp(v1:Vector, outer_type=Vector):
+    """ componentwise clamping value for vectors """
+    return outer_type(max(0, min(1, e1)) for e1 in v1)
 
 
 def vec_conv(v1:Vector, inner_type:type=int, outer_type:type=Vector):
@@ -82,11 +82,18 @@ def vec_round(v1:Vector, precision:int=0, round_type:str="ROUND", outer_type:typ
         lst = [round(e1, precision) for e1 in v1]
     elif round_type == "FLOOR":
         prec = 10**precision
-        lst = [(math.floor(e1 * prec)) / prec for e1 in v1]
+        lst = [math.floor(e1 * prec) / prec for e1 in v1] if prec != 1 else [math.floor(e1) for e1 in v1]
     elif round_type in ("CEILING", "CEIL"):
         prec = 10**precision
-        lst = [(math.ceil(e1 * prec)) / prec for e1 in v1]
+        lst = [math.ceil(e1 * prec) / prec for e1 in v1] if prec != 1 else [math.ceil(e1) for e1 in v1]
+    else:
+        raise Exception("Argument passed to 'round_type' parameter invalid: " + str(round_type))
     return outer_type(lst)
+
+
+def outer_type(v1:Vector, outer_type:type=Vector):
+    """ clamp items in iterable to the 0..1 range """
+    return outer_type([max(0, min(1, e1)) for e1 in v1])
 
 
 def mean(lst:list):

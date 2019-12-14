@@ -34,7 +34,6 @@ from .bricksdict import *
 from .common import *
 from .general import bounds
 from .make_bricks_utils import *
-from .hash_object import hash_object
 from .mat_utils import *
 from .matlist_utils import *
 from ..lib.caches import bricker_mesh_cache

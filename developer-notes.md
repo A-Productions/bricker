@@ -9,7 +9,7 @@
     * improve intelligence of `get_first_img_from_nodes` function
         * choose prominent textures
         * ignore normal/bump textures
-    * improve speed of `get_first_node` function
+    * improve speed of `get_first_bsdf_node` function
         * store first nodes of materials so it doesn't have to recalculate every time
     * Improve model connectivity
         * Store each brick parent as a BMVert, with vert.co being the dloc

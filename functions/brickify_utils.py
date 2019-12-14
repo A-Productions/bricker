@@ -216,7 +216,6 @@ def get_args_for_background_processor(cm, bricker_addon_path, source_dup=None):
 
 
 def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, brick_scale, bricksdict, keys, redraw, update_cursor):
-    # uv_images = get_uv_images(source) if cm.material_type == "SOURCE" and cm.use_uv_map and len(source.data.uv_layers) > 0 else {}  # get uv_layer image and pixels for material calculation
     if bricksdict is None:
         # load bricksdict from cache
         bricksdict = get_bricksdict(cm, d_type=action, cur_frame=cur_frame)

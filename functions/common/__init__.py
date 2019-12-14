@@ -18,12 +18,15 @@
 from .blender import *
 from .bmesh_generators import *
 from .bmesh_utils import *
-# try:
-#     from .color_effects import *
-# except ImportError:
-#     print("'numba' python module not installed")
+try:
+    from .color_effects import *
+    # from .color_effects_cuda import *
+except ModuleNotFoundError:
+    print("'numba' python module not installed")
 from .colors import *
+from .data_types import *
 from .images import *
+from .materials import *
 from .maths import *
 from .nodes import *
 from .paths import *

@@ -241,7 +241,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.bricker_addon_path = get_addon_directory()
         self.jobs = list()
         self.cm = cm
-        bricker_pixel_cache = dict()
+        clear_pixel_cache()
         if self.source is not None:
             # set up model dimensions variables sX, sY, and sZ
             if self.action.startswith("UPDATE"):

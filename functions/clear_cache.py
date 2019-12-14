@@ -39,7 +39,7 @@ def clear_cache(cm, brick_mesh=True, light_matrix=True, deep_matrix=True, images
         cm.bfm_cache = ""
     # clear image cache
     if images:
-        bricker_pixel_cache = dict()
+        clear_pixel_cache()
     # remove caches of source model from data
     if dupes:
         if cm.model_created:
