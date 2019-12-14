@@ -322,6 +322,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cm.last_brick_type = cm.brick_type
         cm.last_legal_bricks_only = cm.legal_bricks_only
         cm.last_material_type = cm.material_type
+        cm.last_use_abs_template = cm.use_abs_template
         cm.last_shell_thickness = cm.shell_thickness
         cm.last_internal_supports = cm.internal_supports
         cm.last_instance_method = cm.instance_method

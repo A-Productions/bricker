@@ -131,7 +131,7 @@ class CMLIST_OT_list_action(Operator):
     def remove_item(self, idx):
         scn, cm, sn = get_active_context_info()
         n = cm.name
-        if cm.linked_from_external:
+        if cm.linked_from_external and cm.collection is not None:
             bpy_collections().remove(cm.collection)
         if cm.model_created or (cm.animated and not cm.linked_from_external):
             self.report({"WARNING"}, "Please delete the Brickified model before attempting to remove this item." % locals())
@@ -302,7 +302,7 @@ class CMLIST_OT_link_animated_model(bpy.types.Operator):
             # load brick model collection
             blendfile_path = self.directory[:self.directory.rfind(".blend") + 6]
             # data_attr = os.path.basename(os.path.normpath(self.directory)).lower() + "s"
-            collection = load_from_library(blendfile_path, "collections", filenames=[filename], overwrite_data=False, action="LINK")[0]
+            collection = load_from_library(blendfile_path, "collections", filenames=[filename], overwrite_data=False, action="LINK", relative=self.relative_path)[0]
             # check if a similarly named model already exists
             model_name = collection.name[collection.name.find("_") + 1:collection.name.rfind("_")]
             source_names = [cm0.source_obj.name for cm0 in scn.cmlist if cm0.source_obj is not None]
@@ -337,7 +337,7 @@ class CMLIST_OT_link_animated_model(bpy.types.Operator):
                     return {"CANCELLED"}
             else:
                 # link new collection to scene
-                parent_coll = bpy.context.collection or scn.collection
+                parent_coll = bpy.context.collection if self.active_collection and bpy.context.collection is not None else scn.collection
                 parent_coll.children.link(collection)
                 # create new cmlist item
                 bpy.ops.cmlist.list_action(action="ADD")
@@ -381,8 +381,6 @@ class CMLIST_OT_link_animated_model(bpy.types.Operator):
     filter_blender = BoolProperty(default=True, options={"HIDDEN"})
     filter_blenlib = BoolProperty(default=True, options={"HIDDEN"})
     link = BoolProperty(default=True, options={"HIDDEN"})
-    autoselect = BoolProperty(default=True, options={"HIDDEN"})
-    active_collection = BoolProperty(default=True, options={"HIDDEN"})
     filemode = IntProperty(default=1, options={"HIDDEN"})
     directory = StringProperty(subtype="DIR_PATH")
     # filename = StringProperty(subtype="FILE_NAME")
@@ -390,6 +388,26 @@ class CMLIST_OT_link_animated_model(bpy.types.Operator):
         name="File Path",
         type=bpy.types.OperatorFileListElement,
     )
+    relative_path = BoolProperty(
+        name = "Relative Path",
+        default=True,
+    )
+    autoselect = BoolProperty(
+        name="Select",
+        default=False,
+        options={"HIDDEN"},
+    )
+    active_collection = BoolProperty(
+        name="Active Collection",
+        description="Put new objects on the active collection",
+        default=True,
+    )
+    # instance_collections = BoolProperty(
+    #     name="Instance Collections",
+    #     description="Create instances for collections, rather than adding them directly to the scene",
+    #     default=False,
+    #     # options={"HIDDEN"},
+    # )
 
     ################################################
 

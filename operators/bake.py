@@ -75,7 +75,7 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
         # delete brick collection
         brick_coll = cm.collection
         if b280():
-            linked_colls = [cn for cn in bpy.data.collections if brick_coll.name in cn.children]
+            linked_colls = [cn for cn in bpy_collections() if brick_coll.name in cn.children]
             for col in linked_colls:
                 for brick in bricks:
                     col.objects.link(brick)

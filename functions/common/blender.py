@@ -802,10 +802,10 @@ def is_navigation_event(event:Event):
     return False
 
 
-def load_from_library(blendfile_path, data_attr, filenames=None, overwrite_data=False, action="APPEND"):
+def load_from_library(blendfile_path, data_attr, filenames=None, overwrite_data=False, action="APPEND", relative=False):
     data_block_infos = list()
     orig_data_names = lambda: None
-    with bpy.data.libraries.load(blendfile_path, link=action == "LINK") as (data_from, data_to):
+    with bpy.data.libraries.load(blendfile_path, link=action == "LINK", relative=relative) as (data_from, data_to):
         # if only appending some of the filenames
         if filenames is not None:
             # rebuild 'data_attr' of data_from based on filenames in 'filenames' list
