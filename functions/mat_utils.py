@@ -72,7 +72,7 @@ def get_uv_layer_data(obj):
     return active_uv.data
 
 
-def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, color_snap, color_snap_amount, include_transparency, cur_frame=None):
+def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, color_snap, use_abs_template, last_use_abs_template, color_snap_amount, include_transparency, cur_frame=None):
     """ create new material with specified rgba values """
     scn = bpy.context.scene
     # get or create material with unique color
@@ -99,7 +99,10 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
         if mat is None:
             if not brick_materials_imported():
                 bpy.ops.abs.append_materials()
+            last_abs_displace = scn.abs_displace
+            scn.abs_displace = 0.04
             mat = bpy.data.materials["ABS Plastic Sand Green"].copy()
+            scn.abs_displace = last_abs_displace
             mat.name = mat_name
         mat.diffuse_color = rgba
         dialectric_node = mat.node_tree.nodes["ABS Dialectric"]

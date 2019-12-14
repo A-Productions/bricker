@@ -584,9 +584,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # get source_details and dimensions
         source_details, dimensions = get_details_and_bounds(source)
 
-        # update ref_logo
-        ref_logo = get_logo(scn, cm, dimensions)
-
         # set up parent for this layer
         # TODO: Remove these from memory in the delete function, or don't use them at all
         p_name = "%(bricker_parent_on)s_f_%(cur_frame)s" % locals()
@@ -600,7 +597,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # create new bricks
         try:
-            coll_name, _ = create_new_bricks(source, parent, source_details, dimensions, ref_logo, action, split=cm.split_model, cur_frame=cur_frame, clear_existing_collection=False, orig_source=cm.source_obj, select_created=False)
+            coll_name, _ = create_new_bricks(source, parent, source_details, dimensions, action, split=cm.split_model, cur_frame=cur_frame, clear_existing_collection=False, orig_source=cm.source_obj, select_created=False)
         except KeyboardInterrupt:
             if cur_frame != cm.start_frame:
                 wm.progress_end()
@@ -642,11 +639,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         source_dup = bpy.data.objects.get(cm.source_obj.name + "__dup__")
         source_dup_details, dimensions = get_details_and_bounds(source_dup)
 
-        # update ref_logo
-        ref_logo = get_logo(scn, cm, dimensions)
-
         # create new bricks
-        coll_name, _ = create_new_bricks(source_dup, parent, source_dup_details, dimensions, ref_logo, action, split=cm.split_model, cur_frame=None)
+        coll_name, _ = create_new_bricks(source_dup, parent, source_dup_details, dimensions, action, split=cm.split_model, cur_frame=None)
 
         bcoll = bpy_collections().get(coll_name)
         if bcoll:

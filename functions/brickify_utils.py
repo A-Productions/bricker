@@ -256,9 +256,10 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
     return bricksdict, brick_scale
 
 
-def create_new_bricks(source, parent, source_details, dimensions, ref_logo, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
+def create_new_bricks(source, parent, source_details, dimensions, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
     """ gets/creates bricksdict, runs make_bricks, and caches the final bricksdict """
     scn, cm, n = get_active_context_info(cm=cm)
+    ref_logo = None if temp_brick else get_logo(scn, cm, dimensions)  # update ref_logo
     brick_scale, custom_data = get_arguments_for_bricksdict(cm, source=source, dimensions=dimensions)
     update_cursor = action in ("CREATE", "UPDATE_MODEL")
     # get bricksdict
@@ -326,6 +327,9 @@ def create_new_bricks(source, parent, source_details, dimensions, ref_logo, acti
         # select bricks
         if select_created and len(bricks_created) > 0:
             select(bricks_created)
+    # remove duplicated logo
+    if ref_logo is not None:
+        bpy.data.objects.remove(ref_logo)
     # store current bricksdict to cache
     cache_bricks_dict(action, cm, bricksdict, cur_frame=cur_frame)
     return model_name, bricks_created

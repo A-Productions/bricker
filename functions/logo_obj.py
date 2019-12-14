@@ -37,7 +37,7 @@ def get_lego_logo(scn, typ, res, decimate, dimensions):
     if typ == "NONE":
         ref_logo = None
     else:
-        ref_logo_name = "Bricker_LEGO_Logo_%(res)s_%(decimate)s" % locals()
+        ref_logo_name = "Bricker_LEGO_Logo_{res}_{decimate}".format(res=str(res).replace(".", ","), decimate=decimate)
         ref_logo = bpy.data.objects.get(ref_logo_name)
         if ref_logo is None:
             # get logo text reference with current settings
@@ -110,7 +110,7 @@ def get_logo(scn, cm, dimensions):
 
 
 def prepare_logo_and_get_details(scn, logo, detail, scale, dimensions):
-    """ duplicate and normalize custom logo object; return logo and bounds(logo) """
+    """ duplicate and normalize custom logo object; return logo """
     if logo is None:
         return None, logo
     # get logo details

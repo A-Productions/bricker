@@ -124,7 +124,7 @@ def get_uv_pixel_color(scn, obj, face_idx, point, uv_image=None):
     uv_coord = get_uv_coord(obj.data, face, point, image)
     # retrieve rgba value at uv coordinate
     pixels = get_pixels(image)
-    rgba = get_pixel(pixels, image.size[0], uv_coord)
+    rgba = get_pixel(pixels, image, uv_coord)
     # gamma correct color value
     if image.colorspace_settings.name == "sRGB":
         rgba = gamma_correct_srgb_to_linear(rgba)
