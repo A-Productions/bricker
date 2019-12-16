@@ -72,7 +72,7 @@ def get_uv_layer_data(obj):
     return active_uv.data
 
 
-def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, color_snap, color_snap_amount, include_transparency, cur_frame=None):
+def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, color_snap, use_abs_template, last_use_abs_template, color_snap_amount, include_transparency, cur_frame=None):
     """ create new material with specified rgba values """
     scn = bpy.context.scene
     # get or create material with unique color
@@ -91,6 +91,26 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
     mat_name_hash = str(hash_str(mat_name_end_string))[:14]
     mat_name = "Bricker_{n}{f}_{hash}".format(n=model_name, f="_f_%(cur_frame)s" % locals() if cur_frame is not None else "", hash=mat_name_hash)
     mat = bpy.data.materials.get(mat_name)
+    # handle materials created using abs template
+    if use_abs_template:
+        if mat and mat.node_tree.nodes.get("ABS Dialectric") is None:
+            bpy.data.materials.remove(mat)
+            mat = None
+        if mat is None:
+            if not brick_materials_imported():
+                bpy.ops.abs.append_materials()
+            last_abs_displace = scn.abs_displace
+            scn.abs_displace = 0.04
+            mat = bpy.data.materials["ABS Plastic Sand Green"].copy()
+            scn.abs_displace = last_abs_displace
+            mat.name = mat_name
+        mat.diffuse_color = rgba
+        dialectric_node = mat.node_tree.nodes["ABS Dialectric"]
+        dialectric_node.inputs["Diffuse Color"].default_value = rgba
+        dialectric_node.inputs["SSS Color"].default_value = rgba
+        dialectric_node.inputs["SSS Amount"].default_value = sss
+        return mat_name
+    # handle materials created from scratch
     mat_is_new = mat is None
     mat = mat or bpy.data.materials.new(name=mat_name)
     # set diffuse and transparency of material

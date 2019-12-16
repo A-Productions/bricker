@@ -18,7 +18,6 @@
 # System imports
 import math
 from colorsys import rgb_to_hsv, hsv_to_rgb
-from numba import cuda, jit, prange
 import numpy as np
 import types
 

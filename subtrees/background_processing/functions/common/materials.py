@@ -70,7 +70,7 @@ def get_material_color(mat_name):
     if mat is None:
         return None
     if mat.use_nodes:
-        node = get_first_node(mat)
+        node = get_first_bsdf_node(mat)
         if not node:
             return None
         r, g, b = node.inputs[0].default_value[:3]

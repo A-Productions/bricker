@@ -449,7 +449,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirty_material,
     )
     color_snap_sss = FloatProperty(
-        name="Subsurface Sattering",
+        name="Subsurface Scattering",
         description="Subsurface scattering value for the created materials",
         subtype="FACTOR",
         precision=3,
@@ -481,6 +481,12 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         precision=3,
         min=0.0, soft_max=1.0,
         default=0.0,
+        update=dirty_material,
+    )
+    use_abs_template = BoolProperty(
+        name="Use ABS Template",
+        description="Use the default ABS Plastic Material node tree to build the RGB materials",
+        default=True,
         update=dirty_material,
     )
     include_transparency = BoolProperty(
@@ -814,6 +820,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     )
     last_source_mid = StringProperty(default="-1,-1,-1")
     last_material_type = StringProperty(default="SOURCE")
+    last_use_abs_template = BoolProperty(default=False)
     last_shell_thickness = IntProperty(default=1)
     last_internal_supports = StringProperty(default="NONE")
     last_brick_type = StringProperty(default="BRICKS")

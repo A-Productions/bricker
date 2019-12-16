@@ -262,24 +262,34 @@ class VIEW3D_PT_bricker_material_properties(Panel):
     def draw(self, context):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
-        obj = cm.source_obj
 
-        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
+        if brick_materials_installed():
             col = layout.column(align=True)
-            row = col.row(align=True)
-            row.prop(cm, "color_snap_specular")
-            row = col.row(align=True)
-            row.prop(cm, "color_snap_roughness")
-            row = col.row(align=True)
-            row.prop(cm, "color_snap_ior")
-        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE"):
-            row = col.row(align=True)
-            row.prop(cm, "color_snap_sss")
-            row = col.row(align=True)
-            row.prop(cm, "color_snap_sss_saturation")
-            row = col.row(align=True)
-            row.prop(cm, "color_snap_transmission")
-        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
-            row = col.row(align=True)
-            right_align(row)
-            row.prop(cm, "include_transparency")
+            right_align(col)
+            col.prop(cm, "use_abs_template")
+            col.enabled = brick_materials_installed()
+            col = layout.column(align=True)
+            col.prop(cm, "color_snap_sss")
+
+
+        if not (cm.use_abs_template and brick_materials_installed()):
+            obj = cm.source_obj
+            if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
+                col = layout.column(align=True)
+                row = col.row(align=True)
+                row.prop(cm, "color_snap_specular")
+                row = col.row(align=True)
+                row.prop(cm, "color_snap_roughness")
+                row = col.row(align=True)
+                row.prop(cm, "color_snap_ior")
+            if scn.render.engine in ("CYCLES", "BLENDER_EEVEE"):
+                row = col.row(align=True)
+                row.prop(cm, "color_snap_sss")
+                row = col.row(align=True)
+                row.prop(cm, "color_snap_sss_saturation")
+                row = col.row(align=True)
+                row.prop(cm, "color_snap_transmission")
+            if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
+                col = layout.column(align=True)
+                right_align(col)
+                col.prop(cm, "include_transparency")

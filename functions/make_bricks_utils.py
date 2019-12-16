@@ -281,6 +281,9 @@ def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_heig
             bm.to_mesh(m)
             # center mesh origin
             center_mesh_origin(m, dimensions, brick_size)
+            # set texture space
+            m.use_auto_texspace = False
+            m.texspace_size = (1, 1, 1)
         meshes.append(m)
     # # TODO: Try the following code instead in Blender 2.8 – see if it crashes with the following steps:
     # #     Open new file

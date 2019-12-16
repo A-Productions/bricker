@@ -220,7 +220,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         if b280():
             # link source to all collections containing Bricker model
             brick_coll = cm.collection
-            brick_col_users = [cn for cn in bpy.data.collections if brick_coll.name in cn.children and cn is not None] if brick_coll is not None else [item.collection for item in source.stored_parents if item.collection is not None]
+            brick_col_users = [cn for cn in bpy_collections() if brick_coll.name in cn.children and cn is not None] if brick_coll is not None else [item.collection for item in source.stored_parents if item.collection is not None]
         else:
             # set source layers to brick layers
             frame = cm.last_start_frame
