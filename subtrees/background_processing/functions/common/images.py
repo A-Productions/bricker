@@ -57,12 +57,11 @@ def clear_pixel_cache(image_name=None):
 def get_pixels_at_frame(image, frame=None):
     assert image.source in ("SEQUENCE", "MOVIE")
     frame = frame or bpy.context.scene.frame_current
-    # scn.frame_current =
     old_viewer_area = ""
     viewer_area = None
     viewer_space = None
 
-    # assert bpy.context.screen is not None
+    assert bpy.context.screen is not None
     viewer_area = next((area for area in bpy.context.screen.areas if area.type == "IMAGE_EDITOR"), None)
     if viewer_area is None:
         viewer_area = bpy.context.screen.areas[0]
@@ -77,9 +76,7 @@ def get_pixels_at_frame(image, frame=None):
     viewer_space.image_user.frame_offset = frame - bpy.context.scene.frame_current
     if viewer_space.image_user.frame_duration != image.frame_duration:
         viewer_space.image_user.frame_duration = image.frame_duration
-    #switch back and forth to force refresh
-    viewer_space.display_channels = "COLOR_ALPHA"
-    viewer_space.display_channels = "COLOR"
+    viewer_space.display_channels = "COLOR"  # force refresh of image pixels
     pixels = list(viewer_space.image.pixels)
 
     if old_viewer_area != "":
@@ -91,13 +88,14 @@ def get_pixels_at_frame(image, frame=None):
 
 
 # reference: https://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts/addons/uv_bake_texture_to_vcols.py
-def get_pixel(pixels, image, uv_coord, premult=False):
+def get_pixel(image, uv_coord, premult=False, pixels=None):
     """ get RGBA value for specified coordinate in UV image
-    pixels      -- list of pixel data from UV texture image
     image       -- Blend image holding the pixel data
     uv_coord    -- UV coordinate of desired pixel value
-    premult     -- if the image is premultiplied
+    premult     -- premultiply the alpha channel of the image
+    pixels      -- list of pixel data from UV texture image
     """
+    pixels = pixels or get_pixels(image)
     pixel_number = (image.size[0] * round(uv_coord.y) + round(uv_coord.x)) * image.channels
     assert 0 <= pixel_number < len(pixels)
     rgba = pixels[pixel_number:pixel_number + image.channels]
@@ -126,8 +124,7 @@ def get_uv_pixel_color(scn, obj, face_idx, point, uv_image=None):
     # get uv coordinate based on nearest face intersection
     uv_coord = get_uv_coord(obj.data, face, point, image)
     # retrieve rgba value at uv coordinate
-    pixels = get_pixels(image)
-    rgba = get_pixel(pixels, image.size[0], uv_coord)
+    rgba = get_pixel(image, uv_coord)
     # gamma correct color value
     if image.colorspace_settings.name == "sRGB":
         rgba = gamma_correct_srgb_to_linear(rgba)
