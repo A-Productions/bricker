@@ -74,8 +74,10 @@ def get_pixels_at_frame(image, frame=None):
     old_image = viewer_space.image
     viewer_space.image = image
     viewer_space.image_user.frame_offset = frame - bpy.context.scene.frame_current
-    if viewer_space.image_user.frame_duration != image.frame_duration:
+    if image.source == "MOVIE" and viewer_space.image_user.frame_duration != image.frame_duration:
         viewer_space.image_user.frame_duration = image.frame_duration
+    elif image.source == "SEQUENCE":
+        viewer_space.image_user.frame_duration = frame + 1
     viewer_space.display_channels = "COLOR"  # force refresh of image pixels
     pixels = list(viewer_space.image.pixels)
 
