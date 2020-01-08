@@ -21,6 +21,7 @@ import bmesh
 import random
 import time
 import numpy as np
+from statistics import mean
 
 # Blender imports
 from mathutils import Vector, Matrix
