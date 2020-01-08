@@ -38,7 +38,7 @@ def make_tile(dimensions:dict, brick_type:str, brick_size:list, circle_verts:int
         brick_size   -- size of brick (e.g. standard 2x4 -> [2, 4, 3])
         circle_verts -- number of vertices per circle of cylinders
         type        -- type of round 1x1 brick in ("CONE", "CYLINDER", "STUD", "STUD_HOLLOW")
-        detail      -- level of brick detail (options: ("FLAT", "LOW", "MEDIUM", "HIGH"))
+        detail      -- level of brick detail (options: ("FLAT", "LOW", "HIGH"))
         bme         -- bmesh object in which to create verts
 
     """

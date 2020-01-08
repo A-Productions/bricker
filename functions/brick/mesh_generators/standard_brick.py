@@ -37,13 +37,13 @@ def make_standard_brick(dimensions:dict, brick_size:list, type:str, brick_type:s
         type        -- type of brick (e.g. BRICK, PLATE, CUSTOM)
         brick_type   -- cm.brick_type
         circle_verts -- number of vertices per circle of cylinders
-        detail      -- level of brick detail (options: ["FLAT", "LOW", "MEDIUM", "HIGH"])
+        detail      -- level of brick detail (options: ["FLAT", "LOW", "HIGH"])
         logo        -- logo object to create on top of studs
         stud        -- create stud on top of brick
         bme         -- bmesh object in which to create verts
 
     """
-    assert detail in ("FLAT", "LOW", "MEDIUM", "HIGH")
+    assert detail in ("FLAT", "LOW", "HIGH")
     # create new bmesh object
     bme = bmesh.new() if not bme else bme
     b_and_p_brick = flat_brick_type(brick_type) and brick_size[2] == 3
@@ -73,11 +73,10 @@ def make_standard_brick(dimensions:dict, brick_size:list, type:str, brick_type:s
     # add details
     if detail != "FLAT":
         draw_tick_marks = detail == "HIGH" and ((brick_size[0] == 2 and brick_size[1] > 1) or (brick_size[1] == 2 and brick_size[0] > 1)) and brick_size[2] != 1
-        print(draw_tick_marks, brick_size)
         # making verts for hollow portion
         coord1 = -d + Vector((thick.x, thick.y, 0))
         coord2 = vec_mult(d, scalar) - thick
-        sides = [1 if detail == "LOW" else 0, 0] + ([0]*4 if draw_tick_marks else [1]*4)
+        sides = [1 if detail == "LOW" else 0, 0] + ([0 if draw_tick_marks else 1] * 4)
         v9, v10, v11, v12, v13, v14, v15, v16 = make_cube(coord1, coord2, sides, flip_normals=True, seams=True, bme=bme)[1]
         # make tick marks inside 2 by x bricks
         if draw_tick_marks:
@@ -88,17 +87,16 @@ def make_standard_brick(dimensions:dict, brick_size:list, type:str, brick_type:s
             bme.faces.new((v1,  v2,  v10, v9))
             bme.faces.new((v11, v3,  v4,  v12))
             bme.faces.new((v11, v10, v2,  v3))
-
-
+        # get upper edge verts for connecting to supports/cylinders
+        edge_xp = [v15] + (bottom_verts["X+"][::-1] if draw_tick_marks else []) + [v14]
+        edge_xn = [v16] + (bottom_verts["X-"][::-1] if draw_tick_marks else []) + [v13]
+        edge_yp = [v15] + (bottom_verts["Y+"][::-1] if draw_tick_marks else []) + [v16]
+        edge_yn = [v14] + (bottom_verts["Y-"][::-1] if draw_tick_marks else []) + [v13]
         # add supports
         if max(brick_size[:2]) > 1:
-            add_supports(dimensions, height, brick_size, brick_type, circle_verts, type, detail, d, scalar, thick, bme)
+            add_supports(dimensions, height, brick_size, brick_type, circle_verts, type, detail, d, scalar, thick, bme, add_beams=detail == "HIGH")
         # add small inner cylinders inside brick
-        if detail in ("MEDIUM", "HIGH"):
-            edge_xp = [v15] + (bottom_verts["X+"][::-1] if draw_tick_marks else []) + [v14]
-            edge_xn = [v16] + (bottom_verts["X-"][::-1] if draw_tick_marks else []) + [v13]
-            edge_yp = [v15] + (bottom_verts["Y+"][::-1] if draw_tick_marks else []) + [v16]
-            edge_yn = [v14] + (bottom_verts["Y-"][::-1] if draw_tick_marks else []) + [v13]
+        if detail == "HIGH":
             add_inner_cylinders(dimensions, brick_size, circle_verts, d, edge_xp, edge_xn, edge_yp, edge_yn, bme)
 
     # transform final mesh

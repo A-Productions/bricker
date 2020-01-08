@@ -83,7 +83,7 @@ def test_brick_generators():
     cm.brick_type = "BRICKS AND PLATES"
     dimensions = get_brick_dimensions(height=0.5, z_scale=cm.zstep)
     offset = -1.875
-    for detail in ("FLAT", "LOW", "MEDIUM", "HIGH"):
+    for detail in ("FLAT", "LOW", "HIGH"):
         offset += 0.75
         # # STANDARD BRICKS
         # new_obj_from_bmesh(1,  make_standard_brick(dimensions, brick_size=[1,1,3], type=cm.brick_type, circle_verts=16, detail=detail), "1x1 " + detail, loc=(offset,   0,0))

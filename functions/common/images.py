@@ -54,7 +54,7 @@ def clear_pixel_cache(image_name=None):
                 common_pixel_cache.pop(key)
 
 
-def get_pixels_at_frame(image, frame=None):
+def get_pixels_at_frame(image, frame=None, cyclic=True):
     assert image.source in ("SEQUENCE", "MOVIE")
     frame = frame or bpy.context.scene.frame_current
     old_viewer_area = ""
@@ -73,7 +73,8 @@ def get_pixels_at_frame(image, frame=None):
 
     old_image = viewer_space.image
     viewer_space.image = image
-    viewer_space.image_user.frame_offset = frame - bpy.context.scene.frame_current
+    viewer_space.image_user.frame_offset = (frame - bpy.context.scene.frame_current) % image.frame_duration
+    viewer_space.image_user.cyclic = cyclic
     if viewer_space.image_user.frame_duration != image.frame_duration:
         viewer_space.image_user.frame_duration = image.frame_duration
     viewer_space.display_channels = "COLOR"  # force refresh of image pixels
@@ -194,7 +195,7 @@ def get_uv_coord(mesh, face, point, image):
     uv_loc = sum((p*w for p,w in zip(luv,lwts)), Vector((0,0)))
     # ensure uv_loc is in range(0,1)
     # TODO: possibly approach this differently? currently, uv coords are wrapped with modulo
-    uv_loc = Vector((uv_loc[0] % 1, uv_loc[1] % 1))
+    uv_loc = Vector((round(uv_loc[0], 5) % 1, round(uv_loc[1], 5) % 1))
     # convert uv_loc in range(0,1) to uv coordinate
     image_size_x, image_size_y = image.size
     x_co = round(uv_loc.x * (image_size_x - 1))

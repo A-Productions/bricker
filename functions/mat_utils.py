@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-# NONE!
+from colorsys import rgb_to_hsv, hsv_to_rgb
 
 # Module imports
 from .common import *
@@ -108,7 +108,7 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
         dialectric_node = mat.node_tree.nodes["ABS Dialectric"]
         dialectric_node.inputs["Diffuse Color"].default_value = rgba
         dialectric_node.inputs["SSS Color"].default_value = rgba
-        dialectric_node.inputs["SSS Amount"].default_value = sss
+        dialectric_node.inputs["SSS Amount"].default_value = round(0.15 * sss * (rgb_to_hsv(*rgba[:3])[2] ** 1.5), 2)
         return mat_name
     # handle materials created from scratch
     mat_is_new = mat is None

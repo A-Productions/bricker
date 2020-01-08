@@ -263,14 +263,10 @@ class VIEW3D_PT_bricker_material_properties(Panel):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
 
-        if brick_materials_installed():
-            col = layout.column(align=True)
-            right_align(col)
-            col.prop(cm, "use_abs_template")
-            col.enabled = brick_materials_installed()
-            col = layout.column(align=True)
-            col.prop(cm, "color_snap_sss")
-
+        col = layout.column(align=True)
+        right_align(col)
+        col.prop(cm, "use_abs_template")
+        col.enabled = brick_materials_installed()
 
         if not (cm.use_abs_template and brick_materials_installed()):
             obj = cm.source_obj
@@ -293,3 +289,6 @@ class VIEW3D_PT_bricker_material_properties(Panel):
                 col = layout.column(align=True)
                 right_align(col)
                 col.prop(cm, "include_transparency")
+        elif brick_materials_installed():
+            col = layout.column(align=True)
+            col.prop(cm, "color_snap_sss")

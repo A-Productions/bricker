@@ -41,7 +41,7 @@ class BRICKER_OT_debug_toggle_view_source(bpy.types.Operator):
     def execute(self, context):
         try:
             scn, cm, n = get_active_context_info()
-            if cm.source_obj.name in scn.collection.objects:
+            if cm.source_obj.name in scn.objects:
                 safe_unlink(cm.source_obj)
             else:
                 safe_link(cm.source_obj)
