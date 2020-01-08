@@ -18,11 +18,11 @@
 bl_info = {
     "name"        : "Bricker",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
-    "version"     : (1, 7, 2),
-    "blender"     : (2, 80, 0),
+    "version"     : (1, 7, 3),
+    "blender"     : (2, 81, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
-    "warning"     : "",#Untested Beta release – update to official release when available",  # used for warning icon and text in addons panel
+    "warning"     : "Untested Beta release – update to official release when available",  # used for warning icon and text in addons panel
     "wiki_url"    : "https://www.blendermarket.com/products/bricker/",
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}

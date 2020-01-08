@@ -40,7 +40,7 @@ classes = [
     delete_model.BRICKER_OT_delete_model,
     debug_toggle_view_source.BRICKER_OT_debug_toggle_view_source,
     export_ldraw.BRICKER_OT_export_ldraw,
-    materials.BRICKER_OT_apply_material,
+    apply_material.BRICKER_OT_apply_material,
     redraw_custom_bricks.BRICKER_OT_redraw_custom_bricks,
     revert_settings.BRICKER_OT_revert_settings,
     cmlist_actions.CMLIST_OT_list_action,

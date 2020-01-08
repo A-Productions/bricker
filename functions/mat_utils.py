@@ -16,52 +16,32 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-# NONE!
+from colorsys import rgb_to_hsv, hsv_to_rgb
 
 # Module imports
 from .common import *
 from .general import *
 from .colors import *
 from .brick.legal_brick_sizes import *
-# from .brick.bricks import Bricks
-from ..lib.caches import *
-
-
-def clear_existing_materials(obj, from_idx=0, from_data=False):
-    if from_data:
-        brick.data.materials.clear(update_data=True)
-    else:
-        select(obj, active=True)
-        obj.active_material_index = from_idx
-        for i in range(from_idx, len(obj.material_slots)):
-            # remove material slots
-            bpy.ops.object.material_slot_remove()
-
-
-def set_material(obj, mat, to_data=False, overwrite=True):
-    if len(obj.data.materials) == 1 and overwrite:
-        if obj.data.materials[0] != mat:
-            obj.data.materials[0] = mat
-    else:
-        obj.data.materials.append(mat)
-    if not to_data:
-        link_material_to_object(obj, mat)
-
-
-def link_material_to_object(obj, mat, index=-1):
-    obj.material_slots[index].link = "OBJECT"
-    if obj.material_slots[index].material != mat:
-        obj.material_slots[index].material = mat
 
 
 def brick_materials_installed():
     """ checks that 'ABS Plastic Materials' addon is installed and enabled """
     return hasattr(bpy.props, "abs_plastic_materials_module_name")
-    # NOTE: The following method was replaced as it was far too slow
-    # for mod in addon_utils.modules():
-    #     if mod.bl_info["name"] == "ABS Plastic Materials":
-    #         return addon_utils.check(mod.__name__)[1]
-    # return False
+
+
+def brick_materials_imported():
+    """ check that all brick materials have been imported """
+    scn = bpy.context.scene
+    # make sure abs_plastic_materials addon is installed
+    if not brick_materials_installed():
+        return False
+    # check if any of the colors haven't been loaded
+    mats = bpy.data.materials.keys()
+    for mat_name in get_abs_mat_names():
+        if mat_name not in mats:
+            return False
+    return True
 
 
 def get_abs_mat_names(all:bool=True):
@@ -80,30 +60,6 @@ def get_abs_mat_names(all:bool=True):
     return materials
 
 
-def brick_materials_imported():
-    scn = bpy.context.scene
-    # make sure abs_plastic_materials addon is installed
-    if not brick_materials_installed():
-        return False
-    # check if any of the colors haven't been loaded
-    mats = bpy.data.materials.keys()
-    for mat_name in get_abs_mat_names():
-        if mat_name not in mats:
-            return False
-    return True
-
-
-def get_mat_at_face_idx(obj, face_idx):
-    """ get material at target face index of object """
-    if len(obj.material_slots) == 0:
-        return ""
-    face = obj.data.polygons[face_idx]
-    slot = obj.material_slots[face.material_index]
-    mat = slot.material
-    mat_name = mat.name if mat else ""
-    return mat_name
-
-
 def get_uv_layer_data(obj):
     """ returns data of active uv texture for object """
     obj_uv_layers = obj.data.uv_layers if b280() else obj.data.uv_textures
@@ -116,33 +72,7 @@ def get_uv_layer_data(obj):
     return active_uv.data
 
 
-def get_first_node(mat, types:list=None):
-    """ get first node in material of specified type """
-    scn = bpy.context.scene
-    if types is None:
-        # get material type(s) based on render engine
-        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "BLENDER_WORKBENCH"):
-            types = ("BSDF_PRINCIPLED", "BSDF_DIFFUSE")
-        elif scn.render.engine == "octane":
-            types = ("OCT_DIFFUSE_MAT")
-        # elif scn.render.engine == "LUXCORE":
-        #     types = ("CUSTOM")
-        else:
-            types = ()
-    # get first node of target type
-    mat_nodes = mat.node_tree.nodes
-    for node in mat_nodes:
-        if node.type in types:
-            return node
-    # get first node of any BSDF type
-    for node in mat_nodes:
-        if len(node.inputs) > 0 and node.inputs[0].type == "RGBA":
-            return node
-    # no valid node was found
-    return None
-
-
-def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, color_snap, color_snap_amount, include_transparency, cur_frame=None):
+def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, color_snap, use_abs_template, last_use_abs_template, color_snap_amount, include_transparency, cur_frame=None):
     """ create new material with specified rgba values """
     scn = bpy.context.scene
     # get or create material with unique color
@@ -161,6 +91,26 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
     mat_name_hash = str(hash_str(mat_name_end_string))[:14]
     mat_name = "Bricker_{n}{f}_{hash}".format(n=model_name, f="_f_%(cur_frame)s" % locals() if cur_frame is not None else "", hash=mat_name_hash)
     mat = bpy.data.materials.get(mat_name)
+    # handle materials created using abs template
+    if use_abs_template:
+        if mat and mat.node_tree.nodes.get("ABS Dialectric") is None:
+            bpy.data.materials.remove(mat)
+            mat = None
+        if mat is None:
+            if not brick_materials_imported():
+                bpy.ops.abs.append_materials()
+            last_abs_displace = scn.abs_displace
+            scn.abs_displace = 0.04
+            mat = bpy.data.materials["ABS Plastic Sand Green"].copy()
+            scn.abs_displace = last_abs_displace
+            mat.name = mat_name
+        mat.diffuse_color = rgba
+        dialectric_node = mat.node_tree.nodes["ABS Dialectric"]
+        dialectric_node.inputs["Diffuse Color"].default_value = rgba
+        dialectric_node.inputs["SSS Color"].default_value = rgba
+        dialectric_node.inputs["SSS Amount"].default_value = round(0.15 * sss * (rgb_to_hsv(*rgba[:3])[2] ** 1.5), 2)
+        return mat_name
+    # handle materials created from scratch
     mat_is_new = mat is None
     mat = mat or bpy.data.materials.new(name=mat_name)
     # set diffuse and transparency of material
@@ -251,7 +201,7 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
             # make sure 'use_nodes' is enabled
             mat.use_nodes = True
             # get first node
-            first_node = get_first_node(mat, types=("BSDF_PRINCIPLED", "BSDF_DIFFUSE"))
+            first_node = get_first_bsdf_node(mat)
             # update first node's color
             if first_node:
                 rgba1 = first_node.inputs[0].default_value
@@ -263,32 +213,6 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
     return mat_name
 
 
-def get_material_color(mat_name):
-    """ get RGBA value of material """
-    mat = bpy.data.materials.get(mat_name)
-    if mat is None:
-        return None
-    if mat.use_nodes:
-        node = get_first_node(mat)
-        if not node:
-            return None
-        r, g, b = node.inputs[0].default_value[:3]
-        if node.type in ("BSDF_GLASS", "BSDF_TRANSPARENT", "BSDF_REFRACTION"):
-            a = 0.25
-        elif node.type in ("VOLUME_SCATTER", "VOLUME_ABSORPTION", "PRINCIPLED_VOLUME"):
-            a = node.inputs["Density"].default_value
-        else:
-            a = node.inputs[0].default_value[3]
-    else:
-        if b280():
-            r, g, b, a = mat.diffuse_color
-        else:
-            intensity = mat.diffuse_intensity
-            r, g, b = Vector((mat.diffuse_color)) * intensity
-            a = mat.alpha if mat.use_transparency else 1.0
-    return [r, g, b, a]
-
-
 def get_brick_rgba(scn, obj, face_idx, point, uv_image=None):
     """ returns RGBA value for brick """
     if face_idx is None:
@@ -297,18 +221,9 @@ def get_brick_rgba(scn, obj, face_idx, point, uv_image=None):
     image = get_uv_image(scn, obj, face_idx, uv_image)
     if image is not None:
         orig_mat_name = ""
-        rgba = get_uv_pixel_color(scn, obj, face_idx, point, get_pixels, image)
+        rgba = get_uv_pixel_color(scn, obj, face_idx, point, image)
     else:
         # get closest material using material slot of face
         orig_mat_name = get_mat_at_face_idx(obj, face_idx)
         rgba = get_material_color(orig_mat_name) if orig_mat_name is not None else None
     return rgba, orig_mat_name
-
-
-def get_pixels(image):
-    if image.name in bricker_pixel_cache:
-        return bricker_pixel_cache[image.name]
-    else:
-        pixels = image.pixels[:]
-        bricker_pixel_cache[image.name] = pixels
-        return pixels

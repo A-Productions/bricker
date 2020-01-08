@@ -63,8 +63,8 @@ def get_smoke_info(source):
     # get resolution
     domain_res = get_adjusted_res(smoke_data, smoke_data["domain_resolution"])
     adapt = smoke_data["use_adaptive_domain"]
-    adapt_min = Vector(smoke_data["adapt_min"])
-    adapt_max = Vector(smoke_data["adapt_max"])
+    adapt_min = Vector(smoke_data["adapt_min"]) if adapt else None
+    adapt_max = Vector(smoke_data["adapt_max"]) if adapt else None
     max_res_i = smoke_data["resolution_max"]
     max_res = Vector(domain_res) * (max_res_i / max(domain_res))
     max_res = get_adjusted_res(smoke_data, max_res)

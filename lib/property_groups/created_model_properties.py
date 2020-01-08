@@ -449,7 +449,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirty_material,
     )
     color_snap_sss = FloatProperty(
-        name="Subsurface Sattering",
+        name="Subsurface Scattering",
         description="Subsurface scattering value for the created materials",
         subtype="FACTOR",
         precision=3,
@@ -481,6 +481,12 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         precision=3,
         min=0.0, soft_max=1.0,
         default=0.0,
+        update=dirty_material,
+    )
+    use_abs_template = BoolProperty(
+        name="Use ABS Template",
+        description="Use the default ABS Plastic Material node tree to build the RGB materials",
+        default=True,
         update=dirty_material,
     )
     include_transparency = BoolProperty(
@@ -573,10 +579,9 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Underside Detailing of Obstructed Bricks",
         description="Level of detail on underside of bricks with obstructed undersides",
         items=[
-            ("FLAT", "Flat", "draw single face on brick underside"),
-            ("LOW", "Low", "Hollow out brick underside and draw tube supports"),
-            ("MEDIUM", "Medium", "Draw inset tubes below studs and support beams"),
-            ("HIGH", "High", "Draw support ticks on 2 by x bricks"),
+            ("FLAT", "Flat", "Draw single face on brick underside", 0),
+            ("LOW", "Low Detail", "Hollow out brick underside and draw tube supports", 1),
+            ("HIGH", "High Detail", "Draw underside of bricks at full detail (support beams, ticks, inset tubes)", 3),
         ],
         update=dirty_bricks,
         default="FLAT",
@@ -585,10 +590,9 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Underside Detailing of Exposed Bricks",
         description="Level of detail on underside of bricks with exposed undersides",
         items=[
-            ("FLAT", "Flat", "draw single face on brick underside"),
-            ("LOW", "Low", "Hollow out brick underside and draw tube supports"),
-            ("MEDIUM", "Medium", "Draw inset tubes below studs and support beams"),
-            ("HIGH", "High", "Draw support ticks on 2 by x bricks"),
+            ("FLAT", "Flat", "Draw single face on brick underside", 0),
+            ("LOW", "Low Detail", "Hollow out brick underside and draw tube supports", 1),
+            ("HIGH", "High Detail", "Draw underside of bricks at full detail (support beams, ticks, inset tubes)", 3),
         ],
         update=dirty_bricks,
         default="FLAT",
@@ -814,6 +818,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     )
     last_source_mid = StringProperty(default="-1,-1,-1")
     last_material_type = StringProperty(default="SOURCE")
+    last_use_abs_template = BoolProperty(default=False)
     last_shell_thickness = IntProperty(default=1)
     last_internal_supports = StringProperty(default="NONE")
     last_brick_type = StringProperty(default="BRICKS")

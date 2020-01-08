@@ -40,7 +40,7 @@ def make_slope(dimensions:dict, brick_size:list, brick_type:str, direction:str=N
         brick_type   -- cm.brick_type
         direction   -- direction slant faces in ("X+", "X-", "Y+", "Y-")
         circle_verts -- number of vertices per circle of cylinders
-        detail      -- level of brick detail (options: ("FLAT", "LOW", "MEDIUM", "HIGH"))
+        detail      -- level of brick detail (options: ("FLAT", "LOW", "HIGH"))
         stud        -- create stud on top of brick
         bme         -- bmesh object in which to create verts
 
@@ -155,7 +155,7 @@ def make_slope(dimensions:dict, brick_size:list, brick_type:str, direction:str=N
         coord1.xy += thick.xy
         coord2 = vec_mult(d, [1, scalar.y, 1])
         coord2.yz -= thick.yz
-        v19, v20, v21, v22, v23, v24, v25, v26 = make_cube(coord1, coord2, [1 if detail not in ("MEDIUM", "HIGH") and not add_block_supports else 0, 0, 0, 1, 0, 0], flip_normals=True, bme=bme)[1]
+        v19, v20, v21, v22, v23, v24, v25, v26 = make_cube(coord1, coord2, [1 if detail != "HIGH" and not add_block_supports else 0, 0, 0, 1, 0, 0], flip_normals=True, bme=bme)[1]
         # connect side faces from verts created above
         bme.faces.new((v18, v25, v21))
         bme.faces.new((v22, v24, v17))
@@ -210,7 +210,7 @@ def make_slope(dimensions:dict, brick_size:list, brick_type:str, direction:str=N
         # add supports
         add_supports(dimensions, height, adjusted_brick_size, brick_type, circle_verts, "SLOPE", detail, d, scalar, thick, bme, add_beams=False, hollow=brick_size[:2] not in ([1, 2], [2, 1]))
         # add inner cylinders
-        if detail in ("MEDIUM", "HIGH"):
+        if detail == "HIGH":
             edge_xp = [v34 if add_block_supports else v25, v31 if add_block_supports else v24]
             edge_xn = [v26, v23]
             edge_yp = [v34 if add_block_supports else v25, v26]

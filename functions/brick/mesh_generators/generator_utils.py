@@ -32,7 +32,7 @@ from ..types import *
 def add_supports(dimensions, height, brick_size, brick_type, circle_verts, type, detail, d, scalar, thick, bme, hollow=None, add_beams=None):
     # initialize vars
     if hollow is None:
-        add_beams = brick_size[2] == 3 and (sum(brick_size[:2]) > 4 or min(brick_size[:2]) == 1 and max(brick_size[:2]) == 3) and detail in ("MEDIUM", "HIGH")
+        add_beams = brick_size[2] == 3 and (sum(brick_size[:2]) > 4 or min(brick_size[:2]) == 1 and max(brick_size[:2]) == 3) and detail == "HIGH"
         hollow = brick_size[2] == 1 or min(brick_size[:2]) != 1
     b_and_p_brick = flat_brick_type(brick_type) and brick_size[2] == 3
     min_s = min(brick_size[:2])
@@ -64,7 +64,7 @@ def add_supports(dimensions, height, brick_size, brick_type, circle_verts, type,
                 bme, tube_verts = make_cylinder(r, h, circle_verts, co=Vector((tube_x, tube_y, tube_z)), bot_face=True, top_face=False, bme=bme)
                 all_top_verts += tube_verts["top"]
             # add support beams next to odd tubes
-            if not add_beams:
+            if not add_beams or detail != "HIGH":
                 continue
             if min_s % 2 == 0 and (brick_size[0] > brick_size[1] or min_s > 2):
                 if brick_size[0] == 3 or x_num % 2 == 1 or (brick_size == [8, 1, 3] and x_num in (0, brick_size[0] - 2)):
@@ -254,7 +254,7 @@ def add_inner_cylinders(dimensions, brick_size, circle_verts, d, edge_xp, edge_x
     h = thick_z * 0.99
     for x_num in range(brick_size[0]):
         for y_num in range(brick_size[1]):
-            bme, inner_cylinder_verts = make_cylinder(r, h, N, co=Vector((x_num*d.x*2,y_num*d.y*2,d.z - thick_z + h/2)), bot_face=False, flip_normals=True, bme=bme)
+            bme, inner_cylinder_verts = make_cylinder(r, h, N, co=Vector((x_num * d.x * 2, y_num * d.y * 2, d.z - thick_z + h / 2)), bot_face=False, flip_normals=True, bme=bme)
             bov_verts_d = create_vert_list_dict(inner_cylinder_verts["bottom"])
             bov_verts_d_of_ds["%(x_num)s,%(y_num)s" % locals()] = bov_verts_d
     connect_circles_to_square(dimensions, brick_size, circle_verts, edge_xp, edge_xn, edge_yp, edge_yn, bov_verts_d_of_ds, x_num, y_num, bme)

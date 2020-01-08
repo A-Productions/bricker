@@ -37,7 +37,7 @@ def make_round_1x1(dimensions:dict, brick_type:str, circle_verts:int=None, type:
         brick_type   -- cm.brick_type
         circle_verts -- number of vertices per circle of cylinders
         type        -- type of round 1x1 brick in ("CONE", "CYLINDER", "STUD", "STUD_HOLLOW")
-        detail      -- level of brick detail (options: ("FLAT", "LOW", "MEDIUM", "HIGH"))
+        detail      -- level of brick detail (options: ("FLAT", "LOW", "HIGH"))
         bme         -- bmesh object in which to create verts
 
     """
@@ -48,14 +48,12 @@ def make_round_1x1(dimensions:dict, brick_type:str, circle_verts:int=None, type:
 
     # store original detail amount
     orig_detail = detail
-    # cap detail level to medium detail
-    detail = "MEDIUM" if "HIGH" else detail
     # if making cone, detail should always be high
-    detail = "MEDIUM" if type == "CONE" else detail
+    detail = "HIGH" if type == "CONE" else detail
     # if making stud, detail should never get beyond low
-    detail = "LOW" if type == "STUD" and detail == "MEDIUM" else detail
-    # if making hollow stud, detail should never get below medium
-    detail = "MEDIUM" if type == "STUD_HOLLOW" else detail
+    detail = "LOW" if type == "STUD" and detail == "HIGH" else detail
+    # if making hollow stud, detail should never get below high
+    detail = "HIGH" if type == "STUD_HOLLOW" else detail
 
     # set brick height and thickness
     height = dimensions["height"] if not flat_brick_type(brick_type) or "STUD" in type else dimensions["height"] * 3
@@ -88,8 +86,8 @@ def make_round_1x1(dimensions:dict, brick_type:str, circle_verts:int=None, type:
         lower_tube_verts["inner"]["top"] = []
 
     # add stud
-    # stud_verts = add_studs(dimensions, height, [1, 1, 1], type, circle_verts, bme, hollow=detail in ("MEDIUM", "HIGH"))
-    stud_verts = add_studs(dimensions, height, [1, 1, 1], type, circle_verts, bme, hollow=detail in ("MEDIUM", "HIGH"), bot_face=True)
+    # stud_verts = add_studs(dimensions, height, [1, 1, 1], type, circle_verts, bme, hollow=detail == "HIGH")
+    stud_verts = add_studs(dimensions, height, [1, 1, 1], type, circle_verts, bme, hollow=detail == "HIGH", bot_face=True)
 
     # make pointers to appropriate vertex lists
     stud_verts_outer = stud_verts if detail in ("FLAT", "LOW") else stud_verts["outer"]
@@ -109,8 +107,8 @@ def make_round_1x1(dimensions:dict, brick_type:str, circle_verts:int=None, type:
         for f in faces:
             f.edges[1].select = True
         smooth_bm_faces(faces)
-        # create small inner cylinder inside stud for medium/high detail
-        if type == "STUD" and orig_detail in ("MEDIUM", "HIGH"):
+        # create small inner cylinder inside stud for high detail
+        if type == "STUD" and orig_detail == "HIGH":
             # make small inner cylinders
             r = dimensions["stud_radius"]-(2 * thick.x)
             h = thick.z * 0.99

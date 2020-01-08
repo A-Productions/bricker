@@ -40,7 +40,7 @@ def make_inverted_slope(dimensions:dict, brick_size:list, brick_type:str, direct
         brick_type   -- cm.brick_type
         direction   -- direction slant faces in ("X+", "X-", "Y+", "Y-")
         circle_verts -- number of vertices per circle of cylinders
-        detail      -- level of brick detail (options: ("FLAT", "LOW", "MEDIUM", "HIGH"))
+        detail      -- level of brick detail (options: ("FLAT", "LOW", "HIGH"))
         stud        -- create stud on top of brick
         bme         -- bmesh object in which to create verts
 
@@ -141,15 +141,15 @@ def make_inverted_slope(dimensions:dict, brick_size:list, brick_type:str, direct
             bottom_verts = []
 
         # add supports
-        if detail in ("MEDIUM", "HIGH") and min(adjusted_brick_size[:2]) == 2:
+        if detail == "HIGH" and min(adjusted_brick_size[:2]) == 2:
             add_oblong_supports(dimensions, height, circle_verts, "SLOPE_INVERTED", detail, d, scalar, thick, bme) # [v27] + bottom_verts + [v26], [v28, v25], [v27, v28], [v26, v25], bme)
 
         # add small inner cylinders inside brick
-        if detail in ("MEDIUM", "HIGH"):
+        if detail == "HIGH":
             add_inner_cylinders(dimensions, [1, min(adjusted_brick_size[:2]), adjusted_brick_size[2]], circle_verts, d, [v27] + bottom_verts + [v26], [v28, v25], [v27, v28], [v26, v25], bme)
 
         # add half-cylinder insets on slope underside
-        if detail in ("MEDIUM", "HIGH") and max(adjusted_brick_size[:2]) == 3:
+        if detail == "HIGH" and max(adjusted_brick_size[:2]) == 3:
             # TODO: Rewrite this as dedicated function
             add_slope_studs(dimensions, height, [2, min(adjusted_brick_size[:2]), adjusted_brick_size[2]], brick_type, circle_verts, bme, edge_xp=[v3, v4], edge_xn=[v9, v10], edge_yp=[v4, v9], edge_yn=[v10, v3], underside=True)
 
