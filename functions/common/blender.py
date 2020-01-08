@@ -341,7 +341,7 @@ def new_mesh_from_object(obj:Object):
     return bpy.data.meshes.new_from_object(bpy.context.scene, obj, apply_modifiers=True, settings="PREVIEW")
 @blender_version_wrapper(">=", "2.80")
 def new_mesh_from_object(obj:Object):
-    depsgraph = bpy.context.view_layer.depsgraph
+    depsgraph = bpy.context.evaluated_depsgraph_get()
     obj_eval = obj.evaluated_get(depsgraph)
     return bpy.data.meshes.new_from_object(obj_eval)
 
@@ -581,11 +581,13 @@ def active_render_engine():
 
 
 @blender_version_wrapper("<=","2.79")
-def depsgraph_update():
-    bpy.context.scene.update()
+def depsgraph_update(scene=None):
+    scene = scene or bpy.context.scene
+    scene.update()
 @blender_version_wrapper(">=","2.80")
-def depsgraph_update():
-    bpy.context.view_layer.depsgraph.update()
+def depsgraph_update(depsgraph=None):
+    depsgraph = depsgraph or bpy.context.evaluated_depsgraph_get()
+    depsgraph.update()
 
 
 @blender_version_wrapper("<=","2.79")
