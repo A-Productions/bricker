@@ -51,13 +51,11 @@ def get_preferences(ctx=None):
 
 def get_addon_preferences():
     """ get preferences for current addon """
-    if not hasattr(get_addon_preferences, "prefs"):
-        folderpath, foldername = os.path.split(get_addon_directory())
-        addons = get_preferences().addons
-        if not addons[foldername].preferences:
-            return None
-        get_addon_preferences.prefs = addons[foldername].preferences
-    return get_addon_preferences.prefs
+    folderpath, foldername = os.path.split(get_addon_directory())
+    addons = get_preferences().addons
+    if not addons[foldername].preferences:
+        return None
+    return addons[foldername].preferences
 
 
 def get_addon_directory():
