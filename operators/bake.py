@@ -24,7 +24,6 @@ import bpy
 
 # Module imports
 from ..functions import *
-from ..functions.app_handlers import handle_animation
 from .cmlist_actions import *
 
 

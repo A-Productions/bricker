@@ -40,7 +40,7 @@ def bricker_running_blocking_op():
 
 
 @persistent
-def handle_animation(scn, depsgraph=None):
+def handle_animation(scn, depsgraph):
     if bricker_running_blocking_op():
         return
     for i, cm in enumerate(scn.cmlist):
