@@ -47,4 +47,4 @@ data_blocks = [target_coll, parent_obj]
 
 ### PYTHON DATA TO BE SEND BACK TO THE BLENDER HOST ###
 
-python_data = {"bricksdict":bpy.props.bfm_cache_bytes_hex, "brick_sizes_used":cm.brick_sizes_used, "brick_types_used":cm.brick_types_used}
+python_data = {"bricksdict":bpy.props.bfm_cache_bytes_hex, "brick_sizes_used":cm.brick_sizes_used, "brick_types_used":cm.brick_types_used, "rgba_vals":cm.rgba_vals}

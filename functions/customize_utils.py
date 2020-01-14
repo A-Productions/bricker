@@ -347,7 +347,6 @@ def install_bricksculpt():
     # write META commands
     lines = f_old.readlines()
     f_new.truncate(0)
-    print(lines)
     f_new.writelines(lines)
     f_old.close()
     f_new.close()

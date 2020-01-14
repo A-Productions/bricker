@@ -107,9 +107,9 @@ class VIEW3D_PT_bricker_customize(Panel):
         # display BrickSculpt tools
         col = layout.column(align=True)
         row = col.row(align=True)
-        # brickSculptInstalled = hasattr(bpy.props, "bricksculpt_module_name")
-        # row.active = brickSculptInstalled
-        col.active = False
+        bricksculpt_installed = hasattr(bpy.props, "bricksculpt_module_name")
+        row.active = bricksculpt_installed
+        # col.active = False
         row.label(text="BrickSculpt Tools:")
         row = col.row(align=True)
         row.operator("bricker.bricksculpt", text="Draw/Cut Tool", icon="MOD_DYNAMICPAINT").mode = "DRAW"

@@ -97,18 +97,19 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
             bpy.data.materials.remove(mat)
             mat = None
         if mat is None:
-            if not brick_materials_imported():
+            if "ABS Plastic Sand Green" not in bpy.data.materials:
                 bpy.ops.abs.append_materials()
             last_abs_displace = scn.abs_displace
             scn.abs_displace = 0.04
             mat = bpy.data.materials["ABS Plastic Sand Green"].copy()
             scn.abs_displace = last_abs_displace
             mat.name = mat_name
-        mat.diffuse_color = rgba
-        dialectric_node = mat.node_tree.nodes["ABS Dialectric"]
-        dialectric_node.inputs["Diffuse Color"].default_value = rgba
-        dialectric_node.inputs["SSS Color"].default_value = rgba
-        dialectric_node.inputs["SSS Amount"].default_value = round(0.15 * sss * (rgb_to_hsv(*rgba[:3])[2] ** 1.5), 2)
+            mat.diffuse_color = rgba
+            dialectric_node = mat.node_tree.nodes["ABS Dialectric"]
+            dialectric_node.inputs["Diffuse Color"].default_value = rgba
+            dialectric_node.inputs["SSS Color"].default_value = rgba
+            sss_amount = round(0.15 * sss * (rgb_to_hsv(*rgba[:3])[2] ** 1.5), 2)
+            dialectric_node.inputs["SSS Amount"].default_value = sss_amount
         return mat_name
     # handle materials created from scratch
     mat_is_new = mat is None

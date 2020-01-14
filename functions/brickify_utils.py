@@ -252,12 +252,13 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
         cm.build_is_dirty = True
     # update materials in bricksdict
     if cm.material_type != "NONE" and (cm.material_is_dirty or cm.matrix_is_dirty or cm.anim_is_dirty):
-        bricksdict = update_materials(bricksdict, source, keys, cur_frame)
+        bricksdict = update_materials(bricksdict, source, keys, cur_frame, action)
     return bricksdict, brick_scale
 
 
 def create_new_bricks(source, parent, source_details, dimensions, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
     """ gets/creates bricksdict, runs make_bricks, and caches the final bricksdict """
+    ct = time.time()
     scn, cm, n = get_active_context_info(cm=cm)
     ref_logo = None if temp_brick else get_logo(scn, cm, dimensions)  # update ref_logo
     brick_scale, custom_data = get_arguments_for_bricksdict(cm, source=source, dimensions=dimensions)

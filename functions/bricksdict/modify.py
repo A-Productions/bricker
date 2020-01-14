@@ -28,11 +28,10 @@ from ..matlist_utils import *
 from ..brick import *
 
 
-def update_materials(bricksdict, source, keys, cur_frame=None):
+def update_materials(bricksdict, source, keys, cur_frame=None, action="CREATE"):
     """ sets all mat_names in bricksdict based on near_face """
     scn, cm, n = get_active_context_info()
     use_uv_map = cm.use_uv_map and (len(source.data.uv_layers) > 0 or cm.uv_image is not None)
-    rgba_vals = []
     # initialize variables
     if keys == "ALL": keys = sorted(list(bricksdict.keys()))  # sort so materials are consistent for multiple frames of the same model
     is_smoke = cm.is_smoke
@@ -52,10 +51,14 @@ def update_materials(bricksdict, source, keys, cur_frame=None):
     use_abs_template = cm.use_abs_template and brick_materials_installed()
     last_use_abs_template = cm.last_use_abs_template and brick_materials_installed()
     # clear materials
-    mat_name_start = "Bricker_{n}{f}".format(n=n, f="f_%(cur_frame)s" % locals() if cur_frame else "")
-    for mat in bpy.data.materials:
-        if mat.name.startswith(mat_name_start):
-            bpy.data.materials.remove(mat)
+    if action in ("CREATE", "ANIMATE"):
+        rgba_vals = []
+        mat_name_start = "Bricker_{n}{f}".format(n=n, f="f_%(cur_frame)s" % locals() if cur_frame else "")
+        for mat in bpy.data.materials:
+            if mat.name.startswith(mat_name_start):
+                bpy.data.materials.remove(mat)
+    else:
+        rgba_vals = json.loads(decompress_str(cm.rgba_vals))
     # get original mat_names, and populate rgba_vals
     for key in keys:
         # skip irrelevant bricks
@@ -90,6 +93,7 @@ def update_materials(bricksdict, source, keys, cur_frame=None):
         elif material_type == "CUSTOM":
             mat_name = cm.custom_mat.name
         bricksdict[key]["mat_name"] = mat_name
+    cm.rgba_vals = compress_str(json.dumps(rgba_vals))
     return bricksdict
 
 

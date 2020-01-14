@@ -77,6 +77,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         bricksdict = None if retrieved_data["bricksdict"] in ("", "null") else marshal.loads(bytes.fromhex(retrieved_data["bricksdict"]))
                         cm.brick_sizes_used = retrieved_data["brick_sizes_used"]
                         cm.brick_types_used = retrieved_data["brick_types_used"]
+                        cm.rgba_vals = retrieved_data["rgba_vals"]
                         if bricksdict is not None: cache_bricks_dict(self.action, cm, bricksdict[str(frame)] if anim_action else bricksdict, cur_frame=frame)
                         # process retrieved bricker data
                         bricker_instancer = bpy.data.objects.get("Bricker_%(n)s_instancer%(obj_frames_str)s" % locals())

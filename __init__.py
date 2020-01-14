@@ -27,7 +27,7 @@ bl_info = {
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}
 
-developer_mode = 0  # NOTE: Set to 0 for release, 1 for exposed dictionary
+developer_mode = 1  # NOTE: Set to 0 for release, 1 for exposed dictionary
 # NOTE: Disable "LEGO Logo" for releases
 # NOTE: Disable "Slopes" brick type for releases
 # NOTE: Remove beta warning from bl_info
@@ -51,6 +51,7 @@ from .operators import *
 from .operators.customization_tools import *
 from .lib import keymaps, preferences, classes_to_register
 from .lib.property_groups import *
+from .lib.mat_properties import mat_properties
 from . import addon_updater_ops
 
 # store keymaps here to access after registration
@@ -73,6 +74,7 @@ def register():
     bpy.props.bricker_trans_and_anim_data = []
     bpy.props.manual_cmlist_update = False
     bpy.props.bfm_cache_bytes_hex = None
+    bpy.props.abs_mat_properties = mat_properties  # duplicate from ABS Plastic Mats, necessary for exporting to ldraw from non-abs mats
 
     Object.protected = BoolProperty(
         name="protected",
@@ -211,6 +213,7 @@ def unregister():
     del Object.is_brick
     del Object.is_brickified_object
     del Object.protected
+    del bpy.props.abs_mat_properties
     del bpy.props.bfm_cache_bytes_hex
     del bpy.props.manual_cmlist_update
     del bpy.props.bricker_trans_and_anim_data

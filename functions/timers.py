@@ -77,9 +77,11 @@ def handle_selections(junk=None):
                     bpy.props.manual_cmlist_update = True
                     scn.cmlist_index = i
                 if obj.is_brick:
-                    # adjust scn.active_brick_detail based on active brick
-                    x0, y0, z0 = str_to_list(get_dict_key(obj.name))
-                    cm0.active_key = (x0, y0, z0)
+                    if scn.bricker_last_active_object_name != obj.name:
+                        # adjust scn.active_brick_detail based on active brick
+                        x0, y0, z0 = str_to_list(get_dict_key(obj.name))
+                        cm0.active_key = (x0, y0, z0)
+                        scn.bricker_last_active_object_name = obj.name
             except AttributeError:
                 pass
             tag_redraw_areas("VIEW_3D")
