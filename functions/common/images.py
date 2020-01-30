@@ -104,13 +104,13 @@ def get_pixel(image, uv_coord, premult=False, pixels=None):
     rgba = pixels[pixel_number:pixel_number + image.channels]
     # premultiply
     if premult and image.alpha_mode != "PREMUL":
-        rgba = list(Vector(rgba[:3]) * rgba[3]) + [rgba[3]]
-    # undo premultiplying
+        rgba = [v * rgba[3] for v in rgba[:3]] + [rgba[3]]
+    # un-premultiply
     elif not premult and image.alpha_mode == "PREMUL":
         if rgba[3] == 0:
             rgba = [0] * 4
         else:
-            rgba = list(Vector(rgba[:3]) / rgba[3]) + [rgba[3]]
+            rgba = [v / rgba[3] for v in rgba[:3]] + [rgba[3]]
     return rgba
 
 
@@ -131,7 +131,7 @@ def get_uv_pixel_color(scn, obj, face_idx, point, uv_image=None):
     # gamma correct color value
     if image.colorspace_settings.name == "sRGB":
         rgba = gamma_correct_srgb_to_linear(rgba)
-    return rgba
+    return [round(v, 6) for v in rgba]
 
 
 def get_uv_image(scn, obj, face_idx, uv_image=None):

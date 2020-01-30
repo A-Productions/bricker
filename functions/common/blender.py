@@ -655,13 +655,21 @@ def set_cursor_location(loc:tuple):
     bpy.context.scene.cursor.location = loc
 
 
-def mouse_in_view3d_window(event):
+def mouse_in_view3d_window(event, include_tools_panel=False, include_ui_panel=False, include_header=False):
     regions = dict()
     for region in bpy.context.area.regions:
         regions[region.type] = region
-    mouse_pos = Vector((event.mouse_x, event.mouse_y))
-    window_dimensions = Vector((regions["WINDOW"].width - regions["UI"].width, regions["WINDOW"].height - regions["HEADER"].height))
-    return regions["TOOLS"].width < mouse_pos.x < window_dimensions.x and mouse_pos.y < window_dimensions.y
+    min_x = 0 if include_tools_panel else regions["TOOLS"].width
+    min_y = 0 if regions["HEADER"].alignment == "TOP" or include_header else regions["HEADER"].height
+    mouse_region_pos = Vector((event.mouse_x, event.mouse_y)) - Vector((regions["WINDOW"].x, regions["WINDOW"].y))
+    window_dimensions = Vector((regions["WINDOW"].width, regions["WINDOW"].height))
+    if include_tools_panel:
+        window_dimensions.x -= regions["TOOLS"].width
+    if include_ui_panel:
+        window_dimensions.x -= regions["UI"].width
+    if include_header:
+        window_dimensions.y -= regions["HEADER"].height
+    return min_x < mouse_region_pos.x < window_dimensions.x and min_y < mouse_region_pos.y < window_dimensions.y
 
 
 @blender_version_wrapper("<=","2.79")

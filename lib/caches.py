@@ -24,6 +24,9 @@ bricker_source_mesh_cache = {}
 # initialize the bfm_cache
 bricker_bfm_cache = {}
 
+# initialize the rgba_vals cache
+bricker_rgba_vals_cache = {}
+
 # cache functions
 def cache_exists(cm):
     """check if light or deep matrix cache exists for cmlist item"""

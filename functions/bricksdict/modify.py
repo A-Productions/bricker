@@ -50,15 +50,15 @@ def update_materials(bricksdict, source, keys, cur_frame=None, action="CREATE"):
     color_snap_amount = cm.color_snap_amount
     use_abs_template = cm.use_abs_template and brick_materials_installed()
     last_use_abs_template = cm.last_use_abs_template and brick_materials_installed()
+    rgba_vals = []
     # clear materials
-    if action in ("CREATE", "ANIMATE"):
-        rgba_vals = []
-        mat_name_start = "Bricker_{n}{f}".format(n=n, f="f_%(cur_frame)s" % locals() if cur_frame else "")
-        for mat in bpy.data.materials:
-            if mat.name.startswith(mat_name_start):
-                bpy.data.materials.remove(mat)
-    else:
-        rgba_vals = json.loads(decompress_str(cm.rgba_vals))
+    mat_name_start = "Bricker_{n}{f}".format(n=n, f="f_%(cur_frame)s" % locals() if cur_frame else "")
+    cur_mats = [mat for mat in bpy.data.materials if mat.name.startswith(mat_name_start)]
+    for mat in cur_mats:
+        if mat.users == 0:
+            bpy.data.materials.remove(mat)
+        else:
+            rgba_vals.append(mat.diffuse_color)
     # get original mat_names, and populate rgba_vals
     for key in keys:
         # skip irrelevant bricks
@@ -93,7 +93,6 @@ def update_materials(bricksdict, source, keys, cur_frame=None, action="CREATE"):
         elif material_type == "CUSTOM":
             mat_name = cm.custom_mat.name
         bricksdict[key]["mat_name"] = mat_name
-    cm.rgba_vals = compress_str(json.dumps(rgba_vals))
     return bricksdict
 
 
