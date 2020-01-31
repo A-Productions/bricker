@@ -140,11 +140,11 @@ class BricksculptFramework:
                 # determine which action (if any) to run at current mouse position
                 add_brick = not (event.alt or event.shift or self.obj.name in self.keys_to_merge_on_release) and self.mode == "DRAW"
                 remove_brick = self.mode == "DRAW" and (event.alt or event.shift) and self.mouse_travel > 10
-                change_material = self.obj.name not in self.added_bricks and self.mode == "PAINT"
+                change_materials = self.obj.name not in self.added_bricks and self.mode == "PAINT"
                 split_brick = self.mode == "MERGE/SPLIT" and (event.alt or event.shift)
-                merge_brick = self.obj.name not in self.added_bricks and self.mode == "MERGE/SPLIT" and not event.alt
+                merge_bricks = self.obj.name not in self.added_bricks and self.mode == "MERGE/SPLIT" and not event.alt
                 # get key/loc/size of brick at mouse position
-                if add_brick or remove_brick or change_material or split_brick or merge_brick:
+                if add_brick or remove_brick or change_materials or split_brick or merge_bricks:
                     self.last_mouse = self.mouse
                     cur_key = get_dict_key(self.obj.name)
                     cur_loc = get_dict_loc(self.bricksdict, cur_key)
@@ -156,14 +156,14 @@ class BricksculptFramework:
                 elif remove_brick:
                     self.remove_brick(cm, n, event, cur_key, cur_loc, obj_size)
                 # change material
-                elif change_material and self.bricksdict[cur_key]["mat_name"] != self.mat_name:
+                elif change_materials and self.bricksdict[cur_key]["mat_name"] != self.mat_name:
                     self.change_material(cm, n, cur_key, cur_loc, obj_size)
                 # split current brick
                 elif split_brick:
                     self.split_brick(cm, event, cur_key, cur_loc, obj_size)
-                # add current brick to 'self.keys_to_merge'
-                elif merge_brick:
-                    self.merge_bricks(cm, n, cur_key, cur_loc, obj_size, mode=self.mode, state="DRAG")
+                # add current brick to 'self.keysToMerge'
+                elif merge_bricks:
+                    self.merge_brick(cm, n, cur_key, cur_loc, obj_size, mode=self.mode, state="DRAG")
                 return {"RUNNING_MODAL"}
 
             # clean up after splitting bricks

@@ -71,15 +71,20 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
                     objs_to_delete.append(bricks.pop(0 if f < cur_f else 1))
         for obj in objs_to_delete:
             bpy.data.objects.remove(obj, do_unlink=True)
-        # delete brick collection
-        brick_coll = cm.collection
-        if b280():
-            linked_colls = [cn for cn in bpy_collections() if brick_coll.name in cn.children]
-            for col in linked_colls:
-                for brick in bricks:
-                    col.objects.link(brick)
-        if brick_coll is not None:
-            bpy_collections().remove(brick_coll, do_unlink=True)
+        # clean up brick collection
+        if cm.last_split_model:
+            # rename brick collection
+            cm.collection.name = cm.collection.name.replace("Bricker_", "")
+        else:
+            # delete brick collection
+            brick_coll = cm.collection
+            if b280():
+                linked_colls = [cn for cn in bpy_collections() if brick_coll.name in cn.children]
+                for col in linked_colls:
+                    for brick in bricks:
+                        col.objects.link(brick)
+            if brick_coll is not None:
+                bpy_collections().remove(brick_coll, do_unlink=True)
         # remove current cmlist index
         cm.model_created = False
         cm.animated = False

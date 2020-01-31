@@ -150,7 +150,7 @@ def match_properties(cm_to, cm_from, override_idx=-1):
         mat_obj_to = bpy.data.objects.get(mat_obj_names_to[i])
         if mat_obj_from is None or mat_obj_to is None:
             continue
-        mat_obj_to.data.materials.clear(update_data=True)
+        mat_obj_to.data.materials.clear()
         for mat in mat_obj_from.data.materials:
             mat_obj_to.data.materials.append(mat)
     # match properties from 'cm_from' to 'cm_to'

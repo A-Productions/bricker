@@ -141,10 +141,21 @@ def vec_to_str(vec, separate_by=","):
     return list_to_str(list(vec), separate_by=separate_by)
 
 
+def compress_rgba_vals(lst):
+    # return compress_str(list_to_str([item for sublist in lst for item in sublist]))
+    return compress_str(json.dumps(lst))
+
+
+def decompress_rgba_vals(string, channels=4):
+    # lst = str_to_list(decompress_str(string), item_type=float)
+    # lst_2d = [lst[i:i + channels] for i in range(0, len(lst), channels)]
+    # return lst_2d
+    return json.loads(decompress_str(string))
+
+
 def list_to_str(lst, separate_by=","):
     assert type(lst) in (list, tuple)
     return separate_by.join(map(str, lst))
-
 
 
 def str_to_list(string, item_type=int, split_on=","):
@@ -323,6 +334,12 @@ def get_dict_loc(bricksdict, key):
     except KeyError:
         loc = str_to_list(key)
     return loc
+
+
+def get_rgba_vals(cm):
+    if cm.id not in bricker_rgba_vals_cache or bricker_rgba_vals_cache[cm.id] is None:
+        bricker_rgba_vals_cache[cm.id] = cm.rgba_vals
+    return bricker_rgba_vals_cache[cm.id]
 
 
 def get_nearby_loc_from_vector(loc_diff, cur_loc, dimensions, zstep, width_divisor=2.05, height_divisor=2.05):

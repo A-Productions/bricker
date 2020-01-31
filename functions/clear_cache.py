@@ -26,7 +26,7 @@ from .common import *
 from ..lib.caches import *
 
 
-def clear_cache(cm, brick_mesh=True, light_matrix=True, deep_matrix=True, images=True, dupes=True):
+def clear_cache(cm, brick_mesh=True, light_matrix=True, deep_matrix=True, rgba_vals=True, images=True, dupes=True):
     """clear caches for cmlist item"""
     # clear light brick mesh cache
     if brick_mesh:
@@ -37,6 +37,9 @@ def clear_cache(cm, brick_mesh=True, light_matrix=True, deep_matrix=True, images
     # clear deep matrix cache
     if deep_matrix:
         cm.bfm_cache = ""
+    # clear rgba vals cache
+    if rgba_vals:
+        bricker_rgba_vals_cache[cm.id] = None
     # clear image cache
     if images:
         clear_pixel_cache()

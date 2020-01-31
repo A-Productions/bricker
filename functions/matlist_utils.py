@@ -47,7 +47,8 @@ def create_mat_objs(cm):
     return cm.mat_obj_random, cm.mat_obj_abs
 
 
-def get_mat_obj(cm, typ="RANDOM"):
+def get_mat_obj(cm, typ=None):
+    typ = typ or ("RANDOM" if cm.material_type == "RANDOM" else "ABS")
     if typ == "RANDOM":
         mat_obj = cm.mat_obj_random
     else:

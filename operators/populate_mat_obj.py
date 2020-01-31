@@ -44,7 +44,7 @@ class BRICKER_OT_populate_mat_obj(bpy.types.Operator):
     def execute(self, context):
         try:
             scn, cm, _ = get_active_context_info()
-            mat_obj = get_mat_obj(cm, typ=cm.material_type)
+            mat_obj = get_mat_obj(cm)
             cm.material_is_dirty = True
             for mat_name in get_abs_mat_names(all=False):
                 mat = bpy.data.materials.get(mat_name)

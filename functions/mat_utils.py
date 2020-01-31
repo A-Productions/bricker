@@ -72,7 +72,38 @@ def get_uv_layer_data(obj):
     return active_uv.data
 
 
-def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, color_snap, use_abs_template, last_use_abs_template, color_snap_amount, include_transparency, cur_frame=None):
+def update_displacement_of_mat(mat, displacement=0.04):
+    """ snippit from 'update_abs_displace' function found in ABS Plastic Materials source code """
+    scn = bpy.context.scene
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    target_node = nodes.get("ABS Bump")
+    if target_node is None:
+        return
+    noise = target_node.inputs.get("Noise")
+    waves = target_node.inputs.get("Waves")
+    scratches = target_node.inputs.get("Scratches")
+    fingerprints = target_node.inputs.get("Fingerprints")
+    if noise is None or waves is None or scratches is None or fingerprints is None:
+        return
+    noise.default_value = displacement * (20 if mat.name in ("ABS Plastic Gold", "ABS Plastic Silver") else 1)
+    waves.default_value = displacement
+    scratches.default_value = displacement
+    fingerprints.default_value = scn.abs_fingerprints * displacement
+    # disconnect displacement node if not used
+    try:
+        displace_in = nodes["Material Output"].inputs["Displacement"]
+        displace_out = nodes["Displacement"].outputs["Displacement"] if b280() else target_node.outputs["Color"]
+    except KeyError:
+        return
+    if displacement == 0:
+        for l in displace_in.links:
+            links.remove(l)
+    else:
+        links.new(displace_out, displace_in)
+
+
+def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, displacement, color_snap, use_abs_template, last_use_abs_template, color_snap_amount, include_transparency, cur_frame=None):
     """ create new material with specified rgba values """
     scn = bpy.context.scene
     # get or create material with unique color
@@ -97,19 +128,21 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
             bpy.data.materials.remove(mat)
             mat = None
         if mat is None:
-            if "ABS Plastic Sand Green" not in bpy.data.materials:
+            abs_template_mat_name = "ABS Plastic Black"
+            if abs_template_mat_name not in bpy.data.materials or bpy.data.materials[abs_template_mat_name].node_tree.nodes.get("ABS Dialectric") is None:
                 bpy.ops.abs.append_materials()
-            last_abs_displace = scn.abs_displace
-            scn.abs_displace = 0.04
-            mat = bpy.data.materials["ABS Plastic Sand Green"].copy()
-            scn.abs_displace = last_abs_displace
+            mat = bpy.data.materials[abs_template_mat_name].copy()
+            update_displacement_of_mat(mat, displacement)
             mat.name = mat_name
-            mat.diffuse_color = rgba
-            dialectric_node = mat.node_tree.nodes["ABS Dialectric"]
+            mat.diffuse_color[:3] = rgba[:3]
+            if b280():
+                mat.diffuse_color[3] = rgba[3] if include_transparency else 1
+            dialectric_node = mat.node_tree.nodes.get("ABS Dialectric")
             dialectric_node.inputs["Diffuse Color"].default_value = rgba
-            dialectric_node.inputs["SSS Color"].default_value = rgba
             sss_amount = round(0.15 * sss * (rgb_to_hsv(*rgba[:3])[2] ** 1.5), 2)
-            dialectric_node.inputs["SSS Amount"].default_value = sss_amount
+            if sss_amount != 0:
+                dialectric_node.inputs["SSS Amount"].default_value = sss_amount
+                dialectric_node.inputs["SSS Color"].default_value = rgba
         return mat_name
     # handle materials created from scratch
     mat_is_new = mat is None
@@ -206,7 +239,8 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
             # update first node's color
             if first_node:
                 rgba1 = first_node.inputs[0].default_value
-                mat.diffuse_color[3] = rgba1[3] if include_transparency else 1
+                if b280():
+                    mat.diffuse_color[3] = rgba1[3] if include_transparency else 1
                 new_rgba = get_average(Vector(rgba), Vector(rgba1), mat.num_averaged)
                 first_node.inputs[0].default_value = new_rgba
                 first_node.inputs[3].default_value[:3] = mathutils_mult(Vector(new_rgba[:3]), sat_mat).to_tuple()

@@ -48,9 +48,10 @@ class BRICKER_MT_specials(bpy.types.Menu):
         layout.separator()
         layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_OFF", text="Select Bricks").deselect = False
         layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_ON", text="Deselect Bricks").deselect = True
-        layout.separator()
-        layout.operator("cmlist.link_animated_model", icon="LINK_BLEND")
-        # layout.operator("cmlist.link_frames", icon="LINK_BLEND")
+        if b280():
+            layout.separator()
+            layout.operator("cmlist.link_animated_model", icon="LINK_BLEND")
+            # layout.operator("cmlist.link_frames", icon="LINK_BLEND")
 
 
 class VIEW3D_PT_bricker_brick_models(Panel):
@@ -154,10 +155,10 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                     else:
                         row1.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                         row.active = brickify_should_run(cm)
-                        if cm.stop_frame <= cm.last_stop_frame:
-                            row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
-                        else:
+                        if (cm.start_frame < cm.last_start_frame or cm.stop_frame > cm.last_stop_frame) and not update_can_run("ANIMATION"):
                             row.operator("bricker.brickify", text="Complete Animation", icon="FORWARD")
+                        else:
+                            row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
                     if created_with_unsupported_version(cm):
                         v_str = cm.version[:3]
                         col = layout.column(align=True)

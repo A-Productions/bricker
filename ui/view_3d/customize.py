@@ -112,22 +112,31 @@ class VIEW3D_PT_bricker_customize(Panel):
         # col.active = False
         row.label(text="BrickSculpt Tools:")
         row = col.row(align=True)
-        row.operator("bricker.bricksculpt", text="Draw/Cut Tool", icon="MOD_DYNAMICPAINT").mode = "DRAW"
+        row.operator("bricker.bricksculpt", text="Draw/Cut Tool", icon="GREASEPENCIL").mode = "DRAW"
         row = col.row(align=True)
-        row.operator("bricker.bricksculpt", text="Merge/Split Tool", icon="MOD_DYNAMICPAINT").mode = "MERGE/SPLIT"
+        row.operator("bricker.bricksculpt", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE/SPLIT"
         row = col.row(align=True)
-        row.operator("bricker.bricksculpt", text="Paintbrush Tool", icon="MOD_DYNAMICPAINT").mode = "PAINT"
+        row.operator("bricker.bricksculpt", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
         row.prop_search(cm, "paintbrush_mat", bpy.data, "materials", text="")
         if not BRICKER_OT_bricksculpt.bricksculpt_installed:
+            # row = col.row(align=True)
+            # row.scale_y = 0.7
+            # row.label(text="BrickSculpt available for purchase")
+            # row = col.row(align=True)
+            # row.scale_y = 0.7
+            # row.label(text="at the Blender Market:")
+            # col = layout.column(align=True)
+            # row = col.row(align=True)
+            # row.operator("wm.url_open", text="View Website", icon="WORLD").url = "http://www.blendermarket.com/products/bricksculpt"
             row = col.row(align=True)
             row.scale_y = 0.7
-            row.label(text="BrickSculpt available for purchase")
+            row.label(text="BrickSculpt coming soon to")
             row = col.row(align=True)
             row.scale_y = 0.7
-            row.label(text="at the Blender Market:")
+            row.label(text="the Blender Market:")
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.operator("wm.url_open", text="View Website", icon="WORLD").url = "http://www.blendermarket.com/products/bricksculpt"
+            row.operator("wm.url_open", text="View Website", icon="WORLD").url = "https://www.blendermarket.com/creators/bricksbroughttolife"
             layout.split()
             layout.split()
 

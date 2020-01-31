@@ -28,7 +28,7 @@ from mathutils import Matrix, Vector
 
 def clear_existing_materials(obj, from_idx=0, from_data=False):
     if from_data:
-        obj.data.materials.clear(update_data=True)
+        obj.data.materials.clear()
     else:
         select(obj, active=True)
         obj.active_material_index = from_idx

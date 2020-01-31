@@ -26,6 +26,7 @@ from bpy.props import *
 from .brick.types import *
 from .general import *
 from .transform_data import *
+from .mat_utils import *
 from .matlist_utils import *
 from ..operators.bevel import BRICKER_OT_bevel
 from ..subtrees.background_processing.classes.job_manager import JobManager
@@ -192,11 +193,13 @@ def update_bevel_edit_mode(self, context):
 
 
 def add_material_to_list(self, context):
-    scn, cm, n = get_active_context_info()
-    typ = "RANDOM" if cm.material_type == "RANDOM" else "ABS"
-    mat_obj = get_mat_obj(cm, typ=typ)
+    cm = self
+    mat_obj = get_mat_obj(cm)
+    if mat_obj is None:
+        return
     num_mats = len(mat_obj.data.materials)
     mat = bpy.data.materials.get(cm.target_material)
+    typ = "RANDOM" if cm.material_type == "RANDOM" else "ABS"
     if mat is None:
         return
     elif mat.name in mat_obj.data.materials.keys():

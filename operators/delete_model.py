@@ -373,6 +373,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             "expose_parent",
             "active_key",
             "is_smoke",
+            "rgba_vals",
             "has_custom_obj1",
             "has_custom_obj2",
             "has_custom_obj3",

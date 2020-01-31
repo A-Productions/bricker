@@ -197,7 +197,7 @@ class VIEW3D_PT_bricker_included_materials(Panel):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
 
-        mat_obj = get_mat_obj(cm, typ=cm.material_type)
+        mat_obj = get_mat_obj(cm)
         if mat_obj is None:
             return
         col = layout.column(align=True)
@@ -272,19 +272,13 @@ class VIEW3D_PT_bricker_material_properties(Panel):
             obj = cm.source_obj
             if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
                 col = layout.column(align=True)
-                row = col.row(align=True)
-                row.prop(cm, "color_snap_specular")
-                row = col.row(align=True)
-                row.prop(cm, "color_snap_roughness")
-                row = col.row(align=True)
-                row.prop(cm, "color_snap_ior")
+                col.prop(cm, "color_snap_specular")
+                col.prop(cm, "color_snap_roughness")
+                col.prop(cm, "color_snap_ior")
             if scn.render.engine in ("CYCLES", "BLENDER_EEVEE"):
-                row = col.row(align=True)
-                row.prop(cm, "color_snap_sss")
-                row = col.row(align=True)
-                row.prop(cm, "color_snap_sss_saturation")
-                row = col.row(align=True)
-                row.prop(cm, "color_snap_transmission")
+                col.prop(cm, "color_snap_sss")
+                col.prop(cm, "color_snap_sss_saturation")
+                col.prop(cm, "color_snap_transmission")
             if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
                 col = layout.column(align=True)
                 right_align(col)
@@ -292,3 +286,4 @@ class VIEW3D_PT_bricker_material_properties(Panel):
         elif brick_materials_installed():
             col = layout.column(align=True)
             col.prop(cm, "color_snap_sss")
+            col.prop(cm, "color_snap_displacement")

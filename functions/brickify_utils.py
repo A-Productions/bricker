@@ -252,7 +252,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
         cm.build_is_dirty = True
     # update materials in bricksdict
     if cm.material_type != "NONE" and (cm.material_is_dirty or cm.matrix_is_dirty or cm.anim_is_dirty):
-        bricksdict = update_materials(bricksdict, source, keys, cur_frame, action)
+        bricksdict = update_materials(bricksdict, source, keys, cur_frame=cur_frame, action=action)
     return bricksdict, brick_scale
 
 
