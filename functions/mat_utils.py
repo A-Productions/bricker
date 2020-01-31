@@ -134,7 +134,9 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
             mat = bpy.data.materials[abs_template_mat_name].copy()
             update_displacement_of_mat(mat, displacement)
             mat.name = mat_name
-            mat.diffuse_color = rgba
+            mat.diffuse_color[:3] = rgba[:3]
+            if b280():
+                mat.diffuse_color[3] = rgba[3] if include_transparency else 1
             dialectric_node = mat.node_tree.nodes.get("ABS Dialectric")
             dialectric_node.inputs["Diffuse Color"].default_value = rgba
             sss_amount = round(0.15 * sss * (rgb_to_hsv(*rgba[:3])[2] ** 1.5), 2)
@@ -237,7 +239,8 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
             # update first node's color
             if first_node:
                 rgba1 = first_node.inputs[0].default_value
-                mat.diffuse_color[3] = rgba1[3] if include_transparency else 1
+                if b280():
+                    mat.diffuse_color[3] = rgba1[3] if include_transparency else 1
                 new_rgba = get_average(Vector(rgba), Vector(rgba1), mat.num_averaged)
                 first_node.inputs[0].default_value = new_rgba
                 first_node.inputs[3].default_value[:3] = mathutils_mult(Vector(new_rgba[:3]), sat_mat).to_tuple()
