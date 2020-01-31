@@ -120,7 +120,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                     # get coordinate for brick in Ldraw units
                     co = self.blend_to_ldraw_units(cm, bricksdict, cm.zstep, key, idx)
                     # get color code of brick
-                    mat = get_material(bricksdict, key, size, cm.zstep, material_type, cm.custom_mat.name if cm.custom_mat is not None else "z", cm.random_mat_seed, cm.material_is_dirty or cm.matrix_is_dirty or cm.build_is_dirty, seed_keys, brick_mats=get_brick_mats(cm))
+                    mat = get_material(bricksdict, key, size, cm.zstep, material_type, cm.custom_mat, cm.random_mat_seed, cm.material_is_dirty or cm.matrix_is_dirty or cm.build_is_dirty, seed_keys, brick_mats=get_brick_mats(cm))
                     mat_name = "" if mat is None else mat.name
                     rgba = bricksdict[key]["rgba"]
                     if mat_name in get_abs_mat_names() and abs_mat_properties is not None:
