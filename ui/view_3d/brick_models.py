@@ -154,10 +154,10 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                     else:
                         row1.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                         row.active = brickify_should_run(cm)
-                        if cm.stop_frame <= cm.last_stop_frame:
-                            row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
-                        else:
+                        if (cm.start_frame < cm.last_start_frame or cm.stop_frame > cm.last_stop_frame) and not update_can_run("ANIMATION"):
                             row.operator("bricker.brickify", text="Complete Animation", icon="FORWARD")
+                        else:
+                            row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
                     if created_with_unsupported_version(cm):
                         v_str = cm.version[:3]
                         col = layout.column(align=True)

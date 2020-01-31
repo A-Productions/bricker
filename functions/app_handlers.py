@@ -330,3 +330,7 @@ def handle_upconversion(dummy):
                 cm.parent_obj.use_fake_user = True
                 # for coll in cm.parent_obj.users_collection:
                 #     coll.objects.unlink(cm.parent_obj)
+            # ensure cmlist items have material objects
+            mat_obj = get_mat_obj(cm)
+            if mat_obj is None:
+                create_mat_objs(cm)

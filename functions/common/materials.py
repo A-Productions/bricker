@@ -24,6 +24,7 @@ from mathutils import Matrix, Vector
 
 # Module imports
 from .maths import *
+from .reporting import *
 
 
 def clear_existing_materials(obj, from_idx=0, from_data=False):

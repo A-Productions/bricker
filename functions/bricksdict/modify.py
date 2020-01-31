@@ -47,6 +47,7 @@ def update_materials(bricksdict, source, keys, cur_frame=None, action="CREATE"):
     roughness = cm.color_snap_roughness
     ior = cm.color_snap_ior
     transmission = cm.color_snap_transmission
+    displacement = cm.color_snap_displacement
     color_snap_amount = cm.color_snap_amount
     use_abs_template = cm.use_abs_template and brick_materials_installed()
     last_use_abs_template = cm.last_use_abs_template and brick_materials_installed()
@@ -87,7 +88,7 @@ def update_materials(bricksdict, source, keys, cur_frame=None, action="CREATE"):
                     assert len(mat_obj.data.materials) > 0
                     mat_name = find_nearest_brick_color_name(rgba, trans_weight, mat_obj)
             elif color_snap == "RGB" or is_smoke:# or use_uv_map:
-                mat_name = create_new_material(n, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, color_snap, use_abs_template, last_use_abs_template, color_snap_amount, include_transparency, cur_frame)
+                mat_name = create_new_material(n, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, displacement, color_snap, use_abs_template, last_use_abs_template, color_snap_amount, include_transparency, cur_frame)
             if rgba is not None:
                 rgba_vals.append(rgba)
         elif material_type == "CUSTOM":

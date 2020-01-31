@@ -427,8 +427,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         subtype="FACTOR",
         precision=3,
         min=0.00001, max=1.0,
-        default=0.001,
         update=dirty_build,
+        default=0.001,
     )
     color_snap_specular = FloatProperty(
         name="Specular",
@@ -436,8 +436,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         subtype="FACTOR",
         precision=3,
         min=0.0, soft_max=1.0,
-        default=0.5,
         update=dirty_material,
+        default=0.5,
     )
     color_snap_roughness = FloatProperty(
         name="Roughness",
@@ -445,8 +445,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         subtype="FACTOR",
         precision=3,
         min=0.0, soft_max=1.0,
-        default=0.5,
         update=dirty_material,
+        default=0.5,
     )
     color_snap_sss = FloatProperty(
         name="Subsurface Scattering",
@@ -454,8 +454,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         subtype="FACTOR",
         precision=3,
         min=0.0, soft_max=1.0,
-        default=0.0,
         update=dirty_material,
+        default=0.0,
     )
     color_snap_sss_saturation = FloatProperty(
         name="SSS Saturation",
@@ -463,16 +463,16 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         subtype="FACTOR",
         precision=3,
         min=0.0, soft_max=1.0,
-        default=1.0,
         update=dirty_material,
+        default=1.0,
     )
     color_snap_ior = FloatProperty(
         name="IOR",
         description="IOR value for the created materials",
         precision=3,
         min=0.0, soft_max=1000.0,
-        default=1.45,
         update=dirty_material,
+        default=1.45,
     )
     color_snap_transmission = FloatProperty(
         name="Transmission",
@@ -480,28 +480,37 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         subtype="FACTOR",
         precision=3,
         min=0.0, soft_max=1.0,
-        default=0.0,
         update=dirty_material,
+        default=0.0,
+    )
+    color_snap_displacement = FloatProperty(
+        name="Displacement",
+        description="Displacement value for the created materials (overrides ABS Plastic displacement value)",
+        subtype="FACTOR",
+        precision=3,
+        min=0.0, soft_max=1.0,
+        update=dirty_material,
+        default=0.04,
     )
     use_abs_template = BoolProperty(
         name="Use ABS Template",
         description="Use the default ABS Plastic Material node tree to build the RGB materials",
-        default=True,
         update=dirty_material,
+        default=True,
     )
     include_transparency = BoolProperty(
         name="Include Transparency",
         description="Include alpha value of original material color",
-        default=True,
         update=dirty_matrix,
+        default=True,
     )
     transparent_weight = FloatProperty(
         name="Transparency Weight",
         description="How much the original material's alpha value affects the chosen ABS Plastic Material",
         precision=1,
         min=0, soft_max=2,
-        default=1,
         update=dirty_material,
+        default=1,
     )
     target_material = StringProperty(
         name="Target Material",
@@ -613,20 +622,20 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     bevel_show_render = BoolProperty(
         name="Render",
         description="Use modifier during render",
-        default=True,
         update=update_bevel_render,
+        default=True,
     )
     bevel_show_viewport = BoolProperty(
         name="Realtime",
         description="Display modifier in viewport",
-        default=True,
         update=update_bevel_viewport,
+        default=True,
     )
     bevel_show_edit_mode = BoolProperty(
         name="Edit Mode",
         description="Display modifier in Edit mode",
-        default=True,
         update=update_bevel_edit_mode,
+        default=True,
     )
     bevel_width = FloatProperty(
         name="Bevel Width",
@@ -634,16 +643,16 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         subtype="DISTANCE",
         step=1,
         min=0.0, soft_max=10,
-        default=0.01,
         update=update_bevel,
+        default=0.01,
     )
     bevel_segments = IntProperty(
         name="Bevel Resolution",
         description="Number of segments for round edges/verts",
         step=1,
         min=1, max=100,
-        default=1,
         update=update_bevel,
+        default=1,
     )
     bevel_profile = FloatProperty(
         name="Bevel Profile",
@@ -651,8 +660,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         subtype="FACTOR",
         step=1,
         min=0.0, max=1.0,
-        default=0.7,
         update=update_bevel,
+        default=0.7,
     )
 
     # INTERNAL SUPPORTS SETTINGS
@@ -722,20 +731,20 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     use_normals = BoolProperty(
         name="Use Normals",
         description="Use normals to calculate insideness of bricks (WARNING: May produce inaccurate model if source is not single closed mesh)",
-        default=False,
         update=dirty_matrix,
+        default=False,
     )
     verify_exposure = BoolProperty(
         name="Verify Exposure",
         description="Run additional insideness calculations (slower, but fixes issue where row(s)/column(s) of extra bricks are drawn)",
-        default=False,
         update=dirty_matrix,
+        default=False,
     )
     calc_internals = BoolProperty(
         name="Calculate Internals",
         description="Calculate values for bricks inside shell (disable for faster calculation at the loss of the 'ShellThickness' and 'Supports' features)",
-        default=True,
         update=dirty_matrix,
+        default=True,
     )
     use_local_orient = BoolProperty(
         name="Use Local Orient",

@@ -264,9 +264,7 @@ def create_new_bricks(source, parent, source_details, dimensions, action, split=
     brick_scale, custom_data = get_arguments_for_bricksdict(cm, source=source, dimensions=dimensions)
     update_cursor = action in ("CREATE", "UPDATE_MODEL")
     # get bricksdict
-    ct = stopwatch(0.5, ct)
     bricksdict, brick_scale = get_bricksdict_for_model(cm, source, source_details, action, cur_frame, brick_scale, bricksdict, keys, redraw, update_cursor)
-    ct = stopwatch(1, ct)
     # make bricks
     if cm.instance_method == "POINT_CLOUD":
         # generate point cloud
@@ -334,7 +332,6 @@ def create_new_bricks(source, parent, source_details, dimensions, action, split=
     if ref_logo is not None:
         bpy.data.objects.remove(ref_logo)
     # store current bricksdict to cache
-    ct = stopwatch(2, ct)
     cache_bricks_dict(action, cm, bricksdict, cur_frame=cur_frame)
     return model_name, bricks_created
 

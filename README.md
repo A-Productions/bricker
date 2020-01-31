@@ -10,8 +10,10 @@ You may purchase the Bricker addon on the [Blender Market](https://www.blenderma
 
 ### Getting Support
 
-You can get support for the Bricker addon by reading the documentation on the [Blender Market](https://www.blendermarket.com/products/bricker) and through the Blender Market messaging system. Support is granted to all customers whom have purchased a license.
+You can get support for the Bricker addon by reading the documentation on the [Blender Market](https://www.blendermarket.com/products/bricker/docs) and through the Blender Market messaging system. Support is granted to all customers whom have purchased a license.
 
 ## Contributing
 
 We welcome your contributions! If you'd like to contribute then simply Fork the repo, work on your changes, and then submit a pull request. If you're unsure what to contribute, look at the open issues for the current to-dos.
+
+If you would like to sponsor the development of new feature(s), please send an email with your proposal to chris@bblanimation.com.
