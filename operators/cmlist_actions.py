@@ -291,13 +291,32 @@ class CMLIST_OT_link_animated_model(bpy.types.Operator):
 
     def execute(self, context):
         scn = bpy.context.scene
-        for filename in [f.name for f in self.files]:
-            if not (filename.startswith("Bricker_") and filename.endswith("_bricks")):
-                self.report({"ERROR"}, "Collection was not Bricker model. Bricker model collection names are formatted like this: 'Bricker_{source object name}_bricks'")
-                return {"CANCELLED"}
+        filenames = [f.name for f in self.files]
+        model_frames = dict()
+        # set up model_frames dict with start and end frames to import
+        for filename in filenames:
+            model_name = filename[:filename.rfind("_f_")] if "_bricks_f_" in filename else filename
+            if not (model_name.startswith("Bricker_") and model_name.endswith("_bricks")):
+                self.report({"ERROR"}, "Collection '" + filename + "' was not Bricker model. Bricker model collection names are formatted like this: 'Bricker_{source object name}_bricks'")
+                continue
+            if model_name not in model_frames:
+                model_frames[model_name] = {
+                    "s": 1048574,  # max frame number for blender timeline
+                    "e": -1,
+                }
+            if model_name in model_frames and "_bricks_f_" in filename:
+                frame_num = int(filename[filename.rfind("_") + 1:])
+                try:
+                    frame_num = int(frame_num)
+                except ValueError:
+                    continue
+                model_frames[model_name]["s"] = min(frame_num, model_frames[model_name]["s"])
+                model_frames[model_name]["e"] = max(frame_num, model_frames[model_name]["e"])
+        # import the model(s)
+        for filename in model_frames.keys():
             data_attr = os.path.basename(os.path.normpath(self.directory))
             if data_attr != "Collection":
-                self.report({"ERROR"}, "Selected file must be collection data block")
+                self.report({"ERROR"}, "Selected file(s) must be collection data blocks")
                 return {"CANCELLED"}
             # load brick model collection
             blendfile_path = self.directory[:self.directory.rfind(".blend") + 6]
@@ -352,16 +371,17 @@ class CMLIST_OT_link_animated_model(bpy.types.Operator):
             if len(collection.children) > 0:
                 cm.animated = True
                 # get start and stop frames
-                start_frame = 1048574  # max frame number for blender timeline
-                stop_frame = -1
-                for subcoll in collection.children:
-                    cur_f = subcoll.name[subcoll.name.rfind("_") + 1:]
-                    try:
-                        cur_f = int(cur_f)
-                    except ValueError:
-                        continue
-                    start_frame = min(cur_f, start_frame)
-                    stop_frame = max(cur_f, stop_frame)
+                start_frame = model_frames[filename]["s"]
+                stop_frame = model_frames[filename]["e"]
+                if stop_frame == -1 or start_frame == stop_frame:
+                    for subcoll in collection.children:
+                        cur_f = subcoll.name[subcoll.name.rfind("_") + 1:]
+                        try:
+                            cur_f = int(cur_f)
+                        except ValueError:
+                            continue
+                        start_frame = min(cur_f, start_frame)
+                        stop_frame = max(cur_f, stop_frame)
                 # set properties for new cmlist item
                 cm.last_start_frame = start_frame if cm.last_start_frame == -1 else min(start_frame, cm.last_start_frame)
                 cm.last_stop_frame = max(stop_frame, cm.last_stop_frame)

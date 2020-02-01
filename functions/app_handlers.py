@@ -47,24 +47,26 @@ def handle_animation(scn, depsgraph):
         if not cm.animated:
             continue
         n = get_source_name(cm)
-        for cf in range(cm.last_start_frame, cm.last_stop_frame + 1):
-            cur_bricks = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
-            if cur_bricks is None:
+        parent_coll = bpy_collections().get("Bricker_%(n)s_bricks" % locals())
+        for cur_bricks_coll in parent_coll.children:
+            try:
+                cf = int(cur_bricks_coll.name[cur_bricks_coll.name.rfind("_") + 1:])
+            except ValueError:
                 continue
             adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
             on_cur_f = adjusted_frame_current == cf
             if b280():
                 # hide bricks from view and render unless on current frame
-                if cur_bricks.hide_render == on_cur_f:
-                    cur_bricks.hide_render = not on_cur_f
-                if cur_bricks.hide_viewport == on_cur_f:
-                    cur_bricks.hide_viewport = not on_cur_f
+                if cur_bricks_coll.hide_render == on_cur_f:
+                    cur_bricks_coll.hide_render = not on_cur_f
+                if cur_bricks_coll.hide_viewport == on_cur_f:
+                    cur_bricks_coll.hide_viewport = not on_cur_f
                 if hasattr(bpy.context, "active_object"):
                     obj = bpy.context.active_object
                     if obj and obj.name.startswith("Bricker_%(n)s_bricks" % locals()) and on_cur_f:
-                        select(cur_bricks.objects, active=True)
+                        select(cur_bricks_coll.objects, active=True)
             else:
-                for brick in cur_bricks.objects:
+                for brick in cur_bricks_coll.objects:
                     # hide bricks from view and render unless on current frame
                     if on_cur_f:
                         unhide(brick)
