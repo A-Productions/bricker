@@ -185,7 +185,7 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
                 principled.inputs[15].default_value = transmission
                 if include_transparency:
                     if b280():
-                        principled.inputs[18].default_value = 1 - rgba[3]
+                        principled.inputs[18].default_value = rgba[3]
                     else:
                         # a new material node tree already has a diffuse and material output node
                         output = mat_nodes["Material Output"]
@@ -197,7 +197,7 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
                         mat_links.new(transparent.outputs["BSDF"], mix.inputs[2])
                         mat_links.new(mix.outputs["Shader"], output.inputs["Surface"])
                         # set mix factor to 1 - alpha
-                        mix.inputs[0].default_value = 1 - rgba[3]
+                        mix.inputs[0].default_value = rgba[3]
             elif scn.render.engine == "octane":
                 # a new material node tree already has a diffuse and material output node
                 output = mat_nodes["Material Output"]
@@ -238,7 +238,7 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
             first_node = get_first_bsdf_node(mat)
             # update first node's color
             if first_node:
-                rgba1 = first_node.inputs[0].default_value
+                rgba1 = vec_round(first_node.inputs[0].default_value, 5, outer_type=list)
                 if b280():
                     mat.diffuse_color[3] = rgba1[3] if include_transparency else 1
                 new_rgba = get_average(Vector(rgba), Vector(rgba1), mat.num_averaged)

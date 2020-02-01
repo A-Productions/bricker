@@ -88,7 +88,7 @@ def get_material_color(mat_name):
             intensity = mat.diffuse_intensity
             r, g, b = Vector((mat.diffuse_color)) * intensity
             a = mat.alpha if mat.use_transparency else 1.0
-    return [round(v, 6) for v in [r, g, b, a]]
+    return [round(v, 5) for v in [r, g, b, a]]
 
 
 def get_first_bsdf_node(mat, types:list=None):
