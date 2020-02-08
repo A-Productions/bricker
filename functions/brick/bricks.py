@@ -131,7 +131,7 @@ def get_details_and_bounds(obj, cm=None):
     return obj_details, dimensions
 
 
-def get_brick_dimensions(height=1, z_scale=1, gap_percentage=1.0):
+def get_brick_dimensions(height=1, z_scale=1, gap_percentage=0.5):
     """
     returns the dimensions of a brick in Blender units
 

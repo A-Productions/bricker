@@ -27,7 +27,10 @@ from bpy.types import Operator, SpaceView3D, bpy_struct
 from bpy.props import *
 
 # Module imports
-from .bricksculpt_framework_backup import *
+try:
+    from .bricksculpt_framework import *
+except ModuleNotFoundError:
+    from .bricksculpt_framework_backup import *
 from .bricksculpt_tools import *
 from .bricksculpt_drawing import *
 from .draw_adjacent import *

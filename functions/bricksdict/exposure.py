@@ -72,8 +72,8 @@ def set_brick_exposure(bricksdict, key=None, loc=None):
         return None, None
     # get keys above and below
     x, y, z = loc
-    key_below = list_to_str((x, y, z - 1))
     key_above = list_to_str((x, y, z + 1))
+    key_below = list_to_str((x, y, z - 1))
     # check if brick top or bottom is exposed
     top_exposed = check_exposure(bricksdict, key_above, obscuring_types=get_types_obscuring_below())
     bot_exposed = check_exposure(bricksdict, key_below, obscuring_types=get_types_obscuring_above())
