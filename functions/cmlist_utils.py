@@ -142,6 +142,8 @@ def match_properties(cm_to, cm_from, override_idx=-1):
         cm_attrs.remove("bevel_width")
         cm_attrs.remove("bevel_segments")
         cm_attrs.remove("bevel_profile")
+        cm_attrs.remove("mat_obj_abs")
+        cm_attrs.remove("mat_obj_random")
     # match material properties for Random/ABS Plastic Snapping
     mat_obj_names_from = ["Bricker_{}_RANDOM_mats".format(cm_from.id), "Bricker_{}_ABS_mats".format(cm_from.id)]
     mat_obj_names_to   = ["Bricker_{}_RANDOM_mats".format(cm_to.id), "Bricker_{}_ABS_mats".format(cm_to.id)]

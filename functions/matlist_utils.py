@@ -40,7 +40,8 @@ def create_mat_objs(cm):
     for obj_n in mat_obj_names:
         mat_obj = bpy.data.objects.get(obj_n)
         if mat_obj is None:
-            mat_obj = bpy.data.objects.new(obj_n, junk_m)
+            mat_m = bpy.data.meshes.new(obj_n)
+            mat_obj = bpy.data.objects.new(obj_n, mat_m)
             mat_obj.use_fake_user = True
     cm.mat_obj_random = bpy.data.objects.get(mat_obj_names[0])
     cm.mat_obj_abs = bpy.data.objects.get(mat_obj_names[1])
