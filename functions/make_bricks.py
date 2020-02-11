@@ -269,7 +269,10 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
         name = "Bricker_%(n)s_bricks" % locals()
         if frame_num is not None:
             name = "%(name)s_f_%(frame_num)s" % locals()
+        old_mesh = bpy.data.meshes.get(name)
         m = bpy.data.meshes.new(name)
+        if old_mesh and old_mesh.users > 0:
+            old_mesh.user_remap(m)
         all_meshes.to_mesh(m)
         all_bricks_obj = bpy.data.objects.get(name)
         if all_bricks_obj:
