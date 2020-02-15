@@ -54,7 +54,7 @@ def clear_pixel_cache(image_name=None):
                 common_pixel_cache.pop(key)
 
 
-def get_pixels_at_frame(image, frame=None):
+def get_pixels_at_frame(image, frame=None, cyclic=True):
     assert image.source in ("SEQUENCE", "MOVIE")
     frame = frame or bpy.context.scene.frame_current
     old_viewer_area = ""
@@ -73,9 +73,12 @@ def get_pixels_at_frame(image, frame=None):
 
     old_image = viewer_space.image
     viewer_space.image = image
-    viewer_space.image_user.frame_offset = frame - bpy.context.scene.frame_current
-    if viewer_space.image_user.frame_duration != image.frame_duration:
+    viewer_space.image_user.frame_offset = (frame - bpy.context.scene.frame_current) % image.frame_duration
+    viewer_space.image_user.cyclic = cyclic
+    if image.source == "MOVIE" and viewer_space.image_user.frame_duration != image.frame_duration:
         viewer_space.image_user.frame_duration = image.frame_duration
+    elif image.source == "SEQUENCE":
+        viewer_space.image_user.frame_duration = frame + 1
     viewer_space.display_channels = "COLOR"  # force refresh of image pixels
     pixels = list(viewer_space.image.pixels)
 
@@ -101,13 +104,13 @@ def get_pixel(image, uv_coord, premult=False, pixels=None):
     rgba = pixels[pixel_number:pixel_number + image.channels]
     # premultiply
     if premult and image.alpha_mode != "PREMUL":
-        rgba = list(Vector(rgba[:3]) * rgba[3]) + [rgba[3]]
-    # undo premultiplying
+        rgba = [v * rgba[3] for v in rgba[:3]] + [rgba[3]]
+    # un-premultiply
     elif not premult and image.alpha_mode == "PREMUL":
         if rgba[3] == 0:
             rgba = [0] * 4
         else:
-            rgba = list(Vector(rgba[:3]) / rgba[3]) + [rgba[3]]
+            rgba = [v / rgba[3] for v in rgba[:3]] + [rgba[3]]
     return rgba
 
 
@@ -128,12 +131,13 @@ def get_uv_pixel_color(scn, obj, face_idx, point, uv_image=None):
     # gamma correct color value
     if image.colorspace_settings.name == "sRGB":
         rgba = gamma_correct_srgb_to_linear(rgba)
-    return rgba
+    return [round(v, 6) for v in rgba]
 
 
 def get_uv_image(scn, obj, face_idx, uv_image=None):
     """ returns UV image for object (priority to passed image, then face index, then first one found in material nodes) """
     image = verify_img(uv_image)
+    print(1, image)
     # TODO: Reinstate this functionality for b280()
     if not b280() and image is None and obj.data.uv_textures.active:
         image = verify_img(obj.data.uv_textures.active.data[face_idx].image)
@@ -194,7 +198,7 @@ def get_uv_coord(mesh, face, point, image):
     uv_loc = sum((p*w for p,w in zip(luv,lwts)), Vector((0,0)))
     # ensure uv_loc is in range(0,1)
     # TODO: possibly approach this differently? currently, uv coords are wrapped with modulo
-    uv_loc = Vector((uv_loc[0] % 1, uv_loc[1] % 1))
+    uv_loc = Vector((round(uv_loc[0], 5) % 1, round(uv_loc[1], 5) % 1))
     # convert uv_loc in range(0,1) to uv coordinate
     image_size_x, image_size_y = image.size
     x_co = round(uv_loc.x * (image_size_x - 1))

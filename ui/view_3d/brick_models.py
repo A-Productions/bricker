@@ -200,7 +200,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                             col.label(text="be lost.")
                 else:
                     row = col1.row(align=True)
-                    row.operator("bricker.delete_model", text="Stop Brickifying" if cm.brickifying_in_background and cm.frames_to_animate > 0 else "Delete Brick Animation", icon="CANCEL")
+                    row.operator("bricker.delete_model", text="Stop Brickifying" if cm.brickifying_in_background and cm.frames_to_animate > 0 else "Delete Brick Model", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
                     if cm.brickifying_in_background:

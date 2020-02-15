@@ -23,7 +23,8 @@ import bpy
 from mathutils import Matrix, Vector
 
 # Module imports
-# NONE!
+from .maths import *
+from .reporting import *
 
 
 def clear_existing_materials(obj, from_idx=0, from_data=False):
@@ -87,7 +88,7 @@ def get_material_color(mat_name):
             intensity = mat.diffuse_intensity
             r, g, b = Vector((mat.diffuse_color)) * intensity
             a = mat.alpha if mat.use_transparency else 1.0
-    return [r, g, b, a]
+    return [round(v, 5) for v in [r, g, b, a]]
 
 
 def get_first_bsdf_node(mat, types:list=None):

@@ -51,13 +51,11 @@ def get_preferences(ctx=None):
 
 def get_addon_preferences():
     """ get preferences for current addon """
-    if not hasattr(get_addon_preferences, "prefs"):
-        folderpath, foldername = os.path.split(get_addon_directory())
-        addons = get_preferences().addons
-        if not addons[foldername].preferences:
-            return None
-        get_addon_preferences.prefs = addons[foldername].preferences
-    return get_addon_preferences.prefs
+    folderpath, foldername = os.path.split(get_addon_directory())
+    addons = get_preferences().addons
+    if not addons[foldername].preferences:
+        return None
+    return addons[foldername].preferences
 
 
 def get_addon_directory():
@@ -341,8 +339,16 @@ def new_mesh_from_object(obj:Object):
     return bpy.data.meshes.new_from_object(bpy.context.scene, obj, apply_modifiers=True, settings="PREVIEW")
 @blender_version_wrapper(">=", "2.80")
 def new_mesh_from_object(obj:Object):
-    depsgraph = bpy.context.view_layer.depsgraph
+    unlink_later = False
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    # link the object if it's not in the scene, because otherwise the evaluated data may be outdated (e.g. after file is reopened)
+    if obj.name not in bpy.context.scene.objects:
+        link_object(obj)
+        depsgraph_update()
+        unlink_later = True
     obj_eval = obj.evaluated_get(depsgraph)
+    if unlink_later:
+        unlink_object(obj)
     return bpy.data.meshes.new_from_object(obj_eval)
 
 
@@ -581,11 +587,13 @@ def active_render_engine():
 
 
 @blender_version_wrapper("<=","2.79")
-def depsgraph_update():
-    bpy.context.scene.update()
+def depsgraph_update(scene=None):
+    scene = scene or bpy.context.scene
+    scene.update()
 @blender_version_wrapper(">=","2.80")
-def depsgraph_update():
-    bpy.context.view_layer.depsgraph.update()
+def depsgraph_update(depsgraph=None):
+    depsgraph = depsgraph or bpy.context.evaluated_depsgraph_get()
+    depsgraph.update()
 
 
 @blender_version_wrapper("<=","2.79")
@@ -655,13 +663,21 @@ def set_cursor_location(loc:tuple):
     bpy.context.scene.cursor.location = loc
 
 
-def mouse_in_view3d_window(event):
+def mouse_in_view3d_window(event, include_tools_panel=False, include_ui_panel=False, include_header=False):
     regions = dict()
     for region in bpy.context.area.regions:
         regions[region.type] = region
-    mouse_pos = Vector((event.mouse_x, event.mouse_y))
-    window_dimensions = Vector((regions["WINDOW"].width - regions["UI"].width, regions["WINDOW"].height - regions["HEADER"].height))
-    return regions["TOOLS"].width < mouse_pos.x < window_dimensions.x and mouse_pos.y < window_dimensions.y
+    min_x = 0 if include_tools_panel else regions["TOOLS"].width
+    min_y = 0 if regions["HEADER"].alignment == "TOP" or include_header else regions["HEADER"].height
+    mouse_region_pos = Vector((event.mouse_x, event.mouse_y)) - Vector((regions["WINDOW"].x, regions["WINDOW"].y))
+    window_dimensions = Vector((regions["WINDOW"].width, regions["WINDOW"].height))
+    if not include_tools_panel:
+        window_dimensions.x -= regions["TOOLS"].width
+    if not include_ui_panel:
+        window_dimensions.x -= regions["UI"].width
+    if not include_header:
+        window_dimensions.y -= regions["HEADER"].height
+    return min_x < mouse_region_pos.x < window_dimensions.x and min_y < mouse_region_pos.y < window_dimensions.y
 
 
 @blender_version_wrapper("<=","2.79")
