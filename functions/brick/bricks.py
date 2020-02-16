@@ -151,6 +151,9 @@ def get_brick_dimensions(height=1, z_scale=1, gap_percentage=0.5):
     dimensions["stud_height"] = scale * 1.8
     dimensions["stud_radius"] = scale * 2.4
     dimensions["thickness"] = scale * 1.6
+    dimensions["stud_z_thickness"] = scale * 0.2
+    dimensions["stud_cutout_height"] = dimensions["stud_height"] - dimensions["stud_z_thickness"]
+    dimensions["stud_cutout_radius"] = scale * 1.2
     dimensions["tube_thickness"] = scale * 0.855
     dimensions["support_width"] = scale * 0.8
     dimensions["support_height"] = dimensions["height"] * 0.65

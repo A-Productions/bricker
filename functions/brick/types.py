@@ -63,4 +63,4 @@ def get_brick_type(model_brick_type):
 
 
 def get_round_brick_types():
-    return ("CYLINDER", "CONE", "STUD", "STUD_HOLLOW")
+    return ("CYLINDER", "CONE", "STUD", "STUD_HOLLOW", "STUD_TILE")

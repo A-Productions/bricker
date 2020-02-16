@@ -256,6 +256,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
             # ("SLOPES", "Slopes (fast)", description, 6),
             ("STUDS", "Studs", description, 7),
             ("STUD_HOLLOWS", "Hollow Studs", description, 8),
+            ("STUD_TILES", "Round 1x1 Tiles", description, 9),
         ],
         update=update_brick_type,
         default="BRICKS",

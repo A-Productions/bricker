@@ -209,13 +209,13 @@ def make_slope(dimensions:dict, brick_size:list, brick_type:str, direction:str=N
 
         # add supports
         add_supports(dimensions, height, adjusted_brick_size, brick_type, circle_verts, "SLOPE", detail, d, scalar, thick, bme, add_beams=False, hollow=brick_size[:2] not in ([1, 2], [2, 1]))
-        # add inner cylinders
+        # add stud cutouts
         if detail == "HIGH":
             edge_xp = [v34 if add_block_supports else v25, v31 if add_block_supports else v24]
             edge_xn = [v26, v23]
             edge_yp = [v34 if add_block_supports else v25, v26]
             edge_yn = [v31 if add_block_supports else v24, v23]
-            add_inner_cylinders(dimensions, [1] + adjusted_brick_size[1:], circle_verts, d, edge_xp, edge_xn, edge_yp, edge_yn, bme)
+            add_stud_cutouts(dimensions, [1] + adjusted_brick_size[1:], circle_verts, d, edge_xp, edge_xn, edge_yp, edge_yn, bme)
 
 
     # translate slope to adjust for flipped brick

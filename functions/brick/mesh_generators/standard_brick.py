@@ -95,9 +95,9 @@ def make_standard_brick(dimensions:dict, brick_size:list, type:str, brick_type:s
         # add supports
         if max(brick_size[:2]) > 1:
             add_supports(dimensions, height, brick_size, brick_type, circle_verts, type, detail, d, scalar, thick, bme, add_beams=detail == "HIGH")
-        # add small inner cylinders inside brick
+        # add stud cutouts
         if detail == "HIGH":
-            add_inner_cylinders(dimensions, brick_size, circle_verts, d, edge_xp, edge_xn, edge_yp, edge_yn, bme)
+            add_stud_cutouts(dimensions, brick_size, circle_verts, d, edge_xp, edge_xn, edge_yp, edge_yn, bme)
 
     # transform final mesh
     gap = Vector([dimensions["gap"]] * 2)

@@ -117,7 +117,7 @@ def make_inverted_slope(dimensions:dict, brick_size:list, brick_type:str, direct
         else:
             v17, v20 = v6, v7
 
-        add_studs(dimensions, height, [1, adjusted_brick_size[1], adjusted_brick_size[2]], brick_type, circle_verts, bme, edge_xp=[v20, v17], edge_xn=[v8, v5], edge_yp=[v20, v8], edge_yn=[v17, v5], hollow=False)
+        add_studs(dimensions, height, [1, adjusted_brick_size[1], adjusted_brick_size[2]], brick_type, circle_verts, bme, edge_xp=[v20, v17], edge_xn=[v8, v5], edge_yp=[v20, v8], edge_yn=[v17, v5])
         pass
 
     # add details underneath
@@ -144,9 +144,9 @@ def make_inverted_slope(dimensions:dict, brick_size:list, brick_type:str, direct
         if detail == "HIGH" and min(adjusted_brick_size[:2]) == 2:
             add_oblong_supports(dimensions, height, circle_verts, "SLOPE_INVERTED", detail, d, scalar, thick, bme) # [v27] + bottom_verts + [v26], [v28, v25], [v27, v28], [v26, v25], bme)
 
-        # add small inner cylinders inside brick
+        # add stud cutouts
         if detail == "HIGH":
-            add_inner_cylinders(dimensions, [1, min(adjusted_brick_size[:2]), adjusted_brick_size[2]], circle_verts, d, [v27] + bottom_verts + [v26], [v28, v25], [v27, v28], [v26, v25], bme)
+            add_stud_cutouts(dimensions, [1, min(adjusted_brick_size[:2]), adjusted_brick_size[2]], circle_verts, d, [v27] + bottom_verts + [v26], [v28, v25], [v27, v28], [v26, v25], bme)
 
         # add half-cylinder insets on slope underside
         if detail == "HIGH" and max(adjusted_brick_size[:2]) == 3:

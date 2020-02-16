@@ -245,16 +245,16 @@ def cut_verts(dimensions, height, brick_size, verts, d, scalar, thick, bme):
         v.co.z = fac * min_z + (1-fac) * v.co.z
 
 
-def add_inner_cylinders(dimensions, brick_size, circle_verts, d, edge_xp, edge_xn, edge_yp, edge_yn, bme):
+def add_stud_cutouts(dimensions, brick_size, circle_verts, d, edge_xp, edge_xn, edge_yp, edge_yn, bme):
     thick_z = dimensions["thickness"]
     # make small cylinders
     bov_verts_d_of_ds = {}
-    r = dimensions["stud_radius"]-(2 * thick_z)
+    r = dimensions["stud_cutout_radius"]
     N = circle_verts
-    h = thick_z * 0.99
+    h = dimensions["stud_cutout_height"]
     for x_num in range(brick_size[0]):
         for y_num in range(brick_size[1]):
-            bme, inner_cylinder_verts = make_cylinder(r, h, N, co=Vector((x_num * d.x * 2, y_num * d.y * 2, d.z - thick_z + h / 2)), bot_face=False, flip_normals=True, bme=bme)
+            bme, inner_cylinder_verts = make_cylinder(-r, h, N, co=Vector((x_num * d.x * 2, y_num * d.y * 2, d.z - thick_z + h / 2)), bot_face=False, flip_normals=True, bme=bme)
             bov_verts_d = create_vert_list_dict(inner_cylinder_verts["bottom"])
             bov_verts_d_of_ds["%(x_num)s,%(y_num)s" % locals()] = bov_verts_d
     connect_circles_to_square(dimensions, brick_size, circle_verts, edge_xp, edge_xn, edge_yp, edge_yn, bov_verts_d_of_ds, x_num, y_num, bme)

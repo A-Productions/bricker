@@ -739,13 +739,13 @@ def new_window(area_type, width=640, height=480):
         "resolution_x": render.resolution_x,
         "resolution_y": render.resolution_y,
         "resolution_percentage": render.resolution_percentage,
-        "display_mode": prefs.view.render_display_type if bpy.app.version[1] > 80 else render.display_mode,
+        "display_mode": prefs.view.render_display_type if bpy.app.version[:2] > (2, 80) else render.display_mode,
     }
 
     render.resolution_x = width
     render.resolution_y = height
     render.resolution_percentage = 100
-    if bpy.app.version[1] > 80:
+    if bpy.app.version[:2] > (2, 80):
         prefs.view.render_display_type = "WINDOW"
     else:
         render.display_mode = "WINDOW"
@@ -761,7 +761,7 @@ def new_window(area_type, width=640, height=480):
     render.resolution_x = orig_settings["resolution_x"]
     render.resolution_y = orig_settings["resolution_y"]
     render.resolution_percentage = orig_settings["resolution_percentage"]
-    if bpy.app.version[1] > 80:
+    if bpy.app.version[:2] > (2, 80):
         prefs.view.render_display_type = orig_settings["display_mode"]
     else:
         render.display_mode = orig_settings["display_mode"]

@@ -33,7 +33,7 @@ common_pixel_cache = dict()
 
 
 def get_pixels(image, frame_offset=0):
-    """ get pixels from image (cached by image name; make copy of result if modifying) """
+    """ get pixels from image (cached by image name (and frame if movie/sequence); make copy of result if modifying) """
     scn = bpy.context.scene
     frame = scn.frame_current + frame_offset
     image_key = image.name if image.source == "FILE" else ("{im_name}_f_{frame}".format(im_name=image.name, frame=frame))
@@ -73,7 +73,7 @@ def get_pixels_at_frame(image, frame=None, cyclic=True):
 
     old_image = viewer_space.image
     viewer_space.image = image
-    viewer_space.image_user.frame_offset = (frame - bpy.context.scene.frame_current) % image.frame_duration
+    viewer_space.image_user.frame_offset = frame - (bpy.context.scene.frame_current % image.frame_duration)
     viewer_space.image_user.cyclic = cyclic
     if image.source == "MOVIE" and viewer_space.image_user.frame_duration != image.frame_duration:
         viewer_space.image_user.frame_duration = image.frame_duration
@@ -163,7 +163,9 @@ def get_first_img_from_nodes(obj, mat_slot_idx):
     if active_node is not None: nodes_to_check.insert(0, active_node)
     img = None
     for node in nodes_to_check:
-        if node.type != "TEX_IMAGE":
+        if node.type != "TEX_IMAGE" or node.mute:
+            continue
+        elif len([o for o in node.outputs if o.is_linked]) == 0:
             continue
         img = verify_img(node.image)
         if img is not None:
