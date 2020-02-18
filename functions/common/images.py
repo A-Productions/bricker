@@ -137,7 +137,6 @@ def get_uv_pixel_color(scn, obj, face_idx, point, uv_image=None):
 def get_uv_image(scn, obj, face_idx, uv_image=None):
     """ returns UV image for object (priority to passed image, then face index, then first one found in material nodes) """
     image = verify_img(uv_image)
-    print(1, image)
     # TODO: Reinstate this functionality for b280()
     if not b280() and image is None and obj.data.uv_textures.active:
         image = verify_img(obj.data.uv_textures.active.data[face_idx].image)
@@ -175,6 +174,13 @@ def get_first_img_from_nodes(obj, mat_slot_idx):
 
 def verify_img(im):
     """ verify image has pixel data """
+    if not im:
+        return None
+    if not im.has_data:
+        try:
+            im.update()
+        except RuntimeError:
+            pass
     return im if im is not None and im.pixels is not None and len(im.pixels) > 0 else None
 
 

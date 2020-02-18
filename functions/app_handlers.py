@@ -40,7 +40,8 @@ def bricker_running_blocking_op():
 
 
 @persistent
-def handle_animation(scn, depsgraph):
+def handle_animation(scn, depsgraph=None):
+    # THINK TWICE before editing this app handler... may break support for ConciergeRender
     if bricker_running_blocking_op():
         return
     for i, cm in enumerate(scn.cmlist):
@@ -55,16 +56,17 @@ def handle_animation(scn, depsgraph):
                 continue
             adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
             on_cur_f = adjusted_frame_current == cf
+            # set active obj
+            active_obj = bpy.context.active_object if hasattr(bpy.context, "active_object") else None
             if b280():
                 # hide bricks from view and render unless on current frame
                 if cur_bricks_coll.hide_render == on_cur_f:
                     cur_bricks_coll.hide_render = not on_cur_f
                 if cur_bricks_coll.hide_viewport == on_cur_f:
                     cur_bricks_coll.hide_viewport = not on_cur_f
-                if hasattr(bpy.context, "active_object"):
-                    obj = bpy.context.active_object
-                    if obj and obj.name.startswith("Bricker_%(n)s_bricks" % locals()) and on_cur_f:
-                        select(cur_bricks_coll.objects, active=True)
+                # select bricks if last frame was selected/active
+                if active_obj and active_obj.name.startswith("Bricker_%(n)s_bricks" % locals()) and on_cur_f:
+                    select(cur_bricks_coll.objects, active=True)
             else:
                 for brick in cur_bricks_coll.objects:
                     # hide bricks from view and render unless on current frame
@@ -72,7 +74,8 @@ def handle_animation(scn, depsgraph):
                         unhide(brick)
                     else:
                         hide(brick)
-                    if hasattr(bpy.context, "active_object") and bpy.context.active_object and bpy.context.active_object.name.startswith("Bricker_%(n)s_bricks" % locals()) and on_cur_f:
+                    # select bricks if last frame was selected/active
+                    if active_obj and active_obj.name.startswith("Bricker_%(n)s_bricks" % locals()) and on_cur_f:
                         select(brick, active=True)
                     # prevent bricks from being selected on frame change
                     else:

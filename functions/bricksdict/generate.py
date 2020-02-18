@@ -266,9 +266,9 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
         wm = bpy.context.window_manager
         wm.progress_begin(0, 100)
 
-    def printCurStatus(percentStart, num0, denom0, lastPercent):
+    def print_cur_status(percentStart, num0, denom0, lastPercent):
         # print status to terminal
-        percent = percentStart + (len(brick_freq_matrix)/denom * (num0/(denom0-1))) / 100
+        percent = percentStart + (len(brick_freq_matrix) / denom * (num0 / (denom0 - 1))) / 100
         update_progress_bars(print_status, cursor_status, percent, 0, "Shell")
         return percent
 
@@ -279,7 +279,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
         x_mini_dist = Vector((0.00015, 0.0, 0.0))
         for z in range(z_L):
             # print status to terminal
-            percent0 = printCurStatus(0, z, z_L, percent0)
+            percent0 = print_cur_status(0, z, z_L, percent0)
             for y in range(y_L):
                 next_intersection_loc = None
                 i = 0
@@ -302,7 +302,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
         y_mini_dist = Vector((0.0, 0.00015, 0.0))
         for z in range(z_L):
             # print status to terminal
-            percent1 = printCurStatus(percent0, z, z_L, percent1)
+            percent1 = print_cur_status(percent0, z, z_L, percent1)
             for x in range(x_L):
                 next_intersection_loc = None
                 i = 0
@@ -327,7 +327,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
         z_mini_dist = Vector((0.0, 0.0, 0.00015))
         for x in range(x_L):
             # print status to terminal
-            percent2 = printCurStatus(percent1, x, x_L, percent2)
+            percent2 = print_cur_status(percent1, x, x_L, percent2)
             for y in range(y_L):
                 next_intersection_loc = None
                 i = 0
@@ -507,10 +507,6 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
                     brick_freq_matrix[x][y][z] = None
                 # get shell values for next calc
                 elif calc_internals and brick_freq_matrix[x][y][z] == 1:
-                    if x == 0 or y == 0 or z == 0:
-                        continue
-                    if x == x_L - 1 or y == y_L - 1 or z == z_L - 1:
-                        continue
                     all_shell_vals.append((x, y, z))
 
     if not calc_internals:
@@ -518,14 +514,21 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
 
     # iterate through all shell values
     for x, y, z in all_shell_vals:
-        # If shell location (1) does not intersect outside/trashed location (0, None), make it inside (-1)
+        # If shell location (1) does not intersect outside/trashed/nonexistent location (0, None), make it inside (-1)
         if brick_freq_matrix[x][y][z] == 1:
-            if all((brick_freq_matrix[x+1][y][z],
+            try:
+                surrounded = all((
+                    brick_freq_matrix[x+1][y][z],
                     brick_freq_matrix[x-1][y][z],
                     brick_freq_matrix[x][y+1][z],
                     brick_freq_matrix[x][y-1][z],
                     brick_freq_matrix[x][y][z+1],
-                    brick_freq_matrix[x][y][z-1])):
+                    brick_freq_matrix[x][y][z-1],
+                ))
+            except IndexError:
+                # in this case, an adjacent loc is nonexistent, therefore the current loc cannot be surrounded
+                surrounded = False
+            if surrounded:
                 brick_freq_matrix[x][y][z] = -1
             else:
                 shell_vals.append((x, y, z))
@@ -548,12 +551,7 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
                 (x, y-1, z),
                 (x, y, z+1),
                 (x, y, z-1))
-            # print("*** " + str((x, y, z)) + " ***")
             for idx in idxs_to_check:
-                # print("*"*25)
-                # print(str(idx))
-                # print(str(len(brick_freq_matrix)), str(len(brick_freq_matrix[0])), str(len(brick_freq_matrix[0][0])))
-                # print("*"*25)
                 try:
                     cur_val = brick_freq_matrix[idx[0]][idx[1]][idx[2]]
                 except IndexError:

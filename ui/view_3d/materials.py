@@ -97,7 +97,7 @@ class VIEW3D_PT_bricker_materials(Panel):
                 row.prop(cm, "mat_shell_depth")
                 if cm.model_created:
                     row = col.row(align=True)
-                    if cm.mat_shell_depth <= cm.last_mat_shell_depth:
+                    if cm.mat_shell_depth <= cm.last_mat_shell_depth and cm.last_split_model:
                         row.operator("bricker.apply_material", icon="FILE_TICK")
                     else:
                         row.label(text="Run 'Update Model' to apply changes")
@@ -287,3 +287,6 @@ class VIEW3D_PT_bricker_material_properties(Panel):
             col = layout.column(align=True)
             col.prop(cm, "color_snap_sss")
             col.prop(cm, "color_snap_displacement")
+            col = layout.column(align=True)
+            right_align(col)
+            col.prop(cm, "include_transparency")

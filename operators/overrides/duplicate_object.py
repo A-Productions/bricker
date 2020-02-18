@@ -75,11 +75,12 @@ class OBJECT_OT_duplicate_override(bpy.types.Operator):
             elif obj0.is_brickified_object:
                 obj0.is_brickified_object = False
                 cm = get_item_by_id(scn.cmlist, obj0.cmlist_id)
-                n = get_source_name(cm)
-                obj0.name = "%(n)s_bricks" % locals()
-                obj0.lock_location = lock_bools
-                obj0.lock_rotation = lock_bools
-                obj0.lock_scale    = lock_bools
+                if cm is not None:
+                    n = get_source_name(cm)
+                    obj0.name = "%(n)s_bricks" % locals()
+                    obj0.lock_location = lock_bools
+                    obj0.lock_rotation = lock_bools
+                    obj0.lock_scale    = lock_bools
             obj0.cmlist_id = -1
             new_bricker_objs.append(obj0)
         if len(new_bricker_objs) > 0:

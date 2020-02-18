@@ -771,7 +771,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     blender_undo_state = IntProperty(default=0)
 
     # Back-End UI Properties
-    active_key = IntVectorProperty(default=(-1,-1,-1))
+    active_key = IntVectorProperty(subtype="XYZ", default=(-1,-1,-1))
 
     # Internal Model Properties
     model_created = BoolProperty(default=False)

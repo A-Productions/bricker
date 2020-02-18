@@ -162,6 +162,14 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         return {"PASS_THROUGH"}
 
     def execute(self, context):
+        # # NOTE: Temporary workaround for blender bug: https://developer.blender.org/T73761
+        # for im in bpy.data.images:
+        #     try:
+        #         print(1, im.has_data)
+        #         im.update()
+        #         print(2, im.has_data)
+        #     except RuntimeError:
+        #         pass
         scn, cm, _ = get_active_context_info()
         wm = bpy.context.window_manager
         wm.bricker_running_blocking_operation = True

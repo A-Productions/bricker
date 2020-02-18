@@ -46,11 +46,9 @@ def clear_cache(cm, brick_mesh=True, light_matrix=True, deep_matrix=True, rgba_v
     # remove caches of source model from data
     if dupes:
         if cm.model_created:
-            print(bpy.data.objects.get("Bricker_%(n)s__dup__"))
             delete(bpy.data.objects.get("Bricker_%(n)s__dup__"), remove_meshes=True)
         elif cm.animated:
             for cf in range(cm.last_start_frame, cm.last_stop_frame):
-                print(bpy.data.objects.get("Bricker_%(n)s_f_%(cf)s"))
                 delete(bpy.data.objects.get("Bricker_%(n)s_f_%(cf)s"), remove_meshes=True)
 
 def clear_caches(brick_mesh=True, light_matrix=True, deep_matrix=True, images=True, dupes=True):
