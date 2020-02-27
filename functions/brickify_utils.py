@@ -57,7 +57,7 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame, updated_fram
         elif mod.type in ("CLOTH", "SOFT_BODY"):
             soft_body = True
             point_cache = mod.point_cache
-        elif mod.type == "SMOKE":
+        elif is_smoke_domain(mod):
             smoke = True
             point_cache = mod.domain_settings.point_cache
 
@@ -163,6 +163,9 @@ def should_brickify_in_background(cm, r, action):
         return brickify_in_background == "ON"
     matrix_dirty = matrix_really_is_dirty(cm)
     source = cm.source_obj
+    # due to mantaflow issue, force local if is_smoke
+    if is_smoke(cm.source_obj):
+        return False
     # return False if model is simple enough to run in active session
     return (
                 (   # model resolution
