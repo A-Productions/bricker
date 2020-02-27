@@ -537,7 +537,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="Choose logo type to draw on brick studs",
         items=[
             ("NONE", "None", "Don't include Brick Logo on bricks", 0),
-            ("LEGO", "LEGO Logo", "Include a LEGO logo on each stud", 1),
+            # ("LEGO", "LEGO Logo", "Include a LEGO logo on each stud", 1),
             ("CUSTOM", "Custom Logo", "Choose a mesh object to use as the brick stud logo", 2),
         ],
         update=dirty_bricks,
