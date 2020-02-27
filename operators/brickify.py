@@ -736,9 +736,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if source.rigid_body is not None and source.rigid_body.type == "ACTIVE":
                 self.report({"WARNING"}, "First bake rigid body transformations to keyframes (SPACEBAR > Bake To Keyframes).")
                 return False
-            # alert user that Mantaflow Gas is not yet supported
-            if "Fluid" in source.modifiers and source.modifiers["Fluid"].domain_settings is not None and source.modifiers["Fluid"].domain_settings.domain_type == "GAS":
-                self.report({"WARNING"}, "Mantaflow Smoke & Fire simulations (introduced in Blender 2.82) not yet supported")
 
         if self.action in ("ANIMATE", "UPDATE_ANIM"):
             # verify start frame is less than stop frame
