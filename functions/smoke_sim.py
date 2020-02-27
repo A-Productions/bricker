@@ -31,7 +31,7 @@ def store_smoke_data(from_obj, to_obj):
     else:
         from_obj_eval = from_obj
     # store point cache for frame
-    domain_settings = next((mod.domain_settings for mod in from_obj_eval.modifiers if hasattr(mod, "smoke_type") and mod.smoke_type == "DOMAIN"), None)
+    domain_settings = next((mod.domain_settings for mod in from_obj_eval.modifiers if is_smoke_domain(mod)), None)
     adapt = domain_settings.use_adaptive_domain
     obj_details_adapt = bounds(from_obj) if adapt else None
     smoke_data = {
@@ -43,16 +43,17 @@ def store_smoke_data(from_obj, to_obj):
         "adapt_min": tuple(obj_details_adapt.min) if adapt else None,
         "adapt_max": tuple(obj_details_adapt.max) if adapt else None,
         "resolution_max": domain_settings.resolution_max,
-        "use_high_resolution": domain_settings.use_high_resolution,
-        "amplify": domain_settings.amplify,
     }
+    if bpy.app.version[:2] < (2, 82):
+        smoke_data["use_high_resolution"] = domain_settings.use_high_resolution
+        smoke_data["amplify"] = domain_settings.amplify
     to_obj.smoke_data = compress_str(json.dumps(smoke_data))
 
 
 # code adapted from https://github.com/bwrsandman/blender-addons/blob/master/render_povray/render.py
 def get_smoke_info(source):
     if not source.smoke_data:
-        return [None] * 6
+        return [None] * 8
 
     smoke_data = json.loads(decompress_str(source.smoke_data))
 
@@ -73,6 +74,6 @@ def get_smoke_info(source):
 
 
 def get_adjusted_res(smoke_data, smoke_res):
-    if smoke_data["use_high_resolution"]:
+    if bpy.app.version[:2] < (2, 82) and smoke_data["use_high_resolution"]:
         smoke_res = [int((smoke_data["amplify"] + 1) * i) for i in smoke_res]
     return smoke_res

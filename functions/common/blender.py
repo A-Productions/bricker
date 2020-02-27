@@ -25,7 +25,7 @@ import bmesh
 import mathutils
 from mathutils import Vector, Euler, Matrix
 from bpy_extras import view3d_utils
-from bpy.types import Object, Scene, Event
+from bpy.types import Object, Scene, Event, Modifier
 try:
     from bpy.types import ViewLayer, LayerCollection
 except ImportError:
@@ -368,12 +368,21 @@ def light_add(type:str="POINT", radius:float=1.0, align:str="WORLD", location:tu
     bpy.ops.object.light_add(type=type, radius=radius, align=align, location=location, rotation=rotation)
 
 
+def is_smoke_domain(mod:Modifier):
+    if bpy.app.version[:2] < (2, 82):
+        return mod.type == "SMOKE" and hasattr(mod, "smoke_type") and mod.smoke_type == "DOMAIN" and mod.domain_settings
+    else:
+        return mod.type == "FLUID"  and hasattr(mod, "fluid_type") and mod.fluid_type == "DOMAIN"and mod.domain_settings and mod.domain_settings.domain_type == "GAS"
+
+
 def is_smoke(ob:Object):
     """ check if object is smoke domain """
     if ob is None:
         return False
     for mod in ob.modifiers:
-        if mod.type == "SMOKE" and mod.domain_settings and mod.show_viewport:
+        if not mod.show_viewport:
+            continue
+        if is_smoke_domain(mod):
             return True
     return False
 

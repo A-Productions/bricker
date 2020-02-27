@@ -269,7 +269,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
     def print_cur_status(percentStart, num0, denom0, lastPercent):
         # print status to terminal
         percent = percentStart + (len(brick_freq_matrix) / denom * (num0 / (denom0 - 1))) / 100
-        update_progress_bars(print_status, cursor_status, percent, 0, "Shell")
+        update_progress_bars(percent, 0, "Shell", print_status, cursor_status)
         return percent
 
     percent0 = 0
@@ -349,7 +349,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
     adjust_bfm(brick_freq_matrix, mat_shell_depth=cm.mat_shell_depth, calc_internals=cm.calc_internals, face_idx_matrix=face_idx_matrix, axes=axes)
 
     # print status to terminal
-    update_progress_bars(print_status, cursor_status, 1, 0, "Shell", end=True)
+    update_progress_bars(1, 0, "Shell", print_status, cursor_status, end=True)
 
     return brick_freq_matrix
 
@@ -397,7 +397,7 @@ def get_brick_matrix_smoke(cm, source, face_idx_matrix, brick_shell, source_deta
     # set up brick_freq_matrix values
     for x in range(int(s_idx[0]), int(e_idx[0])):
         # print status to terminal
-        old_percent = update_progress_bars(print_status, cursor_status, x / denom, old_percent, "Shell")
+        old_percent = update_progress_bars(x / denom, old_percent, "Shell", print_status, cursor_status)
         for y in range(int(s_idx[1]), int(e_idx[1])):
             for z in range(int(s_idx[2]), int(e_idx[2])):
                 d_acc = 0
@@ -447,7 +447,7 @@ def get_brick_matrix_smoke(cm, source, face_idx_matrix, brick_shell, source_deta
     adjust_bfm(brick_freq_matrix, mat_shell_depth=cm.mat_shell_depth, calc_internals=cm.calc_internals, axes=False)
 
     # end progress bar
-    update_progress_bars(print_status, cursor_status, 1, 0, "Shell", end=True)
+    update_progress_bars(1, 0, "Shell", print_status, cursor_status, end=True)
 
     return brick_freq_matrix, color_matrix
 

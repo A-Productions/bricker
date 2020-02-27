@@ -149,7 +149,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
                 set_brick_type_for_slope(bricksdict, key, [key])
     else:
         # initialize progress bar around cursor
-        old_percent = update_progress_bars(print_status, cursor_status, 0.0, -1, "Merging")
+        old_percent = update_progress_bars(0.0, -1, "Merging", print_status, cursor_status)
         # run merge operations (twice if flat brick type)
         for time_through in range(num_iters):
             # iterate through z locations in bricksdict (bottom to top)
@@ -205,7 +205,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
 
                         # print status to terminal and cursor
                         cur_percent = (i / denom)
-                        old_percent = update_progress_bars(print_status, cursor_status, cur_percent, old_percent, "Merging")
+                        old_percent = update_progress_bars(cur_percent, old_percent, "Merging", print_status, cursor_status)
 
                         # remove keys in new brick from available_keys (for attempt_merge)
                         for k in keys_in_brick:
@@ -236,10 +236,10 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
             update_brick_sizes_and_types_used(cm, brick_size_str, bricksdict[key]["type"])
 
         # end 'Merging' progress bar
-        update_progress_bars(print_status, cursor_status, 1, 0, "Merging", end=True)
+        update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
 
     # begin 'Building' progress bar
-    old_percent = update_progress_bars(print_status, cursor_status, 0.0, -1, "Building")
+    old_percent = update_progress_bars(0.0, -1, "Building", print_status, cursor_status)
 
     # draw merged bricks
     seed_keys = sorted_keys if material_type == "RANDOM" else None
@@ -253,10 +253,10 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
             # create brick based on the current brick info
             draw_brick(cm_id, bricksdict, k2, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, bricksdict[k2]["size"], brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_method, rand_s1, rand_s2, rand_s3)
             # print status to terminal and cursor
-            old_percent = update_progress_bars(print_status, cursor_status, i/denom, old_percent, "Building")
+            old_percent = update_progress_bars(i / denom, old_percent, "Building", print_status, cursor_status)
 
     # end progress bars
-    update_progress_bars(print_status, cursor_status, 1, 0, "Building", end=True)
+    update_progress_bars(1, 0, "Building", print_status, cursor_status, end=True)
 
     # remove duplicate of original logo
     if logo_type != "LEGO" and logo is not None:
