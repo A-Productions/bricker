@@ -44,6 +44,11 @@ class BRICKER_OT_brickify_in_background(bpy.types.Operator):
     ################################################
     # Blender Operator methods
 
+    @classmethod
+    def poll(self, context):
+        scn = bpy.context.scene
+        return bpy.props.bricker_initialized and scn.cmlist_index != -1
+
     def execute(self, context):
         # get active context info
         scn, cm, n = get_active_context_info()
@@ -79,6 +84,11 @@ class BRICKER_OT_stop_brickifying_in_background(bpy.types.Operator):
 
     ################################################
     # Blender Operator methods
+
+    @classmethod
+    def poll(self, context):
+        scn = bpy.context.scene
+        return bpy.props.bricker_initialized and scn.cmlist_index != -1
 
     def execute(self, context):
         scn, cm, n = get_active_context_info()

@@ -75,12 +75,14 @@ class CMLIST_OT_list_action(Operator):
     # class variables
 
     action = EnumProperty(
+        name="Action",
         items=(
             ("UP", "Up", ""),
             ("DOWN", "Down", ""),
             ("REMOVE", "Remove", ""),
             ("ADD", "Add", ""),
-        )
+        ),
+        default="ADD",
     )
 
     #############################################

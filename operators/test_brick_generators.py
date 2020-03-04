@@ -31,6 +31,11 @@ class BRICKER_OT_test_brick_generators(bpy.types.Operator):
     bl_label = "Test Brick Generators"
     bl_options = {"REGISTER", "UNDO"}
 
+    @classmethod
+    def poll(self, context):
+        scn = bpy.context.scene
+        return bpy.props.bricker_initialized and scn.cmlist_index != -1
+
     def execute(self, context):
         try:
             test_brick_generators()

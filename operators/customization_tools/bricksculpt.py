@@ -51,9 +51,8 @@ class BRICKER_OT_bricksculpt(Operator, BricksculptFramework, BricksculptTools, B
 
     @classmethod
     def poll(self, context):
-        if not bpy.props.bricker_initialized:
-            return False
-        return True
+        scn = bpy.context.scene
+        return bpy.props.bricker_initialized and scn.cmlist_index != -1
 
     def execute(self, context):
         try:

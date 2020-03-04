@@ -38,7 +38,8 @@ class BRICKER_OT_select_bricks_by_type(Operator):
 
     @classmethod
     def poll(self, context):
-        return bpy.props.bricker_initialized
+        scn = bpy.context.scene
+        return bpy.props.bricker_initialized and scn.cmlist_index != -1
 
     def execute(self, context):
         try:
