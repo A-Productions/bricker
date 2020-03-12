@@ -55,14 +55,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
 
     # get brick collection
     coll_name = coll_name or "Bricker_%(n)s_bricks" % locals()
-    bcoll = bpy_collections().get(coll_name)
-    # create new collection if no existing collection found
-    if bcoll is None:
-        bcoll = bpy_collections().new(coll_name)
-    # else, replace existing collection
-    elif clear_existing_collection:
-        for obj0 in bcoll.objects:
-            bcoll.objects.unlink(obj0)
+    bcoll = get_brick_collection(coll_name, clear_existing_collection)
 
     # get bricksdict keys
     if keys == "ALL":

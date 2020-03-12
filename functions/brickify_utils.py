@@ -89,6 +89,7 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame, updated_fram
         source_dup = duplicate(source, link_to_scene=True)
         # source_dup.use_fake_user = True
         source_dup.name = source_dup_name
+        source_dup.stored_parents.clear()
         # remove modifiers and constraints
         for mod in source_dup.modifiers:
             source_dup.modifiers.remove(mod)
@@ -276,13 +277,18 @@ def create_new_bricks(source, parent, source_details, dimensions, action, split=
         bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent" % locals())
         point_cloud = bpy.data.meshes.new(instancer_name)
         point_cloud_obj = bpy.data.objects.new(instancer_name, point_cloud)
-        # add point cloud to new collection
-        coll = bpy_collections().new(model_name)
-        coll.objects.link(point_cloud_obj)
-        scn.collection.children.link(coll)
+        # get brick collection
+        bcoll = get_brick_collection(model_name, clear_existing_collection=True)
+        # add point cloud to collection
+        bcoll.objects.link(point_cloud_obj)
         # set point cloud location
-        coll.objects.link(parent)
         depsgraph_update()
+        if parent.name.endswith("10"):
+            print("***")
+            print(parent.visible_get())
+            print(point_cloud_obj.name)
+            print(parent.matrix_world.to_translation())
+            print("***")
         point_cloud_obj.location = source_details.mid - parent.matrix_world.to_translation()
         # initialize vars
         keys = list(bricksdict.keys())
@@ -307,9 +313,10 @@ def create_new_bricks(source, parent, source_details, dimensions, action, split=
                 # set vert
                 v = point_cloud.vertices[i]
                 v.co = brick_loc
-                v.normal.x = 1
-                v.normal.y = random_rot_angle[0]
-                v.normal.z = random_rot_angle[1]
+                if random_rot_angle:
+                    v.normal.x = 1
+                    v.normal.y = random_rot_angle[0]
+                    v.normal.z = random_rot_angle[1]
                 i += 1
         bricks_created = point_cloud_obj
         # set up point cloud as instancer
@@ -321,7 +328,7 @@ def create_new_bricks(source, parent, source_details, dimensions, action, split=
         brick = generate_brick_object(model_name)
         if cm.material_type == "CUSTOM":
             set_material(brick, cm.custom_mat)
-        coll.objects.link(brick)
+        bcoll.objects.link(brick)
         brick.parent = point_cloud_obj
         point_cloud_obj.parent = parent
     else:

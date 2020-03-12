@@ -83,7 +83,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         bricker_instancer = bpy.data.objects.get("Bricker_%(n)s_instancer%(obj_frames_str)s" % locals())
                         bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent%(obj_frames_str)s" % locals())
                         bricker_bricks_coll = bpy_collections()["Bricker_%(n)s_bricks%(obj_frames_str)s" % locals()]
-                        for brick in bricker_bricks_coll.objects:
+                        retrieved_bricks = [b for b in bricker_bricks_coll.objects if b.type == "MESH"]
+                        for brick in retrieved_bricks:
                             if bricker_instancer is not None:
                                 # brick.parent = bricker_instancer
                                 bricker_instancer.parent = bricker_parent
@@ -326,7 +327,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 obj.cmlist_id = cm.id
 
         # # set final variables
-        cm.lastlogo_type = cm.logo_type
+        cm.last_logo_type = cm.logo_type
         cm.last_split_model = cm.split_model
         cm.last_brick_type = cm.brick_type
         cm.last_legal_bricks_only = cm.legal_bricks_only
@@ -401,6 +402,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # duplicate source
             source_dup = duplicate(self.source, link_to_scene=True)
             source_dup.name = n + "__dup__"
+            source_dup.stored_parents.clear()
             if cm.use_local_orient:
                 source_dup.rotation_mode = "XYZ"
                 source_dup.rotation_euler = Euler((0, 0, 0))
@@ -440,6 +442,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             parent = get_new_parent(bricker_parent_on, parent_loc)
             cm.parent_name = parent.name
         cm.parent_obj = parent
+        children_clear(cm.parent_obj)  # clear children so they aren't sent to background processor
         parent["loc_diff"] = self.source.location - parent_loc
         self.created_objects.append(parent.name)
 
@@ -522,6 +525,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if self.parent0 is None:
             self.parent0 = get_new_parent(bricker_parent_on, self.source.location)
             cm.parent_obj = self.parent0
+        children_clear(cm.parent_obj)  # clear children so they aren't sent to background processor
         self.created_objects.append(self.parent0.name)
 
         # begin drawing status to cursor

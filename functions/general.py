@@ -386,3 +386,17 @@ def set_frame_visibility(cm, frame):
         [hide(obj) for obj in cur_bricks_coll.objects]
     else:
         [unhide(obj) for obj in cur_bricks_coll.objects]
+
+
+def get_brick_collection(model_name, clear_existing_collection=True):
+    """get existing or create new brick collection"""
+    bcoll = bpy_collections().get(model_name)
+    # create new collection if no existing collection found
+    if bcoll is None:
+        bcoll = bpy_collections().new(model_name)
+    # else, replace existing collection
+    elif clear_existing_collection:
+        for obj0 in bcoll.objects:
+            bcoll.objects.unlink(obj0)
+    cm = get_active_context_info()[1]
+    return bcoll
