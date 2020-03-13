@@ -282,13 +282,11 @@ def create_new_bricks(source, parent, source_details, dimensions, action, split=
         # add point cloud to collection
         bcoll.objects.link(point_cloud_obj)
         # set point cloud location
+        try:
+            link_object(parent)
+        except RuntimeError:
+            pass
         depsgraph_update()
-        if parent.name.endswith("10"):
-            print("***")
-            print(parent.visible_get())
-            print(point_cloud_obj.name)
-            print(parent.matrix_world.to_translation())
-            print("***")
         point_cloud_obj.location = source_details.mid - parent.matrix_world.to_translation()
         # initialize vars
         keys = list(bricksdict.keys())
