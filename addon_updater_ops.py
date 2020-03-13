@@ -599,9 +599,16 @@ ran_update_sucess_popup = False
 # global var for preventing successive calls
 ran_background_check = False
 
+# global handler pointer (2.80 vs 2.79)
+if bpy.app.version[:2] < (2, 80):
+	update_post_handler = bpy.app.handlers.scene_update_post
+else:
+	update_post_handler = bpy.app.handlers.depsgraph_update_post
+
 @persistent
 def updater_run_success_popup_handler(scene):
 	global ran_update_sucess_popup
+	global update_post_handler
 	ran_update_sucess_popup = True
 
 	# in case of error importing updater
@@ -609,8 +616,7 @@ def updater_run_success_popup_handler(scene):
 		return
 
 	try:
-		bpy.app.handlers.scene_update_post.remove(
-				updater_run_success_popup_handler)
+		update_post_handler.remove(updater_run_success_popup_handler)
 	except:
 		pass
 
@@ -621,6 +627,7 @@ def updater_run_success_popup_handler(scene):
 @persistent
 def updater_run_install_popup_handler(scene):
 	global ran_autocheck_install_popup
+	global update_post_handler
 	ran_autocheck_install_popup = True
 
 	# in case of error importing updater
@@ -628,8 +635,7 @@ def updater_run_install_popup_handler(scene):
 		return
 
 	try:
-		bpy.app.handlers.scene_update_post.remove(
-				updater_run_install_popup_handler)
+		update_post_handler.remove(updater_run_install_popup_handler)
 	except:
 		pass
 
@@ -658,6 +664,7 @@ def updater_run_install_popup_handler(scene):
 def background_update_callback(update_ready):
 	"""Passed into the updater, background thread updater"""
 	global ran_autocheck_install_popup
+	global update_post_handler
 
 	# in case of error importing updater
 	if updater.invalidupdater == True:
@@ -667,9 +674,9 @@ def background_update_callback(update_ready):
 	if update_ready != True:
 		return
 	if updater_run_install_popup_handler not in \
-				bpy.app.handlers.scene_update_post and \
+				update_post_handler and \
 				ran_autocheck_install_popup==False:
-		bpy.app.handlers.scene_update_post.append(
+		update_post_handler.append(
 				updater_run_install_popup_handler)
 		ran_autocheck_install_popup = True
 
@@ -694,7 +701,7 @@ def post_update_callback(module_name, res=None):
 		# ie if "auto_reload_post_update" == True, comment out this code
 		if updater.verbose:
 			print("{} updater: Running post update callback".format(updater.addon))
-		#bpy.app.handlers.scene_update_post.append(updater_run_success_popup_handler)
+		# update_post_handler.append(updater_run_success_popup_handler)
 
 		atr = addon_updater_updated_successful.bl_idname.split(".")
 		getattr(getattr(bpy.ops, atr[0]),atr[1])('INVOKE_DEFAULT')
@@ -792,6 +799,7 @@ def showReloadPopup():
 		return
 	saved_state = updater.json
 	global ran_update_sucess_popup
+	global update_post_handler
 
 	a = saved_state != None
 	b = "just_updated" in saved_state
@@ -803,11 +811,9 @@ def showReloadPopup():
 		# no handlers in this case
 		if updater.auto_reload_post_update == False: return
 
-		if updater_run_success_popup_handler not in \
-					bpy.app.handlers.scene_update_post \
+		if updater_run_success_popup_handler not in update_post_handler \
 					and ran_update_sucess_popup==False:
-			bpy.app.handlers.scene_update_post.append(
-					updater_run_success_popup_handler)
+			update_post_handler.append(updater_run_success_popup_handler)
 			ran_update_sucess_popup = True
 
 
