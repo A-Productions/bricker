@@ -122,7 +122,7 @@ def make_round_1x1(dimensions:dict, brick_type:str, circle_verts:int=None, type:
             v.co.z = z_loc
         # connect them to the inner-top lower tube verts
         connect_circles(lower_tube_verts["inner"]["top"], stud_verts["inner"]["bottom"][::-1], bme)
-    elif "TILE" in type:
+    elif "TILE" in type and detail != "FLAT":
         z_loc = dimensions["stud_z_thickness"]
         for v in lower_tube_verts["inner"]["top"]:
             v.co.z = z_loc
