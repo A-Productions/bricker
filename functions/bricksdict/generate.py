@@ -249,7 +249,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
     brick_freq_matrix = deepcopy(face_idx_matrix)
     axes = axes.lower()
     dist = coord_matrix[1][1][1] - coord_matrix[0][0][0]
-    high_efficiency = cm.insideness_ray_cast_dir in ("HIGH_EFFICIENCY", "XYZ")
+    casts_in_multiple_dirs = cm.insideness_ray_cast_dir in ("HIGH_EFFICIENCY", "XYZ")
     negative_inf = Vector((-inf, -inf, -inf))
     # runs update functions only once
     verify_exposure = cm.verify_exposure or brick_shell == "CONSISTENT"
@@ -277,7 +277,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
 
     percent0 = 0
     if "x" in axes:
-        max_x_val = 2 if longest_axis == "x" else inf
+        max_x_val = inf if verify_exposure and longest_axis != "x" else 2
         x_ray = coord_matrix[1][0][0] - coord_matrix[0][0][0]
         x_edge_len = x_ray.length
         x_mini_dist = Vector((0.00015, 0.0, 0.0))
@@ -289,7 +289,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
                 i = 0
                 for x in range(bfm_dim[0]):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
-                    if i >= (max_x_val if verify_exposure else 2) and high_efficiency and coord_matrix[x][y][z].x + dist.x + x_mini_dist.x < next_intersection_loc.x:
+                    if i >= max_x_val and casts_in_multiple_dirs and coord_matrix[x][y][z].x + dist.x + x_mini_dist.x < next_intersection_loc.x:
                         if brick_freq_matrix[x][y][z] == 0 or longest_axis == "x":
                             brick_freq_matrix[x][y][z] = val
                         if brick_freq_matrix[x][y][z] == val or longest_axis == "x":
@@ -303,7 +303,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
 
     percent1 = percent0
     if "y" in axes:
-        max_y_val = 2 if longest_axis == "y" else inf
+        max_y_val = inf if verify_exposure and longest_axis != "y" else 2
         y_ray = coord_matrix[0][1][0] - coord_matrix[0][0][0]
         y_edge_len = y_ray.length
         y_mini_dist = Vector((0.0, 0.00015, 0.0))
@@ -315,7 +315,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
                 i = 0
                 for y in range(bfm_dim[1]):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
-                    if i >= (max_y_val if verify_exposure else 2) and high_efficiency and coord_matrix[x][y][z].y + dist.y + y_mini_dist.y < next_intersection_loc.y:
+                    if i >= max_y_val and casts_in_multiple_dirs and coord_matrix[x][y][z].y + dist.y + y_mini_dist.y < next_intersection_loc.y:
                         if brick_freq_matrix[x][y][z] == 0 or longest_axis == "y":
                             brick_freq_matrix[x][y][z] = val
                         if brick_freq_matrix[x][y][z] == val or longest_axis == "y":
@@ -329,7 +329,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
 
     percent2 = percent1
     if "z" in axes:
-        max_z_val = 2 if longest_axis == "z" else inf
+        max_z_val = inf if verify_exposure and longest_axis != "z" else 2
         z_ray = coord_matrix[0][0][1] - coord_matrix[0][0][0]
         z_edge_len = z_ray.length
         z_mini_dist = Vector((0.0, 0.0, 0.00015))
@@ -341,7 +341,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
                 i = 0
                 for z in range(bfm_dim[2]):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
-                    if i >= (max_z_val if verify_exposure else 2) and high_efficiency and coord_matrix[x][y][z].z + dist.z + z_mini_dist.z < next_intersection_loc.z:
+                    if i >= max_z_val and casts_in_multiple_dirs and coord_matrix[x][y][z].z + dist.z + z_mini_dist.z < next_intersection_loc.z:
                         if brick_freq_matrix[x][y][z] == 0 or longest_axis == "z":
                             brick_freq_matrix[x][y][z] = val
                         if brick_freq_matrix[x][y][z] == val or longest_axis == "z":
