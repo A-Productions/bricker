@@ -261,7 +261,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
         len(brick_freq_matrix[0]),
         len(brick_freq_matrix[0][0]),
     ]
-    longest_axis = "xyz"[bfm_dim.index(max(bfm_dim))]  # verify_exposure only needs to be performed on 2 of 3 axes – whichever is the longest axis isn't verified.
+    # longest_axis = "xyz"[bfm_dim.index(max(bfm_dim))]  # verify_exposure only needs to be performed on 2 of 3 axes – whichever is the longest axis isn't verified.
 
     # initialize values used for printing status
     denom = (len(brick_freq_matrix[0][0]) + len(brick_freq_matrix[0]) + len(brick_freq_matrix))/100
@@ -277,7 +277,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
 
     percent0 = 0
     if "x" in axes:
-        max_x_val = inf if verify_exposure and longest_axis != "x" else 2
+        max_x_val = 2
         x_ray = coord_matrix[1][0][0] - coord_matrix[0][0][0]
         x_edge_len = x_ray.length
         x_mini_dist = Vector((0.00015, 0.0, 0.0))
@@ -290,10 +290,8 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
                 for x in range(bfm_dim[0]):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
                     if i >= max_x_val and casts_in_multiple_dirs and coord_matrix[x][y][z].x + dist.x + x_mini_dist.x < next_intersection_loc.x:
-                        if brick_freq_matrix[x][y][z] == 0 or longest_axis == "x":
-                            brick_freq_matrix[x][y][z] = val
-                        if brick_freq_matrix[x][y][z] == val or longest_axis == "x":
-                            continue
+                        brick_freq_matrix[x][y][z] = val
+                        continue
                     # cast rays and update brick_freq_matrix
                     intersections, next_intersection_loc, edge_intersects = update_bf_matrix(scn, x, y, z, coord_matrix, x_ray, x_edge_len, face_idx_matrix, brick_freq_matrix, brick_shell, source, x+1, y, z, x_mini_dist, use_normals, insideness_ray_cast_dir)
                     i = 0 if edge_intersects else (i + 1)
@@ -303,7 +301,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
 
     percent1 = percent0
     if "y" in axes:
-        max_y_val = inf if verify_exposure and longest_axis != "y" else 2
+        max_y_val = inf if verify_exposure else 2
         y_ray = coord_matrix[0][1][0] - coord_matrix[0][0][0]
         y_edge_len = y_ray.length
         y_mini_dist = Vector((0.0, 0.00015, 0.0))
@@ -316,9 +314,9 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
                 for y in range(bfm_dim[1]):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
                     if i >= max_y_val and casts_in_multiple_dirs and coord_matrix[x][y][z].y + dist.y + y_mini_dist.y < next_intersection_loc.y:
-                        if brick_freq_matrix[x][y][z] == 0 or longest_axis == "y":
+                        if brick_freq_matrix[x][y][z] == 0:
                             brick_freq_matrix[x][y][z] = val
-                        if brick_freq_matrix[x][y][z] == val or longest_axis == "y":
+                        if brick_freq_matrix[x][y][z] == val:
                             continue
                     # cast rays and update brick_freq_matrix
                     intersections, next_intersection_loc, edge_intersects = update_bf_matrix(scn, x, y, z, coord_matrix, y_ray, y_edge_len, face_idx_matrix, brick_freq_matrix, brick_shell, source, x, y+1, z, y_mini_dist, use_normals, insideness_ray_cast_dir)
@@ -329,7 +327,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
 
     percent2 = percent1
     if "z" in axes:
-        max_z_val = inf if verify_exposure and longest_axis != "z" else 2
+        max_z_val = inf if verify_exposure else 2
         z_ray = coord_matrix[0][0][1] - coord_matrix[0][0][0]
         z_edge_len = z_ray.length
         z_mini_dist = Vector((0.0, 0.0, 0.00015))
@@ -342,9 +340,9 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
                 for z in range(bfm_dim[2]):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
                     if i >= max_z_val and casts_in_multiple_dirs and coord_matrix[x][y][z].z + dist.z + z_mini_dist.z < next_intersection_loc.z:
-                        if brick_freq_matrix[x][y][z] == 0 or longest_axis == "z":
+                        if brick_freq_matrix[x][y][z] == 0:
                             brick_freq_matrix[x][y][z] = val
-                        if brick_freq_matrix[x][y][z] == val or longest_axis == "z":
+                        if brick_freq_matrix[x][y][z] == val:
                             continue
                     # cast rays and update brick_freq_matrix
                     intersections, next_intersection_loc, edge_intersects = update_bf_matrix(scn, x, y, z, coord_matrix, z_ray, z_edge_len, face_idx_matrix, brick_freq_matrix, brick_shell, source, x, y, z+1, z_mini_dist, use_normals, insideness_ray_cast_dir)
