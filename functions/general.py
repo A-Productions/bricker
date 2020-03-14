@@ -114,7 +114,6 @@ def get_matrix_settings(cm=None):
         cm.custom_object2.name if cm.custom_object2 is not None else "",
         cm.custom_object3.name if cm.custom_object3 is not None else "",
         cm.use_normals,
-        cm.verify_exposure,
         cm.insideness_ray_cast_dir,
         cm.brick_shell,
         cm.calc_internals,

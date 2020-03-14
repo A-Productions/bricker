@@ -70,7 +70,6 @@ class BRICKER_OT_revert_settings(Operator):
         cm.custom_object2 = bpy.data.objects.get(settings[8])
         cm.custom_object3 = bpy.data.objects.get(settings[9])
         cm.use_normals = str_to_bool(settings[10])
-        cm.verify_exposure = str_to_bool(settings[11])
         cm.insideness_ray_cast_dir = settings[12]
         cm.brick_shell = settings[14]
         cm.calculation_axes = settings[15]

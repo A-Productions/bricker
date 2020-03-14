@@ -119,7 +119,6 @@ def get_cm_props():
             "use_uv_map",
             "uv_image",
             "use_normals",
-            "verify_exposure",
             "insideness_ray_cast_dir",
             "start_frame",
             "stop_frame",

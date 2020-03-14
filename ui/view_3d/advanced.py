@@ -77,9 +77,6 @@ class VIEW3D_PT_bricker_advanced(Panel):
         row = col.row(align=True)
         row.prop(cm, "use_normals")
         row = col.row(align=True)
-        row.active = cm.insideness_ray_cast_dir in ("HIGH_EFFICIENCY", "XYZ") and cm.brick_shell != "CONSISTENT"
-        row.prop(cm, "verify_exposure")
-        row = col.row(align=True)
         row.prop(cm, "calc_internals")
         row = col.row(align=True)
         row.prop(cm, "brick_shell", text="Shell")

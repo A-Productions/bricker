@@ -731,13 +731,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     )
     use_normals = BoolProperty(
         name="Use Normals",
-        description="Use normals to calculate insideness of bricks (WARNING: May produce inaccurate model if source is not single closed mesh)",
-        update=dirty_matrix,
-        default=False,
-    )
-    verify_exposure = BoolProperty(
-        name="Verify Exposure",
-        description="Run additional insideness calculations (slower, but fixes issue where row(s)/column(s) of extra bricks are drawn)",
+        description="Use normals to calculate insideness of bricks (may improve the result if normals on source mesh are oriented correctly)",
         update=dirty_matrix,
         default=False,
     )
