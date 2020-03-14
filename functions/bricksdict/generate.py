@@ -286,7 +286,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
             percent0 = print_cur_status(0, z, bfm_dim[2], percent0)
             for y in range(bfm_dim[1]):
                 next_intersection_loc = negative_inf
-                i = 0
+                i = 1
                 for x in range(bfm_dim[0]):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
                     if i >= max_x_val and casts_in_multiple_dirs and coord_matrix[x][y][z].x + dist.x + x_mini_dist.x < next_intersection_loc.x:
@@ -312,7 +312,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
             percent1 = print_cur_status(percent0, z, bfm_dim[2], percent1)
             for x in range(bfm_dim[0]):
                 next_intersection_loc = negative_inf
-                i = 0
+                i = 1
                 for y in range(bfm_dim[1]):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
                     if i >= max_y_val and casts_in_multiple_dirs and coord_matrix[x][y][z].y + dist.y + y_mini_dist.y < next_intersection_loc.y:
@@ -338,7 +338,7 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
             percent2 = print_cur_status(percent1, x, bfm_dim[0], percent2)
             for y in range(bfm_dim[1]):
                 next_intersection_loc = negative_inf
-                i = 0
+                i = 1
                 for z in range(bfm_dim[2]):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
                     if i >= max_z_val and casts_in_multiple_dirs and coord_matrix[x][y][z].z + dist.z + z_mini_dist.z < next_intersection_loc.z:
