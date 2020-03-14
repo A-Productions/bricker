@@ -720,14 +720,14 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Insideness Ray Cast Direction",
         description="Ray cast method for calculation of insideness",
         items=[
-            ("HIGH EFFICIENCY", "High Efficiency", "Reuses single intersection ray cast for insideness calculation"),
+            ("HIGH_EFFICIENCY", "High Efficiency", "Reuses single intersection ray cast for insideness calculation"),
             ("X", "X", "Cast rays along X axis for insideness calculations"),
             ("Y", "Y", "Cast rays along Y axis for insideness calculations"),
             ("Z", "Z", "Cast rays along Z axis for insideness calculations"),
             ("XYZ", "XYZ (Best Result)", "Cast rays in all axis directions for insideness calculation (slowest; uses result consistent for at least 2 of the 3 rays)"),
         ],
         update=dirty_matrix,
-        default="HIGH EFFICIENCY",
+        default="HIGH_EFFICIENCY",
     )
     use_normals = BoolProperty(
         name="Use Normals",
@@ -754,10 +754,10 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     )
     instance_method = EnumProperty(
         name="Instance Method",
-        description="Use instanced brick mesh data when Split Model is enabled to save on memory and render times",
+        description="Method to use for instancing equivalent meshes to save on memory and render times",
         items=[
             ("NONE", "None", "No object instancing"),
-            ("LINK_DATA", "Link Data", "Link mesh data for like objects"),
+            ("LINK_DATA", "Link Data", "Link mesh data for like objects when 'Split Model' is enabled"),
             ("POINT_CLOUD", "Point Cloud (experimental)", "Instance a single mesh over a point cloud (this method does not support multiple materials or brick merging)"),
         ],
         update=dirty_build,
@@ -936,7 +936,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     alternateXY = BoolProperty(default=1)
     colThickness = IntProperty(default=2)
     colStep = IntProperty(default=2)
-    insidenessRayCastDir = StringProperty(default="HIGH EFFICIENCY")
+    insidenessRayCastDir = StringProperty(default="HIGH_EFFICIENCY")
     useNormals = BoolProperty(default=False)
     verifyExposure = BoolProperty(default=False)
     calcInternals = BoolProperty(default=True)

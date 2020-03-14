@@ -176,7 +176,7 @@ def should_brickify_in_background(cm, r, action):
                     # accounts for internal supports
                     * (1.35 if cm.internal_supports != "NONE" else 1)
                     # accounts for costly ray casting
-                    * (3 if cm.insideness_ray_cast_dir != "HIGH EFFICIENCY" else 1)
+                    * (3 if cm.insideness_ray_cast_dir != "HIGH_EFFICIENCY" else 1)
                     # accounts for additional ray casting
                     * (1.5 if cm.verify_exposure and matrix_dirty else 1)
                     # accounts for merging algorithm

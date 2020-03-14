@@ -77,6 +77,7 @@ class VIEW3D_PT_bricker_advanced(Panel):
         row = col.row(align=True)
         row.prop(cm, "use_normals")
         row = col.row(align=True)
+        row.active = cm.insideness_ray_cast_dir == "HIGH_EFFICIENCY" and cm.brick_shell != "CONSISTENT"
         row.prop(cm, "verify_exposure")
         row = col.row(align=True)
         row.prop(cm, "calc_internals")
@@ -89,7 +90,7 @@ class VIEW3D_PT_bricker_advanced(Panel):
         # if not cm.animated:
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.label(text="Meshes:")
+        row.label(text="Instance Method:")
         row = col.row(align=True)
         row.prop(cm, "instance_method", text="")
 

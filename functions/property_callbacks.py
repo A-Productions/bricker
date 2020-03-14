@@ -120,8 +120,6 @@ def update_job_manager_properties(self, context):
 
 def update_brick_shell(self, context):
     scn, cm, _ = get_active_context_info()
-    if cm.brick_shell == "CONSISTENT":
-        cm.verify_exposure = True
     cm.matrix_is_dirty = True
 
 
