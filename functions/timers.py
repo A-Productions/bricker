@@ -63,7 +63,9 @@ def handle_selections(junk=None):
                 if frame_loc == -1:
                     frame_loc = obj.name.rfind("_instancer")
                     if frame_loc == -1:
-                        frame_loc = obj.name.rfind("__")
+                        frame_loc = obj.name.rfind("_brick__")  # for backwards compatibility
+                        if frame_loc == -1:
+                            frame_loc = obj.name.rfind("__")
             if frame_loc != -1:
                 scn.bricker_active_object_name = obj.name[len("Bricker_"):frame_loc]
         else:
