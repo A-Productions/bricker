@@ -21,6 +21,7 @@ import time
 
 # Blender imports
 import bpy
+from bpy.types import Scene, Object, Mesh, Image
 from mathutils import Vector
 from mathutils.interpolate import poly_3d_calc
 
@@ -32,19 +33,29 @@ from .colors import *
 common_pixel_cache = dict()
 
 
-def get_pixels(image, frame_offset=0):
-    """ get pixels from image (cached by image name; make copy of result if modifying) """
+@blender_version_wrapper("<=","2.79")
+def get_pixels(image:Image):
+    return image.pixels[:]
+@blender_version_wrapper(">=","2.83")
+def get_pixels(image:Image):
+    pix = np.empty(len(image.pixels), dtype=np.float32)
+    image.pixels.foreach_get(pix)
+    return pix
+
+
+def get_pixels_cache(image:Image, frame_offset:int=0):
+    """ get pixels from image (cached by image name (and frame if movie/sequence); make copy of result if modifying) """
     scn = bpy.context.scene
     frame = scn.frame_current + frame_offset
     image_key = image.name if image.source == "FILE" else ("{im_name}_f_{frame}".format(im_name=image.name, frame=frame))
 
     if image_key not in common_pixel_cache or not common_pixel_cache[image_key]:
-        pixels = image.pixels[:] if image.source in ("FILE", "GENERATED") else get_pixels_at_frame(image, frame)
+        pixels = get_pixels(image) if image.source in ("FILE", "GENERATED") else get_pixels_at_frame(image, frame)
         common_pixel_cache[image_key] = pixels
     return common_pixel_cache[image_key]
 
 
-def clear_pixel_cache(image_name=None):
+def clear_pixel_cache(image_name:str=None):
     """ clear the pixel cache """
     if image_name is None:
         common_pixel_cache = dict()
@@ -54,7 +65,7 @@ def clear_pixel_cache(image_name=None):
                 common_pixel_cache.pop(key)
 
 
-def get_pixels_at_frame(image, frame=None, cyclic=True):
+def get_pixels_at_frame(image:Image, frame:int=None, cyclic:bool=True):
     assert image.source in ("SEQUENCE", "MOVIE")
     frame = frame or bpy.context.scene.frame_current
     old_viewer_area = ""
@@ -73,14 +84,14 @@ def get_pixels_at_frame(image, frame=None, cyclic=True):
 
     old_image = viewer_space.image
     viewer_space.image = image
-    viewer_space.image_user.frame_offset = (frame - bpy.context.scene.frame_current) % image.frame_duration
+    viewer_space.image_user.frame_offset = frame - (bpy.context.scene.frame_current % image.frame_duration)
     viewer_space.image_user.cyclic = cyclic
     if image.source == "MOVIE" and viewer_space.image_user.frame_duration != image.frame_duration:
         viewer_space.image_user.frame_duration = image.frame_duration
     elif image.source == "SEQUENCE":
         viewer_space.image_user.frame_duration = frame + 1
     viewer_space.display_channels = "COLOR"  # force refresh of image pixels
-    pixels = list(viewer_space.image.pixels)
+    pixels = get_pixels(viewer_space.image)
 
     if old_viewer_area != "":
         viewer_area.type = old_viewer_area
@@ -91,14 +102,14 @@ def get_pixels_at_frame(image, frame=None, cyclic=True):
 
 
 # reference: https://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts/addons/uv_bake_texture_to_vcols.py
-def get_pixel(image, uv_coord, premult=False, pixels=None):
+def get_pixel(image:Image, uv_coord:Vector, premult:bool=False, pixels:list=None):
     """ get RGBA value for specified coordinate in UV image
     image       -- Blend image holding the pixel data
     uv_coord    -- UV coordinate of desired pixel value
     premult     -- premultiply the alpha channel of the image
     pixels      -- list of pixel data from UV texture image
     """
-    pixels = pixels or get_pixels(image)
+    pixels = pixels or get_pixels_cache(image)
     pixel_number = (image.size[0] * round(uv_coord.y) + round(uv_coord.x)) * image.channels
     assert 0 <= pixel_number < len(pixels)
     rgba = pixels[pixel_number:pixel_number + image.channels]
@@ -114,7 +125,7 @@ def get_pixel(image, uv_coord, premult=False, pixels=None):
     return rgba
 
 
-def get_uv_pixel_color(scn, obj, face_idx, point, uv_image=None):
+def get_uv_pixel_color(scn:Scene, obj:Object, face_idx:int, point:Vector, uv_image:Image=None):
     """ get RGBA value in UV image for point at specified face index """
     if face_idx is None:
         return None
@@ -134,10 +145,9 @@ def get_uv_pixel_color(scn, obj, face_idx, point, uv_image=None):
     return [round(v, 6) for v in rgba]
 
 
-def get_uv_image(scn, obj, face_idx, uv_image=None):
+def get_uv_image(scn:Scene, obj:Object, face_idx:int, uv_image:Image=None):
     """ returns UV image for object (priority to passed image, then face index, then first one found in material nodes) """
     image = verify_img(uv_image)
-    print(1, image)
     # TODO: Reinstate this functionality for b280()
     if not b280() and image is None and obj.data.uv_textures.active:
         image = verify_img(obj.data.uv_textures.active.data[face_idx].image)
@@ -153,7 +163,7 @@ def get_uv_image(scn, obj, face_idx, uv_image=None):
     return image
 
 
-def get_first_img_from_nodes(obj, mat_slot_idx):
+def get_first_img_from_nodes(obj:Object, mat_slot_idx:int):
     """ return first image texture found in a material slot """
     mat = obj.material_slots[mat_slot_idx].material
     if mat is None or not mat.use_nodes:
@@ -163,7 +173,9 @@ def get_first_img_from_nodes(obj, mat_slot_idx):
     if active_node is not None: nodes_to_check.insert(0, active_node)
     img = None
     for node in nodes_to_check:
-        if node.type != "TEX_IMAGE":
+        if node.type != "TEX_IMAGE" or node.mute:
+            continue
+        elif len([o for o in node.outputs if o.is_linked]) == 0:
             continue
         img = verify_img(node.image)
         if img is not None:
@@ -171,12 +183,19 @@ def get_first_img_from_nodes(obj, mat_slot_idx):
     return img
 
 
-def verify_img(im):
+def verify_img(im:Image):
     """ verify image has pixel data """
+    if not im:
+        return None
+    if not im.has_data:
+        try:
+            im.update()
+        except RuntimeError:
+            pass
     return im if im is not None and im.pixels is not None and len(im.pixels) > 0 else None
 
 
-def get_uv_coord(mesh, face, point, image):
+def get_uv_coord(mesh:Mesh, face, point:Vector, image:Image):
     """ returns UV coordinate of target point in source mesh image texture
     mesh  -- mesh data from source object
     face  -- face object from mesh
@@ -209,7 +228,7 @@ def get_uv_coord(mesh, face, point, image):
     return Vector(uv_coord)
 
 
-def get_uv_coord_in_ref_image(loc, img_obj):
+def get_uv_coord_in_ref_image(loc:Vector, img_obj:Object):
     """ returns UV coordinate of target 2d point in a reference image object
     point   -- 2d sample location
     img_obj -- reference image to sample
@@ -230,12 +249,12 @@ def get_uv_coord_in_ref_image(loc, img_obj):
     return pixel_loc
 
 
-def get_1d_pixel_array(pixels, size, channels):
+def get_1d_pixel_array(pixels:list, channels:int):
     pixels_1d = [pixels[i:i + channels] for i in range(0, len(pixels), channels)]
     return pixels_1d
 
 
-def get_2d_pixel_array(pixels, size, channels):
+def get_2d_pixel_array(pixels:list, size:list, channels:int):
     pixels_2d = np.zeros((size[0], size[1], channels)).tolist()
     for row in range(size[0]):
         for col in range(size[1]):
