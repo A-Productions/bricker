@@ -29,11 +29,12 @@ from mathutils.interpolate import poly_3d_calc
 from .reporting import b280
 from .maths import *
 from .colors import *
+from .wrappers import blender_version_wrapper
 
 common_pixel_cache = dict()
 
 
-@blender_version_wrapper("<=","2.79")
+@blender_version_wrapper("<=","2.82")
 def get_pixels(image:Image):
     return image.pixels[:]
 @blender_version_wrapper(">=","2.83")
@@ -49,7 +50,7 @@ def get_pixels_cache(image:Image, frame_offset:int=0):
     frame = scn.frame_current + frame_offset
     image_key = image.name if image.source == "FILE" else ("{im_name}_f_{frame}".format(im_name=image.name, frame=frame))
 
-    if image_key not in common_pixel_cache or not common_pixel_cache[image_key]:
+    if image_key not in common_pixel_cache or len(common_pixel_cache[image_key]) == 0:
         pixels = get_pixels(image) if image.source in ("FILE", "GENERATED") else get_pixels_at_frame(image, frame)
         common_pixel_cache[image_key] = pixels
     return common_pixel_cache[image_key]

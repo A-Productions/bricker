@@ -248,7 +248,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="Type of brick used to build the model",
         items=[
             ("BRICKS", "Bricks (fast)", description, 0),
-            ("BRICKS AND PLATES", "Bricks and Plates", description, 1),
+            ("BRICKS_AND_PLATES", "Bricks and Plates", description, 1),
             ("CONES", "Cones", description, 2),
             ("CUSTOM", "Custom", "Use custom object to build the model", 3),
             ("CYLINDERS", "Cylinders", description, 4),

@@ -51,7 +51,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     # initialize cm.zstep
     cm.zstep = get_zstep(cm)
 
-    merge_vertical = (keys != "ALL" and "PLATES" in cm.brick_type) or cm.brick_type == "BRICKS AND PLATES"
+    merge_vertical = (keys != "ALL" and "PLATES" in cm.brick_type) or cm.brick_type == "BRICKS_AND_PLATES"
 
     # get brick collection
     coll_name = coll_name or "Bricker_%(n)s_bricks" % locals()
@@ -76,7 +76,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     build_is_dirty = cm.build_is_dirty
     brick_height = cm.brick_height
     brick_type = cm.brick_type
-    bricks_and_plates = brick_type == "BRICKS AND PLATES"
+    bricks_and_plates = brick_type == "BRICKS_AND_PLATES"
     circle_verts = min(16, cm.circle_verts) if temp_brick else cm.circle_verts
     custom_object1 = cm.custom_object1
     custom_object2 = cm.custom_object2
@@ -125,7 +125,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     if internal_mat is not None and cm.material_type == "SOURCE" and cm.mat_shell_depth < cm.shell_thickness:
         mats.append(internal_mat)
     # set number of times to run through all keys
-    num_iters = 2 if brick_type == "BRICKS AND PLATES" else 1
+    num_iters = 2 if brick_type == "BRICKS_AND_PLATES" else 1
     i = 0
     # if merging unnecessary, simply update bricksdict values
     if not cm.customized and not (mergable_brick_type(brick_type, up=cm.zstep == 1) and (max_depth != 1 or max_width != 1)):

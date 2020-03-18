@@ -202,7 +202,7 @@ class BricksculptTools:
             # split up bricks
             split_bricks(self.bricksdict, cm.zstep, keys=self.keys_to_merge_on_commit)
             # merge split bricks
-            merged_keys = BRICKER_OT_merge_bricks.merge_bricks(self.bricksdict, self.keys_to_merge_on_commit, cm, target_type="BRICK" if cm.brick_type == "BRICKS AND PLATES" else self.brick_type, any_height=cm.brick_type == "BRICKS AND PLATES")
+            merged_keys = BRICKER_OT_merge_bricks.merge_bricks(self.bricksdict, self.keys_to_merge_on_commit, cm, target_type="BRICK" if cm.brick_type == "BRICKS_AND_PLATES" else self.brick_type, any_height=cm.brick_type == "BRICKS_AND_PLATES")
         else:
             merged_keys = self.keys_to_merge_on_commit
         # remove 1x1 bricks merged into another brick

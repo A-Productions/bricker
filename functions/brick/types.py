@@ -59,7 +59,7 @@ def get_short_type(brick_d, target_type=None):
 
 
 def get_brick_type(model_brick_type):
-    return "PLATE" if model_brick_type == "BRICKS AND PLATES" else (model_brick_type[:-1] if model_brick_type.endswith("S") else ("CUSTOM 1" if model_brick_type == "CUSTOM" else model_brick_type))
+    return "PLATE" if model_brick_type == "BRICKS_AND_PLATES" else (model_brick_type[:-1] if model_brick_type.endswith("S") else ("CUSTOM 1" if model_brick_type == "CUSTOM" else model_brick_type))
 
 
 def get_round_brick_types():

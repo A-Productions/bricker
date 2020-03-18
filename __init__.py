@@ -24,6 +24,7 @@ bl_info = {
     "location"    : "View3D > Tools > Bricker",
     "warning"     : "Untested Beta release – update to official release when available",  # used for warning icon and text in addons panel
     "wiki_url"    : "https://www.blendermarket.com/products/bricker/",
+    "doc_url"     : "https://www.blendermarket.com/products/bricker/",  # 2.83+
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}
 
