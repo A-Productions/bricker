@@ -115,10 +115,6 @@ class BRICKER_OT_bevel(bpy.types.Operator):
         d_mod = obj.modifiers.get(obj.name + "_bvl")
         if not d_mod:
             d_mod = obj.modifiers.new(obj.name + "_bvl", "BEVEL")
-            e_mod = obj.modifiers.get("Edge Split")
-            if e_mod:
-                obj.modifiers.remove(e_mod)
-                add_edge_split_mod(obj)
         # only update values if necessary (prevents multiple updates to mesh)
         if d_mod.use_only_vertices != only_verts:
             d_mod.use_only_vertices = only_verts

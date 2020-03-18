@@ -48,7 +48,7 @@ class BRICKER_OT_test_brick_generators(bpy.types.Operator):
         return False
 
 
-def new_obj_from_bmesh(layer, bme, mesh_name, objName=None, loc=(0,0,0), edge_split=True):
+def new_obj_from_bmesh(layer, bme, mesh_name, objName=None, loc=(0,0,0)):
     scn = bpy.context.scene
     # if only one name given, use it for both names
     objName = objName or mesh_name
@@ -65,10 +65,6 @@ def new_obj_from_bmesh(layer, bme, mesh_name, objName=None, loc=(0,0,0), edge_sp
     # send bmesh data to object data
     bme.to_mesh(me)
     ob.data.update()
-
-    # add edge split modifier
-    if edge_split:
-        add_edge_split_mod(ob)
 
     if not b280():
         # move to appropriate layer

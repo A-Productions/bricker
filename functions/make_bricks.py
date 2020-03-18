@@ -267,15 +267,13 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
         if old_mesh and old_mesh.users > 0:
             old_mesh.user_remap(m)
         all_meshes.to_mesh(m)
+        apply_brick_mesh_settings(m)
         all_bricks_obj = bpy.data.objects.get(name)
         if all_bricks_obj:
             all_bricks_obj.data = m
         else:
             all_bricks_obj = bpy.data.objects.new(name, m)
             all_bricks_obj.cmlist_id = cm_id
-            # add edge split modifier
-            if brick_type != "CUSTOM":
-                add_edge_split_mod(all_bricks_obj)
         if material_type in ("CUSTOM", "NONE"):
             set_material(all_bricks_obj, custom_mat)
         elif material_type == "SOURCE" or (material_type == "RANDOM" and len(brick_mats) > 0):

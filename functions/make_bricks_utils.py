@@ -73,24 +73,14 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
 
     if split:
         brick = bpy.data.objects.get(brick_d["name"])
-        edge_split = use_edge_split_mod(brick_d, custom_object1, custom_object2, custom_object3)
         if brick:
             # NOTE: last brick object is left in memory (faster)
             # set brick.data to new mesh (resets materials)
             brick.data = m
-            # add/remove edge split modifier if necessary
-            e_mod = brick.modifiers.get("Edge Split")
-            if not e_mod and edge_split:
-                add_edge_split_mod(brick)
-            elif e_mod and not edge_split:
-                brick.modifiers.remove(e_mod)
         else:
             # create new object with mesh data
             brick = bpy.data.objects.new(brick_d["name"], m)
             brick.cmlist_id = cm_id
-            # add edge split modifier
-            if edge_split:
-                add_edge_split_mod(brick)
         # rotate brick by random rotation
         if random_rot_matrix is not None:
             # resets rotation_euler in case object is reused
@@ -168,23 +158,6 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
     return bricksdict
 
 
-def use_edge_split_mod(brick_d, custom_object1, custom_object2, custom_object3):
-    typ = brick_d["type"]
-    if ("CUSTOM" not in brick_d["type"] or
-        (typ == "CUSTOM 1" and custom_object1 and custom_object1.name.startswith("Bricker_")) or
-        (typ == "CUSTOM 2" and custom_object2 and custom_object2.name.startswith("Bricker_")) or
-        (typ == "CUSTOM 3" and custom_object3 and custom_object3.name.startswith("Bricker_"))):
-        return True
-    else:
-        return False
-
-
-def add_edge_split_mod(obj):
-    """ Add edge split modifier """
-    e_mod = obj.modifiers.new("Edge Split", "EDGE_SPLIT")
-    e_mod.split_angle = math.radians(44)
-
-
 def merge_with_adjacent_bricks(brick_d, bricksdict, key, loc, keys_not_checked, default_size, zstep, rand_s1, build_is_dirty, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_vertical=True):
     if brick_d["size"] is None or build_is_dirty:
         prefer_largest = 0 < brick_d["val"] < 1
@@ -240,6 +213,16 @@ def get_random_rot_angle(random_rot, rand, brick_size):
     return x, y, z
 
 
+def apply_brick_mesh_settings(m):
+    # set texture space
+    m.use_auto_texspace = False
+    m.texspace_size = (1, 1, 1)
+    # use auto normal smoothing (equivalent to edge split modifier)
+    m.use_auto_smooth = True
+    m.auto_smooth_angle = math.radians(44)
+    m.update()
+
+
 def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, use_stud, logo_inset, logo_scale=None):
     # get bm_cache_string
     bm_cache_string = ""
@@ -281,9 +264,8 @@ def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_heig
             bm.to_mesh(m)
             # center mesh origin
             center_mesh_origin(m, dimensions, brick_size)
-            # set texture space
-            m.use_auto_texspace = False
-            m.texspace_size = (1, 1, 1)
+            # apply brick mesh settings
+            apply_brick_mesh_settings(m)
         meshes.append(m)
     # # TODO: Try the following code instead in Blender 2.8 – see if it crashes with the following steps:
     # #     Open new file

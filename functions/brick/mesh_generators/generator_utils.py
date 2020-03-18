@@ -291,6 +291,7 @@ def connect_circles_to_square(dimensions, brick_size, circle_verts, edge_xp, edg
     sX = brick_size[0]
     sY = brick_size[1]
     step = -1 if flip_normals else 1
+    edges_to_select = list()
     # Make corner faces if few cylinder verts
     v5 = edge_yn[-1]
     v6 = edge_yn[0]
@@ -298,19 +299,28 @@ def connect_circles_to_square(dimensions, brick_size, circle_verts, edge_xp, edg
     v8 = edge_yp[-1]
     l = "0,0"
     if len(verts_d_of_ds[l]["--"]) == 0:
-        v_list = bme.faces.new((verts_d_of_ds[l]["y-"][0], verts_d_of_ds[l]["x-"][0], v5)[::-step])
+        f = bme.faces.new((verts_d_of_ds[l]["y-"][0], verts_d_of_ds[l]["x-"][0], v5)[::-step])
+        edges_to_select += f.edges[1:]
+        f.smooth = True
     l = "%(x_num)s,0" % locals()
     if len(verts_d_of_ds[l]["+-"]) == 0:
-        v_list = bme.faces.new((verts_d_of_ds[l]["x+"][0], verts_d_of_ds[l]["y-"][0], v6)[::-step])
+        f = bme.faces.new((verts_d_of_ds[l]["x+"][0], verts_d_of_ds[l]["y-"][0], v6)[::-step])
+        edges_to_select += f.edges[1:]
+        f.smooth = True
     l = "%(x_num)s,%(y_num)s" % locals()
     if len(verts_d_of_ds[l]["++"]) == 0:
-        v_list = bme.faces.new((verts_d_of_ds[l]["y+"][0], verts_d_of_ds[l]["x+"][0], v7)[::-step])
+        f = bme.faces.new((verts_d_of_ds[l]["y+"][0], verts_d_of_ds[l]["x+"][0], v7)[::-step])
+        edges_to_select += f.edges[1:]
+        f.smooth = True
     l = "0,%(y_num)s" % locals()
     if len(verts_d_of_ds[l]["-+"]) == 0:
-        v_list = bme.faces.new((verts_d_of_ds[l]["x-"][0], verts_d_of_ds[l]["y+"][0], v8)[::-step])
+        f = bme.faces.new((verts_d_of_ds[l]["x-"][0], verts_d_of_ds[l]["y+"][0], v8)[::-step])
+        edges_to_select += f.edges[1:]
+        f.smooth = True
 
     # Make edge faces
     join_verts = {"Y+":edge_yp, "Y-":edge_yn, "X+":edge_xp, "X-":edge_xn}
+    join_verts_orig_lengths = {"Y+":len(edge_yp), "Y-":len(edge_yn), "X+":len(edge_xp), "X-":len(edge_xn)}
     # Make edge faces on Y- and Y+ sides
     for x_num in range(sX):
         vert_d_pos = verts_d_of_ds[str(x_num) + "," + str(y_num)]
@@ -359,7 +369,14 @@ def connect_circles_to_square(dimensions, brick_size, circle_verts, edge_xp, edg
                     join_verts[side].append(v)
     for item in join_verts:
         step0 = -step if item in ("Y+", "X-") else step
-        bme.faces.new(join_verts[item][::step0])
+        f = bme.faces.new(join_verts[item][::step0])
+        edges_to_select.append(get_shared_edge(join_verts[item][join_verts_orig_lengths[item] - 1], join_verts[item][join_verts_orig_lengths[item]]))
+        edges_to_select.append(get_shared_edge(join_verts[item][-1], join_verts[item][0]))
+        f.smooth = True
+
+    # select edges that should not be beveled
+    for e in edges_to_select:
+        e.select = True
 
     if 1 in brick_size[:2]:
         return
@@ -370,21 +387,34 @@ def connect_circles_to_square(dimensions, brick_size, circle_verts, edge_xp, edg
             verts = []
             l = str(x_num) + "," + str(y_num)
             verts += verts_d_of_ds[l]["y+"]
+            v1 = verts[-1]
             verts += verts_d_of_ds[l]["++"]
             verts += verts_d_of_ds[l]["x+"]
+            v2 = verts[-1]
             l = str(x_num + 1) + "," + str(y_num)
             verts += verts_d_of_ds[l]["x-"]
+            v3 = verts[-1]
             verts += verts_d_of_ds[l]["-+"]
             verts += verts_d_of_ds[l]["y+"]
+            v4 = verts[-1]
             l = str(x_num + 1) + "," + str(y_num + 1)
             verts += verts_d_of_ds[l]["y-"]
+            v5 = verts[-1]
             verts += verts_d_of_ds[l]["--"]
             verts += verts_d_of_ds[l]["x-"]
+            v6 = verts[-1]
             l = str(x_num) + "," + str(y_num + 1)
             verts += verts_d_of_ds[l]["x+"]
+            v7 = verts[-1]
             verts += verts_d_of_ds[l]["+-"]
             verts += verts_d_of_ds[l]["y-"]
-            bme.faces.new(verts[::-step])
+            v8 = verts[-1]
+            f = bme.faces.new(verts[::-step])
+            get_shared_edge(v2, v3).select = True
+            get_shared_edge(v4, v5).select = True
+            get_shared_edge(v6, v7).select = True
+            get_shared_edge(v8, v1).select = True
+            f.smooth = True
 
 
 def add_tick_marks(dimensions, brick_size, circle_verts, detail, d, thick, bme, nno=None, npo=None, ppo=None, pno=None, nni=None, npi=None, ppi=None, pni=None, nnt=None, npt=None, ppt=None, pnt=None, inverted_slope=False, side_marks=True):
@@ -409,6 +439,7 @@ def add_tick_marks(dimensions, brick_size, circle_verts, detail, d, thick, bme, 
                 # CREATING SUPPORT BEAM
                 v1, v2, _, _, v5, v6, v7, v8 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=[0, 1, 1, 0, 1, 1], bme=bme)[1]
                 join_verts["X-"] += [v1, v2]
+                # get_shared_edge(v1, v2).select = True
                 bme.faces.new([v1, v5] + last_side_verts["X-"])
                 last_side_verts["X-"] = [v8, v2]
                 bottom_verts["X-"] += [v5, v6, v7, v8]
@@ -421,6 +452,7 @@ def add_tick_marks(dimensions, brick_size, circle_verts, detail, d, thick, bme, 
                 # CREATING SUPPORT BEAM
                 _, _, v3, v4, v5, v6, v7, v8 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=[0, 1, 0, 1, 1, 1], bme=bme)[1]
                 join_verts["X+"] += [v4, v3]
+                # get_shared_edge(v4, v3).select = True
                 bme.faces.new([v6, v4] + last_side_verts["X+"])
                 last_side_verts["X+"] = [v3, v7]
                 bottom_verts["X+"] += [v6, v5, v8, v7]
@@ -433,6 +465,7 @@ def add_tick_marks(dimensions, brick_size, circle_verts, detail, d, thick, bme, 
                 # CREATING SUPPORT BEAM
                 v1, _, _, v4, v5, v6, v7, v8 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=[0, 1, 1, 1, 1, 0], bme=bme)[1]
                 join_verts["Y-"] += [v1, v4]
+                # get_shared_edge(v1, v4).select = True
                 bme.faces.new([v5, v1] + last_side_verts["Y-"])
                 last_side_verts["Y-"] = [v4, v6]
                 bottom_verts["Y-"] += [v5, v8, v7, v6]
@@ -446,6 +479,7 @@ def add_tick_marks(dimensions, brick_size, circle_verts, detail, d, thick, bme, 
                 _, v2, v3, _, v5, v6, v7, v8 = make_cube(Vector((x1, y1, z1)), Vector((x2, y2, z2)), sides=[0, 1, 1, 1, 0, 1], bme=bme)[1]
                 # select bottom connecting verts for exclusion from vertex group
                 join_verts["Y+"] += [v2, v3]
+                # get_shared_edge(v2, v3).select = True
                 bme.faces.new([v2, v8] + last_side_verts["Y+"])
                 last_side_verts["Y+"] = [v7, v3]
                 bottom_verts["Y+"] += [v8, v5, v6, v7]
