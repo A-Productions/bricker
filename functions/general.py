@@ -46,6 +46,10 @@ def get_source_name(cm):
     return cm.source_obj.name if cm.source_obj is not None else ""
 
 
+def is_bricksculpt_installed():
+    return hasattr(bpy.props, "bricksculpt_module_name")
+
+
 def center_mesh_origin(m, dimensions, size):
     # get half width
     d0 = Vector((dimensions["width"] / 2, dimensions["width"] / 2, 0))
@@ -339,24 +343,6 @@ def get_rgba_vals(cm):
     if cm.id not in bricker_rgba_vals_cache or bricker_rgba_vals_cache[cm.id] is None:
         bricker_rgba_vals_cache[cm.id] = cm.rgba_vals
     return bricker_rgba_vals_cache[cm.id]
-
-
-def get_nearby_loc_from_vector(loc_diff, cur_loc, dimensions, zstep, width_divisor=2.05, height_divisor=2.05):
-    d = Vector((dimensions["width"] / width_divisor, dimensions["width"] / width_divisor, dimensions["height"] / height_divisor))
-    next_loc = Vector(cur_loc)
-    if loc_diff.z > d.z - dimensions["stud_height"]:
-        next_loc.z += math.ceil((loc_diff.z - d.z) / (d.z * 2))
-    elif loc_diff.z < -d.z:
-        next_loc.z -= 1
-    if loc_diff.x > d.x:
-        next_loc.x += math.ceil((loc_diff.x - d.x) / (d.x * 2))
-    elif loc_diff.x < -d.x:
-        next_loc.x += math.floor((loc_diff.x + d.x) / (d.x * 2))
-    if loc_diff.y > d.y:
-        next_loc.y += math.ceil((loc_diff.y - d.y) / (d.y * 2))
-    elif loc_diff.y < -d.y:
-        next_loc.y += math.floor((loc_diff.y + d.y) / (d.y * 2))
-    return [int(next_loc.x), int(next_loc.y), int(next_loc.z)]
 
 
 def settings_can_be_drawn():

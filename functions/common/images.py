@@ -44,6 +44,14 @@ def get_pixels(image:Image):
     return pix
 
 
+@blender_version_wrapper("<=","2.82")
+def set_pixels(image:Image, pix:list):
+    image.pixels = pix
+@blender_version_wrapper(">=","2.83")
+def set_pixels(image:Image, pix:list):
+    image.pixels.foreach_set(pix)
+
+
 def get_pixels_cache(image:Image, frame_offset:int=0):
     """ get pixels from image (cached by image name (and frame if movie/sequence); make copy of result if modifying) """
     scn = bpy.context.scene

@@ -107,18 +107,17 @@ class VIEW3D_PT_bricker_customize(Panel):
         # display BrickSculpt tools
         col = layout.column(align=True)
         row = col.row(align=True)
-        bricksculpt_installed = hasattr(bpy.props, "bricksculpt_module_name")
-        row.active = bricksculpt_installed
+        row.enabled = is_bricksculpt_installed()
         # col.active = False
         row.label(text="BrickSculpt Tools:")
         row = col.row(align=True)
-        row.operator("bricker.bricksculpt", text="Draw/Cut Tool", icon="GREASEPENCIL").mode = "DRAW"
+        row.operator("bricksculpt.run_tool", text="Draw/Cut Tool", icon="GREASEPENCIL").mode = "DRAW"
         row = col.row(align=True)
-        row.operator("bricker.bricksculpt", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE/SPLIT"
+        row.operator("bricksculpt.run_tool", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE/SPLIT"
         row = col.row(align=True)
-        row.operator("bricker.bricksculpt", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
+        row.operator("bricksculpt.run_tool", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
         row.prop_search(cm, "paintbrush_mat", bpy.data, "materials", text="")
-        if not BRICKER_OT_bricksculpt.bricksculpt_installed:
+        if not is_bricksculpt_installed():
             # row = col.row(align=True)
             # row.scale_y = 0.7
             # row.label(text="BrickSculpt available for purchase")
@@ -139,6 +138,10 @@ class VIEW3D_PT_bricker_customize(Panel):
             row.operator("wm.url_open", text="View Website", icon="WORLD").url = "https://www.blendermarket.com/creators/bricksbroughttolife"
             layout.split()
             layout.split()
+        elif bpy.data.texts.find("BrickSculpt (Bricker Addon) log") >= 0:
+            split = layout_split(layout, factor=0.9)
+            split.operator("bricksculpt__bricker_addon_.report_error", text="Report Error", icon="URL")
+            split.operator("bricksculpt__bricker_addon_.close_report_error", text="", icon="PANEL_CLOSE")
 
         col1 = layout.column(align=True)
         col1.label(text="Selection:")

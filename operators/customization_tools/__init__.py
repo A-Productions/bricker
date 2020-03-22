@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .bricksculpt import *
 from .change_brick_type import *
 from .change_brick_material import *
 from .draw_adjacent import *
