@@ -103,7 +103,7 @@ def get_cm_props():
             "alternate_xy",
             "col_thickness",
             "color_snap",
-            "color_snap_amount",
+            "color_depth",
             "transparent_weight",
             "col_step",
             "smoke_density",

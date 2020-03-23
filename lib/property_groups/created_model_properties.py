@@ -422,14 +422,12 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirty_material,
         default="RGB",
     )
-    color_snap_amount = FloatProperty(
-        name="Snap Threshold",
-        description="Threshold for combining colors together (higher numbers for fewer unique materials generated)",
-        subtype="FACTOR",
-        precision=3,
-        min=0.00001, max=1.0,
+    color_depth = IntProperty(
+        name="Color Depth",
+        description="Number of colors to use in representing the UV texture (2^depth colors are created)",
+        min=1, max=10,
         update=dirty_build,
-        default=0.001,
+        default=4,
     )
     color_snap_specular = FloatProperty(
         name="Specular",

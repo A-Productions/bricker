@@ -103,21 +103,20 @@ def update_displacement_of_mat(mat, displacement=0.04):
         links.new(displace_out, displace_in)
 
 
-def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, displacement, color_snap, use_abs_template, last_use_abs_template, color_snap_amount, include_transparency, cur_frame=None):
+def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, displacement, use_abs_template, last_use_abs_template, include_transparency, cur_frame=None):
     """ create new material with specified rgba values """
-    scn = bpy.context.scene
     # get or create material with unique color
-    min_diff = float("inf")
-    snap_amount = 0.000001 if color_snap == "NONE" else color_snap_amount
     if rgba is None:
         return ""
+    scn = bpy.context.scene
     r0, g0, b0, a0 = rgba
-    for i in range(len(rgba_vals)):
-        diff = rgba_distance(rgba, rgba_vals[i])
-        if diff < min_diff and diff < snap_amount:
-            min_diff = diff
-            r0, g0, b0, a0 = rgba_vals[i]
-            break
+    # min_diff = float("inf")
+    # for i in range(len(rgba_vals)):
+    #     diff = rgba_distance(rgba, rgba_vals[i])
+    #     if diff < min_diff and diff < snap_amount:
+    #         min_diff = diff
+    #         r0, g0, b0, a0 = rgba_vals[i]
+    #         break
     mat_name_end_string = "".join((str(round(r0, 5)), str(round(g0, 5)), str(round(b0, 5)), str(round(a0, 5))))
     mat_name_hash = str(hash_str(mat_name_end_string))[:14]
     mat_name = "Bricker_{n}{f}_{hash}".format(n=model_name, f="_f_%(cur_frame)s" % locals() if cur_frame is not None else "", hash=mat_name_hash)
@@ -128,6 +127,7 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
             bpy.data.materials.remove(mat)
             mat = None
         if mat is None:
+            print(rgba)
             abs_template_mat_name = "ABS Plastic Black"
             if abs_template_mat_name not in bpy.data.materials or bpy.data.materials[abs_template_mat_name].node_tree.nodes.get("ABS Dialectric") is None:
                 bpy.ops.abs.append_materials()
@@ -248,7 +248,7 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
     return mat_name
 
 
-def get_brick_rgba(scn, obj, face_idx, point, uv_image=None):
+def get_brick_rgba(scn, obj, face_idx, point, uv_image=None, color_depth:int=-1):
     """ returns RGBA value for brick """
     if face_idx is None:
         return None, None
@@ -256,7 +256,7 @@ def get_brick_rgba(scn, obj, face_idx, point, uv_image=None):
     image = get_uv_image(scn, obj, face_idx, uv_image)
     if image is not None:
         orig_mat_name = ""
-        rgba = get_uv_pixel_color(scn, obj, face_idx, point, image)
+        rgba = get_uv_pixel_color(scn, obj, face_idx, point, image, color_depth=color_depth)
     else:
         # get closest material using material slot of face
         orig_mat_name = get_mat_at_face_idx(obj, face_idx)

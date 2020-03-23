@@ -26,7 +26,7 @@ from mathutils import Vector
 from mathutils.interpolate import poly_3d_calc
 
 # Module imports
-from .reporting import b280
+from .reporting import b280, stopwatch
 from .maths import *
 from .colors import *
 from .wrappers import blender_version_wrapper
@@ -35,13 +35,20 @@ common_pixel_cache = dict()
 
 
 @blender_version_wrapper("<=","2.82")
-def get_pixels(image:Image):
-    return np.array(image.pixels)
+def get_pixels(image:Image, color_depth=-1):
+    pixels = np.array(image.pixels)
+    if color_depth >= 0:
+        pixels = cluster_pixels(pixels, color_depth, image.channels)
+        duplicate_image(image, "test", pixels)
+    return pixels
 @blender_version_wrapper(">=","2.83")
-def get_pixels(image:Image):
-    pix = np.empty(len(image.pixels), dtype=np.float32)
-    image.pixels.foreach_get(pix)
-    return pix
+def get_pixels(image:Image, color_depth=-1):
+    pixels = np.empty(len(image.pixels), dtype=np.float32)
+    image.pixels.foreach_get(pixels)
+    if color_depth >= 0:
+        pixels = cluster_pixels(pixels, color_depth, image.channels)
+        duplicate_image(image, "test", pixels)
+    return pixels
 
 
 @blender_version_wrapper("<=","2.82")
@@ -52,14 +59,16 @@ def set_pixels(image:Image, pix:list):
     image.pixels.foreach_set(pix)
 
 
-def get_pixels_cache(image:Image, frame_offset:int=0):
+def get_pixels_cache(image:Image, frame_offset:int=0, color_depth:int=-1):
     """ get pixels from image (cached by image name (and frame if movie/sequence); make copy of result if modifying) """
     scn = bpy.context.scene
     frame = scn.frame_current + frame_offset
     image_key = image.name if image.source == "FILE" else ("{im_name}_f_{frame}".format(im_name=image.name, frame=frame))
+    if color_depth != -1:
+         image_key += "_depth_{}".format(color_depth)
 
     if image_key not in common_pixel_cache or len(common_pixel_cache[image_key]) == 0:
-        pixels = get_pixels(image) if image.source in ("FILE", "GENERATED") else get_pixels_at_frame(image, frame)
+        pixels = get_pixels(image, color_depth=color_depth) if image.source in ("FILE", "GENERATED") else get_pixels_at_frame(image, frame)
         common_pixel_cache[image_key] = pixels
     return common_pixel_cache[image_key]
 
@@ -111,14 +120,15 @@ def get_pixels_at_frame(image:Image, frame:int=None, cyclic:bool=True):
 
 
 # reference: https://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts/addons/uv_bake_texture_to_vcols.py
-def get_pixel(image:Image, uv_coord:Vector, premult:bool=False, pixels:list=None):
+def get_pixel(image:Image, uv_coord:Vector, premult:bool=False, pixels:list=None, color_depth:int=-1):
     """ get RGBA value for specified coordinate in UV image
     image       -- Blend image holding the pixel data
     uv_coord    -- UV coordinate of desired pixel value
     premult     -- premultiply the alpha channel of the image
     pixels      -- list of pixel data from UV texture image
+    color_depth -- Number of colors in the image in the power of 2 (see 'median_cut_clustering.py')
     """
-    pixels = pixels or get_pixels_cache(image)
+    pixels = pixels or get_pixels_cache(image, color_depth=color_depth)
     pixel_number = (image.size[0] * round(uv_coord.y) + round(uv_coord.x)) * image.channels
     assert 0 <= pixel_number < len(pixels)
     rgba = pixels[pixel_number:pixel_number + image.channels]
@@ -134,7 +144,7 @@ def get_pixel(image:Image, uv_coord:Vector, premult:bool=False, pixels:list=None
     return rgba
 
 
-def get_uv_pixel_color(scn:Scene, obj:Object, face_idx:int, point:Vector, uv_image:Image=None):
+def get_uv_pixel_color(scn:Scene, obj:Object, face_idx:int, point:Vector, uv_image:Image=None, color_depth:int=-1):
     """ get RGBA value in UV image for point at specified face index """
     if face_idx is None:
         return None
@@ -147,7 +157,7 @@ def get_uv_pixel_color(scn:Scene, obj:Object, face_idx:int, point:Vector, uv_ima
     # get uv coordinate based on nearest face intersection
     uv_coord = get_uv_coord(obj.data, face, point, image)
     # retrieve rgba value at uv coordinate
-    rgba = get_pixel(image, uv_coord)
+    rgba = get_pixel(image, uv_coord, color_depth=color_depth)
     # gamma correct color value
     if image.colorspace_settings.name == "sRGB":
         rgba = gamma_correct_srgb_to_linear(rgba)
@@ -316,3 +326,85 @@ def get_1d_pixel_array(array:np.ndarray):
     #             for row in range(len(array)):
     #                 pixels_1d.append(array[row][col])
     return pixels_1d
+
+
+#######################################################
+#########     MEDIAN CUT CLUSTERING      ##############
+#######################################################
+
+
+def cluster_pixels(pix_1d, depth, channels):
+    pix_2d = get_2d_pixel_array(pix_1d, channels)
+    new_pix_2d = np.empty(pix_2d.shape, dtype=np.float32)
+
+    new_shape = (len(pix_2d), channels + 1)
+    pix_2d_with_idxs = np.empty(new_shape, dtype=np.float32)
+    pix_2d_with_idxs[:, :-1] = pix_2d
+    pix_2d_with_idxs[:, -1:] = np.arange(len(pix_2d), dtype=np.int64).reshape((len(pix_2d), 1))
+
+    split_into_buckets(new_pix_2d, pix_2d_with_idxs, depth, channels)
+
+    new_pix_1d = new_pix_2d.reshape(len(pix_1d))
+    return new_pix_1d
+
+
+# Adapted and improved from: https://muthu.co/reducing-the-number-of-colors-of-an-image-using-median-cut-algorithm/
+def median_cut_quantize(new_img_arr, img_arr, channels):
+    # when it reaches the end, color quantize
+    # print("to quantize: ", len(img_arr))
+    color_ave = list()
+    for i in range(channels):
+        color_ave.append(np.mean(img_arr[:,i]))
+
+    ct = time.time()
+    ave_arr = np.empty((len(img_arr), channels), dtype=img_arr.dtype)
+    ave_arr[:] = color_ave
+    ind_arr = np.empty((len(img_arr), channels), dtype=np.int64)
+    ind_arr_base = img_arr[:,-1] * channels
+    for i in range(channels):
+        ind_arr[:,i] = ind_arr_base + i
+    np.put(new_img_arr, ind_arr, ave_arr)
+    ct = stopwatch("3-----------", ct)
+
+
+def split_into_buckets(new_img_arr, img_arr, depth=4, channels=3):
+    """ Use Median Cut clustering to reduce image color palette to (2^depth) colors
+
+    Parameters:
+        new_img_arr  - Empty array with the target 2d pixel array size
+        new_img_arr  - Array containing original pixel data (with an extra value in each pixel list containing its target index in new_img_arr)
+        depth        – Represents how many colors are needed in the power of 2 (i.e. Depth of 4 means 2^4 = 16 colors)
+
+    Returns:
+        None (the array passed to 'new_img_arr' will contain the resulting pixels)
+    """
+
+    if len(img_arr) == 0:
+        return
+
+    if depth == 0:
+        median_cut_quantize(new_img_arr, img_arr, channels)
+        return
+
+    assert isinstance(depth, int)
+
+    ct = time.time()
+    ranges = []
+    for i in range(channels):
+        channel_vals = img_arr[:,i]
+        ranges.append(np.max(channel_vals) - np.min(channel_vals))
+    # ct = stopwatch("1---", ct)
+
+    space_with_highest_range = ranges.index(max(ranges))
+    # print("space_with_highest_range:", space_with_highest_range)
+    # sort the image pixels by color space with highest range
+    ct = time.time()
+    img_arr = img_arr[img_arr[:,space_with_highest_range].argsort()]
+    # ct = stopwatch("2-------", ct)
+    # find the median to divide the array.
+    median_index = (len(img_arr) + 1) // 2
+    # print("median_index:", median_index)
+
+    #split the array into two buckets along the median
+    split_into_buckets(new_img_arr, img_arr[:median_index], depth - 1, channels)
+    split_into_buckets(new_img_arr, img_arr[median_index:], depth - 1, channels)

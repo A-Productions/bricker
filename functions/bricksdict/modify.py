@@ -48,18 +48,10 @@ def update_materials(bricksdict, source, keys, cur_frame=None, action="CREATE"):
     ior = cm.color_snap_ior
     transmission = cm.color_snap_transmission
     displacement = cm.color_snap_displacement
-    color_snap_amount = cm.color_snap_amount
+    color_depth = -1 if color_snap == "NONE" else cm.color_depth
     use_abs_template = cm.use_abs_template and brick_materials_installed()
     last_use_abs_template = cm.last_use_abs_template and brick_materials_installed()
     rgba_vals = []
-    # clear materials
-    mat_name_start = "Bricker_{n}{f}".format(n=n, f="f_%(cur_frame)s" % locals() if cur_frame else "")
-    cur_mats = [mat for mat in bpy.data.materials if mat.name.startswith(mat_name_start)]
-    for mat in cur_mats:
-        if mat.users == 0:
-            bpy.data.materials.remove(mat)
-        else:
-            rgba_vals.append(mat.diffuse_color)
     # get original mat_names, and populate rgba_vals
     for key in keys:
         # skip irrelevant bricks
@@ -72,7 +64,7 @@ def update_materials(bricksdict, source, keys, cur_frame=None, action="CREATE"):
             mat_name = ""
         else:
             ni = Vector(bricksdict[key]["near_intersection"])
-            rgba, mat_name = get_brick_rgba(scn, source, nf, ni, uv_image)
+            rgba, mat_name = get_brick_rgba(scn, source, nf, ni, uv_image, color_depth=color_depth)
 
         if material_type == "SOURCE":
             # get material with snapped RGBA value
@@ -88,12 +80,20 @@ def update_materials(bricksdict, source, keys, cur_frame=None, action="CREATE"):
                     assert len(mat_obj.data.materials) > 0
                     mat_name = find_nearest_brick_color_name(rgba, trans_weight, mat_obj)
             elif color_snap == "RGB" or is_smoke:# or use_uv_map:
-                mat_name = create_new_material(n, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, displacement, color_snap, use_abs_template, last_use_abs_template, color_snap_amount, include_transparency, cur_frame)
+                mat_name = create_new_material(n, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, displacement, use_abs_template, last_use_abs_template, include_transparency, cur_frame)
             if rgba is not None:
                 rgba_vals.append(rgba)
         elif material_type == "CUSTOM":
             mat_name = cm.custom_mat.name
         bricksdict[key]["mat_name"] = mat_name
+    # clear unused materials (left over from previous model)
+    mat_name_start = "Bricker_{n}{f}".format(n=n, f="f_%(cur_frame)s" % locals() if cur_frame else "")
+    cur_mats = [mat for mat in bpy.data.materials if mat.name.startswith(mat_name_start)]
+    # for mat in cur_mats:
+    #     if mat.users == 0:
+    #         bpy.data.materials.remove(mat)
+    #     # else:
+    #     #     rgba_vals.append(mat.diffuse_color)
     return bricksdict
 
 
