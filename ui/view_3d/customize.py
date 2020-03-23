@@ -108,7 +108,7 @@ class VIEW3D_PT_bricker_customize(Panel):
         col.enabled = is_bricksculpt_installed()
         # col.active = False
         col.label(text="BrickSculpt Tools:")
-        if hasattr(bpy.ops, "bricksculpt"):
+        if hasattr(bpy.ops, "bricksculpt") and hasattr(bpy.ops.bricksculpt, "run_tool") and bpy.ops.bricksculpt.run_tool.idname == "BRICKSCULPT_OT_run_tool":
             col.operator("bricksculpt.run_tool", text="Draw/Cut Tool", icon="GREASEPENCIL").mode = "DRAW"
             col.operator("bricksculpt.run_tool", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE/SPLIT"
             row = col.row(align=True)

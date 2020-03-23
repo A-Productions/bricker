@@ -34,14 +34,12 @@ from .wrappers import *
 common_pixel_cache = dict()
 
 
-@timed_call("Pixel Getter")
 @blender_version_wrapper("<=","2.82")
 def get_pixels(image:Image, color_depth=-1):
     pixels = np.array(image.pixels[:])
     if color_depth >= 0:
         pixels = cluster_pixels(pixels, color_depth, image.channels)
     return pixels
-@timed_call("Pixel Getter")
 @blender_version_wrapper(">=","2.83")
 def get_pixels(image:Image, color_depth=-1):
     pixels = np.empty(len(image.pixels), dtype=np.float32)

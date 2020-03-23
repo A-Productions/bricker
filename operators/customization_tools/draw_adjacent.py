@@ -257,7 +257,6 @@ class BRICKER_OT_draw_adjacent(Operator):
                 custom_mat_name=   bricksdict[dkey]["custom_mat_name"],
             )
             adj_brick_d = bricksdict[adjacent_key]
-            print(1)
             # dir_bool = [side, False]
             # return {"val":False, "dir_bool":dir_bool, "report_type":"WARNING", "msg":"Matrix not available at the following location: %(adjacent_key)s" % locals()}
 
@@ -265,14 +264,12 @@ class BRICKER_OT_draw_adjacent(Operator):
         if adj_brick_d["draw"] and not (add_brick and adj_bricks_created[side][brick_num]):
             # if attempting to add brick
             if add_brick:
-                print(2)
                 # reset direction bool if no bricks could be added
                 if not BRICKER_OT_draw_adjacent.is_brick_already_created(adj_locs, adj_bricks_created, brick_num, side):
                     dir_bool = [side, False]
                 return {"val":False, "dir_bool":dir_bool, "report_type":"INFO", "msg":"Brick already exists in the following location: %(adjacent_key)s" % locals()}
             # if attempting to remove brick
             elif adj_brick_d["created_from"] == dkey:
-                print(3)
                 # update bricksdict values for brick being removed
                 x0, y0, z0 = adjacent_loc
                 brick_keys = [list_to_str((x0, y0, z0 + z)) for z in range((cm.zstep + 2) % 4 if side in (4, 5) else 1)]
@@ -288,7 +285,6 @@ class BRICKER_OT_draw_adjacent(Operator):
                 return {"val":True, "dir_bool":dir_bool, "report_type":None, "msg":None}
         # if brick doesn't exist there
         else:
-            print(4)
             # if attempting to remove brick
             if not add_brick:
                 return {"val":False, "dir_bool":dir_bool, "report_type":"INFO", "msg":"Brick does not exist in the following location: %(adjacent_key)s" % locals()}
@@ -307,7 +303,6 @@ class BRICKER_OT_draw_adjacent(Operator):
                         adj_bricks_created[side][brick_num] = False
                         adj_brick_d["draw"] = False
                         dir_bool = [side, False]
-                        print(5)
                         return {"val":False, "dir_bool":dir_bool, "report_type":"INFO", "msg":"Brick already exists in the following location: %(new_key)s" % locals()}
                     elif side in (4, 5):
                         keys_to_merge.append(new_key)
