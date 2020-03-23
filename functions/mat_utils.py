@@ -127,7 +127,6 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
             bpy.data.materials.remove(mat)
             mat = None
         if mat is None:
-            print(rgba)
             abs_template_mat_name = "ABS Plastic Black"
             if abs_template_mat_name not in bpy.data.materials or bpy.data.materials[abs_template_mat_name].node_tree.nodes.get("ABS Dialectric") is None:
                 bpy.ops.abs.append_materials()
