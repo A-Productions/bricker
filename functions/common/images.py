@@ -356,15 +356,11 @@ def median_cut_quantize(new_img_arr, img_arr, channels):
     for i in range(channels):
         color_ave.append(np.mean(img_arr[:,i]))
 
-    ct = time.time()
-    ave_arr = np.empty((len(img_arr), channels), dtype=img_arr.dtype)
-    ave_arr[:] = color_ave
     ind_arr = np.empty((len(img_arr), channels), dtype=np.int64)
     ind_arr_base = img_arr[:,-1] * channels
     for i in range(channels):
         ind_arr[:,i] = ind_arr_base + i
-    np.put(new_img_arr, ind_arr, ave_arr)
-    ct = stopwatch("3-----------", ct)
+    np.put(new_img_arr, ind_arr, color_ave)
 
 
 def split_into_buckets(new_img_arr, img_arr, depth=4, channels=3):

@@ -30,11 +30,11 @@ from bpy.props import *
 # NONE!
 
 
-class BRICKSCULPT_OT_run_tool(Operator):
+class BRICKER_OT_bricksculpt_null(Operator):
     """Run the BrickSculpt editing tool suite"""
-    bl_idname = "bricksculpt.run_tool"
+    bl_idname = "bricker.bricksculpt_null"
     bl_label = "Run BrickSculpt Tool"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
 
     ################################################
     # Blender Operator methods

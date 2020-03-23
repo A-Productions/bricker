@@ -334,20 +334,20 @@ def get_adj_locs(cm, bricksdict, dkey, obj):
     return adj_locs
 
 
-def install_bricksculpt():
-    if not hasattr(bpy.props, "bricksculpt_module_name"):
-        return False
-    addons_path = bpy.utils.user_resource("SCRIPTS", "addons")
-    bricksculpt_mod_name = bpy.props.bricksculpt_module_name
-    bricker_mod_name = bpy.props.bricker_module_name
-    bricksculpt_path_old = "%(addons_path)s/%(bricksculpt_mod_name)s/bricksculpt_framework.py" % locals()
-    bricksculpt_path_new = "%(addons_path)s/%(bricker_mod_name)s/operators/customization_tools/bricksculpt_framework.py" % locals()
-    f_old = open(bricksculpt_path_old, "r")
-    f_new = open(bricksculpt_path_new, "w")
-    # write META commands
-    lines = f_old.readlines()
-    f_new.truncate(0)
-    f_new.writelines(lines)
-    f_old.close()
-    f_new.close()
-    return True
+# def install_bricksculpt():
+#     if not hasattr(bpy.props, "bricksculpt_module_name"):
+#         return False
+#     addons_path = bpy.utils.user_resource("SCRIPTS", "addons")
+#     bricksculpt_mod_name = bpy.props.bricksculpt_module_name
+#     bricker_mod_name = bpy.props.bricker_module_name
+#     bricksculpt_path_old = "%(addons_path)s/%(bricksculpt_mod_name)s/bricksculpt_framework.py" % locals()
+#     bricksculpt_path_new = "%(addons_path)s/%(bricker_mod_name)s/operators/customization_tools/bricksculpt_framework.py" % locals()
+#     f_old = open(bricksculpt_path_old, "r")
+#     f_new = open(bricksculpt_path_new, "w")
+#     # write META commands
+#     lines = f_old.readlines()
+#     f_new.truncate(0)
+#     f_new.writelines(lines)
+#     f_old.close()
+#     f_new.close()
+#     return True

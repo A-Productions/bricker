@@ -64,6 +64,7 @@ classes = [
     BRICKER_OT_select_bricks_by_type,
     BRICKER_OT_set_exposure,
     BRICKER_OT_split_bricks,
+    BRICKER_OT_bricksculpt_null,
     # bricker/operators/overrides
     delete_object.OBJECT_OT_delete_override,
     duplicate_object.OBJECT_OT_duplicate_override,
@@ -102,6 +103,3 @@ classes = [
 if b280():
     # bricker/ui/ (other_property_groups)
     classes.append(BRICKER_UL_collections_tuple)
-
-if not is_bricksculpt_installed():
-    classes.append(BRICKSCULPT_OT_run_tool)

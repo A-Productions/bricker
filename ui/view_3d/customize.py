@@ -30,7 +30,6 @@ from ..matslot_uilist import *
 from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
-from ...operators.customization_tools.bricksculpt import *
 from ...functions import *
 from ... import addon_updater_ops
 
@@ -106,17 +105,21 @@ class VIEW3D_PT_bricker_customize(Panel):
 
         # display BrickSculpt tools
         col = layout.column(align=True)
-        row = col.row(align=True)
-        row.enabled = is_bricksculpt_installed()
+        col.enabled = is_bricksculpt_installed()
         # col.active = False
-        row.label(text="BrickSculpt Tools:")
-        row = col.row(align=True)
-        row.operator("bricksculpt.run_tool", text="Draw/Cut Tool", icon="GREASEPENCIL").mode = "DRAW"
-        row = col.row(align=True)
-        row.operator("bricksculpt.run_tool", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE/SPLIT"
-        row = col.row(align=True)
-        row.operator("bricksculpt.run_tool", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
-        row.prop_search(cm, "paintbrush_mat", bpy.data, "materials", text="")
+        col.label(text="BrickSculpt Tools:")
+        if hasattr(bpy.ops, "bricksculpt"):
+            col.operator("bricksculpt.run_tool", text="Draw/Cut Tool", icon="GREASEPENCIL").mode = "DRAW"
+            col.operator("bricksculpt.run_tool", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE/SPLIT"
+            row = col.row(align=True)
+            row.operator("bricksculpt.run_tool", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
+            row.prop_search(cm, "paintbrush_mat", bpy.data, "materials", text="")
+        else:
+            col.operator("bricker.bricksculpt_null", text="Draw/Cut Tool", icon="GREASEPENCIL").mode = "DRAW"
+            col.operator("bricker.bricksculpt_null", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE/SPLIT"
+            row = col.row(align=True)
+            row.operator("bricker.bricksculpt_null", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
+            row.prop_search(cm, "paintbrush_mat", bpy.data, "materials", text="")
         if not is_bricksculpt_installed():
             # row = col.row(align=True)
             # row.scale_y = 0.7
