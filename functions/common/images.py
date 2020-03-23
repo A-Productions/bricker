@@ -39,7 +39,6 @@ def get_pixels(image:Image, color_depth=-1):
     pixels = np.array(image.pixels)
     if color_depth >= 0:
         pixels = cluster_pixels(pixels, color_depth, image.channels)
-        duplicate_image(image, "test", pixels)
     return pixels
 @blender_version_wrapper(">=","2.83")
 def get_pixels(image:Image, color_depth=-1):
@@ -47,7 +46,6 @@ def get_pixels(image:Image, color_depth=-1):
     image.pixels.foreach_get(pixels)
     if color_depth >= 0:
         pixels = cluster_pixels(pixels, color_depth, image.channels)
-        duplicate_image(image, "test", pixels)
     return pixels
 
 
