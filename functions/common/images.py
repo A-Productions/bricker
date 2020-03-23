@@ -36,7 +36,7 @@ common_pixel_cache = dict()
 
 @blender_version_wrapper("<=","2.82")
 def get_pixels(image:Image):
-    return image.pixels[:]
+    return np.array(image.pixels)
 @blender_version_wrapper(">=","2.83")
 def get_pixels(image:Image):
     pix = np.empty(len(image.pixels), dtype=np.float32)
@@ -204,6 +204,14 @@ def verify_img(im:Image):
     return im if im is not None and im.pixels is not None and len(im.pixels) > 0 else None
 
 
+def duplicate_image(img:Image, name:str, new_pixels:np.ndarray=None):
+    width, height = img.size
+    new_image = bpy.data.images.new(name, width, height)
+    new_pixels = new_pixels if new_pixels is not None else get_pixels(img)
+    set_pixels(new_image, new_pixels)
+    return new_image
+
+
 def get_uv_coord(mesh:Mesh, face, point:Vector, image:Image):
     """ returns UV coordinate of target point in source mesh image texture
     mesh  -- mesh data from source object
@@ -258,16 +266,53 @@ def get_uv_coord_in_ref_image(loc:Vector, img_obj:Object):
     return pixel_loc
 
 
-def get_1d_pixel_array(pixels:list, channels:int):
-    pixels_1d = [pixels[i:i + channels] for i in range(0, len(pixels), channels)]
-    return pixels_1d
+def get_2d_pixel_array(pixels:np.ndarray, channels:int):
+    """ converts 1d pixel array to 2d array
+
+    i.e. for a square image with 4 pixels:
+    pixels = [
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+    ]
+    """
+    pixels_2d = np.reshape(pixels, (len(pixels) // channels, channels))
+    return pixels_2d
 
 
-def get_2d_pixel_array(pixels:list, size:list, channels:int):
-    pixels_2d = np.zeros((size[0], size[1], channels)).tolist()
+def get_3d_pixel_array(pixels:np.ndarray, size:list, channels:int):
+    """ converts 1d pixel array to 3d array
+
+    i.e. for a square image with 4 pixels:
+    pixels = [
+        [[1, 1, 1, 1], [1, 1, 1, 1]],
+        [[1, 1, 1, 1], [1, 1, 1, 1]],
+    ]
+    """
+    pixels_3d = np.zeros((size[0], size[1], channels))
     for row in range(size[0]):
         for col in range(size[1]):
             pixel_number = (col * size[0] + row) * channels
-            pixels_2d[row][col] = pixels[pixel_number:pixel_number + channels]
+            pixels_3d[row][col] = pixels[pixel_number:pixel_number + channels]
 
-    return pixels_2d
+    return pixels_3d
+
+def get_1d_pixel_array(array:np.ndarray):
+    """ convert pixel array to 1d from 2d or 3d array """
+    assert 2 <= len(array.shape) <= 3
+    if len(array.shape) == 2:  # 2D array input
+        pixels_1d = np.copy(array)
+        np.reshape(array, array.shape[0] * array.shape[1], order="F")
+    # else:  # 3D array input
+    #     pixels_1d = np.empty(len(array) * len(array[0]) * len(array[0][0]))
+    #     pixel_type = type(array[0][0])
+    #     if pixel_type in (list, tuple, Vector, np.ndarray, bpy.types.bpy_prop_array):
+    #         for col in range(len(array[0])):
+    #             for row in range(len(array)):
+    #                 pixels_1d += list(array[row][col])
+    #     elif pixel_type == int:
+    #         for col in range(len(array[0])):
+    #             for row in range(len(array)):
+    #                 pixels_1d.append(array[row][col])
+    return pixels_1d
