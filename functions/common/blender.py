@@ -25,7 +25,7 @@ import bmesh
 import mathutils
 from mathutils import Vector, Euler, Matrix
 from bpy_extras import view3d_utils
-from bpy.types import Object, Scene, Event, Modifier
+from bpy.types import Object, Mesh, Scene, Event, Modifier, Material
 try:
     from bpy.types import ViewLayer, LayerCollection
 except ImportError:
@@ -396,6 +396,7 @@ def is_adaptive(ob:Object):
             return True
     return False
 
+
 def get_vertices_in_group(obj:Object, vertex_group):
     if isinstance(vertex_group, int):
         if vertex_group >= len(obj.vertex_groups):
@@ -408,6 +409,31 @@ def get_vertices_in_group(obj:Object, vertex_group):
         raise ValueError("Expecting second argument to be of type 'str', or 'int'. Got {}".format(type(vertex_group)))
 
     return [v for v in obj.data.vertices if vertex_group in [vg.group for vg in v.groups]]
+
+
+def get_mat_idx(obj:Object, mat_name:str):
+    """ returns index of material in object (adds to object if not present) """
+    mats = obj.data.materials
+    if mat_name in mats:
+        mat_idx = mats.keys().index(mat_name)
+    elif bpy.data.materials.get(mat_name) is not None:
+        mats.append(bpy.data.materials[mat_name])
+        mat_idx = len(mats) - 1
+    else:
+        mat_idx = -1
+        # raise IndexError("Material '{}' does not exist".format(mat_name))
+    return mat_idx
+
+
+def junk_obj(name:str="addon_junk_obj", mesh:Mesh=None):
+    """ returns junk object (only creates one if necessary) """
+    mesh = mesh or junk_mesh()
+    junk_obj = bpy.data.objects.get(name)
+    if junk_obj is None:
+        junk_obj = bpy.data.objects.new(name, mesh)
+    else:
+        junk_obj.data = mesh
+    return junk_obj
 
 
 #################### VIEWPORT ####################
@@ -528,11 +554,18 @@ def smooth_mesh_faces(faces:iter):
         f.use_smooth = True
 
 
-def junk_mesh():
+@blender_version_wrapper("<=","2.80")
+def clear_geom(mesh:Mesh):
+    bmesh.new().to_mesh(mesh)
+@blender_version_wrapper(">=","2.80")
+def clear_geom(mesh:Mesh):
+    mesh.clear_geometry()
+
+def junk_mesh(name:str="addon_junk_mesh"):
     """ returns junk mesh (only creates one if necessary) """
-    junk_mesh = bpy.data.meshes.get("Bricker_junk_mesh")
+    junk_mesh = bpy.data.meshes.get(name)
     if junk_mesh is None:
-        junk_mesh = bpy.data.meshes.new("Bricker_junk_mesh")
+        junk_mesh = bpy.data.meshes.new(name)
     return junk_mesh
 
 

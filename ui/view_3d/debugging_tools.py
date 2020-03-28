@@ -61,6 +61,40 @@ class VIEW3D_PT_bricker_debugging_tools(Panel):
         layout.operator("bricker.debug_toggle_view_source", icon="RESTRICT_VIEW_OFF" if source_name in scn.objects else "RESTRICT_VIEW_ON")
 
 
+class VIEW3D_PT_bricker_model_stats(Panel):
+    """ Display Matrix details for specified brick location """
+    bl_space_type  = "VIEW_3D"
+    bl_region_type = "UI" if b280() else "TOOLS"
+    bl_category    = "Bricker"
+    bl_label       = "Brick Details"
+    bl_idname      = "VIEW3D_PT_bricker_model_stats"
+    bl_parent_id   = "VIEW3D_PT_bricker_debugging_tools"
+    bl_context     = "objectmode"
+
+    @classmethod
+    def poll(self, context):
+        if bpy.props.bricker_developer_mode == 0:
+            return False
+        if not settings_can_be_drawn():
+            return False
+        scn, cm, _ = get_active_context_info()
+        if created_with_unsupported_version(cm):
+            return False
+        if not (cm.model_created or cm.animated):
+            return False
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        scn, cm, _ = get_active_context_info()
+        layout.operator("bricker.refresh_model_stats")
+        col = layout.column(align=True)
+        col.label(text="Bricks in model: {}".format(cm.num_bricks_in_model))
+        col.label(text="Materials in model: {}".format(cm.num_materials_in_model))
+        col.label(text="Real-world dimensions:")
+        col.label(text=str(cm.real_world_dimensions[0]) + " x " + str(cm.real_world_dimensions[1]))
+
+
 class VIEW3D_PT_bricker_matrix_details(Panel):
     """ Display Matrix details for specified brick location """
     bl_space_type  = "VIEW_3D"
@@ -144,7 +178,7 @@ class VIEW3D_PT_bricker_matrix_details(Panel):
             "type",
             "flipped",
             "rotated",
-            "created_from"
+            "created_from",
         ]
         # draw keys
         col = split.column(align=True)

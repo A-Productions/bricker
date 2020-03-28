@@ -43,6 +43,7 @@ classes = [
     export_ldraw.BRICKER_OT_export_ldraw,
     apply_material.BRICKER_OT_apply_material,
     redraw_custom_bricks.BRICKER_OT_redraw_custom_bricks,
+    refresh_model_stats.BRICKER_OT_refresh_model_stats,
     revert_settings.BRICKER_OT_revert_settings,
     cmlist_actions.CMLIST_OT_list_action,
     cmlist_actions.CMLIST_OT_copy_settings_to_others,
@@ -86,6 +87,7 @@ classes = [
     VIEW3D_PT_bricker_brick_types,
     VIEW3D_PT_bricker_merge_settings,
     VIEW3D_PT_bricker_customize,
+    VIEW3D_PT_bricker_legacy_customization_tools,
     VIEW3D_PT_bricker_materials,
     VIEW3D_PT_bricker_use_uv_map,
     VIEW3D_PT_bricker_included_materials,
@@ -97,6 +99,7 @@ classes = [
     CMLIST_UL_items,
     MATERIAL_UL_matslots,
     VIEW3D_PT_bricker_debugging_tools,
+    VIEW3D_PT_bricker_model_stats,
     VIEW3D_PT_bricker_matrix_details,
 ]
 

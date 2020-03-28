@@ -64,7 +64,7 @@ def update_materials(bricksdict, source, keys, cur_frame=None, action="CREATE"):
             mat_name = ""
         else:
             ni = Vector(bricksdict[key]["near_intersection"])
-            rgba, mat_name = get_brick_rgba(scn, source, nf, ni, uv_image, color_depth=color_depth)
+            rgba, mat_name = get_brick_rgba(source, nf, ni, uv_image, color_depth=color_depth)
 
         if material_type == "SOURCE":
             # get material with snapped RGBA value

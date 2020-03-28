@@ -16,42 +16,50 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-import bmesh
-import math
+import time
+import os
 
 # Blender imports
 import bpy
-import bgl
-from bpy_extras.view3d_utils import location_3d_to_region_2d, region_2d_to_location_3d, region_2d_to_origin_3d, region_2d_to_vector_3d
-from bpy.types import Operator, SpaceView3D, bpy_struct
-from bpy.props import *
+from bpy.types import Operator
 
 # Module imports
-# NONE!
+from ..functions import *
 
 
-class BRICKER_OT_bricksculpt_null(Operator):
-    """Run the BrickSculpt editing tool suite"""
-    bl_idname = "bricker.bricksculpt_null"
-    bl_label = "Run BrickSculpt Tool"
-    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
+class BRICKER_OT_refresh_model_stats(Operator):
+    """Refresh all model statistics"""
+    bl_idname = "bricker.refresh_model_stats"
+    bl_label = "Refresh Model Stats"
+    bl_options = {"REGISTER", "UNDO"}
 
     ################################################
     # Blender Operator methods
 
     @classmethod
     def poll(self, context):
+        scn = bpy.context.scene
+        if scn.cmlist_index == -1:
+            return False
+        cm = scn.cmlist[scn.cmlist_index]
+        if matrix_really_is_dirty(cm):
+            return True
         return False
 
     def execute(self, context):
-        self.report({"WARNING"}, "BrickSculpt not installed!")
-        return {"CANCELLED"}
+        try:
+            self.refresh_model_stats()
+        except:
+            bricker_handle_exception()
+        return{"FINISHED"}
 
-    # define props for popup
-    mode = EnumProperty(
-        items=[
-            ("DRAW", "DRAW", ""),
-            ("PAINT", "PAINT", ""),
-            ("MERGE_SPLIT", "MERGE/SPLIT", ""),
-        ],
-    )
+    ################################################
+    # class methods
+
+    def refresh_model_stats(self, cm=None):
+        scn, cm = get_active_context_info(cm)[:2]
+        cm.num_bricks_in_model = -1
+        cm.num_materials_in_model = -1
+        cm.real_world_dimensions = (-1, -1)
+
+    ################################################

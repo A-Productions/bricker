@@ -108,19 +108,22 @@ class VIEW3D_PT_bricker_customize(Panel):
         col.enabled = is_bricksculpt_installed()
         # col.active = False
         col.label(text="BrickSculpt Tools:")
-        if hasattr(bpy.ops, "bricksculpt") and hasattr(bpy.ops.bricksculpt, "run_tool") and bpy.ops.bricksculpt.run_tool.idname == "BRICKSCULPT_OT_run_tool":
+        if is_bricksculpt_installed():
             col.operator("bricksculpt.run_tool", text="Draw/Cut Tool", icon="GREASEPENCIL").mode = "DRAW"
-            col.operator("bricksculpt.run_tool", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE/SPLIT"
+            col.operator("bricksculpt.run_tool", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE_SPLIT"
             row = col.row(align=True)
             row.operator("bricksculpt.run_tool", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
-            row.prop_search(cm, "paintbrush_mat", bpy.data, "materials", text="")
+            # row.prop_search(cm, "paintbrush_mat", bpy.data, "materials", text="")
+            if bpy.data.texts.find("BrickSculpt (Bricker Addon) log") >= 0:
+                split = layout_split(layout, factor=0.9)
+                split.operator("bricksculpt__bricker_addon_.report_error", text="Report Error", icon="URL")
+                split.operator("bricksculpt__bricker_addon_.close_report_error", text="", icon="PANEL_CLOSE")
         else:
             col.operator("bricker.bricksculpt_null", text="Draw/Cut Tool", icon="GREASEPENCIL").mode = "DRAW"
-            col.operator("bricker.bricksculpt_null", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE/SPLIT"
+            col.operator("bricker.bricksculpt_null", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE_SPLIT"
             row = col.row(align=True)
             row.operator("bricker.bricksculpt_null", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
-            row.prop_search(cm, "paintbrush_mat", bpy.data, "materials", text="")
-        if not is_bricksculpt_installed():
+            row.prop_search(scn.bricksculpt, "paintbrush_mat", bpy.data, "materials", text="")
             # row = col.row(align=True)
             # row.scale_y = 0.7
             # row.label(text="BrickSculpt available for purchase")
@@ -141,10 +144,6 @@ class VIEW3D_PT_bricker_customize(Panel):
             row.operator("wm.url_open", text="View Website", icon="WORLD").url = "https://www.blendermarket.com/creators/bricksbroughttolife"
             layout.split()
             layout.split()
-        elif bpy.data.texts.find("BrickSculpt (Bricker Addon) log") >= 0:
-            split = layout_split(layout, factor=0.9)
-            split.operator("bricksculpt__bricker_addon_.report_error", text="Report Error", icon="URL")
-            split.operator("bricksculpt__bricker_addon_.close_report_error", text="", icon="PANEL_CLOSE")
 
         col1 = layout.column(align=True)
         col1.label(text="Selection:")
@@ -156,6 +155,55 @@ class VIEW3D_PT_bricker_customize(Panel):
         col = split.column(align=True)
         col.operator("bricker.select_bricks_by_size", text="By Size")
 
+
+class VIEW3D_PT_bricker_legacy_customization_tools(Panel):
+    bl_space_type  = "VIEW_3D"
+    bl_region_type = "UI" if b280() else "TOOLS"
+    bl_category    = "Bricker"
+    bl_label       = "Legacy Tools"
+    bl_parent_id   = "VIEW3D_PT_bricker_customize"
+    bl_idname      = "VIEW3D_PT_bricker_legacy_customization_tools"
+    bl_context     = "objectmode"
+    bl_options     = {"DEFAULT_CLOSED"}
+
+    @classmethod
+    def poll(self, context):
+        if not settings_can_be_drawn():
+            return False
+        scn, cm, _ = get_active_context_info()
+        if created_with_unsupported_version(cm):
+            return False
+        if not cm.model_created:
+            return False
+        if cm.last_instance_method == "POINT_CLOUD":
+            return False
+        if matrix_really_is_dirty(cm):
+            return False
+        if not cm.last_split_model:
+            return False
+        if cm.build_is_dirty:
+            return False
+        if cm.brickifying_in_background:
+            return False
+        if not cache_exists(cm):
+            return False
+        prefs = get_addon_preferences()
+        return prefs.show_legacy_customization_tools
+
+    def draw(self, context):
+        layout = self.layout
+        scn, cm, _ = get_active_context_info()
+
+        col1 = layout.column(align=True)
+        col1.label(text="Brick Operations:")
+        split = layout_split(col1, factor=0.5)
+        split.operator("bricker.split_bricks", text="Split")
+        split.operator("bricker.merge_bricks", text="Merge")
+        col1.operator("bricker.draw_adjacent", text="Draw Adjacent Bricks")
+        col1.operator("bricker.change_brick_type", text="Change Type")
+        # col1.operator("bricker.change_brick_material", text="Change Material")
+        # col1.operator("bricker.redraw_bricks")
+
         col1 = layout.column(align=True)
         col1.label(text="Toggle Exposure:")
         split = layout_split(col1, factor=0.5)
@@ -165,28 +213,3 @@ class VIEW3D_PT_bricker_customize(Panel):
         # set bottom exposed
         col = split.column(align=True)
         col.operator("bricker.set_exposure", text="Bottom").side = "BOTTOM"
-
-        col1 = layout.column(align=True)
-        col1.label(text="Brick Operations:")
-        split = layout_split(col1, factor=0.5)
-        # split brick into 1x1s
-        col = split.column(align=True)
-        col.operator("bricker.split_bricks", text="Split")
-        # merge selected bricks
-        col = split.column(align=True)
-        col.operator("bricker.merge_bricks", text="Merge")
-        # Add identical brick on +/- x/y/z
-        row = col1.row(align=True)
-        row.operator("bricker.draw_adjacent", text="Draw Adjacent Bricks")
-        # change brick type
-        row = col1.row(align=True)
-        row.operator("bricker.change_brick_type", text="Change Type")
-        # change material type
-        row = col1.row(align=True)
-        row.operator("bricker.change_brick_material", text="Change Material")
-        # additional controls
-        row = col1.row(align=True)
-        right_align(row)
-        row.prop(cm, "auto_update_on_delete")
-        # row = col.row(align=True)
-        # row.operator("bricker.redraw_bricks")

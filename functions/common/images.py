@@ -142,14 +142,14 @@ def get_pixel(image:Image, uv_coord:Vector, premult:bool=False, pixels:list=None
     return rgba
 
 
-def get_uv_pixel_color(scn:Scene, obj:Object, face_idx:int, point:Vector, uv_image:Image=None, color_depth:int=-1):
+def get_uv_pixel_color(obj:Object, face_idx:int, point:Vector, uv_image:Image=None, color_depth:int=-1):
     """ get RGBA value in UV image for point at specified face index """
     if face_idx is None:
         return None
     # get closest material using UV map
     face = obj.data.polygons[face_idx]
     # get uv_layer image for face
-    image = get_uv_image(scn, obj, face_idx, uv_image)
+    image = get_uv_image(obj, face_idx, uv_image)
     if image is None:
         return None
     # get uv coordinate based on nearest face intersection
@@ -162,7 +162,7 @@ def get_uv_pixel_color(scn:Scene, obj:Object, face_idx:int, point:Vector, uv_ima
     return [round(v, 6) for v in rgba]
 
 
-def get_uv_image(scn:Scene, obj:Object, face_idx:int, uv_image:Image=None):
+def get_uv_image(obj:Object, face_idx:int, uv_image:Image=None):
     """ returns UV image for object (priority to passed image, then face index, then first one found in material nodes) """
     image = verify_img(uv_image)
     # TODO: Reinstate this functionality for b280()
@@ -310,10 +310,9 @@ def get_1d_pixel_array(array:np.ndarray):
     """ convert pixel array to 1d from 2d or 3d array """
     assert 2 <= len(array.shape) <= 3
     if len(array.shape) == 2:  # 2D array input
-        pixels_1d = np.copy(array)
-        np.reshape(array, array.shape[0] * array.shape[1], order="F")
+        pixels_1d = np.reshape(array, array.shape[0] * array.shape[1])
     # else:  # 3D array input
-    #     pixels_1d = np.empty(len(array) * len(array[0]) * len(array[0][0]))
+    #     pixels_1d = np.copy(array)
     #     pixel_type = type(array[0][0])
     #     if pixel_type in (list, tuple, Vector, np.ndarray, bpy.types.bpy_prop_array):
     #         for col in range(len(array[0])):

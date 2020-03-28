@@ -24,6 +24,7 @@ import json
 import bpy
 from bpy.types import Operator
 from bpy_extras.io_utils import ExportHelper#, path_reference_mode
+from bpy.props import *
 
 # Module imports
 from ..functions import *
@@ -53,10 +54,10 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
     # ExportHelper properties
 
     filename_ext = ".ldr"
-    filter_glob = bpy.props.StringProperty(
-            default="*.ldr",
-            options={"HIDDEN"},
-            )
+    filter_glob = StringProperty(
+        default="*.ldr",
+        options={"HIDDEN"},
+    )
     # path_mode = path_reference_mode
     check_extension = True
 

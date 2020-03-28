@@ -18,7 +18,7 @@
 bl_info = {
     "name"        : "Bricker",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
-    "version"     : (1, 8, 3),
+    "version"     : (2, 0, 0),
     "blender"     : (2, 83, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
@@ -69,7 +69,6 @@ def register():
     bpy.props.bricker_initialized = b280()  # automatically initialized (uses timer) in b280
     bpy.props.bricker_updating_undo_state = False
     bpy.props.bricker_developer_mode = developer_mode
-    bpy.props.running_bricksculpt_tool = False
     bpy.props.bricker_last_selected = []
     bpy.props.bricker_trans_and_anim_data = []
     bpy.props.manual_cmlist_update = False
@@ -219,7 +218,6 @@ def unregister():
     del bpy.props.manual_cmlist_update
     del bpy.props.bricker_trans_and_anim_data
     del bpy.props.bricker_last_selected
-    del bpy.props.running_bricksculpt_tool
     del bpy.props.bricker_developer_mode
     del bpy.props.bricker_updating_undo_state
     del bpy.props.bricker_initialized

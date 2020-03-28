@@ -23,6 +23,7 @@ import bpy
 
 # Module imports
 from .caches import bricker_bfm_cache
+from ..functions.common.blender import get_preferences
 
 python_undo_state = {}
 
@@ -52,6 +53,7 @@ class UndoStack():
 
     def __init__(self):
         assert hasattr(UndoStack, "creating"), "Do not create new UndoStack directly!  Use UndoStack.new()"
+        self.undo_depth = get_preferences().edit.undo_steps
         self.undo = []  # undo stack of causing actions, FSM state, tool states, and rftargets
         self.redo = []  # redo stack of causing actions, FSM state, tool states, and rftargets
 
@@ -59,7 +61,6 @@ class UndoStack():
     # class variables
 
     instance = None
-    undo_depth = 500    # set in addon preferences?
 
     ###################################################
     # undo / redo stack operations
@@ -87,14 +88,16 @@ class UndoStack():
 
     def _create_state(self, action, bfm_cache):
         return {
-            "action":       action,
-            "bfm_cache":    bfm_cache
-            }
+            "action":    action,
+            "bfm_cache": bfm_cache,
+        }
 
-    def _restore_state(self, state):
+    def _restore_state(self, state, cm_id=None):
         global bricker_bfm_cache
-        for key in state["bfm_cache"].keys():
+        keys = [cm_id] if cm_id is not None else state["bfm_cache"].keys()
+        for key in keys:
             bricker_bfm_cache[key] = marshal.loads(state["bfm_cache"][key])
+        return bricker_bfm_cache
 
     def append_state(self, action, stackType, affected_ids="ALL"):
         global bricker_bfm_cache
@@ -109,6 +112,10 @@ class UndoStack():
                 new_bfm_cache[cm_id] = marshal.dumps(bricker_bfm_cache[cm_id])
         stack.append(self._create_state(action, new_bfm_cache))
         return new_bfm_cache
+
+    def revert_to_last_state(self, cm_id):
+        bricker_bfm_cache = self._restore_state(self.undo[-1])
+        return bricker_bfm_cache[cm_id]
 
     def undo_push(self, action, affected_ids="ALL", repeatable=False):
         # skip pushing to undo if action is repeatable and we are repeating actions

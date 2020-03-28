@@ -108,6 +108,7 @@ class OBJECT_OT_delete_override(Operator):
         scn = context.scene
         protected = []
         obj_names_to_delete = [obj.name for obj in self.objs_to_delete]
+        prefs = get_addon_preferences()
 
         # initialize obj_names_dict (key:cm_id, val:list of brick objects)
         obj_names_dict = create_obj_names_dict(self.objs_to_delete)
@@ -127,6 +128,9 @@ class OBJECT_OT_delete_override(Operator):
                 continue
             keys_to_update = []
             cm.customized = True
+            # store cmlist props for quick calling
+            last_split_model = cm.last_split_model
+            zstep = cm.zstep
 
             for obj_name in obj_names_dict[cm_id]:
                 # get dict key details of current obj
@@ -138,11 +142,11 @@ class OBJECT_OT_delete_override(Operator):
                 # for all locations in bricksdict covered by current obj
                 for x in range(x0, x0 + obj_size[0]):
                     for y in range(y0, y0 + obj_size[1]):
-                        for z in range(z0, z0 + (obj_size[2] // cm.zstep)):
+                        for z in range(z0, z0 + (obj_size[2] // zstep)):
                             cur_key = list_to_str((x, y, z))
                             # make adjustments to adjacent bricks
-                            if cm.auto_update_on_delete and cm.last_split_model:
-                                self.update_adj_bricksdicts(bricksdict, cm.zstep, cur_key, [x, y, z], keys_to_update)
+                            if prefs.auto_update_on_delete and last_split_model:
+                                self.update_adj_bricksdicts(bricksdict, zstep, cur_key, [x, y, z], keys_to_update)
                             # reset bricksdict values
                             bricksdict[cur_key]["draw"] = False
                             bricksdict[cur_key]["val"] = 0

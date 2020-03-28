@@ -91,7 +91,7 @@ mat_properties = {
       'Diffuse Color':[1.0, 0.83077, 0.20508, 1.0],
       # TODO: UPDATE SUBSURFACE SCATTERING COLOR
       # Other properties (not node inputs)
-      'LDR Code':266,
+      'LDR Code':226,
   },
   'ABS Plastic Dark Azur':{
       'Diffuse Color':[0.16203, 0.40724, 0.65837, 1.0],

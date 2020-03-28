@@ -57,7 +57,7 @@ class BRICKER_OT_revert_settings(Operator):
     # class methods
 
     def revert_matrixSettings(self, cm=None):
-        cm = cm or get_active_context_info()[1]
+        cm = get_active_context_info(cm)[1]
         settings = cm.last_matrix_settings.split(",")
         cm.brick_height = float(settings[0])
         cm.gap = float(settings[1])

@@ -132,7 +132,7 @@ def get_uv_pixel_color(scn:Scene, obj:Object, face_idx:int, point:Vector, uv_ima
     # get closest material using UV map
     face = obj.data.polygons[face_idx]
     # get uv_layer image for face
-    image = get_uv_image(scn, obj, face_idx, uv_image)
+    image = get_uv_image(obj, face_idx, uv_image)
     if image is None:
         return None
     # get uv coordinate based on nearest face intersection

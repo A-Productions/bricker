@@ -109,7 +109,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     # BASIC MODEL SETTINGS
     brick_height = FloatProperty(
         name="Brick Height",
-        description="Height of the bricks in the final Brick Model",
+        description="Height of the bricks in the final Brick Model (in meters, excluding the stud)",
         update=dirty_matrix,
         subtype="DISTANCE",
         step=1,
@@ -335,18 +335,6 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         subtype="TRANSLATION",
         min=0.001, soft_max=1.0,
         default=(1, 1, 1),
-    )
-
-    # CUSTOMIZE SETTINGS
-    auto_update_on_delete = BoolProperty(
-        name="Auto Update on Delete",
-        description="Draw newly exposed bricks when existing bricks are deleted",
-        default=True,
-    )
-    paintbrush_mat = PointerProperty(
-        type=bpy.types.Material,
-        name="Paintbrush Material",
-        description="Material for the BrickSculpt paintbrush tool",
     )
 
     # MATERIAL & COLOR SETTINGS
@@ -797,6 +785,11 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     has_custom_obj1 = BoolProperty(default=False)
     has_custom_obj2 = BoolProperty(default=False)
     has_custom_obj3 = BoolProperty(default=False)
+
+    # model stats
+    num_bricks_in_model = IntProperty(default=-1)
+    num_materials_in_model = IntProperty(default=-1)
+    real_world_dimensions = FloatVectorProperty(size=2, subtype="XYZ", default=(-1, -1))
 
     # Properties for checking of model needs updating
     anim_is_dirty = BoolProperty(default=True)

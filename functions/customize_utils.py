@@ -33,7 +33,7 @@ from ..operators.bevel import BRICKER_OT_bevel
 
 
 def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", select_created=True, temp_brick=False):
-    if len(keys_to_update) == 0: return
+    if len(keys_to_update) == 0: return []
     if not is_unique(keys_to_update): raise ValueError("keys_to_update cannot contain duplicate values")
     if action is not None:
         print("[Bricker] %(action)s..." % locals())
@@ -53,6 +53,7 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     if cm.bevel_added and not temp_brick:
         bricks = get_bricks(cm)
         BRICKER_OT_bevel.run_bevel_action(bricks, cm)
+    return bricks_created
 
 
 def verify_all_brick_exposures(scn, zstep, orig_loc, bricksdict, decriment=0, z_neg=False, z_pos=False):

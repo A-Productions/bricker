@@ -62,7 +62,7 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
         m = custom_data[int(brick_d["type"][-1]) - 1]
     else:
         # get brick mesh
-        m = get_brick_data(brick_d, rand_s3, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, use_stud, logo_inset, logo_scale)
+        m = get_brick_data(brick_d, dimensions, brick_type, brick_size, circle_verts, underside_detail, use_stud, logo_to_use, logo_type, logo_inset, logo_scale, logo_resolution, logo_decimate, rand_s3)
     # duplicate data if not instancing by mesh data
     m = m if instance_method == "LINK_DATA" else m.copy()
     # apply random rotation to edit mesh according to parameters
@@ -223,13 +223,13 @@ def apply_brick_mesh_settings(m):
     m.update()
 
 
-def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_height, logo_resolution, logo_decimate, circle_verts, underside_detail, logo_to_use, logo_type, use_stud, logo_inset, logo_scale=None):
+def get_brick_data(brick_d, dimensions, brick_type, brick_size=(1, 1, 1), circle_verts=16, underside_detail="FLAT", use_stud=True, logo_to_use=None, logo_type=None, logo_inset=None, logo_scale=None, logo_resolution=None, logo_decimate=None, rand=None):
     # get bm_cache_string
     bm_cache_string = ""
     if "CUSTOM" not in brick_type:
         custom_logo_used = logo_to_use is not None and logo_type == "CUSTOM"
         bm_cache_string = marshal.dumps((
-            brick_height, brick_size, underside_detail,
+            dimensions["height"], brick_size, underside_detail,
             logo_resolution if logo_to_use is not None else None,
             logo_decimate if logo_to_use is not None else None,
             logo_inset if logo_to_use is not None else None,
@@ -299,6 +299,7 @@ def get_brick_data(brick_d, rand, dimensions, brick_size, brick_type, brick_heig
     #         bricker_mesh_cache[bm_cache_string] = meshes
 
     # pick edit mesh randomly from options
+    rand = np.random.RandomState(0) if rand is None else rand
     m0 = meshes[rand.randint(0, len(meshes))] if len(meshes) > 1 else meshes[0]
 
     return m0

@@ -41,7 +41,7 @@ def get_zstep(cm):
 
 
 def flat_brick_type(typ):
-    return type(typ) == str and ("PLATE" in typ or "STUD" in typ)
+    return type(typ) == str and ("PLATE" in typ or "STUD" in typ or "TILE" in typ)
 
 
 def mergable_brick_type(typ, up=False):

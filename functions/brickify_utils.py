@@ -355,7 +355,7 @@ def generate_brick_object(brick_name="New Brick", brick_size=(1, 1, 1)):
     dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
     use_stud = cm.stud_detail != "NONE"
     logo_to_use = get_logo(scn, cm, dimensions) if use_stud and cm.logo_type != "NONE" else None
-    m = get_brick_data(brick_d, rand, dimensions, brick_size, cm.brick_type, cm.brick_height, cm.logo_resolution, cm.logo_decimate, cm.circle_verts, cm.exposed_underside_detail, logo_to_use, cm.logo_type, use_stud, cm.logo_inset)
+    m = get_brick_data(brick_d, dimensions, cm.brick_type, brick_size, cm.circle_verts, cm.exposed_underside_detail, use_stud, logo_to_use, cm.logo_type, cm.logo_inset, None, cm.logo_resolution, cm.logo_decimate, rand)
     brick = bpy.data.objects.new(brick_name, m)
     return brick
 

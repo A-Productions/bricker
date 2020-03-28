@@ -32,27 +32,46 @@ class BRICKER_AP_preferences(AddonPreferences):
     brick_height_default = bpy.props.EnumProperty(
         name="Default Brick Height Setting",
         description="Method for setting default 'Model Height' value when new model is added",
-        items=[("RELATIVE", "Relative (recommended)", "'Model Height' setting defaults to fixed number of bricks tall when new model is added"),
-               ("ABSOLUTE", "Absolute", "'Model Height' setting defaults to fixed height in decimeters when new model is added")],
-        default="RELATIVE")
+        items=[
+            ("RELATIVE", "Relative (recommended)", "'Model Height' setting defaults to fixed number of bricks tall when new model is added"),
+            ("ABSOLUTE", "Absolute", "'Model Height' setting defaults to fixed height in decimeters when new model is added"),
+        ],
+        default="RELATIVE",
+    )
     relative_brick_height = bpy.props.IntProperty(
         name="Model Height (bricks)",
         description="Default height for bricker models in bricks (standard deviation of 1 brick)",
         min=1,
-        default=20)
+        default=20,
+    )
     absolute_brick_height = bpy.props.FloatProperty(
         name="Brick Height (dm)",
         description="Default brick height in decimeters",
         min=0.00001,
         precision=3,
-        default=0.096)
+        default=0.096,
+    )
     brickify_in_background = EnumProperty(
         name="Brickify in Background",
         description="Run brickify calculations in background (if disabled, user interface will freeze during calculation)",
-        items=[("AUTO", "Auto", "Automatically determine whether to brickify in background or active Blender window based on model complexity"),
-               ("ON", "On", "Run brickify calculations in background"),
-               ("OFF", "Off", "Run brickify calculations in active Blender window (user interface will freeze during calculation)")],
-        default="AUTO")
+        items=[
+            ("AUTO", "Auto", "Automatically determine whether to brickify in background or active Blender window based on model complexity"),
+            ("ON", "On", "Run brickify calculations in background"),
+            ("OFF", "Off", "Run brickify calculations in active Blender window (user interface will freeze during calculation)"),
+        ],
+        default="AUTO",
+    )
+    # CUSTOMIZE SETTINGS
+    show_legacy_customization_tools = BoolProperty(
+        name="Show Legacy Brick Operations",
+        description="Reveal the old brick customization tools in the Bricker UI",
+        default=True,
+    )
+    auto_update_on_delete = BoolProperty(
+        name="Auto Update Model on Delete",
+        description="Draw newly exposed bricks when existing bricks are deleted",
+        default=True,
+    )
 
 	# addon updater preferences
     auto_check_update = bpy.props.BoolProperty(
@@ -83,7 +102,6 @@ class BRICKER_AP_preferences(AddonPreferences):
         col1 = layout.column(align=True)
 
         # draw addon prefs
-        prefs = get_addon_preferences()
         row = col1.row(align=False)
         split = layout_split(row, factor=0.275)
         col = split.column(align=True)
@@ -91,12 +109,12 @@ class BRICKER_AP_preferences(AddonPreferences):
         col = split.column(align=True)
         split = layout_split(col, factor=0.5)
         col = split.column(align=True)
-        col.prop(prefs, "brick_height_default", text="")
+        col.prop(self, "brick_height_default", text="")
         col = split.column(align=True)
-        if prefs.brick_height_default == "RELATIVE":
-            col.prop(prefs, "relative_brick_height")
+        if self.brick_height_default == "RELATIVE":
+            col.prop(self, "relative_brick_height")
         else:
-            col.prop(prefs, "absolute_brick_height")
+            col.prop(self, "absolute_brick_height")
         col1.separator()
         col1.separator()
         row = col1.row(align=False)
@@ -104,8 +122,12 @@ class BRICKER_AP_preferences(AddonPreferences):
         col = split.column(align=True)
         col.label(text="Brickify in Background:")
         col = split.column(align=True)
-        col.prop(prefs, "brickify_in_background", text="")
+        col.prop(self, "brickify_in_background", text="")
         col1.separator()
+        row = col1.row(align=True)
+        right_align(row)
+        row.prop(self, "show_legacy_customization_tools")
+        row.prop(self, "auto_update_on_delete")
 
         # updater draw function
         addon_updater_ops.update_settings_ui(self,context)

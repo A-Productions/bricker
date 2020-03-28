@@ -93,6 +93,8 @@ def split_brick(bricksdict, key, zstep, brick_type, loc=None, v=True, h=True):
     Keyword Arguments:
     bricksdict -- Matrix of bricks in model
     key        -- key for brick in matrix
+    zstep      -- passing cm.zstep through
+    brick_type -- passing cm.brick_type through
     loc        -- xyz location of brick in matrix
     v          -- split brick vertically
     h          -- split brick horizontally
@@ -100,6 +102,7 @@ def split_brick(bricksdict, key, zstep, brick_type, loc=None, v=True, h=True):
     # set up unspecified paramaters
     loc = loc or get_dict_loc(bricksdict, key)
     # initialize vars
+    target_type = get_brick_type(brick_type)
     size = bricksdict[key]["size"]
     new_size = [1, 1, size[2]]
     if flat_brick_type(brick_type):
@@ -116,7 +119,7 @@ def split_brick(bricksdict, key, zstep, brick_type, loc=None, v=True, h=True):
     keys_in_brick = get_keys_in_brick(bricksdict, size, zstep, loc=loc)
     for cur_key in keys_in_brick:
         bricksdict[cur_key]["size"] = new_size.copy()
-        bricksdict[cur_key]["type"] = "BRICK" if new_size[2] == 3 else "PLATE"
+        bricksdict[cur_key]["type"] = get_tall_type(bricksdict[cur_key], target_type) if new_size[2] == 3 else get_short_type(bricksdict[cur_key], target_type)
         bricksdict[cur_key]["parent"] = "self"
         bricksdict[cur_key]["top_exposed"] = bricksdict[key]["top_exposed"]
         bricksdict[cur_key]["bot_exposed"] = bricksdict[key]["bot_exposed"]
@@ -188,7 +191,7 @@ def is_on_shell(bricksdict, key, loc=None, zstep=None, shell_depth=1):
     return False
 
 
-def get_brick_center(bricksdict, key, zstep, loc=None):
+def get_brick_center(bricksdict, key, zstep=1, loc=None):
     loc = loc or get_dict_loc(bricksdict, key)
     brick_keys = get_keys_in_brick(bricksdict, bricksdict[key]["size"], zstep, loc=loc)
     coords = [bricksdict[k0]["co"] for k0 in brick_keys]

@@ -31,6 +31,8 @@ from mathutils import Vector, Color
 from .color_effects import *
 from .maths import *
 from .python_utils import *
+from .reporting import stopwatch
+from .blender import link_object
 
 
 class Vector2:
@@ -46,57 +48,55 @@ class Vector2:
         return "<Vector2(" + str(tuple(self._seq)) + ")>"
 
     def __add__(self, other):
-        assert isinstance(other, Vector2) or isinstance(Vector)
-        assert len(self) == len(other)
         new_vec = Vector2(self.to_list())
-        new_vec.x += other.x
-        new_vec.y += other.y
-        if len(self) > 2:
-            new_vec.z += other.z
+        if type(other) in (Vector2, Vector):
+            assert len(self) == len(other)
+            for i in range(len(new_vec)):
+                new_vec[i] += other[i]
+        elif type(other) in (int, float):
+            for i in range(len(new_vec)):
+                new_vec[i] += other
+        else:
+            raise Exception("Vector2 addition: (Vector2 and {}) invalid type for this operation")
         return new_vec
 
     def __sub__(self, other):
-        assert isinstance(other, Vector2) or isinstance(other, Vector)
-        assert len(self) == len(other)
         new_vec = Vector2(self.to_list())
-        new_vec.x -= other.x
-        new_vec.y -= other.y
-        if len(self) > 2:
-            new_vec.z -= other.z
+        if type(other) in (Vector2, Vector):
+            assert len(self) == len(other)
+            for i in range(len(new_vec)):
+                new_vec[i] -= other[i]
+        elif type(other) in (int, float):
+            for i in range(len(new_vec)):
+                new_vec[i] -= other
+        else:
+            raise Exception("Vector2 subtraction: (Vector2 and {}) invalid type for this operation")
         return new_vec
 
     def __mul__(self, other):
         new_vec = Vector2(self.to_list())
-        if isinstance(other, Vector2) or isinstance(other, Vector):
+        if type(other) in (Vector2, Vector):
             assert len(self) == len(other)
-            new_vec.x = self.x * other.x
-            new_vec.y = self.y * other.y
-            if len(self) > 2:
-                new_vec.z = self.z * other.z
-        elif isinstance(other, int) or isinstance(other, float):
-            new_vec.x = self.x * other
-            new_vec.y = self.y * other
-            if len(self) > 2:
-                new_vec.z = self.z * other
+            for i in range(len(new_vec)):
+                new_vec[i] *= other[i]
+        elif type(other) in (int, float):
+            for i in range(len(new_vec)):
+                new_vec[i] *= other
         else:
-            raise
+            raise Exception("Vector2 multiplication: (Vector2 and {}) invalid type for this operation")
         return new_vec
 
     def __div__(self, other):
         new_vec = Vector2(self.to_list())
-        if isinstance(other, Vector2) or isinstance(other, Vector):
+        if type(other) in (Vector2, Vector):
             assert len(self) == len(other)
-            new_vec.x = self.x / other.x
-            new_vec.y = self.y / other.y
-            if len(self) > 2:
-                new_vec.z = self.z / other.z
-        elif isinstance(other, int) or isinstance(other, float):
-            new_vec.x = self.x / other
-            new_vec.y = self.y / other
-            if len(self) > 2:
-                new_vec.z = self.z / other
+            for i in range(len(new_vec)):
+                new_vec[i] /= other[i]
+        elif type(other) in (int, float):
+            for i in range(len(new_vec)):
+                new_vec[i] /= other
         else:
-            raise
+            raise Exception("Vector2 division: (Vector2 and {}) invalid type for this operation")
         return new_vec
 
     def __truediv__(self, other):
@@ -105,12 +105,19 @@ class Vector2:
     def __len__(self):
         return len(self._seq)
 
-    def __getitem__(self, val):
-        assert type(val) in (int, slice)
-        if isinstance(val, int):
-            return self._seq[val]
+    def __setitem__(self, key, val):
+        assert type(key) in (int, slice)
+        if isinstance(key, int):
+            self._seq[key] = val
         else:
-            return self._seq[s.start:s.stop:s.step]
+            self._seq[key.start:key.stop:key.step] = val
+
+    def __getitem__(self, key):
+        assert type(key) in (int, slice)
+        if isinstance(key, int):
+            return self._seq[key]
+        else:
+            return self._seq[key.start:key.stop:key.step]
 
     def __iter__(self):
         self._idx = 0
@@ -171,7 +178,7 @@ class Vector2:
 
 class Island:
     """ data type for storing connected vertices """
-    def __init__(self, coords, island_type=None):
+    def __init__(self, coords, island_type="BASIC"):
         assert type(coords) in (tuple, list)
         self._coords = list(coords)
         self._type = island_type
@@ -202,29 +209,30 @@ class Island:
     def type(self):
         return self._type
 
-    def to_bmesh(self, bme=None):
+    def to_bmesh(self, face=True, bme=None):
         bme = bme or bmesh.new()
-        first_vert = None
+        verts = list()
         for coord in self._coords:
             v = bme.verts.new(coord)
-            if first_vert is None:
-                first_vert = v
-            else:
-                bme.edges.new((v, last_vert))
-            last_vert = v
-        bme.edges.new((v, first_vert))
+            if len(verts) > 0:
+                bme.edges.new((v, verts[-1]))
+            verts.append(v)
+        if len(verts) > 1:
+            bme.edges.new((verts[-1], verts[0]))
+        if face:
+            bme.faces.new(verts)
         return bme
 
-    def to_mesh(self, mesh):
-        bme = self.to_bmesh()
+    def to_mesh(self, mesh, face=True):
+        bme = self.to_bmesh(face=face)
         return bme.to_mesh(mesh)
 
     def from_bmesh(self, bme):
         self._coords = [Vector2(v.co) for v in bme.verts]
 
-    def draw_mesh(self):
+    def draw_mesh(self, face=True):
         m = bpy.data.meshes.new(str(self))
-        self.to_mesh(m)
+        self.to_mesh(m, face=face)
         obj = bpy.data.objects.new(str(self), m)
         link_object(obj)
 
@@ -235,7 +243,7 @@ class Island:
 
 class Archipelago:
     """ data type for storing a group of Islands """
-    def __init__(self, islands=[], island_type=None):
+    def __init__(self, islands=[], island_type="BASIC"):
         assert type(islands) in (tuple, list)
         for island in islands:
             assert type(island) in (tuple, list, Island)
@@ -279,17 +287,19 @@ class Archipelago:
             all_coords += island.coords
         return all_coords
 
-    def to_mesh(self, mesh):
+    def to_mesh(self, mesh, face=True, island_types=None):
         bme = bmesh.new()
         for island in self._islands:
-            island.to_bmesh(bme)
+            if island_types is None or island.type in island_types:
+                island.to_bmesh(bme, face=face)
         return bme.to_mesh(mesh)
 
-    def draw_mesh(self):
+    def draw_mesh(self, face=True, island_types=None):
         m = bpy.data.meshes.new(str(self))
-        self.to_mesh(m)
+        self.to_mesh(m, face, island_types)
         obj = bpy.data.objects.new(str(self), m)
         link_object(obj)
+        return obj
 
     def append(self, island):
         assert type(island) in (tuple, list, Island)
@@ -433,6 +443,20 @@ class MyImage:
         assert isinstance(value, str)
         self._file_extension = value
 
+    def translate(self, translate_x, translate_y, use_relative=False, expand_canvas=False, wrap_x=True, wrap_y=True):
+        if not any((translate_x, translate_y)):
+            return
+        # convert translation values
+        translate_x = round(translate_x * self.size[0]) if use_relative else round(translate_x)
+        translate_y = round(translate_y * self.size[1]) if use_relative else round(translate_y)
+        # expand the canvas if necessary
+        if expand_canvas:
+            self.pad_to_size(new_size=(self.size[0] + translate_x * 2, self.size[1] + translate_y * 2))
+        # translate the pixels
+        old_pixels = self._pixels
+        pixels = translate_pixels(old_pixels, translate_x, translate_y, wrap_x, wrap_y, self.size[0], self.size[1], self.channels)
+        self.pixels = pixels
+
     def resize(self, width=None, height=None, preserve_size=False):
         """ resize image using nearest neighbor """
         assert width or height
@@ -465,17 +489,21 @@ class MyImage:
         self.pixels = pixels
         self.size = new_size
 
-    def pad_to_size(self, new_size):
-        if new_size[0] <= self.size[0] and new_size[1] <= self.size[1]:
+    def pad_to_size(self, width=None, height=None, fill=0):
+        if width is None:
+            width = self.size[0]
+        if height is None:
+            height = self.size[1]
+        if width <= self.size[0] and height <= self.size[1]:
             return
-        new_size = np.array(new_size)
+        new_size = np.array((width, height))
         old_pixels = self._pixels
         old_size = np.array(self.size)
-        self.pixels = pad_pixels(new_size, self._channels, old_pixels, old_size)
+        self.pixels = pad_pixels(new_size, self._channels, old_pixels, old_size, fill)
         # print(len(pixels))
         # self.pixels = np.pad(old_pixels, new_size[0] * new_size[1])
         # print(len(self.pixels))
-        # int("A")
+        self.dimensions = vec_mult(self.dimensions, new_size / self.size)
         self.size = new_size
 
     def write_to_disk(self, directory="//", name=None):
@@ -650,20 +678,6 @@ class MyImage:
         pixels = flip_pixels(old_pixels, flip_x, flip_y, self.size[0], self.size[1], self.channels)
         self.pixels = pixels
 
-    def scale(self, scale_x, scale_y):
-        if not any((scale_x, scale_y)):
-            return
-        old_pixels = self._pixels
-        pixels = scale_pixels(old_pixels, scale_x, scale_y, self.size[0], self.size[1], self.channels)
-        self.pixels = pixels
-
-    def translate(self, translate_x, translate_y, wrap_x, wrap_y):
-        if not any((translate_x, translate_y)):
-            return
-        old_pixels = self._pixels
-        pixels = translate_pixels(old_pixels, translate_x, translate_y, wrap_x, wrap_y, self.size[0], self.size[1], self.channels)
-        self.pixels = pixels
-
 
 class MyImageSequence:
     """ data type for storing and manipulating sequences of MyImages """
@@ -727,6 +741,10 @@ class MyImageSequence:
         for im in self.images:
             im.file_extension = value
 
+    def translate(self, translate_x, translate_y, use_relative=False, expand_canvas=False, wrap_x=True, wrap_y=True):
+        for im in self.images:
+            im.translate(translate_x, translate_y, use_relative, expand_canvas, wrap_x, wrap_y)
+
     def resize(self, width=None, height=None, preserve_size=False):
         for im in self.images:
             im.resize(width, height, preserve_size)
@@ -735,9 +753,9 @@ class MyImageSequence:
         for im in self.images:
             im.crop(width, height)
 
-    def pad_to_size(self, new_size):
+    def pad_to_size(self, width=None, height=None):
         for im in self.images:
-            im.pad_to_size(new_size)
+            im.pad_to_size(width, height)
 
     def write_to_disk(self, directory="//", name=None):
         for im in self.images:
@@ -802,11 +820,3 @@ class MyImageSequence:
     def flip(self, flip_x=True, flip_y=True):
         for im in self.images:
             im.flip(flip_x, flip_y)
-
-    def scale(self, scale_x, scale_y):
-        for im in self.images:
-            im.scale(scale_x, scale_y)
-
-    def translate(self, translate_x, translate_y, wrap_x, wrap_y):
-        for im in self.images:
-            im.translate(translate_x, translate_y, wrap_x, wrap_y)

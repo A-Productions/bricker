@@ -69,8 +69,8 @@ class VIEW3D_PT_bricker_brick_types(Panel):
             right_align(row)
             row.prop(cm, "legal_bricks_only")
 
+        col = layout.column(align=True)
         if cm.brick_type == "CUSTOM":
-            col = layout.column(align=True)
             col.label(text="Brick Type Object:")
         elif cm.last_split_model:
             col.label(text="Custom Brick Objects:")

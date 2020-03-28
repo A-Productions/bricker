@@ -33,6 +33,7 @@ __all__ = [
     "matlist_actions",
     "populate_mat_obj",
     "redraw_custom_bricks",
+    "refresh_model_stats",
     "revert_settings",
     "test_brick_generators",
 ]

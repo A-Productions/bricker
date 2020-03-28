@@ -700,7 +700,7 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
                 if smoke_colors:
                     rgba = smoke_colors[x][y][z]
                 elif source_mats:
-                    rgba = get_uv_pixel_color(scn, source, nf, ni if ni is None else Vector(ni), uv_image)
+                    rgba = get_uv_pixel_color(source, nf, ni if ni is None else Vector(ni), uv_image)
                 else:
                     rgba = (0, 0, 0, 1)
                 draw = brick_freq_matrix[x][y][z] >= threshold

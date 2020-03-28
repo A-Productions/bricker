@@ -22,6 +22,7 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 from .common import *
 from .general import *
 from .colors import *
+from .matlist_utils import *
 from .brick.legal_brick_sizes import *
 
 
@@ -247,17 +248,27 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
     return mat_name
 
 
-def get_brick_rgba(scn, obj, face_idx, point, uv_image=None, color_depth:int=-1):
+def get_brick_rgba(obj, face_idx, point, uv_image=None, color_depth:int=-1):
     """ returns RGBA value for brick """
     if face_idx is None:
         return None, None
     # get material based on rgba value of UV image at face index
-    image = get_uv_image(scn, obj, face_idx, uv_image)
+    image = get_uv_image(obj, face_idx, uv_image)
     if image is not None:
         orig_mat_name = ""
-        rgba = get_uv_pixel_color(scn, obj, face_idx, point, image, color_depth=color_depth)
+        rgba = get_uv_pixel_color(obj, face_idx, point, image, color_depth=color_depth)
     else:
         # get closest material using material slot of face
         orig_mat_name = get_mat_at_face_idx(obj, face_idx)
         rgba = get_material_color(orig_mat_name) if orig_mat_name is not None else None
     return rgba, orig_mat_name
+
+
+def get_materials_in_model(cm, cur_frame=None):
+    """ cannot account for materials added with BrickSculpt paintbrush """
+    scn, cm, n = get_active_context_info(cm)
+    if cm.color_snap in ("ABS", "RANDOM"):
+        return [mat for mat in get_mat_obj(cm).data.materials]
+    else:
+        mat_name_start = "Bricker_{n}{f}".format(n=n, f="f_%(cur_frame)s" % locals() if cur_frame else "")
+        return [mat for mat in bpy.data.materials if mat.name.startswith(mat_name_start)]

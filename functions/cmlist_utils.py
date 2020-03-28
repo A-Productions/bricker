@@ -123,7 +123,6 @@ def get_cm_props():
             "start_frame",
             "stop_frame",
             "use_animation",
-            "auto_update_on_delete",
             "brick_shell",
             "calculation_axes",
             "use_local_orient",

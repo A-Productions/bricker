@@ -162,8 +162,8 @@ def crop_pixels(size, channels, old_pixels, old_size):
 
 
 @jit(nopython=True, parallel=True)
-def pad_pixels(size, channels, old_pixels, old_size):
-    new_pixels = np.empty(size[0] * size[1] * channels)
+def pad_pixels(size, channels, old_pixels, old_size, fill=0):
+    new_pixels = np.zeros(size[0] * size[1] * channels)
     offset_col = (size[0] - old_size[0]) // 2
     offset_row = (size[1] - old_size[1]) // 2
     for col in prange(size[0]):
@@ -175,8 +175,8 @@ def pad_pixels(size, channels, old_pixels, old_size):
                 if 0 <= col1 < old_size[0] and 0 <= row1 < old_size[1]:
                     pixel_number_old = (old_size[0] * row1 + col1) * channels
                     new_pixels[pixel_number + ch] = old_pixels[pixel_number_old + ch]
-                else:
-                    new_pixels[pixel_number + ch] = 0
+                elif fill != 0:
+                    new_pixels[pixel_number + ch] = fill
     return new_pixels
 
 
@@ -426,19 +426,6 @@ def dilate_pixels_step(old_pixels, pixel_dist, width, height):
 
 @jit(nopython=True, parallel=True)
 def flip_pixels(old_pixels, flip_x, flip_y, width, height, channels):
-    new_pixels = np.empty(len(old_pixels))
-    for col in prange(width):
-        col2 = int((width - col - 1) if flip_x else col)
-        for row in prange(height):
-            idx = (width * row + col) * channels
-            row2 = int((height - row - 1) if flip_y else row)
-            flipped_idx = (width * row2 + col2) * channels
-            new_pixels[idx:idx + channels] = old_pixels[flipped_idx:flipped_idx + channels]
-    return new_pixels
-
-
-@jit(nopython=True, parallel=True)
-def scale_pixels(old_pixels, scale_x, scale_y, width, height, channels):
     new_pixels = np.empty(len(old_pixels))
     for col in prange(width):
         col2 = int((width - col - 1) if flip_x else col)

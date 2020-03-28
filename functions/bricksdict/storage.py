@@ -29,7 +29,7 @@ from ...lib.caches import bricker_bfm_cache, cache_exists
 
 
 def get_bricksdict(cm, d_type="MODEL", cur_frame=None):
-    """ retrieve bricksdict from cache if possible, else create a new one """
+    """ retrieve bricksdict from cache if possible, else return None """
     scn = bpy.context.scene
     # if bricksdict can be pulled from cache
     if not matrix_really_is_dirty(cm) and cache_exists(cm) and not (cm.anim_is_dirty and "ANIM" in d_type):
