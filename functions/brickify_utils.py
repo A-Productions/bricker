@@ -42,6 +42,39 @@ def get_action(cm):
         return "UPDATE_MODEL" if cm.model_created else "CREATE"
 
 
+def get_duplicate_object(cm, n, source, created_objects=None):
+    source_dup = bpy.data.objects.get(n + "__dup__")
+    if source_dup is None:
+        # duplicate source
+        source_dup = duplicate(source, link_to_scene=True)
+        source_dup.name = n + "__dup__"
+        source_dup.stored_parents.clear()
+        if cm.use_local_orient:
+            source_dup.rotation_mode = "XYZ"
+            source_dup.rotation_euler = Euler((0, 0, 0))
+        if created_objects is not None:
+            created_objects.append(source_dup.name)
+        # remove modifiers and constraints
+        for mod in source_dup.modifiers:
+            source_dup.modifiers.remove(mod)
+        for constraint in source_dup.constraints:
+            source_dup.constraints.remove(constraint)
+        # remove source_dup parent
+        if source_dup.parent:
+            parent_clear(source_dup)
+        # handle smoke
+        if cm.is_smoke:
+            store_smoke_data(source, source_dup)
+        else:
+            # send to new mesh
+            source_dup.data = new_mesh_from_object(source)
+        # apply transformation data
+        apply_transform(source_dup)
+        source_dup.animation_data_clear()
+    # if duplicate not created, source_dup is just original source
+    return source_dup or source
+
+
 def get_duplicate_objects(scn, cm, action, start_frame, stop_frame, updated_frames_only):
     """ returns list of duplicates from source with all traits applied """
     source = cm.source_obj
@@ -258,15 +291,15 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
     return bricksdict, brick_scale
 
 
-def create_new_bricks(source, parent, source_details, dimensions, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
+def create_new_bricks(source_dup, parent, source_details, dimensions, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
     """ gets/creates bricksdict, runs make_bricks, and caches the final bricksdict """
     ct = time.time()
     scn, cm, n = get_active_context_info(cm=cm)
     ref_logo = None if temp_brick else get_logo(scn, cm, dimensions)  # update ref_logo
-    brick_scale, custom_data = get_arguments_for_bricksdict(cm, source=source, dimensions=dimensions)
+    brick_scale, custom_data = get_arguments_for_bricksdict(cm, source=source_dup, dimensions=dimensions)
     update_cursor = action in ("CREATE", "UPDATE_MODEL")
     # get bricksdict
-    bricksdict, brick_scale = get_bricksdict_for_model(cm, source, source_details, action, cur_frame, brick_scale, bricksdict, keys, redraw, update_cursor)
+    bricksdict, brick_scale = get_bricksdict_for_model(cm, source_dup, source_details, action, cur_frame, brick_scale, bricksdict, keys, redraw, update_cursor)
     # make bricks
     if cm.instance_method == "POINT_CLOUD":
         # generate point cloud
@@ -330,7 +363,7 @@ def create_new_bricks(source, parent, source_details, dimensions, action, split=
     else:
         model_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
         # make bricks
-        bricks_created, bricksdict = make_bricks(source, parent, ref_logo, dimensions, bricksdict, action, cm=cm, split=split, brick_scale=brick_scale, custom_data=custom_data, coll_name=model_name, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, keys=keys, print_status=print_status, temp_brick=temp_brick, redraw=redraw)
+        bricks_created, bricksdict = make_bricks(source_dup, parent, ref_logo, dimensions, bricksdict, action, cm=cm, split=split, brick_scale=brick_scale, custom_data=custom_data, coll_name=model_name, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, keys=keys, print_status=print_status, temp_brick=temp_brick, redraw=redraw)
         # select bricks
         if select_created and len(bricks_created) > 0:
             select(bricks_created)

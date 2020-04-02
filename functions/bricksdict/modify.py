@@ -28,10 +28,10 @@ from ..matlist_utils import *
 from ..brick import *
 
 
-def update_materials(bricksdict, source, keys, cur_frame=None, action="CREATE"):
+def update_materials(bricksdict, source_dup, keys, cur_frame=None, action="CREATE"):
     """ sets all mat_names in bricksdict based on near_face """
     scn, cm, n = get_active_context_info()
-    use_uv_map = cm.use_uv_map and (len(source.data.uv_layers) > 0 or cm.uv_image is not None)
+    use_uv_map = cm.use_uv_map and (len(source_dup.data.uv_layers) > 0 or cm.uv_image is not None)
     # initialize variables
     if keys == "ALL": keys = sorted(list(bricksdict.keys()))  # sort so materials are consistent for multiple frames of the same model
     is_smoke = cm.is_smoke
@@ -64,7 +64,7 @@ def update_materials(bricksdict, source, keys, cur_frame=None, action="CREATE"):
             mat_name = ""
         else:
             ni = Vector(bricksdict[key]["near_intersection"])
-            rgba, mat_name = get_brick_rgba(source, nf, ni, uv_image, color_depth=color_depth)
+            rgba, mat_name = get_brick_rgba(source_dup, nf, ni, uv_image, color_depth=color_depth)
 
         if material_type == "SOURCE":
             # get material with snapped RGBA value

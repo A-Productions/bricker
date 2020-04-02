@@ -138,11 +138,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                         abs_mat_name = ""
                     color = abs_mat_properties[abs_mat_name]["LDR Code"] if abs_mat_name else 0
                     # get part number and ldraw file name for brick
-                    parts = legal_bricks[size[2]][typ]
-                    for j,part in enumerate(parts):
-                        if parts[j]["s"] in (size[:2], size[1::-1]):
-                            part = parts[j]["pt2" if typ == "SLOPE" and size[:2] in ([4, 2], [2, 4], [3, 2], [2, 3]) and bricksdict[key]["rotated"] else "pt"]
-                            break
+                    part = get_part(legal_bricks, size, typ)["pt2" if typ == "SLOPE" and size[:2] in ([4, 2], [2, 4], [3, 2], [2, 3]) and bricksdict[key]["rotated"] else "pt"]
                     brick_file = "%(part)s.dat" % locals()
                     # offset the coordinate and round to ensure appropriate Ldraw location
                     co += offset

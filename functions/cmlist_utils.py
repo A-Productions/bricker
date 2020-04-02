@@ -41,7 +41,7 @@ def dump_cm_props(cm):
     pointer_dict = {}
 
     for item in get_annotations(cm):
-        if not item.islower() or item in ["active_key", "bfm_cache"]:
+        if not item.islower() or item == "active_key":
             continue
         try:
             item_prop = getattr(cm, item)

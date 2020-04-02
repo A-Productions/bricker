@@ -25,7 +25,7 @@ import bmesh
 import mathutils
 from mathutils import Vector, Euler, Matrix
 from bpy_extras import view3d_utils
-from bpy.types import Object, Scene, Event
+from bpy.types import Object, Mesh, Scene, Event, Modifier, Material
 try:
     from bpy.types import ViewLayer, LayerCollection
 except ImportError:
@@ -368,12 +368,21 @@ def light_add(type:str="POINT", radius:float=1.0, align:str="WORLD", location:tu
     bpy.ops.object.light_add(type=type, radius=radius, align=align, location=location, rotation=rotation)
 
 
+def is_smoke_domain(mod:Modifier):
+    if bpy.app.version[:2] < (2, 82):
+        return mod.type == "SMOKE" and hasattr(mod, "smoke_type") and mod.smoke_type == "DOMAIN" and mod.domain_settings
+    else:
+        return mod.type == "FLUID"  and hasattr(mod, "fluid_type") and mod.fluid_type == "DOMAIN"and mod.domain_settings and mod.domain_settings.domain_type == "GAS"
+
+
 def is_smoke(ob:Object):
     """ check if object is smoke domain """
     if ob is None:
         return False
     for mod in ob.modifiers:
-        if mod.type == "SMOKE" and mod.domain_settings and mod.show_viewport:
+        if not mod.show_viewport:
+            continue
+        if is_smoke_domain(mod):
             return True
     return False
 
@@ -387,6 +396,7 @@ def is_adaptive(ob:Object):
             return True
     return False
 
+
 def get_vertices_in_group(obj:Object, vertex_group):
     if isinstance(vertex_group, int):
         if vertex_group >= len(obj.vertex_groups):
@@ -399,6 +409,31 @@ def get_vertices_in_group(obj:Object, vertex_group):
         raise ValueError("Expecting second argument to be of type 'str', or 'int'. Got {}".format(type(vertex_group)))
 
     return [v for v in obj.data.vertices if vertex_group in [vg.group for vg in v.groups]]
+
+
+def get_mat_idx(obj:Object, mat_name:str):
+    """ returns index of material in object (adds to object if not present) """
+    mats = obj.data.materials
+    if mat_name in mats:
+        mat_idx = mats.keys().index(mat_name)
+    elif bpy.data.materials.get(mat_name) is not None:
+        mats.append(bpy.data.materials[mat_name])
+        mat_idx = len(mats) - 1
+    else:
+        mat_idx = -1
+        # raise IndexError("Material '{}' does not exist".format(mat_name))
+    return mat_idx
+
+
+def junk_obj(name:str="addon_junk_obj", mesh:Mesh=None):
+    """ returns junk object (only creates one if necessary) """
+    mesh = mesh or junk_mesh()
+    junk_obj = bpy.data.objects.get(name)
+    if junk_obj is None:
+        junk_obj = bpy.data.objects.new(name, mesh)
+    else:
+        junk_obj.data = mesh
+    return junk_obj
 
 
 #################### VIEWPORT ####################
@@ -519,11 +554,18 @@ def smooth_mesh_faces(faces:iter):
         f.use_smooth = True
 
 
-def junk_mesh():
+@blender_version_wrapper("<=","2.80")
+def clear_geom(mesh:Mesh):
+    bmesh.new().to_mesh(mesh)
+@blender_version_wrapper(">=","2.80")
+def clear_geom(mesh:Mesh):
+    mesh.clear_geometry()
+
+def junk_mesh(name:str="addon_junk_mesh"):
     """ returns junk mesh (only creates one if necessary) """
-    junk_mesh = bpy.data.meshes.get("Bricker_junk_mesh")
+    junk_mesh = bpy.data.meshes.get(name)
     if junk_mesh is None:
-        junk_mesh = bpy.data.meshes.new("Bricker_junk_mesh")
+        junk_mesh = bpy.data.meshes.new(name)
     return junk_mesh
 
 
@@ -668,7 +710,7 @@ def mouse_in_view3d_window(event, include_tools_panel=False, include_ui_panel=Fa
     for region in bpy.context.area.regions:
         regions[region.type] = region
     min_x = 0 if include_tools_panel else regions["TOOLS"].width
-    min_y = 0 if regions["HEADER"].alignment == "TOP" or include_header else regions["HEADER"].height
+    min_y = 0 if include_header or regions["HEADER"].alignment == "TOP" else regions["HEADER"].height
     mouse_region_pos = Vector((event.mouse_x, event.mouse_y)) - Vector((regions["WINDOW"].x, regions["WINDOW"].y))
     window_dimensions = Vector((regions["WINDOW"].width, regions["WINDOW"].height))
     if not include_tools_panel:
@@ -739,13 +781,13 @@ def new_window(area_type, width=640, height=480):
         "resolution_x": render.resolution_x,
         "resolution_y": render.resolution_y,
         "resolution_percentage": render.resolution_percentage,
-        "display_mode": prefs.view.render_display_type if bpy.app.version[1] > 80 else render.display_mode,
+        "display_mode": prefs.view.render_display_type if bpy.app.version[:2] > (2, 80) else render.display_mode,
     }
 
     render.resolution_x = width
     render.resolution_y = height
     render.resolution_percentage = 100
-    if bpy.app.version[1] > 80:
+    if bpy.app.version[:2] > (2, 80):
         prefs.view.render_display_type = "WINDOW"
     else:
         render.display_mode = "WINDOW"
@@ -761,7 +803,7 @@ def new_window(area_type, width=640, height=480):
     render.resolution_x = orig_settings["resolution_x"]
     render.resolution_y = orig_settings["resolution_y"]
     render.resolution_percentage = orig_settings["resolution_percentage"]
-    if bpy.app.version[1] > 80:
+    if bpy.app.version[:2] > (2, 80):
         prefs.view.render_display_type = orig_settings["display_mode"]
     else:
         render.display_mode = orig_settings["display_mode"]

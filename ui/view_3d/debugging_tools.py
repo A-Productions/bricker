@@ -87,12 +87,20 @@ class VIEW3D_PT_bricker_model_stats(Panel):
     def draw(self, context):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
-        layout.operator("bricker.refresh_model_stats")
+        layout.operator("bricker.refresh_model_stats", icon="FILE_REFRESH")
         col = layout.column(align=True)
-        col.label(text="Bricks in model: {}".format(cm.num_bricks_in_model))
-        col.label(text="Materials in model: {}".format(cm.num_materials_in_model))
-        col.label(text="Real-world dimensions:")
-        col.label(text=str(cm.real_world_dimensions[0]) + " x " + str(cm.real_world_dimensions[1]))
+        row = layout.row(align=True)
+        row.label(text="Bricks in model: {}".format(cm.num_bricks_in_model))
+        row = layout.row(align=True)
+        row.label(text="Materials in model: {}".format(cm.num_materials_in_model))
+        row = layout.row(align=True)
+        row.label(text="Weight: {}g".format(cm.model_weight))
+        row = layout.row(align=True)
+        row.label(text="Real-world dimensions:")
+        row = layout.row(align=True)
+        col = row.column(align=True)
+        col.enabled = False
+        col.prop(cm, "real_world_dimensions", text="")
 
 
 class VIEW3D_PT_bricker_matrix_details(Panel):

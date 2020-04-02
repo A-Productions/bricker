@@ -289,7 +289,7 @@ def get_2d_pixel_array(pixels:np.ndarray, channels:int):
     return pixels_2d
 
 
-def get_3d_pixel_array(pixels:np.ndarray, size:list, channels:int):
+def get_3d_pixel_array(pixels:np.ndarray, height:int, width:int, channels:int):
     """ converts 1d pixel array to 3d array
 
     i.e. for a square image with 4 pixels:
@@ -298,30 +298,13 @@ def get_3d_pixel_array(pixels:np.ndarray, size:list, channels:int):
         [[1, 1, 1, 1], [1, 1, 1, 1]],
     ]
     """
-    pixels_3d = np.zeros((size[0], size[1], channels))
-    for row in range(size[0]):
-        for col in range(size[1]):
-            pixel_number = (col * size[0] + row) * channels
-            pixels_3d[row][col] = pixels[pixel_number:pixel_number + channels]
-
+    pixels_3d = np.reshape(pixels, (height, width, channels))
     return pixels_3d
 
 def get_1d_pixel_array(array:np.ndarray):
     """ convert pixel array to 1d from 2d or 3d array """
     assert 2 <= len(array.shape) <= 3
-    if len(array.shape) == 2:  # 2D array input
-        pixels_1d = np.reshape(array, array.shape[0] * array.shape[1])
-    # else:  # 3D array input
-    #     pixels_1d = np.copy(array)
-    #     pixel_type = type(array[0][0])
-    #     if pixel_type in (list, tuple, Vector, np.ndarray, bpy.types.bpy_prop_array):
-    #         for col in range(len(array[0])):
-    #             for row in range(len(array)):
-    #                 pixels_1d += list(array[row][col])
-    #     elif pixel_type == int:
-    #         for col in range(len(array[0])):
-    #             for row in range(len(array)):
-    #                 pixels_1d.append(array[row][col])
+    pixels_1d = np.reshape(array, np.prod(array.shape))
     return pixels_1d
 
 

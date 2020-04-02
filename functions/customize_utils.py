@@ -26,7 +26,7 @@ from bpy.types import Operator
 from .brick import *
 from .bricksdict import *
 from .common import *
-from .brickify_utils import create_new_bricks
+from .brickify_utils import create_new_bricks, get_duplicate_object
 from .general import *
 from .logo_obj import get_logo
 from ..operators.bevel import BRICKER_OT_bevel
@@ -39,12 +39,12 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
         print("[Bricker] %(action)s..." % locals())
     # get arguments for create_new_bricks
     source = cm.source_obj
-    source_details, dimensions = get_details_and_bounds(source, cm)
-    n = source.name
+    source_dup = get_duplicate_object(cm, source.name, source)
+    source_details, dimensions = get_details_and_bounds(source_dup, cm)
     parent = cm.parent_obj
     action = "UPDATE_MODEL"
     # actually draw the bricks
-    _, bricks_created = create_new_bricks(source, parent, source_details, dimensions, action, cm=cm, bricksdict=bricksdict, keys=keys_to_update, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, redraw=True)
+    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, cm=cm, bricksdict=bricksdict, keys=keys_to_update, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, redraw=True)
     # link new bricks to scene
     if not b280():
         for brick in bricks_created:

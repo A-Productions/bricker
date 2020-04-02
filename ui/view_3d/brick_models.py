@@ -156,9 +156,9 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                         row1.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                         row.active = brickify_should_run(cm)
                         if (cm.start_frame < cm.last_start_frame or cm.stop_frame > cm.last_stop_frame) and not update_can_run("ANIMATION"):
-                            row.operator("bricker.brickify", text="Complete Animation", icon="FORWARD")
+                            row.operator("bricker.brickify", text="Complete Animation", icon="FORWARD").split_before_update = False
                         else:
-                            row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
+                            row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH").split_before_update = False
                     if created_with_unsupported_version(cm):
                         v_str = cm.version[:3]
                         col = layout.column(align=True)
@@ -171,7 +171,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                 else:
                     row = col1.row(align=True)
                     row.active = obj is not None and obj.type == "MESH" and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
-                    row.operator("bricker.brickify", text="Brickify Animation", icon="MOD_REMESH")
+                    row.operator("bricker.brickify", text="Brickify Animation", icon="MOD_REMESH").split_before_update = False
                     if obj and obj.rigid_body is not None:
                         col = layout.column(align=True)
                         col.scale_y = 0.7
@@ -187,7 +187,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                 if not cm.animated and not cm.model_created:
                     row = col1.row(align=True)
                     row.active = obj is not None and obj.type == "MESH" and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
-                    row.operator("bricker.brickify", text="Brickify Object", icon="MOD_REMESH")
+                    row.operator("bricker.brickify", text="Brickify Object", icon="MOD_REMESH").split_before_update = False
                     if obj and obj.rigid_body is not None:
                         col = layout.column(align=True)
                         col.scale_y = 0.7
@@ -207,7 +207,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                         row.label(text="Brickifying...")
                     else:
                         row.active = brickify_should_run(cm)
-                        row.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
+                        row.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").split_before_update = False
                     if created_with_unsupported_version(cm):
                         col = layout.column(align=True)
                         col.scale_y = 0.7

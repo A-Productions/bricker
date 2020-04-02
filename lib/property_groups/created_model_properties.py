@@ -213,7 +213,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         items=[
             ("INSIDE", "Inside Mesh", "Draw brick shell inside source mesh (recommended)"),
             ("OUTSIDE", "Outside Mesh", "Draw brick shell outside source mesh"),
-            ("CONSISTENT", "Consistent", "Draw brick shell on a consistent side of the source mesh topology (may fix noisy model if source mesh is not water-tight; in most situations, enable 'Verify Exposure' when using this setting)"),
+            ("CONSISTENT", "Consistent", "Draw brick shell on a consistent side of the source mesh topology (may fix noisy model if source mesh is not water-tight)"),
         ],
         update=update_brick_shell,
         default="INSIDE",
@@ -367,7 +367,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         step=1,
         min=1, max=50,
         default=1,
-        update=dirty_model,
+        update=dirty_matrix,
     )
     merge_internals = EnumProperty(
         name="Merge Shell with Internals",
@@ -789,7 +789,15 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     # model stats
     num_bricks_in_model = IntProperty(default=-1)
     num_materials_in_model = IntProperty(default=-1)
-    real_world_dimensions = FloatVectorProperty(size=2, subtype="XYZ", default=(-1, -1))
+    model_weight = IntProperty(default=-1)
+    real_world_dimensions = FloatVectorProperty(
+        name="Real World Dimensions",
+        description="",
+        subtype="XYZ",
+        unit="LENGTH",
+        default=(-1, -1, -1),
+    )
+    # real_world_dimensions = FloatVectorProperty(unit="LENGTH", default=(-1, -1, -1))
 
     # Properties for checking of model needs updating
     anim_is_dirty = BoolProperty(default=True)

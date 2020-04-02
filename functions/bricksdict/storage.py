@@ -44,11 +44,12 @@ def get_bricksdict(cm, d_type="MODEL", cur_frame=None):
     return None
 
 
-def light_to_deep_cache(bricker_bfm_cache):
+def light_to_deep_cache(bricker_bfm_cache, cm_ids=None):
     """ send bricksdict from blender cache to python cache for quick access """
     scn = bpy.context.scene
     num_pushed_ids = 0
-    for cm_id in bricker_bfm_cache.keys():
+    cm_ids = cm_ids or bricker_bfm_cache.keys()
+    for cm_id in cm_ids:
         # get cmlist item referred to by object
         cm = get_item_by_id(scn.cmlist, cm_id)
         if not cm:

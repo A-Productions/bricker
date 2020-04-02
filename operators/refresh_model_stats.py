@@ -42,9 +42,9 @@ class BRICKER_OT_refresh_model_stats(Operator):
         if scn.cmlist_index == -1:
             return False
         cm = scn.cmlist[scn.cmlist_index]
-        if matrix_really_is_dirty(cm):
-            return True
-        return False
+        if not (cm.model_created or cm.animated):
+            return False
+        return True
 
     def execute(self, context):
         try:
@@ -58,8 +58,39 @@ class BRICKER_OT_refresh_model_stats(Operator):
 
     def refresh_model_stats(self, cm=None):
         scn, cm = get_active_context_info(cm)[:2]
-        cm.num_bricks_in_model = -1
-        cm.num_materials_in_model = -1
-        cm.real_world_dimensions = (-1, -1)
+        bricksdict = get_bricksdict(cm, d_type="MODEL" if cm.model_created else "ANIM", cur_frame=scn.frame_current)
+        legal_bricks = get_legal_bricks()
+        num_bricks_in_model = 0
+        model_weight = 0
+        mats_in_model = list()
+        max_vals = (0, 0, 0)
+        z_max = 0
+        for k in bricksdict.keys():
+            brick_d = bricksdict[k]
+            if brick_d["draw"] and brick_d["parent"] == "self":
+                num_bricks_in_model += 1
+                if brick_d["mat_name"] not in mats_in_model:
+                    mats_in_model.append(brick_d["mat_name"])
+                    dict_loc = get_dict_loc(bricksdict, k)
+                    max_vals = (max(max_vals[0], dict_loc[0]), max(max_vals[1], dict_loc[1]), max(max_vals[2], dict_loc[2]))
+                model_weight += get_part(legal_bricks, brick_d["size"], brick_d["type"])["wt"]
+
+        # min_co = Vector(brick_d["0,0,0"]["co"])
+        # max_co = Vector((
+        #     brick_d["{},0,0".format(z_max)]["co"].x,
+        #     brick_d["0,{},0".format(z_max)]["co"].y,
+        #     brick_d["0,0,{}".format(z_max)]["co"].z,
+        # ))
+        dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
+        model_dims = (
+            max_vals[0] * dimensions["width"],
+            max_vals[1] * dimensions["width"],
+            max_vals[2] * dimensions["height"],
+        )
+
+        cm.num_bricks_in_model = num_bricks_in_model
+        cm.num_materials_in_model = len(mats_in_model)
+        cm.real_world_dimensions = model_dims
+        cm.model_weight = model_weight
 
     ################################################

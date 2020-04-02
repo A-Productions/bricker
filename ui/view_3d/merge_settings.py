@@ -60,21 +60,20 @@ class VIEW3D_PT_bricker_merge_settings(Panel):
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.prop(cm, "merge_type")
-        col = layout.column(align=True)
+        row.prop(cm, "merge_type", text="Type")
         if cm.merge_type == "RANDOM":
-            row = col.row(align=True)
-            row.prop(cm, "merge_seed")
-            row = col.row(align=True)
-            row.prop(cm, "connect_thresh")
-        if cm.shell_thickness > 1:
             col = layout.column(align=True)
-            row = col.row(align=True)
-            row.prop(cm, "merge_internals")
+            col.prop(cm, "merge_seed")
+            col.prop(cm, "connect_thresh")
         if cm.brick_type == "BRICKS_AND_PLATES":
+            col = layout.column(align=True)
             row = col.row(align=True)
             right_align(row)
             row.prop(cm, "align_bricks")
             if cm.align_bricks:
                 row = col.row(align=True)
                 row.prop(cm, "offset_brick_layers")
+        if cm.shell_thickness > 1:
+            col = layout.column(align=True)
+            col.label(text="Merge Shell with Internals:")
+            col.prop(cm, "merge_internals", text="")

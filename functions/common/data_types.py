@@ -443,21 +443,28 @@ class MyImage:
         assert isinstance(value, str)
         self._file_extension = value
 
-    def translate(self, translate_x, translate_y, use_relative=False, expand_canvas=False, wrap_x=True, wrap_y=True):
+    def translate(self, translate_x, translate_y, space="RELATIVE", expand_canvas=False, wrap_x=True, wrap_y=True):
         if not any((translate_x, translate_y)):
             return
         # convert translation values
-        translate_x = round(translate_x * self.size[0]) if use_relative else round(translate_x)
-        translate_y = round(translate_y * self.size[1]) if use_relative else round(translate_y)
+        if space == "RELATIVE":
+            translate_x = round(translate_x * self.size[0])
+            translate_y = round(translate_y * self.size[1])
+        elif space == "DIMENSIONS":
+            translate_x = round(translate_x * (self.size[0] / self.dimensions[0]))
+            translate_y = round(translate_y * (self.size[1] / self.dimensions[0]))
+        elif space == "PIXELS":
+            translate_x = round(translate_x)
+            translate_y = round(translate_y)
         # expand the canvas if necessary
         if expand_canvas:
-            self.pad_to_size(new_size=(self.size[0] + translate_x * 2, self.size[1] + translate_y * 2))
+            self.pad_to_size(new_size=(self.size[0] + abs(translate_x) * 2, self.size[1] + abs(translate_y) * 2))
         # translate the pixels
         old_pixels = self._pixels
         pixels = translate_pixels(old_pixels, translate_x, translate_y, wrap_x, wrap_y, self.size[0], self.size[1], self.channels)
         self.pixels = pixels
 
-    def resize(self, width=None, height=None, preserve_size=False):
+    def resize(self, width=None, height=None, preserve_canvas=False):
         """ resize image using nearest neighbor """
         assert width or height
         if width is None:
@@ -469,12 +476,12 @@ class MyImage:
         new_size = np.array((width, height))
         old_pixels = self._pixels
         old_size = np.array(self.size)
-        if preserve_size:
-            pixels = resize_pixels_preserve_borders(new_size, self._channels, old_pixels, old_size)
+        if preserve_canvas:
+            pixels = resize_pixels_preserve_canvas(new_size, self._channels, old_pixels, old_size)
         else:
             pixels = resize_pixels(new_size, self._channels, old_pixels, old_size)
         self.pixels = pixels
-        if not preserve_size:
+        if not preserve_canvas:
             self.size = new_size
 
     def crop(self, width=None, height=None):
@@ -569,7 +576,7 @@ class MyImage:
             bpy.data.images.remove(im)
         im = bpy.data.images.new(name=name, width=self.size[0], height=self.size[1])
         self.set_channels(4)
-        im.pixels = self.pixels
+        set_pixels(im, self.pixels)
         return im
 
     def get_channel(self, channel):
@@ -609,6 +616,11 @@ class MyImage:
         assert self.size == image.size and self.channels == image.channels
         image1_pixels = self._pixels
         image2_pixels = image.images[0]._pixels if isinstance(image, MyImageSequence) else image._pixels
+        if isinstance(factor, MyImageSequence):
+            factor = factor.images[0]._pixels
+        elif isinstance(factor, MyImage):
+            factor = factor._pixels
+
         width, height = self.size
         # ct = time.time()
         self.pixels = blend_pixels(image1_pixels, image2_pixels, width, height, self._channels, blend_type, use_clamp, factor)
@@ -642,7 +654,7 @@ class MyImage:
 
     def adjust_hue_saturation_value(self, hue=0.5, saturation=1, value=1):
         hsv_pixels = np.array(self.to_hsv())
-        adjusted_hsv_pixels = adjust_hue_saturation_value(hsv_pixels, hue, saturation, value)
+        adjusted_hsv_pixels = adjust_hue_saturation_value(hsv_pixels, hue, saturation, value, channels=3)
         self.from_hsv(adjusted_hsv_pixels)
 
     def invert(self, factor=1):
@@ -745,9 +757,9 @@ class MyImageSequence:
         for im in self.images:
             im.translate(translate_x, translate_y, use_relative, expand_canvas, wrap_x, wrap_y)
 
-    def resize(self, width=None, height=None, preserve_size=False):
+    def resize(self, width=None, height=None, preserve_canvas=False):
         for im in self.images:
-            im.resize(width, height, preserve_size)
+            im.resize(width, height, preserve_canvas)
 
     def crop(self, width=None, height=None):
         for im in self.images:

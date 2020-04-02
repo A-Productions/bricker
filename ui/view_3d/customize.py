@@ -64,7 +64,7 @@ class VIEW3D_PT_bricker_customize(Panel):
             layout.label(text="Matrix is dirty!")
             col = layout.column(align=True)
             col.label(text="Model must be updated to customize:")
-            col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
+            col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").split_before_update = True
             if cm.customized and not cm.matrix_lost:
                 row = col.row(align=True)
                 row.label(text="Prior customizations will be lost")

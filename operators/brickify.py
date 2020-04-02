@@ -207,6 +207,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             bricker_handle_exception()
         wm.bricker_running_blocking_operation = False
         if self.brickify_in_background:
+            self.report({"INFO"}, "Brickifying in background...")
             # create timer for modal
             self._timer = wm.event_timer_add(0.1, window=bpy.context.window)
             wm.modal_handler_add(self)
@@ -397,35 +398,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             bpy.props.bricker_trans_and_anim_data = []
 
         # get previously created source duplicate
-        source_dup = bpy.data.objects.get(n + "__dup__")
-        if source_dup is None:
-            # duplicate source
-            source_dup = duplicate(self.source, link_to_scene=True)
-            source_dup.name = n + "__dup__"
-            source_dup.stored_parents.clear()
-            if cm.use_local_orient:
-                source_dup.rotation_mode = "XYZ"
-                source_dup.rotation_euler = Euler((0, 0, 0))
-            self.created_objects.append(source_dup.name)
-            # remove modifiers and constraints
-            for mod in source_dup.modifiers:
-                source_dup.modifiers.remove(mod)
-            for constraint in source_dup.constraints:
-                source_dup.constraints.remove(constraint)
-            # remove source_dup parent
-            if source_dup.parent:
-                parent_clear(source_dup)
-            # handle smoke
-            if cm.is_smoke:
-                store_smoke_data(self.source, source_dup)
-            else:
-                # send to new mesh
-                source_dup.data = new_mesh_from_object(self.source)
-            # apply transformation data
-            apply_transform(source_dup)
-            source_dup.animation_data_clear()
-        # if duplicate not created, source_dup is just original source
-        source_dup = source_dup or self.source
+        source_dup = get_duplicate_object(cm, n, self.source, self.created_objects)
 
         # link source_dup if it isn't in scene
         if source_dup.name not in scn.objects.keys():
@@ -455,6 +428,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 stored_parents = [p.collection for p in self.source.stored_parents]
                 self.source.stored_parents.clear()
             # send job to the background processor
+            light_to_deep_cache(bricker_bfm_cache, [cm.id])
             script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, source_dup)
             job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":None, "cmlist_id":cm.id, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)
             if not job_added: raise Exception(msg)
@@ -552,6 +526,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     stored_parents = [p.collection for p in self.source.stored_parents]
                     self.source.stored_parents.clear()
                 # send job to the background processor
+                light_to_deep_cache(bricker_bfm_cache, [cm.id])
                 script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, duplicates[cur_frame])
                 job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":cur_frame, "cmlist_id":cm.id, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)
                 if not job_added: raise Exception(msg)
@@ -588,14 +563,14 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         orig_frame = scn.frame_current
         scn.frame_set(orig_frame)
         # get duplicated source
-        source = bpy.data.objects.get("Bricker_%(n)s_f_%(cur_frame)s" % locals())
+        source_dup = bpy.data.objects.get("Bricker_%(n)s_f_%(cur_frame)s" % locals())
         # get source info to update
-        if in_background and scn not in source.users_scene:
-            link_object(source)
+        if in_background and scn not in source_dup.users_scene:
+            link_object(source_dup)
             depsgraph_update()
 
         # get source_details and dimensions
-        source_details, dimensions = get_details_and_bounds(source)
+        source_details, dimensions = get_details_and_bounds(source_dup)
 
         # set up parent for this layer
         # TODO: Remove these from memory in the delete function, or don't use them at all
@@ -610,7 +585,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # create new bricks
         try:
-            coll_name, _ = create_new_bricks(source, parent, source_details, dimensions, action, split=cm.split_model, cur_frame=cur_frame, clear_existing_collection=False, orig_source=cm.source_obj, select_created=False)
+            coll_name, _ = create_new_bricks(source_dup, parent, source_details, dimensions, action, split=cm.split_model, cur_frame=cur_frame, clear_existing_collection=False, orig_source=cm.source_obj, select_created=False)
         except KeyboardInterrupt:
             if cur_frame != cm.start_frame:
                 wm.progress_end()
