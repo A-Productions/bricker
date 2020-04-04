@@ -49,6 +49,8 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     if not b280():
         for brick in bricks_created:
             safe_link(brick)
+    # unlink source_dup if linked
+    safe_unlink(source_dup)
     # add bevel if it was previously added
     if cm.bevel_added and not temp_brick:
         bricks = get_bricks(cm)

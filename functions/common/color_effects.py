@@ -9,29 +9,8 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 # NONE!
 
 # Module imports
+# from .color_effects_cuda import *
 from .images import *
-
-
-@jit(nopython=True, parallel=True)
-def initialize_image_texture(width, height, pixels, channels, new_channels, channel_divisor=1, flip_vertical=False):
-    new_pixels = np.empty(width * height * new_channels)
-    for i in prange(width * height):
-        if flip_vertical:
-            x = i / width
-            col = round((x % 1) * width)
-            row = round(x - (x % 1))
-            row = height - row - 1  # here is where the vertical flip happens
-            idx2 = (row * width + col) * channels
-        else:
-            idx2 = i * channels
-        if new_channels == 3:
-            idx1 = i * 3
-            new_pixels[idx1 + 0] = pixels[idx2 + 0] / channel_divisor
-            new_pixels[idx1 + 1] = pixels[idx2 + (1 if channels >= 3 else 0)] / channel_divisor
-            new_pixels[idx1 + 2] = pixels[idx2 + (2 if channels >= 3 else 0)] / channel_divisor
-        else:
-            new_pixels[i] = pixels[idx2 + channels - 1] / channel_divisor
-    return new_pixels
 
 
 def initialize_gradient_texture(width, height, quadratic=False):
@@ -45,9 +24,10 @@ def initialize_gradient_texture(width, height, quadratic=False):
     return pixels
 
 
-def convert_channels(num_pix, channels, old_pixels, old_channels):
+def convert_channels(channels, old_pixels, old_channels, use_alpha=False):
+    assert channels != old_channels
     old_pixels = get_2d_pixel_array(old_pixels, old_channels)
-    new_pixels = np.empty((num_pix, channels))
+    new_pixels = np.empty((len(old_pixels), channels))
     if channels > old_channels:
         if old_channels == 1:
             for i in range(channels):
@@ -56,7 +36,9 @@ def convert_channels(num_pix, channels, old_pixels, old_channels):
             new_pixels[:, :3] = old_pixels[:, :3]
             new_pixels[:, 3] = 1
     elif channels < old_channels:
-        if channels == 1:
+        if channels == 1 and old_channels == 4 and use_alpha:
+            new_pixels[:, 0] = old_pixels[:, 3]
+        elif channels == 1:
             new_pixels[:, 0] = 0.2126 * old_pixels[:, 0] + 0.7152 * old_pixels[:, 1] + 0.0722 * old_pixels[:, 2]
         elif channels == 3:
             new_pxiels[:, :3] = old_pixels[:, :3]
@@ -195,7 +177,7 @@ def blend_pixels(im1_pixels, im2_pixels, width, height, channels, operation, use
     return new_pixels
 
 
-def math_operation_on_pixels(pixels, operation, clamp, value):
+def math_operation_on_pixels(pixels, operation, value, clamp=False):
     new_pixels = np.empty(pixels.size)
     if operation == "ADD":
         new_pixels = pixels + value
@@ -368,23 +350,18 @@ def translate_pixels(old_pixels, translate_x, translate_y, wrap_x, wrap_y, width
     # reshape
     old_pixels = get_3d_pixel_array(old_pixels, width, height, channels)
     # translate x
-    if translate_y == 0:
+    if translate_x > 0 or (wrap_x and translate_x != 0):
         new_pixels[:, translate_x:] = old_pixels[:, :-translate_x]
-    # translate y
-    if translate_y == 0:
-        new_pixels[translate_y:, :] = old_pixels[:-translate_y, :]
-    # translate both
-    else:
-        new_pixels[translate_y:, translate_x:] = old_pixels[:-translate_y, :-translate_x]
-    # wrap x
-    if wrap_x and not wrap_y:
+    if translate_x < 0 or (wrap_x and translate_x != 0):
         new_pixels[:, :translate_x] = old_pixels[:, -translate_x:]
-    # wrap y
-    if wrap_x and not wrap_y:
+    # reset old pixels if translating on both axes
+    if translate_x != 0 and translate_y != 0:
+        old_pixels = new_pixels.copy()
+    # translate y
+    if translate_y > 0 or (wrap_y and translate_y != 0):
+        new_pixels[translate_y:, :] = old_pixels[:-translate_y, :]
+    if translate_y < 0 or (wrap_y and translate_y != 0):
         new_pixels[:translate_y, :] = old_pixels[-translate_y:, :]
-    # wrap both
-    if wrap_x and not wrap_y:
-        new_pixels[:translate_y, :translate_x] = old_pixels[-translate_y:, -translate_x:]
     # reshape
     new_pixels = get_1d_pixel_array(new_pixels)
     return new_pixels
