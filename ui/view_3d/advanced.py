@@ -64,35 +64,28 @@ class VIEW3D_PT_bricker_advanced(Panel):
             col.label(text="Install from Bricker addon prefs")
             layout.separator()
 
-        # if not cm.animated:
-        col = layout.column(align=True)
-        col.prop(cm, "instance_method", text="Instancing")
-
-        col = layout.column(align=True)
-        # row = col.row(align=True)
-        # row.label(text="Ray Casting:")
-        # row = col.row(align=True)
-        # row.prop(cm, "insideness_ray_cast_dir", text="")
-        # row = col.row(align=True)
-        # row.prop(cm, "use_normals")
-        # row = col.row(align=True)
-        # row.prop(cm, "calc_internals")
-        row = col.row(align=True)
-        row.prop(cm, "brick_shell", text="Shell")
-        if cm.brick_shell == "OUTSIDE":
-            row = col.row(align=True)
-            row.prop(cm, "calculation_axes", text="Axes")
-
         # model orientation preferences
         if not cm.use_animation and not (cm.model_created or cm.animated):
             # if not b280():
             col = layout.column(align=True)
+            right_align(col)
             col.prop(cm, "use_local_orient", text="Use Local Orientation")
 
         # draw test brick generator button (for testing purposes only)
         if BRICKER_OT_test_brick_generators.draw_ui_button():
             col = layout.column(align=True)
             col.operator("bricker.test_brick_generators", text="Test Brick Generators", icon="OUTLINER_OB_MESH")
+
+        col = layout.column(align=True)
+        col.label(text="Shell:")
+        col.prop(cm, "brick_shell", text="")
+        if cm.brick_shell == "OUTSIDE":
+            col.prop(cm, "calculation_axes", text="Axes")
+
+        # if not cm.animated:
+        col = layout.column(align=True)
+        col.label(text="Instance Method:")
+        col.prop(cm, "instance_method", text="")
 
 
 class VIEW3D_PT_bricker_ray_casting(Panel):
@@ -117,10 +110,9 @@ class VIEW3D_PT_bricker_ray_casting(Panel):
         scn, cm, n = get_active_context_info()
 
         col = layout.column(align=True)
-        col.prop(cm, "insideness_ray_cast_dir", text="Direction")
+        col.prop(cm, "insideness_ray_cast_dir", text="")
 
         col = layout.column(align=True)
-        row = col.row(align=True)
-        row.prop(cm, "use_normals")
-        row = col.row(align=True)
-        row.prop(cm, "calc_internals")
+        right_align(col)
+        col.prop(cm, "use_normals")
+        col.prop(cm, "calc_internals")

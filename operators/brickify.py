@@ -224,7 +224,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
     def cancel(self, context):
         scn, cm, n = get_active_context_info(self.cm)
-        self.finish(context, cm, background=True)
+        self.finish(context, cm)
         if self.job_manager.num_running_jobs() + self.job_manager.num_pending_jobs() > 0:
             self.job_manager.kill_all()
             print("Background processes for '%(n)s' model killed" % locals())

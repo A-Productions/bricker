@@ -57,21 +57,15 @@ class VIEW3D_PT_bricker_model_transform(Panel):
         scn, cm, n = get_active_context_info()
 
         col = layout.column(align=True)
+        # col.active = cm.animated or cm.last_split_model
         right_align(col)
+
         row = col.row(align=True)
-
-        if not (cm.animated or cm.last_split_model):
-            col.scale_y = 0.7
-            row.label(text="Use Blender's built-in")
-            row = col.row(align=True)
-            row.label(text="transformation manipulators")
-            col = layout.column(align=True)
-            return
-
         row.prop(cm, "apply_to_source_object")
-        if cm.animated or (cm.last_split_model and cm.model_created):
-            row = col.row(align=True)
-            row.prop(cm, "expose_parent")
+
+        row = col.row(align=True)
+        row.prop(cm, "expose_parent")
+
         # row = col.row(align=True)
         # parent = bpy.data.objects["Bricker_%(n)s_parent" % locals()]
         # row = layout.row()

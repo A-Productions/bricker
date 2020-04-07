@@ -109,8 +109,8 @@ class VIEW3D_PT_bricker_customize(Panel):
         # col.active = False
         col.label(text="BrickSculpt Tools:")
         if is_bricksculpt_installed():
-            col.operator("bricksculpt.run_tool", text="Draw/Cut Tool", icon="GREASEPENCIL").mode = "DRAW"
-            col.operator("bricksculpt.run_tool", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE_SPLIT"
+            col.operator("bricksculpt.run_tool", text="Draw/Cut Tool", icon="SCULPTMODE_HLT").mode = "DRAW"
+            col.operator("bricksculpt.run_tool", text="Merge/Split Tool", icon="OUTLINER_DATA_GP_LAYER").mode = "MERGE_SPLIT"
             row = col.row(align=True)
             row.operator("bricksculpt.run_tool", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
             # row.prop_search(cm, "paintbrush_mat", bpy.data, "materials", text="")
