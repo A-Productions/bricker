@@ -372,6 +372,11 @@ def create_new_bricks(source_dup, parent, source_details, dimensions, action, sp
         bpy.data.objects.remove(ref_logo)
     # store current bricksdict to cache
     cache_bricks_dict(action, cm, bricksdict, cur_frame=cur_frame)
+    # reset some of the dirty attributes
+    cm.build_is_dirty = False
+    cm.material_is_dirty = False
+    cm.model_is_dirty = False
+    cm.bricks_are_dirty = False
     return model_name, bricks_created
 
 

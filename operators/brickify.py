@@ -338,12 +338,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cm.last_internal_supports = cm.internal_supports
         cm.last_instance_method = cm.instance_method
         cm.last_mat_shell_depth = cm.mat_shell_depth
-        cm.last_matrix_settings = get_matrix_settings()
+        cm.last_matrix_settings = get_matrix_settings_str()
         cm.last_is_smoke = cm.is_smoke
-        cm.material_is_dirty = False
-        cm.model_is_dirty = False
-        cm.build_is_dirty = False
-        cm.bricks_are_dirty = False
         cm.matrix_is_dirty = False
         cm.matrix_lost = False
         cm.internal_is_dirty = False

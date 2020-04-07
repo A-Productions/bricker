@@ -138,7 +138,7 @@ def dirty_model(self, context):
     cm.model_is_dirty = True
 
 
-# NOTE: Any prop that calls this function should be added to get_matrix_settings()
+# NOTE: Any prop that calls this function should be added to get_matrix_settings_str()
 def dirty_matrix(self=None, context=None):
     scn, cm, _ = get_active_context_info()
     cm.matrix_is_dirty = True

@@ -58,30 +58,26 @@ class BRICKER_OT_revert_settings(Operator):
 
     def revert_matrixSettings(self, cm=None):
         cm = get_active_context_info(cm)[1]
-        settings = cm.last_matrix_settings.split(",")
-        cm.brick_height = float(settings[0])
-        cm.gap = float(settings[1])
-        cm.brick_type = settings[2]
-        cm.dist_offset[0] = float(settings[3])
-        cm.dist_offset[1] = float(settings[4])
-        cm.dist_offset[2] = float(settings[5])
-        cm.include_transparency = str_to_bool(settings[6])
-        cm.custom_object1 = bpy.data.objects.get(settings[7])
-        cm.custom_object2 = bpy.data.objects.get(settings[8])
-        cm.custom_object3 = bpy.data.objects.get(settings[9])
-        cm.use_normals = str_to_bool(settings[10])
-        cm.insideness_ray_cast_dir = settings[12]
-        cm.brick_shell = settings[14]
-        cm.calculation_axes = settings[15]
+        settings = json.loads(cm.last_matrix_settings)
+        cm.brick_height = settings["brick_height"]
+        cm.gap = settings["gap"]
+        cm.brick_type = settings["brick_type"]
+        cm.dist_offset = settings["dist_offset"]
+        cm.include_transparency = settings["include_transparency"]
+        cm.custom_object1 = bpy.data.objects.get(settings["custom_object1_name"])
+        cm.custom_object2 = bpy.data.objects.get(settings["custom_object2_name"])
+        cm.custom_object3 = bpy.data.objects.get(settings["custom_object3_name"])
+        cm.use_normals = settings["use_normals"]
+        cm.insideness_ray_cast_dir = settings["insideness_ray_cast_dir"]
+        cm.brick_shell = settings["brick_shell"]
+        cm.calculation_axes = settings["calculation_axes"]
         if cm.last_is_smoke:
-            cm.smoke_density = settings[16]
-            cm.smoke_quality = settings[17]
-            cm.smoke_brightness = settings[18]
-            cm.smoke_saturation = settings[19]
-            cm.flame_color[0] = settings[20]
-            cm.flame_color[1] = settings[21]
-            cm.flame_color[2] = settings[22]
-            cm.flame_intensity = settings[23]
+            cm.smoke_density = settings["smoke_density"]
+            cm.smoke_quality = settings["smoke_quality"]
+            cm.smoke_brightness = settings["smoke_brightness"]
+            cm.smoke_saturation = settings["smoke_saturation"]
+            cm.flame_color = settings["flame_color"]
+            cm.flame_intensity = settings["flame_intensity"]
         cm.matrix_is_dirty = False
 
     ################################################

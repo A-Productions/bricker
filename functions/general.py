@@ -103,41 +103,35 @@ def get_collections(cm=None, typ=None):
     return bcolls
 
 
-def get_matrix_settings(cm=None):
+def get_matrix_settings_str(cm=None):
     cm = cm or get_active_context_info()[1]
     # TODO: Maybe remove custom objects from this?
-    regularSettings = [
-        round(cm.brick_height, 6),
-        round(cm.gap, 4),
-        cm.brick_type,
-        cm.dist_offset[0],
-        cm.dist_offset[1],
-        cm.dist_offset[2],
-        cm.include_transparency,
-        cm.custom_object1.name if cm.custom_object1 is not None else "",
-        cm.custom_object2.name if cm.custom_object2 is not None else "",
-        cm.custom_object3.name if cm.custom_object3 is not None else "",
-        cm.use_normals,
-        cm.insideness_ray_cast_dir,
-        cm.brick_shell,
-        cm.calc_internals,
-        cm.calculation_axes,
-    ]
-    smokeSettings = [
-        round(cm.smoke_density, 6),
-        round(cm.smoke_quality, 6),
-        round(cm.smoke_brightness, 6),
-        round(cm.smoke_saturation, 6),
-        round(cm.flame_color[0], 6),
-        round(cm.flame_color[1], 6),
-        round(cm.flame_color[2], 6),
-        round(cm.flame_intensity, 6),
-    ] if cm.last_is_smoke else []
-    return list_to_str(regularSettings + smokeSettings)
+    matrix_settings = {
+        "brick_height": round(cm.brick_height, 6),
+        "gap": round(cm.gap, 4),
+        "brick_type": cm.brick_type,
+        "dist_offset": list(cm.dist_offset),
+        "include_transparency": cm.include_transparency,
+        "custom_object1_name": cm.custom_object1.name if cm.custom_object1 is not None else "",
+        "custom_object2_name": cm.custom_object2.name if cm.custom_object2 is not None else "",
+        "custom_object3_name": cm.custom_object3.name if cm.custom_object3 is not None else "",
+        "use_normals": cm.use_normals,
+        "insideness_ray_cast_dir": cm.insideness_ray_cast_dir,
+        "brick_shell": cm.brick_shell,
+        "calc_internals": cm.calc_internals,
+        "calculation_axes": cm.calculation_axes,
+        "smoke_density": round(cm.smoke_density, 6),
+        "smoke_quality": round(cm.smoke_quality, 6),
+        "smoke_brightness": round(cm.smoke_brightness, 6),
+        "smoke_saturation": round(cm.smoke_saturation, 6),
+        "flame_color": vec_round(cm.flame_color, 6, outer_type=list),
+        "flame_intensity": round(cm.flame_intensity, 6),
+    }
+    return json.dumps(matrix_settings)
 
 
 def matrix_really_is_dirty(cm, include_lost_matrix=True):
-    return (cm.matrix_is_dirty and cm.last_matrix_settings != get_matrix_settings()) or (cm.matrix_lost and include_lost_matrix)
+    return (cm.matrix_is_dirty and cm.last_matrix_settings != get_matrix_settings_str()) or (cm.matrix_lost and include_lost_matrix)
 
 
 def vec_to_str(vec, separate_by=","):

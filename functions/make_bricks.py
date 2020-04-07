@@ -128,7 +128,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     num_iters = 2 if brick_type == "BRICKS_AND_PLATES" else 1
     i = 0
     # if merging unnecessary, simply update bricksdict values
-    if not cm.customized and not (mergable_brick_type(brick_type, up=cm.zstep == 1) and (max_depth != 1 or max_width != 1)):
+    if not redraw and not (mergable_brick_type(brick_type, up=cm.zstep == 1) and (max_depth != 1 or max_width != 1)):
         size = [1, 1, cm.zstep]
         if len(keys) > 0:
             update_brick_sizes_and_types_used(cm, list_to_str(size), bricksdict[keys[0]]["type"])

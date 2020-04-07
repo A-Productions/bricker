@@ -317,6 +317,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             set_cur_brick_val(bricksdict, adjacent_loc, adjacent_key)
             adj_brick_d["size"] = [1, 1, new_brick_height if side in (4, 5) else cm.zstep]
             adj_brick_d["parent"] = "self"
+            adj_brick_d["rgba"] = bricksdict[dkey]["rgba"]
             adj_brick_d["mat_name"] = bricksdict[dkey]["mat_name"] if adj_brick_d["mat_name"] == "" else adj_brick_d["mat_name"]
             adj_brick_d["custom_mat_name"] = bricksdict[dkey]["custom_mat_name"]
             adj_brick_d["near_face"] = adj_brick_d["near_face"] or bricksdict[dkey]["near_face"]
