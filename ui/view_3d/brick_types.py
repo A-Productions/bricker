@@ -40,6 +40,7 @@ class VIEW3D_PT_bricker_brick_types(Panel):
     bl_category    = "Bricker"
     bl_label       = "Brick Types"
     bl_idname      = "VIEW3D_PT_bricker_brick_types"
+    bl_parent_id   = "VIEW3D_PT_bricker_model_settings"
     bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
@@ -51,30 +52,31 @@ class VIEW3D_PT_bricker_brick_types(Panel):
 
     def draw(self, context):
         layout = self.layout
+        # right_align(layout)
         scn, cm, _ = get_active_context_info()
 
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.prop(cm, "brick_type", text="")
+        # col = layout.column(align=True)
+        layout.prop(cm, "brick_type", text="")
 
         if mergable_brick_type(cm.brick_type):
             col = layout.column(align=True)
-            col.active = cm.instance_method != "POINT_CLOUD"
-            col.label(text="Max Brick Size:")
+            col.label(text="Max Size:")
             row = col.row(align=True)
-            row.prop(cm, "max_width", text="Width")
-            row.prop(cm, "max_depth", text="Depth")
+            col.prop(cm, "max_width", text="Width")
+            col.prop(cm, "max_depth", text="Depth")
             col.active = cm.instance_method != "POINT_CLOUD"
-            row = col.row(align=True)
-            right_align(row)
-            row.prop(cm, "legal_bricks_only")
 
-        col = layout.column(align=True)
-        if cm.brick_type == "CUSTOM":
-            col.label(text="Brick Type Object:")
-        elif cm.last_split_model:
-            col.label(text="Custom Brick Objects:")
+            col = layout.column()
+            right_align(col)
+            col.prop(cm, "legal_bricks_only")
+            col.active = cm.instance_method != "POINT_CLOUD"
+
         if cm.brick_type == "CUSTOM" or cm.last_split_model:
+            col = layout.column(align=True)
+            if cm.brick_type == "CUSTOM":
+                col.label(text="Brick Type Object:")
+            elif cm.last_split_model:
+                col.label(text="Custom Brick Objects:")
             for prop in ("custom_object1", "custom_object2", "custom_object3"):
                 if prop[-1] == "2" and cm.brick_type == "CUSTOM":
                     col.label(text="Distance Offset:")

@@ -26,7 +26,8 @@ bl_info = {
     "wiki_url"    : "https://www.blendermarket.com/products/bricker/",
     "doc_url"     : "https://www.blendermarket.com/products/bricker/",  # 2.83+
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
-    "category"    : "Object"}
+    "category"    : "Object",
+}
 
 developer_mode = 1  # NOTE: Set to 0 for release, 1 for exposed dictionary
 # NOTE: Disable "LEGO Logo" for releases

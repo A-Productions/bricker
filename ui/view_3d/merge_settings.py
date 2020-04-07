@@ -38,8 +38,9 @@ class VIEW3D_PT_bricker_merge_settings(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "UI" if b280() else "TOOLS"
     bl_category    = "Bricker"
-    bl_label       = "Merge Settings"
+    bl_label       = "Merging"
     bl_idname      = "VIEW3D_PT_bricker_merge_settings"
+    bl_parent_id   = "VIEW3D_PT_bricker_model_settings"
     bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
@@ -60,20 +61,46 @@ class VIEW3D_PT_bricker_merge_settings(Panel):
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.prop(cm, "merge_type", text="Type")
+        row.prop(cm, "merge_type", text="")
         if cm.merge_type == "RANDOM":
             col = layout.column(align=True)
             col.prop(cm, "merge_seed")
             col.prop(cm, "connect_thresh")
-        if cm.brick_type == "BRICKS_AND_PLATES":
-            col = layout.column(align=True)
-            row = col.row(align=True)
-            right_align(row)
-            row.prop(cm, "align_bricks")
-            if cm.align_bricks:
-                row = col.row(align=True)
-                row.prop(cm, "offset_brick_layers")
         if cm.shell_thickness > 1:
             col = layout.column(align=True)
             col.label(text="Merge Shell with Internals:")
             col.prop(cm, "merge_internals", text="")
+
+
+class VIEW3D_PT_bricker_merge_alignment(Panel):
+    bl_space_type  = "VIEW_3D"
+    bl_region_type = "UI" if b280() else "TOOLS"
+    bl_category    = "Bricker"
+    bl_label       = "Alignment"
+    bl_idname      = "VIEW3D_PT_bricker_merge_alignment"
+    bl_parent_id   = "VIEW3D_PT_bricker_merge_settings"
+    bl_context     = "objectmode"
+    bl_options     = {"DEFAULT_CLOSED"}
+
+    @classmethod
+    def poll(self, context):
+        if not settings_can_be_drawn():
+            return False
+        scn = bpy.context.scene
+        if scn.cmlist_index == -1:
+            return False
+        cm = scn.cmlist[scn.cmlist_index]
+        return mergable_brick_type(cm.brick_type) and cm.brick_type == "BRICKS_AND_PLATES"
+
+    def draw(self, context):
+        layout = self.layout
+        scn, cm, _ = get_active_context_info()
+        layout.active = cm.instance_method != "POINT_CLOUD"
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        right_align(row)
+        row.prop(cm, "align_bricks")
+        if cm.align_bricks:
+            col = layout.column(align=True)
+            col.prop(cm, "offset_brick_layers")

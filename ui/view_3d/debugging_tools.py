@@ -31,7 +31,6 @@ from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
 from ...functions import *
-from ... import addon_updater_ops
 
 
 
@@ -48,59 +47,20 @@ class VIEW3D_PT_bricker_debugging_tools(Panel):
     def poll(self, context):
         if not settings_can_be_drawn():
             return False
-        if bpy.props.bricker_developer_mode == 0:
-            return False
-        return True
+        prefs = get_addon_preferences()
+        return prefs.show_debugging_tools
 
     def draw(self, context):
         layout = self.layout
         scn, cm, n = get_active_context_info()
 
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.operator("bricker.clear_cache", text="Clear Cache", icon="CON_TRANSFORM_CACHE")
+
         source_name = cm.source_obj.name if cm.source_obj else ""
         layout.operator("bricker.generate_brick", icon="MOD_BUILD")
         layout.operator("bricker.debug_toggle_view_source", icon="RESTRICT_VIEW_OFF" if source_name in scn.objects else "RESTRICT_VIEW_ON")
-
-
-class VIEW3D_PT_bricker_model_stats(Panel):
-    """ Display Matrix details for specified brick location """
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
-    bl_label       = "Brick Details"
-    bl_idname      = "VIEW3D_PT_bricker_model_stats"
-    bl_parent_id   = "VIEW3D_PT_bricker_debugging_tools"
-    bl_context     = "objectmode"
-
-    @classmethod
-    def poll(self, context):
-        if bpy.props.bricker_developer_mode == 0:
-            return False
-        if not settings_can_be_drawn():
-            return False
-        scn, cm, _ = get_active_context_info()
-        if created_with_unsupported_version(cm):
-            return False
-        if not (cm.model_created or cm.animated):
-            return False
-        return True
-
-    def draw(self, context):
-        layout = self.layout
-        scn, cm, _ = get_active_context_info()
-        layout.operator("bricker.refresh_model_stats", icon="FILE_REFRESH")
-        col = layout.column(align=True)
-        row = layout.row(align=True)
-        row.label(text="Bricks in model: {}".format(cm.num_bricks_in_model))
-        row = layout.row(align=True)
-        row.label(text="Materials in model: {}".format(cm.num_materials_in_model))
-        row = layout.row(align=True)
-        row.label(text="Weight: {}g".format(cm.model_weight))
-        row = layout.row(align=True)
-        row.label(text="Real-world dimensions:")
-        row = layout.row(align=True)
-        col = row.column(align=True)
-        col.enabled = False
-        col.prop(cm, "real_world_dimensions", text="")
 
 
 class VIEW3D_PT_bricker_matrix_details(Panel):
@@ -115,8 +75,6 @@ class VIEW3D_PT_bricker_matrix_details(Panel):
 
     @classmethod
     def poll(self, context):
-        if bpy.props.bricker_developer_mode == 0:
-            return False
         if not settings_can_be_drawn():
             return False
         scn, cm, _ = get_active_context_info()

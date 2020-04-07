@@ -40,6 +40,7 @@ class VIEW3D_PT_bricker_supports(Panel):
     bl_category    = "Bricker"
     bl_label       = "Supports"
     bl_idname      = "VIEW3D_PT_bricker_supports"
+    bl_parent_id   = "VIEW3D_PT_bricker_model_settings"
     bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 

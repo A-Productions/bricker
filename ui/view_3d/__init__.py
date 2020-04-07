@@ -26,6 +26,7 @@ from .export import *
 from .materials import *
 from .matrix_details import *
 from .merge_settings import *
+from .model_info import *
 from .model_settings import *
 from .model_transform import *
 from .smoke_settings import *

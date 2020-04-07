@@ -23,6 +23,7 @@ from bpy.props import *
 # Module imports
 from .. import addon_updater_ops
 from ..functions.common import *
+from ..functions.property_callbacks import *
 
 
 class BRICKER_AP_preferences(AddonPreferences):
@@ -61,6 +62,13 @@ class BRICKER_AP_preferences(AddonPreferences):
         ],
         default="AUTO",
     )
+    max_workers = IntProperty(
+        name="Max Worker Instances",
+        description="Maximum number of Blender instances allowed to run in background for Bricker calculations (larger numbers are faster at a higher CPU load; 0 for local calculation)",
+        min=0, max=24,
+        update=update_job_manager_properties,
+        default=5,
+    )
     # CUSTOMIZE SETTINGS
     show_legacy_customization_tools = BoolProperty(
         name="Show Legacy Brick Operations",
@@ -71,6 +79,12 @@ class BRICKER_AP_preferences(AddonPreferences):
         name="Auto Update Model on Delete",
         description="Draw newly exposed bricks when existing bricks are deleted",
         default=True,
+    )
+    # Other
+    show_debugging_tools = BoolProperty(
+        name="Show Debugging Tools",
+        description="Show advanced tools for debugging issues with Bricker",
+        default=False,
     )
 
 	# addon updater preferences
@@ -117,17 +131,25 @@ class BRICKER_AP_preferences(AddonPreferences):
             col.prop(self, "absolute_brick_height")
         col1.separator()
         col1.separator()
+        row = col1.row(align=True)
+        right_align(row)
+        col = row.column()
+        col.prop(self, "auto_update_on_delete")
+        col.prop(self, "show_legacy_customization_tools")
+        col.prop(self, "show_debugging_tools")
+        col1.separator()
+        col1.separator()
         row = col1.row(align=False)
         split = layout_split(row, factor=0.275)
         col = split.column(align=True)
         col.label(text="Brickify in Background:")
         col = split.column(align=True)
         col.prop(self, "brickify_in_background", text="")
+        if self.brickify_in_background != "OFF":
+            col = split.column(align=True)
+            col.prop(self, "max_workers", text="Max Worker Instances")
         col1.separator()
-        row = col1.row(align=True)
-        right_align(row)
-        row.prop(self, "show_legacy_customization_tools")
-        row.prop(self, "auto_update_on_delete")
+
 
         # updater draw function
         addon_updater_ops.update_settings_ui(self,context)

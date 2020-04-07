@@ -90,21 +90,6 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         min=0, max=500000,
         default=10,
     )
-    max_workers = IntProperty(
-        name="Max Worker Instances",
-        description="Maximum number of Blender instances allowed to run in background for Bricker calculations (larger numbers are faster at a higher CPU load; 0 for local calculation)",
-        min=0, max=24,
-        update=update_job_manager_properties,
-        default=5,
-    )
-    back_proc_timeout = FloatProperty(
-        name="Timeout",
-        description="Max seconds allowed for each frame's model to calculate (0 for infinite; cancels process if time exceeded)",
-        subtype="TIME",
-        precision=0, min=0,
-        update=update_job_manager_properties,
-        default=0,
-    )
 
     # BASIC MODEL SETTINGS
     brick_height = FloatProperty(
@@ -723,7 +708,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     )
     calc_internals = BoolProperty(
         name="Calculate Internals",
-        description="Calculate values for bricks inside shell (disable for faster calculation at the loss of the 'ShellThickness' and 'Supports' features)",
+        description="Calculate values for bricks inside shell (disable for faster calculation at the loss of the 'Shell Thickness' and 'Supports' features)",
         update=dirty_matrix,
         default=True,
     )
@@ -787,15 +772,15 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     has_custom_obj3 = BoolProperty(default=False)
 
     # model stats
-    num_bricks_in_model = IntProperty(default=-1)
-    num_materials_in_model = IntProperty(default=-1)
-    model_weight = IntProperty(default=-1)
+    num_bricks_in_model = IntProperty(default=0)
+    num_materials_in_model = IntProperty(default=0)
+    model_weight = IntProperty(default=0)
     real_world_dimensions = FloatVectorProperty(
         name="Real World Dimensions",
         description="",
         subtype="XYZ",
         unit="LENGTH",
-        default=(-1, -1, -1),
+        default=(0, 0, 0),
     )
     # real_world_dimensions = FloatVectorProperty(unit="LENGTH", default=(-1, -1, -1))
 
@@ -900,6 +885,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     uvImage = PointerProperty(type=bpy.types.Image)
     colorSnap = StringProperty(default="RGB")
     colorSnapAmount = FloatProperty(default=0.001)
+    color_snap_amount = FloatProperty(default=0.001)
     colorSnapSpecular = FloatProperty(0.5)
     colorSnapRoughness = FloatProperty(0.5)
     colorSnapIOR = FloatProperty(1.45)

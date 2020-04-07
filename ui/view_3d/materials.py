@@ -40,6 +40,7 @@ class VIEW3D_PT_bricker_materials(Panel):
     bl_category    = "Bricker"
     bl_label       = "Materials"
     bl_idname      = "VIEW3D_PT_bricker_materials"
+    bl_parent_id   = "VIEW3D_PT_bricker_model_settings"
     bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 

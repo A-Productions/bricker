@@ -29,9 +29,9 @@ from mathutils import Matrix, Vector, Euler
 from bpy.props import *
 
 # Module imports
-from .delete_model import BRICKER_OT_delete_model
 from .bevel import BRICKER_OT_bevel
 from .cache import *
+from .delete_model import BRICKER_OT_delete_model
 from ..lib.undo_stack import *
 from ..subtrees.background_processing.classes.job_manager import JobManager
 from ..functions import *
@@ -150,7 +150,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     if "ANIM" in self.action:
                         finish_animation(self.cm)
                     self.report({"INFO"}, "Brickify background process complete for model '%(n)s'" % locals())
-                    stopwatch("Total Time Elapsed", self.start_time, precision=2)
                     self.finish(context, cm)
                     return {"FINISHED"}
                 elif remaining_jobs == 0:
@@ -213,17 +212,19 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             wm.modal_handler_add(self)
             return {"RUNNING_MODAL"}
         else:
-            stopwatch("Total Time Elapsed", self.start_time, precision=2)
+            self.finish(context, cm)
             return {"FINISHED"}
 
     def finish(self, context, cm):
-        wm = context.window_manager
-        wm.event_timer_remove(self._timer)
+        if self._timer is not None:
+            wm = context.window_manager
+            wm.event_timer_remove(self._timer)
         cm.brickifying_in_background = False
+        stopwatch("Total Time Elapsed", self.start_time, precision=2)
 
     def cancel(self, context):
         scn, cm, n = get_active_context_info(self.cm)
-        self.finish(context, cm)
+        self.finish(context, cm, background=True)
         if self.job_manager.num_running_jobs() + self.job_manager.num_pending_jobs() > 0:
             self.job_manager.kill_all()
             print("Background processes for '%(n)s' model killed" % locals())
@@ -244,14 +245,15 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.start_time = time.time()
         # initialize important vars
         self.job_manager = JobManager.get_instance(cm.id)
-        self.job_manager.timeout = cm.back_proc_timeout
-        self.job_manager.max_workers = cm.max_workers
+        prefs = get_addon_preferences()
+        self.job_manager.max_workers = prefs.max_workers
         self.job_manager.max_attempts = 1
         self.debug_level = 1 if "ANIM" in self.action else 1 # or bpy.props.bricker_developer_mode == 0 else 1
         self.completed_frames = []
         self.bricker_addon_path = get_addon_directory()
         self.jobs = list()
         self.cm = cm
+        self._timer = None
         clear_pixel_cache()
         if self.source is not None:
             # set up model dimensions variables sX, sY, and sZ

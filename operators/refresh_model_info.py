@@ -27,10 +27,10 @@ from bpy.types import Operator
 from ..functions import *
 
 
-class BRICKER_OT_refresh_model_stats(Operator):
+class BRICKER_OT_refresh_model_info(Operator):
     """Refresh all model statistics"""
-    bl_idname = "bricker.refresh_model_stats"
-    bl_label = "Refresh Model Stats"
+    bl_idname = "bricker.refresh_model_info"
+    bl_label = "Refresh Model Info"
     bl_options = {"REGISTER", "UNDO"}
 
     ################################################
@@ -48,7 +48,7 @@ class BRICKER_OT_refresh_model_stats(Operator):
 
     def execute(self, context):
         try:
-            self.refresh_model_stats()
+            self.set_model_info()
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -56,7 +56,8 @@ class BRICKER_OT_refresh_model_stats(Operator):
     ################################################
     # class methods
 
-    def refresh_model_stats(self, cm=None):
+    @staticmethod
+    def set_model_info(cm=None):
         scn, cm = get_active_context_info(cm)[:2]
         bricksdict = get_bricksdict(cm, d_type="MODEL" if cm.model_created else "ANIM", cur_frame=scn.frame_current)
         legal_bricks = get_legal_bricks()

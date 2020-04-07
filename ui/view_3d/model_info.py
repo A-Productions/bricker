@@ -1,0 +1,84 @@
+# Copyright (C) 2019 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# System imports
+# NONE!
+
+# Blender imports
+import bpy
+from bpy.types import Panel
+from bpy.props import *
+
+# Module imports
+# from ..created_model_uilist import *
+# from ..matslot_uilist import *
+# from ...lib.caches import cache_exists
+# from ...operators.revert_settings import *
+# from ...operators.brickify import *
+from ...functions import *
+
+
+class VIEW3D_PT_bricker_model_info(Panel):
+    """ Display Matrix details for specified brick location """
+    bl_space_type  = "VIEW_3D"
+    bl_region_type = "UI" if b280() else "TOOLS"
+    bl_category    = "Bricker"
+    bl_label       = "Model Info"
+    bl_idname      = "VIEW3D_PT_bricker_model_info"
+    # bl_parent_id   = "VIEW3D_PT_bricker_debugging_tools"
+    bl_context     = "objectmode"
+
+    @classmethod
+    def poll(self, context):
+        if not settings_can_be_drawn():
+            return False
+        scn, cm, _ = get_active_context_info()
+        if created_with_unsupported_version(cm):
+            return False
+        if not (cm.model_created or cm.animated):
+            return False
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        scn, cm, _ = get_active_context_info()
+        layout.operator("bricker.refresh_model_info", icon="FILE_REFRESH")
+
+        col = layout.column(align=True)
+        col.label(text="Brick count:")
+        row = col.row(align=True)
+        row.enabled = False
+        row.prop(cm, "num_bricks_in_model", text="")
+
+        col = layout.column(align=True)
+        col.label(text="Material count:")
+        row = col.row(align=True)
+        row.enabled = False
+        row.prop(cm, "num_materials_in_model", text="")
+
+        col = layout.column(align=True)
+        col.label(text="Weight (grams):")
+        row = col.row(align=True)
+        row.enabled = False
+        row.prop(cm, "model_weight", text="")
+
+        col = layout.column(align=True)
+        col.label(text="Real-world dimensions:")
+        row = col.row(align=True)
+        row.enabled = False
+        col = row.column(align=True)
+        col.prop(cm, "real_world_dimensions", text="")

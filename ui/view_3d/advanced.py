@@ -41,6 +41,7 @@ class VIEW3D_PT_bricker_advanced(Panel):
     bl_category    = "Bricker"
     bl_label       = "Advanced"
     bl_idname      = "VIEW3D_PT_bricker_advanced"
+    bl_parent_id   = "VIEW3D_PT_bricker_model_settings"
     bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
@@ -63,53 +64,63 @@ class VIEW3D_PT_bricker_advanced(Panel):
             col.label(text="Install from Bricker addon prefs")
             layout.separator()
 
+        # if not cm.animated:
         col = layout.column(align=True)
-        row = col.row(align=True)
-        row.operator("bricker.clear_cache", text="Clear Cache")
+        col.prop(cm, "instance_method", text="Instancing")
 
-        # if not b280():
-        #     VIEW3D_PT_bricker_advanced_ray_casting.draw(self, context)
         col = layout.column(align=True)
-        row = col.row(align=True)
-        row.label(text="Ray Casting:")
-        row = col.row(align=True)
-        row.prop(cm, "insideness_ray_cast_dir", text="")
-        row = col.row(align=True)
-        row.prop(cm, "use_normals")
-        row = col.row(align=True)
-        row.prop(cm, "calc_internals")
+        # row = col.row(align=True)
+        # row.label(text="Ray Casting:")
+        # row = col.row(align=True)
+        # row.prop(cm, "insideness_ray_cast_dir", text="")
+        # row = col.row(align=True)
+        # row.prop(cm, "use_normals")
+        # row = col.row(align=True)
+        # row.prop(cm, "calc_internals")
         row = col.row(align=True)
         row.prop(cm, "brick_shell", text="Shell")
         if cm.brick_shell == "OUTSIDE":
             row = col.row(align=True)
-            row.prop(cm, "calculation_axes", text="")
-
-        # if not cm.animated:
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.label(text="Instance Method:")
-        row = col.row(align=True)
-        row.prop(cm, "instance_method", text="")
+            row.prop(cm, "calculation_axes", text="Axes")
 
         # model orientation preferences
         if not cm.use_animation and not (cm.model_created or cm.animated):
             # if not b280():
             col = layout.column(align=True)
-            row = col.row(align=True)
-            row.label(text="Model Orientation:")
-            row = col.row(align=True)
             col.prop(cm, "use_local_orient", text="Use Local Orientation")
-
-        # background processing preferences
-        if cm.use_animation and get_addon_preferences().brickify_in_background != "OFF":
-            col = layout.column(align=True)
-            # if not b280():
-            row = col.row(align=True)
-            row.label(text="Background Processing:")
-            row = col.row(align=True)
-            row.prop(cm, "max_workers")
 
         # draw test brick generator button (for testing purposes only)
         if BRICKER_OT_test_brick_generators.draw_ui_button():
             col = layout.column(align=True)
             col.operator("bricker.test_brick_generators", text="Test Brick Generators", icon="OUTLINER_OB_MESH")
+
+
+class VIEW3D_PT_bricker_ray_casting(Panel):
+    bl_space_type  = "VIEW_3D"
+    bl_region_type = "UI" if b280() else "TOOLS"
+    bl_category    = "Bricker"
+    bl_label       = "Ray Casting"
+    bl_idname      = "VIEW3D_PT_bricker_ray_casting"
+    bl_parent_id   = "VIEW3D_PT_bricker_advanced"
+    bl_context     = "objectmode"
+    bl_options     = {"DEFAULT_CLOSED"}
+
+    @classmethod
+    def poll(self, context):
+        if not settings_can_be_drawn():
+            return False
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        # right_align(layout)
+        scn, cm, n = get_active_context_info()
+
+        col = layout.column(align=True)
+        col.prop(cm, "insideness_ray_cast_dir", text="Direction")
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(cm, "use_normals")
+        row = col.row(align=True)
+        row.prop(cm, "calc_internals")

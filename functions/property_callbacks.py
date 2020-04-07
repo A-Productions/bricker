@@ -112,10 +112,10 @@ def update_circle_verts(self, context):
 
 
 def update_job_manager_properties(self, context):
+    """ updates the job manager's properties (even when processes are running) """
     scn, cm, _ = get_active_context_info()
     job_manager = JobManager.get_instance(cm.id)
-    job_manager.timeout = cm.back_proc_timeout
-    job_manager.max_workers = cm.max_workers
+    job_manager.max_workers = self.max_workers
 
 
 def update_brick_shell(self, context):

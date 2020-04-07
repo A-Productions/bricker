@@ -62,7 +62,6 @@ class JobManager():
     # class variables
 
     instance = dict()
-    # timeout = 0  # amount of time to wait before killing the process (0 for infinite)
     max_workers = 5  # maximum number of blender instances to run at once
     max_attempts = 1  # maximum number of times the background processor will attempt to run a job if error occurs
 

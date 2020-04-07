@@ -40,6 +40,7 @@ class VIEW3D_PT_bricker_detailing(Panel):
     bl_category    = "Bricker"
     bl_label       = "Detailing"
     bl_idname      = "VIEW3D_PT_bricker_detailing"
+    bl_parent_id   = "VIEW3D_PT_bricker_model_settings"
     bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
@@ -47,7 +48,8 @@ class VIEW3D_PT_bricker_detailing(Panel):
     def poll(self, context):
         if not settings_can_be_drawn():
             return False
-        return True
+        scn, cm, _ = get_active_context_info()
+        return cm.brick_type != "CUSTOM"
 
     def draw(self, context):
         layout = self.layout

@@ -40,6 +40,7 @@ class VIEW3D_PT_bricker_smoke_settings(Panel):
     bl_category    = "Bricker"
     bl_label       = "Smoke Settings"
     bl_idname      = "VIEW3D_PT_bricker_smoke_settings"
+    bl_parent_id   = "VIEW3D_PT_bricker_model_settings"
     bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
