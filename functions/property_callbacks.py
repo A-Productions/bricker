@@ -211,6 +211,34 @@ def add_material_to_list(self, context):
         cm.material_is_dirty = True
 
 
+def get_brick_type_items(self, context):
+    description = "Use this brick type to build the model"
+    brick_type_items = [
+        ("BRICKS", "Bricks (fast)", description, 0),  # first item will be default
+        ("BRICKS_AND_PLATES", "Bricks and Plates", description, 1),
+        ("CONES", "Cones", description, 2),
+        ("CUSTOM", "Custom", "Use custom object to build the model", 3),
+        ("CYLINDERS", "Cylinders", description, 4),
+        ("PLATES", "Plates", description, 5),
+        ("STUDS", "Studs", description, 7),
+        ("STUD_HOLLOWS", "Hollow Studs", description, 8),
+        ("STUD_TILES", "Round 1x1 Tiles", description, 9),
+    ]
+    # if bpy.props.bricker_developer_mode != 0:
+    #     brick_types.insert(6, ("SLOPES", "Slopes (fast)", description, 6))
+    return brick_type_items
+
+
+def get_logo_types(self, context):
+    logo_types = [
+        ("NONE", "None", "Don't include Brick Logo on bricks", 0),
+        ("CUSTOM", "Custom Logo", "Choose a mesh object to use as the brick stud logo", 2),
+    ]
+    if bpy.props.bricker_developer_mode != 0:
+        logo_types.insert(1, ("LEGO", "LEGO Logo", "Include a LEGO logo on each stud", 1))
+    return logo_types
+
+
 def select_source_model(self, context):
     """ if scn.cmlist_index changes, select and make source or brick model active """
     scn = bpy.context.scene

@@ -227,24 +227,12 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     )
 
     # BRICK TYPE SETTINGS
-    description = "Use this brick type to build the model"
     brick_type = EnumProperty(
         name="Brick Type",
         description="Type of brick used to build the model",
-        items=[
-            ("BRICKS", "Bricks (fast)", description, 0),
-            ("BRICKS_AND_PLATES", "Bricks and Plates", description, 1),
-            ("CONES", "Cones", description, 2),
-            ("CUSTOM", "Custom", "Use custom object to build the model", 3),
-            ("CYLINDERS", "Cylinders", description, 4),
-            ("PLATES", "Plates", description, 5),
-            # ("SLOPES", "Slopes (fast)", description, 6),
-            ("STUDS", "Studs", description, 7),
-            ("STUD_HOLLOWS", "Hollow Studs", description, 8),
-            ("STUD_TILES", "Round 1x1 Tiles", description, 9),
-        ],
+        items=get_brick_type_items,
         update=update_brick_type,
-        default="BRICKS",
+        # default="BRICKS",
     )
     align_bricks = BoolProperty(
         name="Align Bricks Horizontally",
@@ -506,13 +494,9 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     logo_type = EnumProperty(
         name="Logo Type",
         description="Choose logo type to draw on brick studs",
-        items=[
-            ("NONE", "None", "Don't include Brick Logo on bricks", 0),
-            ("LEGO", "LEGO Logo", "Include a LEGO logo on each stud", 1),
-            ("CUSTOM", "Custom Logo", "Choose a mesh object to use as the brick stud logo", 2),
-        ],
+        items=get_logo_types,
         update=dirty_bricks,
-        default="NONE",
+        # default="NONE",
     )
     logo_resolution = IntProperty(
         name="Resolution",
