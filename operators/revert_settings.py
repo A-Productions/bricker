@@ -48,7 +48,7 @@ class BRICKER_OT_revert_settings(Operator):
 
     def execute(self, context):
         try:
-            self.revert_matrixSettings()
+            self.revert_matrix_settings()
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -56,7 +56,7 @@ class BRICKER_OT_revert_settings(Operator):
     ################################################
     # class methods
 
-    def revert_matrixSettings(self, cm=None):
+    def revert_matrix_settings(self, cm=None):
         cm = get_active_context_info(cm)[1]
         settings = json.loads(cm.last_matrix_settings)
         cm.brick_height = settings["brick_height"]
@@ -67,8 +67,9 @@ class BRICKER_OT_revert_settings(Operator):
         cm.custom_object1 = bpy.data.objects.get(settings["custom_object1_name"])
         cm.custom_object2 = bpy.data.objects.get(settings["custom_object2_name"])
         cm.custom_object3 = bpy.data.objects.get(settings["custom_object3_name"])
-        cm.use_normals = settings["use_normals"]
         cm.insideness_ray_cast_dir = settings["insideness_ray_cast_dir"]
+        cm.use_normals = settings["use_normals"]
+        cm.calc_internals = settings["calc_internals"]
         cm.brick_shell = settings["brick_shell"]
         cm.calculation_axes = settings["calculation_axes"]
         if cm.last_is_smoke:

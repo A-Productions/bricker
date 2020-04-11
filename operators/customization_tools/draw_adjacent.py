@@ -151,7 +151,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             # initialize self.dimensions
             self.dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
             # initialize self.adj_locs
-            self.adj_locs = get_adj_locs(cm, self.bricksdict, dkey, obj)
+            self.adj_locs = get_adj_locs(cm, self.bricksdict, dkey)
             # initialize self.adj_bricks_created
             self.adj_bricks_created = [[False] * len(self.adj_locs[i]) for i in range(6)]
             # initialize self.brick_type

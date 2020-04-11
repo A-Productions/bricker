@@ -317,7 +317,7 @@ def remove_unused_from_list(cm, brick_type="NULL", brick_size="NULL", selected_s
         cm.brick_types_used = new_list
 
 
-def get_adj_locs(cm, bricksdict, dkey, obj):
+def get_adj_locs(cm, bricksdict, dkey):
     # initialize vars for self.adj_locs setup
     x,y,z = get_dict_loc(bricksdict, dkey)
     obj_size = bricksdict[dkey]["size"]

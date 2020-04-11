@@ -18,7 +18,7 @@
 bl_info = {
     "name"        : "Bricker",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
-    "version"     : (1, 9, 0),
+    "version"     : (2, 0, 0),
     "blender"     : (2, 83, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
@@ -29,7 +29,7 @@ bl_info = {
     "category"    : "Object",
 }
 
-developer_mode = 0  # NOTE: Set to 0 for release, 1 for exposed dictionary
+developer_mode = 1  # NOTE: Set to 0 for release, 1 for exposed dictionary
 # NOTE: Remove beta warning from bl_info
 
 # System imports

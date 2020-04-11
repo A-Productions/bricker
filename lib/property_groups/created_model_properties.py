@@ -320,7 +320,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
             ("RANDOM", "Random", "Apply a random material from Brick materials to each generated brick"),
             ("SOURCE", "Use Source Materials", "Apply material based on closest intersecting face"),
         ],
-        update=dirty_material,
+        update=dirty_build,
         default="NONE",
     )
     custom_mat = PointerProperty(
@@ -339,8 +339,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="Depth to which the outer materials should be applied (1 = Only exposed bricks)",
         step=1,
         min=1, max=50,
-        default=1,
         update=dirty_matrix,
+        default=1,
     )
     merge_internals = EnumProperty(
         name="Merge Shell with Internals",
@@ -351,20 +351,21 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
             ("VERTICAL", "Vertical", "Merge shell bricks with internals vertically, but not horizontally"),
             ("BOTH", "Horizontal & Vertical", "Merge shell bricks with internals in both directions"),
         ],
-        default="BOTH",
         update=dirty_build,
+        default="BOTH",
     )
     random_mat_seed = IntProperty(
         name="Random Seed",
         description="Random seed for material assignment",
         min=0,
+        update=dirty_material,
         default=1000,
     )
     use_uv_map = BoolProperty(
         name="Use UV Map",
         description="Transfer colors from UV map (if disabled or no UV map found, brick color will be based on RGB of first shader node)",
+        update=dirty_build,
         default=True,
-        update=dirty_material,
     )
     uv_image = PointerProperty(
         type=bpy.types.Image,
@@ -380,7 +381,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
             ("RGB", "RGB", "Map RGB values to new materials (similar materials will merge into one material based on threshold)"),
             ("ABS", "ABS", "Map RGB values to nearest ABS Plastic Materials")
         ],
-        update=dirty_material,
+        update=dirty_build,
         default="RGB",
     )
     color_depth = IntProperty(
@@ -461,7 +462,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     include_transparency = BoolProperty(
         name="Include Transparency",
         description="Include alpha value of original material color",
-        update=dirty_matrix,
+        update=dirty_build,
         default=True,
     )
     transparent_weight = FloatProperty(

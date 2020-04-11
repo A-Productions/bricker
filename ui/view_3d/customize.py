@@ -60,8 +60,14 @@ class VIEW3D_PT_bricker_customize(Panel):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
 
-        if matrix_really_is_dirty(cm):
-            layout.label(text="Matrix is dirty!")
+        if cm.animated:
+            layout.label(text="Not available for animations")
+            return
+        elif cm.brickifying_in_background:
+            col = layout.column(align=True)
+            col.label(text="Model is brickifying...")
+            return
+        elif matrix_really_is_dirty(cm):
             col = layout.column(align=True)
             col.label(text="Model must be updated to customize:")
             col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").split_before_update = True
@@ -71,25 +77,13 @@ class VIEW3D_PT_bricker_customize(Panel):
                 row = col.row(align=True)
                 row.operator("bricker.revert_matrix_settings", text="Revert Settings", icon="LOOP_BACK")
             return
-        if cm.animated:
-            layout.label(text="Not available for animations")
-            return
-        if not cm.last_split_model:
+        elif not cm.last_split_model:
             col = layout.column(align=True)
             col.label(text="Model must be split to customize:")
             col.operator("bricker.brickify", text="Split & Update Model", icon="FILE_REFRESH").split_before_update = True
             return
-        if cm.build_is_dirty:
-            col = layout.column(align=True)
-            col.label(text="Model must be updated to customize:")
-            col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
-            return
-        if cm.brickifying_in_background:
-            col = layout.column(align=True)
-            col.label(text="Model is brickifying...")
-            return
         elif not cache_exists(cm):
-            layout.label(text="Matrix not cached!")
+            layout.label(text="Matrix not cached!", icon="ERROR")
             col = layout.column(align=True)
             col.label(text="Model must be updated to customize:")
             col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
@@ -99,9 +93,6 @@ class VIEW3D_PT_bricker_customize(Panel):
                 row = col.row(align=True)
                 row.operator("bricker.revert_matrix_settings", text="Revert Settings", icon="LOOP_BACK")
             return
-        # if not bpy.props.bricker_initialized:
-        #     layout.operator("bricker.initialize", icon="MODIFIER")
-        #     return
 
         # display BrickSculpt tools
         col = layout.column(align=True)
