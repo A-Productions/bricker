@@ -765,6 +765,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="",
         subtype="XYZ",
         unit="LENGTH",
+        precision=6,
         default=(0, 0, 0),
     )
     # real_world_dimensions = FloatVectorProperty(unit="LENGTH", default=(-1, -1, -1))

@@ -57,7 +57,10 @@ class VIEW3D_PT_bricker_model_info(Panel):
     def draw(self, context):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
-        layout.operator("bricker.refresh_model_info", icon="FILE_REFRESH")
+
+        prefs = get_addon_preferences()
+        if not prefs.auto_refresh_model_info:
+            layout.operator("bricker.refresh_model_info", icon="FILE_REFRESH")
 
         col = layout.column(align=True)
         col.label(text="Brick count:")

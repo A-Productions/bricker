@@ -42,16 +42,15 @@ from bpy.types import WindowManager, Object, Scene, Material
 from bpy.utils import register_class, unregister_class
 
 # Module imports
-from .ui import *
-from .functions.general import *
-from .functions.brick.legal_brick_sizes import get_legal_brick_sizes
-from .functions.timers import *
-from .operators import *
-from .operators.customization_tools import *
-from .lib import keymaps, preferences, classes_to_register
-from .lib.property_groups import *
-from .lib.mat_properties import mat_properties
 from . import addon_updater_ops
+from .functions.brick import get_legal_brick_sizes
+from .functions.common import b280, make_annotations
+from .functions.app_handlers import *
+from .functions.timers import register_bricker_timers
+from .functions.property_callbacks import select_source_model
+from .lib import keymaps, classes_to_register
+from .lib.property_groups import BRICKER_UL_collections_tuple, CreatedModelProperties
+from .lib.mat_properties import mat_properties
 
 # store keymaps here to access after registration
 addon_keymaps = []

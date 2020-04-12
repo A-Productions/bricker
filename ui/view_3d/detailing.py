@@ -132,3 +132,53 @@ class VIEW3D_PT_bricker_detailing(Panel):
         except (IndexError, KeyError):
             row = col.row(align=True)
             row.operator("bricker.bevel", text="Bevel bricks", icon="MOD_BEVEL")
+
+
+# class VIEW3D_PT_bricker_detailing_bevel(Panel):
+#     bl_space_type  = "VIEW_3D"
+#     bl_region_type = "UI" if b280() else "TOOLS"
+#     bl_category    = "Bricker"
+#     bl_label       = "Bevel"
+#     bl_idname      = "VIEW3D_PT_bricker_detailing_bevel"
+#     bl_parent_id   = "VIEW3D_PT_bricker_detailing"
+#     bl_context     = "objectmode"
+#     bl_options     = {"DEFAULT_CLOSED"}
+#
+#     @classmethod
+#     def poll(self, context):
+#         if not settings_can_be_drawn():
+#             return False
+#         scn, cm, _ = get_active_context_info()
+#         return cm.brick_type != "CUSTOM"
+#
+#     def draw_header(self, context):
+#         scn, cm, _ = get_active_context_info()
+#         if not (cm.model_created or cm.animated) or cm.brickifying_in_background:
+#             self.layout.prop(cm, "bevel_added", text="")
+#
+#     def draw(self, context):
+#         layout = self.layout
+#         scn, cm, _ = get_active_context_info()
+#         if not (cm.model_created or cm.animated) or cm.brickifying_in_background:
+#             return
+#
+#         col = layout.column(align=True)
+#         try:
+#             test_brick = get_bricks()[0]
+#             bevel = test_brick.modifiers[test_brick.name + "_bvl"]
+#             col2 = row1.column(align=True)
+#             row = col2.row(align=True)
+#             row.prop(cm, "bevel_show_render", text="", icon="RESTRICT_RENDER_OFF", toggle=True)
+#             row.prop(cm, "bevel_show_viewport", text="", icon="RESTRICT_VIEW_OFF", toggle=True)
+#             row.prop(cm, "bevel_show_edit_mode", text="", icon="EDITMODE_HLT", toggle=True)
+#             row = col.row(align=True)
+#             row.prop(cm, "bevel_width", text="Width")
+#             row = col.row(align=True)
+#             row.prop(cm, "bevel_segments", text="Segments")
+#             row = col.row(align=True)
+#             row.prop(cm, "bevel_profile", text="Profile")
+#             row = col.row(align=True)
+#             row.operator("bricker.bevel", text="Remove Bevel", icon="CANCEL")
+#         except (IndexError, KeyError):
+#             row = col.row(align=True)
+#             row.operator("bricker.bevel", text="Bevel bricks", icon="MOD_BEVEL")

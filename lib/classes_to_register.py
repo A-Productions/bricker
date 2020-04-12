@@ -86,6 +86,7 @@ classes = [
     VIEW3D_PT_bricker_smoke_settings,
     VIEW3D_PT_bricker_brick_types,
     VIEW3D_PT_bricker_detailing,
+    # VIEW3D_PT_bricker_detailing_bevel,
     VIEW3D_PT_bricker_merge_settings,
     VIEW3D_PT_bricker_merge_alignment,
     VIEW3D_PT_bricker_materials,

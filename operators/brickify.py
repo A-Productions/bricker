@@ -329,7 +329,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if obj:
                 obj.cmlist_id = cm.id
 
-        # # set final variables
+        # set final variables
         cm.last_logo_type = cm.logo_type
         cm.last_split_model = cm.split_model
         cm.last_brick_type = cm.brick_type
@@ -345,9 +345,14 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cm.matrix_is_dirty = False
         cm.matrix_lost = False
         cm.internal_is_dirty = False
+        cm.expose_parent = False
         cm.model_created = "ANIM" not in self.action
         cm.animated = "ANIM" in self.action
-        cm.expose_parent = False
+
+        # refresh model info
+        prefs = get_addon_preferences()
+        if prefs.auto_refresh_model_info:
+            bpy.ops.bricker.refresh_model_info()
 
         # link created brick collection
         if cm.animated:

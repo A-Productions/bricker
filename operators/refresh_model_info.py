@@ -38,51 +38,60 @@ class BRICKER_OT_refresh_model_info(Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         if scn.cmlist_index == -1:
             return False
         cm = scn.cmlist[scn.cmlist_index]
-        if not (cm.model_created or cm.animated):
-            return False
         return True
 
     def execute(self, context):
         try:
+            if self.bricksdict is None:
+                self.report({"WARNING"}, "Could not refresh model info - model is not cached")
+                return {"CANCELLED"}
             self.set_model_info()
+            return{"FINISHED"}
         except:
             bricker_handle_exception()
-        return{"FINISHED"}
+            return {"CANCELLED"}
+
+    ################################################
+    # initialization method
+
+    def __init__(self):
+        scn, cm, _ = get_active_context_info()
+        self.bricksdict = get_bricksdict(cm, d_type="MODEL" if cm.model_created else "ANIM", cur_frame=scn.frame_current)
+
+    ###################################################
+    # class variables
+
+    # NONE!
 
     ################################################
     # class methods
 
-    @staticmethod
-    def set_model_info(cm=None):
+    def set_model_info(self, cm=None):
         scn, cm = get_active_context_info(cm)[:2]
-        bricksdict = get_bricksdict(cm, d_type="MODEL" if cm.model_created else "ANIM", cur_frame=scn.frame_current)
         legal_bricks = get_legal_bricks()
         num_bricks_in_model = 0
         model_weight = 0
         mats_in_model = list()
         max_vals = (0, 0, 0)
         z_max = 0
-        for k in bricksdict.keys():
-            brick_d = bricksdict[k]
-            if brick_d["draw"] and brick_d["parent"] == "self":
+        for k in self.bricksdict.keys():
+            brick_d = self.bricksdict[k]
+            if not brick_d["draw"]:
+                continue
+            dict_loc = get_dict_loc(self.bricksdict, k)
+            max_vals = (max(max_vals[0], dict_loc[0]), max(max_vals[1], dict_loc[1]), max(max_vals[2], dict_loc[2]))
+            if brick_d["parent"] == "self":
                 num_bricks_in_model += 1
                 if brick_d["mat_name"] not in mats_in_model:
                     mats_in_model.append(brick_d["mat_name"])
-                    dict_loc = get_dict_loc(bricksdict, k)
-                    max_vals = (max(max_vals[0], dict_loc[0]), max(max_vals[1], dict_loc[1]), max(max_vals[2], dict_loc[2]))
                 model_weight += get_part(legal_bricks, brick_d["size"], brick_d["type"])["wt"]
+        mats_in_model.remove("")
 
-        # min_co = Vector(brick_d["0,0,0"]["co"])
-        # max_co = Vector((
-        #     brick_d["{},0,0".format(z_max)]["co"].x,
-        #     brick_d["0,{},0".format(z_max)]["co"].y,
-        #     brick_d["0,0,{}".format(z_max)]["co"].z,
-        # ))
-        dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
+        dimensions = get_brick_dimensions(0.000096, cm.zstep, cm.gap)
         model_dims = (
             max_vals[0] * dimensions["width"],
             max_vals[1] * dimensions["width"],

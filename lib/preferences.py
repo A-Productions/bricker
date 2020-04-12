@@ -86,6 +86,11 @@ class BRICKER_AP_preferences(AddonPreferences):
         description="Show advanced tools for debugging issues with Bricker",
         default=False,
     )
+    auto_refresh_model_info = BoolProperty(
+        name="Auto Refresh Model Info",
+        description="Refresh model info automatically each time the 'Brickify' process is run (may slow down Brickify process)",
+        default=False,
+    )
 
 	# addon updater preferences
     auto_check_update = bpy.props.BoolProperty(
@@ -136,6 +141,7 @@ class BRICKER_AP_preferences(AddonPreferences):
         col = row.column()
         col.prop(self, "auto_update_on_delete")
         col.prop(self, "show_legacy_customization_tools")
+        col.prop(self, "auto_refresh_model_info")
         col.prop(self, "show_debugging_tools")
         col1.separator()
         col1.separator()

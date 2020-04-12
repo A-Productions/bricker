@@ -55,6 +55,10 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     if cm.bevel_added and not temp_brick:
         bricks = get_bricks(cm)
         BRICKER_OT_bevel.run_bevel_action(bricks, cm)
+    # refresh model info
+    prefs = get_addon_preferences()
+    if prefs.auto_refresh_model_info and not temp_brick:
+        bpy.ops.bricker.refresh_model_info()
     return bricks_created
 
 

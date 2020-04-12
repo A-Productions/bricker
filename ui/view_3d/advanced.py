@@ -64,13 +64,6 @@ class VIEW3D_PT_bricker_advanced(Panel):
             col.label(text="Install from Bricker addon prefs")
             layout.separator()
 
-        # model orientation preferences
-        if not cm.use_animation and not (cm.model_created or cm.animated):
-            # if not b280():
-            col = layout.column(align=True)
-            right_align(col)
-            col.prop(cm, "use_local_orient", text="Use Local Orientation")
-
         # draw test brick generator button (for testing purposes only)
         if BRICKER_OT_test_brick_generators.draw_ui_button():
             col = layout.column(align=True)
@@ -86,6 +79,14 @@ class VIEW3D_PT_bricker_advanced(Panel):
         col = layout.column(align=True)
         col.label(text="Instance Method:")
         col.prop(cm, "instance_method", text="")
+
+        # model orientation preferences
+        if not cm.use_animation and not (cm.model_created or cm.animated):
+            # if not b280():
+            col = layout.column(align=True)
+            col.separator()
+            right_align(col)
+            col.prop(cm, "use_local_orient", text="Use Local Orientation")
 
 
 class VIEW3D_PT_bricker_ray_casting(Panel):
