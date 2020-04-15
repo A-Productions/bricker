@@ -78,8 +78,9 @@ def new_brick_mesh(dimensions:list, brick_type:str, size:list=[1,1,3], type:str=
     return bms
 
 
-def split_bricks(zstep, brick_ds=None):
-    for brick_d in brick_ds:
+def split_bricks(bricksdict, zstep, keys):
+    for key in keys:
+        brick_d = bricksdict[key]
         # set all bricks as unmerged
         if brick_d["draw"]:
             brick_d["parent"] = "self"
@@ -101,8 +102,9 @@ def split_brick(bricksdict, key, zstep, brick_type, loc=None, v=True, h=True):
     # set up unspecified paramaters
     loc = loc or get_dict_loc(bricksdict, key)
     # initialize vars
+    parent_brick_d = bricksdict[key]
     target_type = get_brick_type(brick_type)
-    size = bricksdict[key]["size"]
+    size = bparent_brick_d["size"]
     new_size = [1, 1, size[2]]
     if flat_brick_type(brick_type):
         if not v:
@@ -117,11 +119,12 @@ def split_brick(bricksdict, key, zstep, brick_type, loc=None, v=True, h=True):
     # split brick into individual bricks
     keys_in_brick = get_keys_in_brick(bricksdict, size, zstep, loc=loc)
     for cur_key in keys_in_brick:
-        bricksdict[cur_key]["size"] = new_size.copy()
-        bricksdict[cur_key]["type"] = get_tall_type(bricksdict[cur_key], target_type) if new_size[2] == 3 else get_short_type(bricksdict[cur_key], target_type)
-        bricksdict[cur_key]["parent"] = "self"
-        bricksdict[cur_key]["top_exposed"] = bricksdict[key]["top_exposed"]
-        bricksdict[cur_key]["bot_exposed"] = bricksdict[key]["bot_exposed"]
+        brick_d = bricksdict[cur_key]
+        brick_d["size"] = new_size.copy()
+        brick_d["type"] = get_tall_type(brick_d, target_type) if new_size[2] == 3 else get_short_type(brick_d, target_type)
+        brick_d["parent"] = "self"
+        brick_d["top_exposed"] = parent_brick_d["top_exposed"]
+        brick_d["bot_exposed"] = parent_brick_d["bot_exposed"]
     return keys_in_brick
 
 

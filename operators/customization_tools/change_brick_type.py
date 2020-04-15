@@ -92,12 +92,13 @@ class BRICKER_OT_change_brick_type(Operator):
                 # get bricksdict from cache
                 bricksdict = get_bricksdict(cm)
                 dkey = get_dict_key(obj.name)
+                cur_brick_d = bricksdict[dkey]
                 # initialize properties
-                cur_brick_type = bricksdict[dkey]["type"]
-                cur_brick_size = bricksdict[dkey]["size"]
+                cur_brick_type = cur_brick_d["type"]
+                cur_brick_size = cur_brick_d["size"]
                 try:
-                    self.flip_brick = bricksdict[dkey]["flipped"]
-                    self.rotate_brick = bricksdict[dkey]["rotated"]
+                    self.flip_brick = cur_brick_d["flipped"]
+                    self.rotate_brick = cur_brick_d["rotated"]
                     self.brick_type = cur_brick_type or ("BRICK" if cur_brick_size[2] == 3 else "PLATE")
                 except TypeError:
                     pass
@@ -174,16 +175,17 @@ class BRICKER_OT_change_brick_type(Operator):
                 # initialize vars
                 dkey = get_dict_key(obj_name)
                 dloc = get_dict_loc(bricksdict, dkey)
+                cur_brick_d = bricksdict[dkey]
                 x0, y0, z0 = dloc
                 # get size of current brick (e.g. [2, 4, 1])
-                size = bricksdict[dkey]["size"]
-                typ = bricksdict[dkey]["type"]
+                size = cur_brick_d["size"]
+                typ = cur_brick_d["type"]
 
                 # skip bricks that are already of type self.brick_type
                 if (typ == target_brick_type
                     and (not typ.startswith("SLOPE")
-                         or (bricksdict[dkey]["flipped"] == self.flip_brick
-                             and bricksdict[dkey]["rotated"] == self.rotate_brick))):
+                         or (cur_brick_d["flipped"] == self.flip_brick
+                             and cur_brick_d["rotated"] == self.rotate_brick))):
                     continue
                 # skip bricks that can't be turned into the chosen brick type
                 if size[:2] not in legal_brick_sizes[3 if target_brick_type in get_brick_types(height=3) else 1][target_brick_type]:
@@ -201,10 +203,10 @@ class BRICKER_OT_change_brick_type(Operator):
                     if obstructed: continue
 
                 # set type of parent brick to target_brick_type
-                last_type = bricksdict[dkey]["type"]
-                bricksdict[dkey]["type"] = target_brick_type
-                bricksdict[dkey]["flipped"] = self.flip_brick
-                bricksdict[dkey]["rotated"] = False if min(size[:2]) == 1 and max(size[:2]) > 1 else self.rotate_brick
+                last_type = cur_brick_d["type"]
+                cur_brick_d["type"] = target_brick_type
+                cur_brick_d["flipped"] = self.flip_brick
+                cur_brick_d["rotated"] = False if min(size[:2]) == 1 and max(size[:2]) > 1 else self.rotate_brick
 
                 # update height of brick if necessary, and update dictionary accordingly
                 if flat_brick_type(brick_type):

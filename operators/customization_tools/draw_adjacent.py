@@ -78,11 +78,11 @@ class BRICKER_OT_draw_adjacent(Operator):
             update_has_custom_objs(cm, target_type)
 
             # get dict key details of current obj
-            dkey = get_dict_key(obj.name)
-            dloc = get_dict_loc(self.bricksdict, dkey)
-            x0,y0,z0 = dloc
+            cur_key = get_dict_key(obj.name)
+            cur_loc = get_dict_loc(self.bricksdict, cur_key)
+            x0,y0,z0 = cur_loc
             # get size of current brick (e.g. [2, 4, 1])
-            obj_size = self.bricksdict[dkey]["size"]
+            obj_size = self.bricksdict[cur_key]["size"]
 
             decriment = 0
             # check all 6 directions for action to be executed
@@ -98,7 +98,7 @@ class BRICKER_OT_draw_adjacent(Operator):
                         if decriment != 0:
                             adj_dict_loc = adj_dict_loc.copy()
                             adj_dict_loc[2] -= decriment
-                        status = self.toggle_brick(cm, n, self.bricksdict, self.adj_locs, self.adj_bricks_created, self.dimensions, adj_dict_loc, dkey, dloc, obj_size, target_type, i, j, keys_to_merge, add_brick=create_adj_bricks[i])
+                        status = self.toggle_brick(cm, n, self.bricksdict, self.adj_locs, self.adj_bricks_created, self.dimensions, adj_dict_loc, cur_key, cur_loc, obj_size, target_type, i, j, keys_to_merge, add_brick=create_adj_bricks[i])
                         if not status["val"]:
                             self.report({status["report_type"]}, status["msg"])
                         if status["dir_bool"] is not None:
@@ -109,16 +109,16 @@ class BRICKER_OT_draw_adjacent(Operator):
 
             # recalculate val for each bricksdict key in original brick
             brick_locs = [[x, y, z] for z in range(z0, z0 + obj_size[2], cm.zstep) for y in range(y0, y0 + obj_size[1]) for x in range(x0, x0 + obj_size[0])]
-            for cur_loc in brick_locs:
-                set_cur_brick_val(self.bricksdict, cur_loc)
+            for loc0 in brick_locs:
+                set_cur_brick_val(self.bricksdict, loc0)
 
             # attempt to merge created bricks
             keys_to_update = BRICKER_OT_merge_bricks.merge_bricks(self.bricksdict, keys_to_merge, cm, target_type=target_type)
 
             # if bricks created on top or bottom, set exposure of original brick
             if self.z_pos or self.z_neg:
-                set_all_brick_exposures(self.bricksdict, cm.zstep, dkey)
-                keys_to_update.append(dkey)
+                set_all_brick_exposures(self.bricksdict, cm.zstep, cur_key)
+                keys_to_update.append(cur_key)
 
             # draw created bricks
             draw_updated_bricks(cm, self.bricksdict, keys_to_update, select_created=False)
@@ -142,7 +142,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             self.orig_undo_stack_length = self.undo_stack.get_length()
             scn, cm, _ = get_active_context_info()
             obj = bpy.context.active_object
-            dkey = get_dict_key(obj.name)
+            cur_key = get_dict_key(obj.name)
 
             # initialize self.bricksdict
             self.bricksdict = get_bricksdict(cm)
@@ -151,11 +151,11 @@ class BRICKER_OT_draw_adjacent(Operator):
             # initialize self.dimensions
             self.dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
             # initialize self.adj_locs
-            self.adj_locs = get_adj_locs(cm, self.bricksdict, dkey)
+            self.adj_locs = get_adj_locs(cm, self.bricksdict, cur_key)
             # initialize self.adj_bricks_created
             self.adj_bricks_created = [[False] * len(self.adj_locs[i]) for i in range(6)]
             # initialize self.brick_type
-            obj_type = self.bricksdict[dkey]["type"]
+            obj_type = self.bricksdict[cur_key]["type"]
             try:
                 self.brick_type = obj_type or ("BRICK" if obj_size[2] == 3 else "PLATE")
             except TypeError:
@@ -233,28 +233,29 @@ class BRICKER_OT_draw_adjacent(Operator):
                     not any(adj_bricks_created[side])) # evaluates True if all values in this list are False
 
     @staticmethod
-    def toggle_brick(cm, n, bricksdict, adj_locs, adj_bricks_created, dimensions, adjacent_loc, dkey, dloc, obj_size, target_type, side, brick_num, keys_to_merge, is_placeholder_brick=False, add_brick=True):
+    def toggle_brick(cm, n, bricksdict, adj_locs, adj_bricks_created, dimensions, adjacent_loc, cur_key, cur_loc, obj_size, target_type, side, brick_num, keys_to_merge, is_placeholder_brick=False, add_brick=True):
         # if brick height is 3 and 'Plates' in cm.brick_type
         new_brick_height = BRICKER_OT_draw_adjacent.get_new_brick_height(target_type)
         check_two_more_above = "PLATES" in cm.brick_type and new_brick_height == 3
         dir_bool = None
+        cur_brick_d = bricksdict[cur_key]
 
         adjacent_key, adj_brick_d = BRICKER_OT_draw_adjacent.get_brickd(bricksdict, adjacent_loc)
 
         # get duplicate of nearest_intersection tuple
-        ni = bricksdict[dkey]["near_intersection"]
+        ni = cur_brick_d["near_intersection"]
         ni = tuple(ni) if type(ni) in [tuple, list] else ni
         # if key doesn't exist in bricksdict, create it
         if not adj_brick_d:
-            co = BRICKER_OT_draw_adjacent.get_new_coord(cm, bricksdict, dkey, dloc, adjacent_key, adjacent_loc, dimensions)
+            co = BRICKER_OT_draw_adjacent.get_new_coord(cm, bricksdict, cur_key, cur_loc, adjacent_key, adjacent_loc, dimensions)
             bricksdict[adjacent_key] = create_bricksdict_entry(
                 name=              "Bricker_%(n)s__%(adjacent_key)s" % locals(),
                 loc=               adjacent_loc,
                 co=                co,
-                near_face=         bricksdict[dkey]["near_face"],
+                near_face=         cur_brick_d["near_face"],
                 near_intersection= ni,
-                mat_name=          bricksdict[dkey]["mat_name"],
-                custom_mat_name=   bricksdict[dkey]["custom_mat_name"],
+                mat_name=          cur_brick_d["mat_name"],
+                custom_mat_name=   cur_brick_d["custom_mat_name"],
             )
             adj_brick_d = bricksdict[adjacent_key]
             # dir_bool = [side, False]
@@ -269,18 +270,19 @@ class BRICKER_OT_draw_adjacent(Operator):
                     dir_bool = [side, False]
                 return {"val":False, "dir_bool":dir_bool, "report_type":"INFO", "msg":"Brick already exists in the following location: %(adjacent_key)s" % locals()}
             # if attempting to remove brick
-            elif adj_brick_d["created_from"] == dkey:
+            elif adj_brick_d["created_from"] == cur_key:
                 # update bricksdict values for brick being removed
                 x0, y0, z0 = adjacent_loc
                 brick_keys = [list_to_str((x0, y0, z0 + z)) for z in range((cm.zstep + 2) % 4 if side in (4, 5) else 1)]
                 for k in brick_keys:
-                    bricksdict[k]["draw"] = False
+                    brick_d0 = bricksdict[k]
+                    brick_d0["draw"] = False
                     set_cur_brick_val(bricksdict, get_dict_loc(bricksdict, k), k, action="REMOVE")
-                    bricksdict[k]["size"] = None
-                    bricksdict[k]["parent"] = None
-                    bricksdict[k]["bot_exposed"] = None
-                    bricksdict[k]["top_exposed"] = None
-                    bricksdict[k]["created_from"] = None
+                    brick_d0["size"] = None
+                    brick_d0["parent"] = None
+                    brick_d0["bot_exposed"] = None
+                    brick_d0["top_exposed"] = None
+                    brick_d0["created_from"] = None
                 adj_bricks_created[side][brick_num] = False
                 return {"val":True, "dir_bool":dir_bool, "report_type":None, "msg":None}
         # if brick doesn't exist there
@@ -308,26 +310,26 @@ class BRICKER_OT_draw_adjacent(Operator):
                         keys_to_merge.append(new_key)
             # update dictionary of locations above brick
             if flat_brick_type(cm.brick_type) and side in (4, 5):
-                update_brick_size_and_dict(dimensions, n, bricksdict, [1, 1, new_brick_height], adjacent_key, adjacent_loc, dec=2 if side == 5 else 0, cur_type=cur_type, target_type=target_type, created_from=dkey)
+                update_brick_size_and_dict(dimensions, n, bricksdict, [1, 1, new_brick_height], adjacent_key, adjacent_loc, dec=2 if side == 5 else 0, cur_type=cur_type, target_type=target_type, created_from=cur_key)
             # update dictionary location of adjacent brick created
             adj_brick_d["draw"] = True
             adj_brick_d["type"] = target_type
-            adj_brick_d["flipped"] = bricksdict[dkey]["flipped"]
-            adj_brick_d["rotated"] = bricksdict[dkey]["rotated"]
+            adj_brick_d["flipped"] = cur_brick_d["flipped"]
+            adj_brick_d["rotated"] = cur_brick_d["rotated"]
             set_cur_brick_val(bricksdict, adjacent_loc, adjacent_key)
             adj_brick_d["size"] = [1, 1, new_brick_height if side in (4, 5) else cm.zstep]
             adj_brick_d["parent"] = "self"
-            adj_brick_d["rgba"] = bricksdict[dkey]["rgba"]
-            adj_brick_d["mat_name"] = bricksdict[dkey]["mat_name"] if adj_brick_d["mat_name"] == "" else adj_brick_d["mat_name"]
-            adj_brick_d["custom_mat_name"] = bricksdict[dkey]["custom_mat_name"]
-            adj_brick_d["near_face"] = adj_brick_d["near_face"] or bricksdict[dkey]["near_face"]
+            adj_brick_d["rgba"] = cur_brick_d["rgba"]
+            adj_brick_d["mat_name"] = cur_brick_d["mat_name"] if adj_brick_d["mat_name"] == "" else adj_brick_d["mat_name"]
+            adj_brick_d["custom_mat_name"] = cur_brick_d["custom_mat_name"]
+            adj_brick_d["near_face"] = adj_brick_d["near_face"] or cur_brick_d["near_face"]
             adj_brick_d["near_intersection"] = adj_brick_d["near_intersection"] or ni
             if is_placeholder_brick:
                 adj_brick_d["top_exposed"] = True
                 adj_brick_d["bot_exposed"] = False
             else:
                 set_all_brick_exposures(bricksdict, cm.zstep, adjacent_key)
-            adj_brick_d["created_from"] = dkey
+            adj_brick_d["created_from"] = cur_key
             keys_to_merge.append(adjacent_key)
             # set adj_bricks_created to target brick type for current side
             adj_bricks_created[side][brick_num] = target_type

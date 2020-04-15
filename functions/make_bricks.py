@@ -134,12 +134,13 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
             update_brick_sizes_and_types_used(cm, list_to_str(size), bricksdict[keys[0]]["type"])
         available_keys = keys
         for key in keys:
-            bricksdict[key]["parent"] = "self"
-            bricksdict[key]["size"] = size.copy()
+            brick_d = bricksdict[key]
+            brick_d["parent"] = "self"
+            brick_d["size"] = size.copy()
             set_all_brick_exposures(bricksdict, zstep, key)
-            set_flipped_and_rotated(bricksdict, key, [key])
-            if bricksdict[key]["type"] == "SLOPE" and brick_type == "SLOPES":
-                set_brick_type_for_slope(bricksdict, key, [key])
+            set_flipped_and_rotated(brick_d, bricksdict, [key])
+            if brick_d["type"] == "SLOPE" and brick_type == "SLOPES":
+                set_brick_type_for_slope(brick_d, bricksdict, [key])
     else:
         # initialize progress bar around cursor
         old_percent = update_progress_bars(0.0, -1, "Merging", print_status, cursor_status)

@@ -137,8 +137,9 @@ def update_brick_size_and_dict(dimensions, source_name, bricksdict, brick_size, 
                 for z in range(1, cur_height):
                     new_loc = [loc[0] + x, loc[1] + y, loc[2] + z - dec]
                     new_key = list_to_str(new_loc)
-                    bricksdict[new_key]["parent"] = None
-                    bricksdict[new_key]["draw"] = False
+                    new_brick_d = bricksdict[new_key]
+                    new_brick_d["parent"] = None
+                    new_brick_d["draw"] = False
                     set_cur_brick_val(bricksdict, new_loc, new_key, action="REMOVE")
     # adjust brick size if changing type from 1 tall to 3 tall
     elif cur_height == 1 and target_height == 3:
@@ -150,17 +151,18 @@ def update_brick_size_and_dict(dimensions, source_name, bricksdict, brick_size, 
                 for z in range(1, target_height):
                     new_loc = [loc[0] + x, loc[1] + y, loc[2] + z]
                     new_key = list_to_str(new_loc)
+                    new_brick_d = bricksdict[new_key]
                     # create new bricksdict entry if it doesn't exist
                     if new_key not in bricksdict:
                         bricksdict = create_addl_bricksdict_entry(source_name, bricksdict, key, new_key, full_d, x, y, z)
                     # update bricksdict entry to point to new brick
-                    bricksdict[new_key]["parent"] = key
-                    bricksdict[new_key]["created_from"] = created_from
-                    bricksdict[new_key]["draw"] = True
-                    bricksdict[new_key]["mat_name"] = brick_d["mat_name"] if bricksdict[new_key]["mat_name"] == "" else bricksdict[new_key]["mat_name"]
-                    bricksdict[new_key]["near_face"] = bricksdict[new_key]["near_face"] or brick_d["near_face"]
-                    bricksdict[new_key]["near_intersection"] = bricksdict[new_key]["near_intersection"] or tuple(brick_d["near_intersection"])
-                    if bricksdict[new_key]["val"] == 0:
+                    new_brick_d["parent"] = key
+                    new_brick_d["created_from"] = created_from
+                    new_brick_d["draw"] = True
+                    new_brick_d["mat_name"] = brick_d["mat_name"] if new_brick_d["mat_name"] == "" else new_brick_d["mat_name"]
+                    new_brick_d["near_face"] = new_brick_d["near_face"] or brick_d["near_face"]
+                    new_brick_d["near_intersection"] = new_brick_d["near_intersection"] or tuple(brick_d["near_intersection"])
+                    if new_brick_d["val"] == 0:
                         set_cur_brick_val(bricksdict, new_loc, new_key)
     return brick_size
 
@@ -282,8 +284,9 @@ def select_bricks(obj_names_dict, bricksdicts, brick_size="NULL", brick_type="NU
             # get dict key details of current obj
             dkey = get_dict_key(obj_name)
             dloc = get_dict_loc(bricksdict, dkey)
-            siz = bricksdict[dkey]["size"]
-            typ = bricksdict[dkey]["type"]
+            cur_brick_d = bricksdict[dkey]
+            siz = cur_brick_d["size"]
+            typ = cur_brick_d["type"]
             on_shell = is_on_shell(bricksdict, dkey, loc=dloc, zstep=cm.zstep)
 
             # get current brick object

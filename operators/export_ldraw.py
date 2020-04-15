@@ -107,16 +107,17 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
             for z in sorted(keys_dict.keys()):
                 for key in keys_dict[z]:
                     # skip bricks that aren't displayed
-                    if not bricksdict[key]["draw"] or bricksdict[key]["parent"] != "self":
+                    brick_d = bricksdict[key]
+                    if not brick_d["draw"] or brick_d["parent"] != "self":
                         continue
                     # initialize brick size and typ
-                    size = bricksdict[key]["size"]
-                    typ = bricksdict[key]["type"]
+                    size = brick_d["size"]
+                    typ = brick_d["type"]
                     if typ == "SLOPE":
                         idx = 0
-                        idx -= 2 if bricksdict[key]["flipped"] else 0
-                        idx -= 1 if bricksdict[key]["rotated"] else 0
-                        idx += 2 if (size[:2] in ([1, 2], [1, 3], [1, 4], [2, 3]) and not bricksdict[key]["rotated"]) or size[:2] == [2, 4] else 0
+                        idx -= 2 if brick_d["flipped"] else 0
+                        idx -= 1 if brick_d["rotated"] else 0
+                        idx += 2 if (size[:2] in ([1, 2], [1, 3], [1, 4], [2, 3]) and not brick_d["rotated"]) or size[:2] == [2, 4] else 0
                     else:
                         idx = 1
                     idx += 1 if size[1] > size[0] else 0
@@ -126,7 +127,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                     # get color code of brick
                     mat = get_material(bricksdict, key, size, cm.zstep, material_type, cm.custom_mat, cm.random_mat_seed, cm.material_is_dirty or cm.matrix_is_dirty or cm.build_is_dirty, seed_keys, brick_mats=get_brick_mats(cm))
                     mat_name = "" if mat is None else mat.name
-                    rgba = bricksdict[key]["rgba"]
+                    rgba = brick_d["rgba"]
                     if mat_name in get_abs_mat_names() and abs_mat_properties is not None:
                         abs_mat_name = mat_name
                     elif rgba not in (None, "") and material_type != "NONE":
@@ -138,7 +139,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                         abs_mat_name = ""
                     color = abs_mat_properties[abs_mat_name]["LDR Code"] if abs_mat_name else 0
                     # get part number and ldraw file name for brick
-                    part = get_part(legal_bricks, size, typ)["pt2" if typ == "SLOPE" and size[:2] in ([4, 2], [2, 4], [3, 2], [2, 3]) and bricksdict[key]["rotated"] else "pt"]
+                    part = get_part(legal_bricks, size, typ)["pt2" if typ == "SLOPE" and size[:2] in ([4, 2], [2, 4], [3, 2], [2, 3]) and brick_d["rotated"] else "pt"]
                     brick_file = "%(part)s.dat" % locals()
                     # offset the coordinate and round to ensure appropriate Ldraw location
                     co += offset
@@ -156,13 +157,14 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
 
     def blend_to_ldraw_units(self, cm, bricksdict, zstep, key, idx):
         """ convert location of brick from blender units to ldraw units """
-        size = bricksdict[key]["size"]
+        brick_d = bricksdict[key]
+        size = brick_d["size"]
         loc = get_brick_center(bricksdict, key, zstep)
         dimensions = get_brick_dimensions(cm.brick_height, zstep, cm.gap)
         h = 8 * zstep
         loc.x = loc.x * (20 / (dimensions["width"] + dimensions["gap"]))
         loc.y = loc.y * (20 / (dimensions["width"] + dimensions["gap"]))
-        if bricksdict[key]["type"] == "SLOPE":
+        if brick_d["type"] == "SLOPE":
             if idx == 0:
                 loc.x -= ((size[0] - 1) * 20) / 2
             elif idx in (1, -3):
@@ -172,7 +174,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
             elif idx in (3, -1):
                 loc.y -= ((size[1] - 1) * 20) / 2
         loc.z = loc.z * (h / (dimensions["height"] + dimensions["gap"]))
-        if bricksdict[key]["type"] == "SLOPE" and size == [1, 1, 3]:
+        if brick_d["type"] == "SLOPE" and size == [1, 1, 3]:
             loc.z -= size[2] * 8
         if zstep == 1 and size[2] == 3:
             loc.z += 8

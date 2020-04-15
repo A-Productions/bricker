@@ -54,16 +54,17 @@ def update_materials(bricksdict, source_dup, keys, cur_frame=None, action="CREAT
     rgba_vals = []
     # get original mat_names, and populate rgba_vals
     for key in keys:
+        brick_d = bricksdict[key]
         # skip irrelevant bricks
-        nf = bricksdict[key]["near_face"]
-        if not bricksdict[key]["draw"] or (nf is None and not is_smoke) or bricksdict[key]["custom_mat_name"]:
+        nf = brick_d["near_face"]
+        if not brick_d["draw"] or (nf is None and not is_smoke) or brick_d["custom_mat_name"]:
             continue
         # get RGBA value at nearest face intersection
         if is_smoke:
-            rgba = bricksdict[key]["rgba"]
+            rgba = brick_d["rgba"]
             mat_name = ""
         else:
-            ni = Vector(bricksdict[key]["near_intersection"])
+            ni = Vector(brick_d["near_intersection"])
             rgba, mat_name = get_brick_rgba(source_dup, nf, ni, uv_image, color_depth=color_depth)
 
         if material_type == "SOURCE":
@@ -85,7 +86,7 @@ def update_materials(bricksdict, source_dup, keys, cur_frame=None, action="CREAT
                 rgba_vals.append(rgba)
         elif material_type == "CUSTOM":
             mat_name = cm.custom_mat.name
-        bricksdict[key]["mat_name"] = mat_name
+        brick_d["mat_name"] = mat_name
     # clear unused materials (left over from previous model)
     mat_name_start = "Bricker_{n}{f}".format(n=n, f="f_%(cur_frame)s" % locals() if cur_frame else "")
     cur_mats = [mat for mat in bpy.data.materials if mat.name.startswith(mat_name_start)]
@@ -146,8 +147,9 @@ def attempt_merge(bricksdict, key, available_keys, default_size, zstep, rand_sta
     # get loc from key
     loc = loc or get_dict_loc(bricksdict, key)
     brick_sizes = [default_size]
-    tall_type = get_tall_type(bricksdict[key], target_type)
-    short_type = get_short_type(bricksdict[key], target_type)
+    brick_d = bricksdict[key]
+    tall_type = get_tall_type(brick_d, target_type)
+    short_type = get_short_type(brick_d, target_type)
 
     if brick_type != "CUSTOM":
         # check width-depth and depth-width
@@ -160,20 +162,21 @@ def attempt_merge(bricksdict, key, available_keys, default_size, zstep, rand_sta
 
     # grab the biggest brick size and store to bricksdict
     brick_size = brick_sizes[-1]
-    bricksdict[key]["size"] = brick_size
+    brick_d["size"] = brick_size
 
     # set attributes for merged brick keys
     keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc=loc)
     for k in keys_in_brick:
-        bricksdict[k]["attempted_merge"] = True
-        bricksdict[k]["parent"] = "self" if k == key else key
+        brick_d0 = bricksdict[k]
+        brick_d0["attempted_merge"] = True
+        brick_d0["parent"] = "self" if k == key else key
         # set brick type if necessary
         if flat_brick_type(brick_type):
-            bricksdict[k]["type"] = short_type if brick_size[2] == 1 else tall_type
+            brick_d0["type"] = short_type if brick_size[2] == 1 else tall_type
     # set flipped and rotated
-    set_flipped_and_rotated(bricksdict, key, keys_in_brick)
-    if bricksdict[key]["type"] == "SLOPE" and brick_type == "SLOPES":
-        set_brick_type_for_slope(bricksdict, key, keys_in_brick)
+    set_flipped_and_rotated(brick_d, bricksdict, keys_in_brick)
+    if brick_d["type"] == "SLOPE" and brick_type == "SLOPES":
+        set_brick_type_for_slope(brick_d, bricksdict, keys_in_brick)
 
     return brick_size, keys_in_brick
 
@@ -245,24 +248,24 @@ def brick_avail(bricksdict, source_key, target_key, merge_with_internals, materi
 def get_most_common_dir(i_s, i_e, norms):
     return most_common([n[i_s:i_e] for n in norms])
 
-def set_brick_type_for_slope(bricksdict, key, keys_in_brick):
+def set_brick_type_for_slope(parent_brick_d, bricksdict, keys_in_brick):
     norms = [bricksdict[k]["near_normal"] for k in keys_in_brick if bricksdict[k]["near_normal"] is not None]
     dir0 = get_most_common_dir(0, 1, norms) if len(norms) != 0 else ""
-    if (dir0 == "^" and is_legal_brick_size(size=bricksdict[key]["size"], type="SLOPE") and bricksdict[key]["top_exposed"]):
+    if (dir0 == "^" and is_legal_brick_size(size=parent_brick_d["size"], type="SLOPE") and parent_brick_d["top_exposed"]):
         typ = "SLOPE"
-    elif (dir0 == "v" and is_legal_brick_size(size=bricksdict[key]["size"], type="SLOPE_INVERTED") and bricksdict[key]["bot_exposed"]):
+    elif (dir0 == "v" and is_legal_brick_size(size=parent_brick_d["size"], type="SLOPE_INVERTED") and parent_brick_d["bot_exposed"]):
         typ = "SLOPE_INVERTED"
     else:
         typ = "BRICK"
-    bricksdict[key]["type"] = typ
+    parent_brick_d["type"] = typ
 
 
-def set_flipped_and_rotated(bricksdict, key, keys_in_brick):
+def set_flipped_and_rotated(parent_brick_d, bricksdict, keys_in_brick):
     norms = [bricksdict[k]["near_normal"] for k in keys_in_brick if bricksdict[k]["near_normal"] is not None]
 
     dir1 = get_most_common_dir(1, 3, norms) if len(norms) != 0 else ""
     flip, rot = get_flip_rot(dir1)
 
     # set flipped and rotated
-    bricksdict[key]["flipped"] = flip
-    bricksdict[key]["rotated"] = rot
+    parent_brick_d["flipped"] = flip
+    parent_brick_d["rotated"] = rot

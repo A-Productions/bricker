@@ -38,8 +38,9 @@ def is_brick_exposed(bricksdict, zstep, key=None, loc=None):
     top_exposed, bot_exposed = False, False
     # top or bottom exposed if even one location is exposed
     for k in keys_in_brick:
-        if bricksdict[k]["top_exposed"]: top_exposed = True
-        if bricksdict[k]["bot_exposed"]: bot_exposed = True
+        brick_d = bricksdict[k]
+        if brick_d["top_exposed"]: top_exposed = True
+        if brick_d["bot_exposed"]: bot_exposed = True
     return top_exposed, bot_exposed
 
 

@@ -77,12 +77,13 @@ class BRICKER_OT_set_exposure(Operator):
 
                     keys_in_brick = get_keys_in_brick(bricksdict, obj_size, zstep, key=dkey)
                     for key in keys_in_brick:
+                        brick_d = bricksdict[key]
                         # set top as exposed
                         if self.side in ("TOP", "BOTH"):
-                            bricksdict[key]["top_exposed"] = not bricksdict[key]["top_exposed"]
+                            brick_d["top_exposed"] = not brick_d["top_exposed"]
                         # set bottom as exposed
                         if self.side in ("BOTTOM", "BOTH"):
-                            bricksdict[key]["bot_exposed"] = not bricksdict[key]["bot_exposed"]
+                            brick_d["bot_exposed"] = not brick_d["bot_exposed"]
                     # add cur_key to keys_to_update
                     keys_to_update.append(dkey)
 

@@ -207,12 +207,13 @@ def add_column_supports(bricksdict, keys, thickness, step):
     """
     step = step + thickness
     for key in keys:
-        if not is_internal(bricksdict[key]):
+        brick_d = bricksdict[key]
+        if not is_internal(brick_d):
             continue
         x,y,z = get_dict_loc(bricksdict, key)
         if (x % step < thickness and
             y % step < thickness):
-            bricksdict[key]["draw"] = True
+            brick_d["draw"] = True
 
 def add_lattice_supports(bricksdict, keys, step, height, alternate_xy):
     """ update bricksdict internal entries to draw lattice supports
@@ -222,14 +223,15 @@ def add_lattice_supports(bricksdict, keys, step, height, alternate_xy):
     alternate_xy -- alternate x-beams and y-beams for each Z-axis level
     """
     for key in keys:
-        if not is_internal(bricksdict[key]):
+        brick_d = bricksdict[key]
+        if not is_internal(brick_d):
             continue
         x,y,z = get_dict_loc(bricksdict, key)
         z0 = (floor(z / height) if alternate_xy else z) % 2
         if x % step == 0 and (not alternate_xy or z0 == 0):
-            bricksdict[key]["draw"] = True
+            brick_d["draw"] = True
         elif y % step == 0 and (not alternate_xy or z0 == 1):
-            bricksdict[key]["draw"] = True
+            brick_d["draw"] = True
 
 def update_internal(bricksdict, cm, keys="ALL", clear_existing=False):
     """ update bricksdict internal entries
@@ -246,7 +248,7 @@ def update_internal(bricksdict, cm, keys="ALL", clear_existing=False):
     # clear extisting internal structure
     if clear_existing:
         # set all bricks as unmerged
-        split_bricks(cm.zstep, brick_ds)
+        split_bricks(bricksdict, cm.zstep, keys)
         # clear internal
         for brick_d in brick_ds:
             if is_internal(brick_d):

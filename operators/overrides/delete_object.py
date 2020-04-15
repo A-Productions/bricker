@@ -148,14 +148,15 @@ class OBJECT_OT_delete_override(Operator):
                             if prefs.auto_update_on_delete and last_split_model:
                                 self.update_adj_bricksdicts(bricksdict, zstep, cur_key, [x, y, z], keys_to_update)
                             # reset bricksdict values
-                            bricksdict[cur_key]["draw"] = False
-                            bricksdict[cur_key]["val"] = 0
-                            bricksdict[cur_key]["parent"] = None
-                            bricksdict[cur_key]["created_from"] = None
-                            bricksdict[cur_key]["flipped"] = False
-                            bricksdict[cur_key]["rotated"] = False
-                            bricksdict[cur_key]["top_exposed"] = False
-                            bricksdict[cur_key]["bot_exposed"] = False
+                            cur_brick_d = bricksdict[cur_key]
+                            cur_brick_d["draw"] = False
+                            cur_brick_d["val"] = 0
+                            cur_brick_d["parent"] = None
+                            cur_brick_d["created_from"] = None
+                            cur_brick_d["flipped"] = False
+                            cur_brick_d["rotated"] = False
+                            cur_brick_d["top_exposed"] = False
+                            cur_brick_d["bot_exposed"] = False
             # dirty_build if it wasn't already
             last_build_is_dirty = cm.build_is_dirty
             if not last_build_is_dirty:
@@ -209,22 +210,24 @@ class OBJECT_OT_delete_override(Operator):
     def update_adj_bricksdicts(bricksdict, zstep, cur_key, cur_loc, keys_to_update):
         x, y, z = cur_loc
         new_bricks = []
+        brick_d = bricksdict[cur_key]
         adj_keys = get_adj_keys_and_brick_vals(bricksdict, key=cur_key)[0]
         # set adjacent bricks to shell if deleted brick was on shell
         for k0 in adj_keys:
-            if bricksdict[k0]["val"] != 0:  # if adjacent brick not outside
-                bricksdict[k0]["val"] = 1
-                if not bricksdict[k0]["draw"]:
-                    bricksdict[k0]["draw"] = True
-                    bricksdict[k0]["size"] = [1, 1, zstep]
-                    bricksdict[k0]["parent"] = "self"
-                    bricksdict[k0]["type"] = bricksdict[cur_key]["type"]
-                    bricksdict[k0]["flipped"] = bricksdict[cur_key]["flipped"]
-                    bricksdict[k0]["rotated"] = bricksdict[cur_key]["rotated"]
-                    bricksdict[k0]["mat_name"] = bricksdict[cur_key]["mat_name"]
-                    bricksdict[k0]["near_face"] = bricksdict[cur_key]["near_face"]
-                    ni = bricksdict[cur_key]["near_intersection"]
-                    bricksdict[k0]["near_intersection"] = tuple(ni) if type(ni) in [list, tuple] else ni
+            brick_d0 = bricksdict[k0]
+            if brick_d0["val"] != 0:  # if adjacent brick not outside
+                brick_d0["val"] = 1
+                if not brick_d0["draw"]:
+                    brick_d0["draw"] = True
+                    brick_d0["size"] = [1, 1, zstep]
+                    brick_d0["parent"] = "self"
+                    brick_d0["type"] = brick_d["type"]
+                    brick_d0["flipped"] = brick_d["flipped"]
+                    brick_d0["rotated"] = brick_d["rotated"]
+                    brick_d0["mat_name"] = brick_d["mat_name"]
+                    brick_d0["near_face"] = brick_d["near_face"]
+                    ni = brick_d["near_intersection"]
+                    brick_d0["near_intersection"] = tuple(ni) if type(ni) in [list, tuple] else ni
                     # add key to list for drawing
                     keys_to_update.append(k0)
                     new_bricks.append(k0)
