@@ -221,6 +221,11 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             wm.event_timer_remove(self._timer)
         cm.brickifying_in_background = False
         stopwatch("Total Time Elapsed", self.start_time, precision=2)
+        
+        # refresh model info
+        prefs = get_addon_preferences()
+        if prefs.auto_refresh_model_info:
+            bpy.ops.bricker.refresh_model_info()
 
     def cancel(self, context):
         scn, cm, n = get_active_context_info(self.cm)
@@ -349,11 +354,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cm.model_created = "ANIM" not in self.action
         cm.animated = "ANIM" in self.action
 
-        # refresh model info
-        prefs = get_addon_preferences()
-        if prefs.auto_refresh_model_info:
-            bpy.ops.bricker.refresh_model_info()
-
         # link created brick collection
         if cm.animated:
             anim_coll = get_anim_coll(n)
@@ -431,8 +431,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 stored_parents = [p.collection for p in self.source.stored_parents]
                 self.source.stored_parents.clear()
             # send job to the background processor
-            light_to_deep_cache(bricker_bfm_cache, [cm.id])
-            script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, source_dup)
+            if cm.id in bricker_bfm_cache.keys() and cm.customized:
+                light_to_deep_cache(bricker_bfm_cache, [cm.id])
+            script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, source_dup, skip_bfm_cache=not cm.customized)
             job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":None, "cmlist_id":cm.id, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)
             if not job_added: raise Exception(msg)
             self.jobs.append(cur_job)
@@ -529,8 +530,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     stored_parents = [p.collection for p in self.source.stored_parents]
                     self.source.stored_parents.clear()
                 # send job to the background processor
-                light_to_deep_cache(bricker_bfm_cache, [cm.id])
-                script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, duplicates[cur_frame])
+                script, cmlist_props, cmlist_pointer_props, data_blocks_to_send = get_args_for_background_processor(cm, self.bricker_addon_path, duplicates[cur_frame], skip_bfm_cache=True)
                 job_added, msg = self.job_manager.add_job(cur_job, script=script, passed_data={"frame":cur_frame, "cmlist_id":cm.id, "cmlist_props":cmlist_props, "cmlist_pointer_props":cmlist_pointer_props, "action":self.action}, passed_data_blocks=data_blocks_to_send, use_blend_file=False)
                 if not job_added: raise Exception(msg)
                 self.jobs.append(cur_job)

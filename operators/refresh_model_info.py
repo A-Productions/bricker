@@ -78,18 +78,18 @@ class BRICKER_OT_refresh_model_info(Operator):
         mats_in_model = list()
         max_vals = (0, 0, 0)
         z_max = 0
-        for k in self.bricksdict.keys():
-            brick_d = self.bricksdict[k]
+        for k, brick_d in self.bricksdict.items():
             if not brick_d["draw"]:
                 continue
-            dict_loc = get_dict_loc(self.bricksdict, k)
-            max_vals = (max(max_vals[0], dict_loc[0]), max(max_vals[1], dict_loc[1]), max(max_vals[2], dict_loc[2]))
             if brick_d["parent"] == "self":
+                dict_loc = get_dict_loc(self.bricksdict, k)
+                max_vals = (max(max_vals[0], dict_loc[0] + brick_d["size"][0] - 1), max(max_vals[1], dict_loc[1] + brick_d["size"][1] - 1), max(max_vals[2], dict_loc[2] + brick_d["size"][2] - 1))
                 num_bricks_in_model += 1
                 if brick_d["mat_name"] not in mats_in_model:
                     mats_in_model.append(brick_d["mat_name"])
                 model_weight += get_part(legal_bricks, brick_d["size"], brick_d["type"])["wt"]
-        mats_in_model.remove("")
+        if "" in mats_in_model:
+            mats_in_model.remove("")
 
         dimensions = get_brick_dimensions(0.000096, cm.zstep, cm.gap)
         model_dims = (

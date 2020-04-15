@@ -234,10 +234,13 @@ def should_brickify_in_background(cm, r, action):
     )
 
 
-def get_args_for_background_processor(cm, bricker_addon_path, source_dup=None):
+def get_args_for_background_processor(cm, bricker_addon_path, source_dup=None, skip_bfm_cache=False):
     script = os.path.join(bricker_addon_path, "lib", "brickify_in_background_template.py")
 
-    cmlist_props, cmlist_pointer_props = dump_cm_props(cm)
+    skip_keys = ["active_key"]
+    if skip_bfm_cache:
+        skip_keys.append("bfm_cache")
+    cmlist_props, cmlist_pointer_props = dump_cm_props(cm, skip_keys=["active_key"])
 
     data_blocks_to_send = set()
     for item in cmlist_pointer_props:
@@ -267,8 +270,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
     if cm.build_is_dirty and loaded_from_cache:
         threshold = getThreshold(cm)
         shell_thickness_changed = cm.last_shell_thickness != cm.shell_thickness
-        for kk in bricksdict:
-            brick_d = bricksdict[kk]
+        for kk, brick_d in bricksdict.items():
             if keys == "ALL" or kk in keys:
                 brick_d["size"] = None
                 brick_d["parent"] = None

@@ -88,8 +88,8 @@ class BRICKER_AP_preferences(AddonPreferences):
     )
     auto_refresh_model_info = BoolProperty(
         name="Auto Refresh Model Info",
-        description="Refresh model info automatically each time the 'Brickify' process is run (may slow down Brickify process)",
-        default=False,
+        description="Refresh model info automatically each time the 'Brickify' process is run (may slow down Brickify process slightly)",
+        default=True,
     )
 
 	# addon updater preferences

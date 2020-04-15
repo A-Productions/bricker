@@ -36,12 +36,12 @@ else:
     types = {Material:"Material", Image:"Image", Object:"Object", Group:"Group"}
 
 
-def dump_cm_props(cm):
+def dump_cm_props(cm, skip_keys=[]):
     prop_dict = {}
     pointer_dict = {}
 
     for item in get_annotations(cm):
-        if not item.islower() or item == "active_key":
+        if not item.islower() or item in skip_keys:
             continue
         try:
             item_prop = getattr(cm, item)

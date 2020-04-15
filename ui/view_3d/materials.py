@@ -56,72 +56,56 @@ class VIEW3D_PT_bricker_materials(Panel):
         obj = cm.source_obj
 
         col = layout.column(align=True)
-        row = col.row(align=True)
-        row.prop(cm, "material_type", text="")
+        col.prop(cm, "material_type", text="")
 
         if cm.material_type == "CUSTOM":
             col = layout.column(align=True)
-            row = col.row(align=True)
-            row.prop(cm, "custom_mat", text="")
+            col.prop(cm, "custom_mat", text="")
             if brick_materials_installed() and not brick_materials_imported():
-                row = col.row(align=True)
-                row.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
+                col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
             if cm.model_created or cm.animated:
                 col = layout.column(align=True)
-                row = col.row(align=True)
-                row.operator("bricker.apply_material", icon="FILE_TICK")
+                col.operator("bricker.apply_material", icon="FILE_TICK")
         elif cm.material_type == "RANDOM":
             col = layout.column(align=True)
             col.active = cm.instance_method != "POINT_CLOUD"
-            row = col.row(align=True)
-            row.prop(cm, "random_mat_seed")
+            col.prop(cm, "random_mat_seed")
             if cm.model_created or cm.animated:
                 if cm.material_is_dirty and not cm.last_split_model:
                     col = layout.column(align=True)
-                    row = col.row(align=True)
-                    row.label(text="Run 'Update Model' to apply changes")
+                    col.label(text="Run 'Update Model' to apply changes")
                 elif cm.last_material_type == cm.material_type or (not cm.use_animation and cm.last_split_model):
                     col = layout.column(align=True)
-                    row = col.row(align=True)
-                    row.operator("bricker.apply_material", icon="FILE_TICK")
-        elif cm.material_type == "SOURCE" and obj:
+                    col.operator("bricker.apply_material", icon="FILE_TICK")
+        elif cm.material_type in "SOURCE" and obj:
             # internal material info
             if cm.shell_thickness > 1 or cm.internal_supports != "NONE":
                 # if len(obj.data.uv_layers) <= 0 or len(obj.data.vertex_colors) > 0:
                 col = layout.column(align=True)
                 col.active = cm.instance_method != "POINT_CLOUD"
-                row = col.row(align=True)
-                row.label(text="Internal Material:")
-                row = col.row(align=True)
-                row.prop(cm, "internal_mat", text="")
-                row = col.row(align=True)
-                row.prop(cm, "mat_shell_depth")
+                col.label(text="Internal Material:")
+                col.prop(cm, "internal_mat", text="")
+                col.prop(cm, "mat_shell_depth")
                 if cm.model_created:
-                    row = col.row(align=True)
                     if cm.mat_shell_depth <= cm.last_mat_shell_depth and cm.last_split_model:
-                        row.operator("bricker.apply_material", icon="FILE_TICK")
+                        col.operator("bricker.apply_material", icon="FILE_TICK")
                     else:
-                        row.label(text="Run 'Update Model' to apply changes")
+                        col.label(text="Run 'Update Model' to apply changes")
 
             # color snapping info
             col = layout.column(align=True)
             col.active = cm.instance_method != "POINT_CLOUD"
-            row = col.row(align=True)
-            row.label(text="Color Mapping:")
+            col.label(text="Color Mapping:")
             row = col.row(align=True)
             row.prop(cm, "color_snap", expand=True)
             if cm.color_snap == "RGB":
-                row = col.row(align=True)
-                row.prop(cm, "color_depth")
+               col.prop(cm, "color_depth")
             if cm.color_snap == "ABS":
-                row = col.row(align=True)
-                row.prop(cm, "transparent_weight", text="Transparent Weight")
+                col.prop(cm, "transparent_weight", text="Transparent Weight")
 
             if not b280() and cm.color_snap != "NONE":
                 col = layout.column(align=True)
-                col.active = cm.instance_method != "POINT_CLOUD"
-                col.active = len(obj.data.uv_layers) > 0
-                row = col.row(align=True)
+                col.active = len(obj.data.uv_layers) > 0 and cm.instance_method != "POINT_CLOUD"
                 row.prop(cm, "use_uv_map", text="Use UV Map")
                 if cm.use_uv_map:
                     split = layout_split(row, factor=0.75)
@@ -224,10 +208,8 @@ class VIEW3D_PT_bricker_included_materials(Panel):
             if hasattr(bpy.props, "abs_mats_common"):  # checks that ABS plastic mats are at least v2.1
                 col = layout.column(align=True)
                 right_align(col)
-                row = col.row(align=True)
-                row.prop(scn, "include_transparent")
-                row = col.row(align=True)
-                row.prop(scn, "include_uncommon")
+                col.prop(scn, "include_transparent")
+                col.prop(scn, "include_uncommon")
 
             col = layout.column(align=True)
             split = layout_split(col, factor=0.25)

@@ -72,6 +72,8 @@ class VIEW3D_PT_bricker_matrix_details(Panel):
     bl_idname      = "VIEW3D_PT_bricker_matrix_details"
     bl_parent_id   = "VIEW3D_PT_bricker_debugging_tools"
     bl_context     = "objectmode"
+    bl_options     = {"DEFAULT_CLOSED"}
+
 
     @classmethod
     def poll(self, context):

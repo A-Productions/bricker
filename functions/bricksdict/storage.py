@@ -34,9 +34,9 @@ def get_bricksdict(cm, d_type="MODEL", cur_frame=None):
     # if bricksdict can be pulled from cache
     if not matrix_really_is_dirty(cm) and cache_exists(cm) and not (cm.anim_is_dirty and "ANIM" in d_type):
         # try getting bricksdict from light cache, then deep cache
-        bricksdict = bricker_bfm_cache.get(cm.id) or marshal.loads(bytes.fromhex(cm.bfm_cache))
+        bricksdict = bricker_bfm_cache.get(cm.id) or marshal.loads(bytes.fromhex(decompress_str(cm.bfm_cache)))
         # if animated, index into that dict
-        if "ANIM" in d_type:
+        if "ANIM" in d_type and bricksdict is not None:
             adjusted_frame_current = get_anim_adjusted_frame(cur_frame, cm.last_start_frame, cm.last_stop_frame)
             bricksdict = bricksdict[str(adjusted_frame_current)]
         return bricksdict

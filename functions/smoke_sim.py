@@ -35,9 +35,9 @@ def store_smoke_data(from_obj, to_obj):
     adapt = domain_settings.use_adaptive_domain
     obj_details_adapt = bounds(from_obj) if adapt else None
     smoke_data = {
-        "density_grid": tuple(domain_settings.density_grid),
-        "flame_grid": tuple(domain_settings.flame_grid),
-        "color_grid": tuple(domain_settings.color_grid),
+        "density_grid": tuple(foreach_get(domain_settings.density_grid)),
+        "flame_grid": tuple(foreach_get(domain_settings.flame_grid)),
+        "color_grid": tuple(foreach_get(domain_settings.color_grid)),
         "domain_resolution": tuple(domain_settings.domain_resolution),
         "use_adaptive_domain": adapt,
         "adapt_min": tuple(obj_details_adapt.min) if adapt else None,
@@ -57,10 +57,6 @@ def get_smoke_info(source):
 
     smoke_data = json.loads(decompress_str(source.smoke_data))
 
-    # get channel data
-    density_grid = smoke_data["density_grid"]
-    flame_grid = smoke_data["flame_grid"]
-    color_grid = smoke_data["color_grid"]
     # get resolution
     domain_res = get_adjusted_res(smoke_data, smoke_data["domain_resolution"])
     adapt = smoke_data["use_adaptive_domain"]
@@ -69,6 +65,13 @@ def get_smoke_info(source):
     max_res_i = smoke_data["resolution_max"]
     max_res = Vector(domain_res) * (max_res_i / max(domain_res))
     max_res = get_adjusted_res(smoke_data, max_res)
+    # get channel data
+    density_grid = smoke_data["density_grid"]
+    flame_grid = smoke_data["flame_grid"]
+    color_grid = smoke_data["color_grid"]
+    # density_grid = np.array(smoke_data["density_grid"]).reshape(domain_res[::-1])
+    # flame_grid = np.array(smoke_data["flame_grid"]).reshape(domain_res[::-1])
+    # color_grid = np.array(smoke_data["color_grid"]).reshape(domain_res[::-1] + [4])
 
     return density_grid, flame_grid, color_grid, domain_res, max_res, adapt, adapt_min, adapt_max
 

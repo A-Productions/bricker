@@ -78,13 +78,12 @@ def new_brick_mesh(dimensions:list, brick_type:str, size:list=[1,1,3], type:str=
     return bms
 
 
-def split_bricks(bricksdict, zstep, keys=None):
-    keys = keys or list(bricksdict.keys())
-    for key in keys:
+def split_bricks(zstep, brick_ds=None):
+    for brick_d in brick_ds:
         # set all bricks as unmerged
-        if bricksdict[key]["draw"]:
-            bricksdict[key]["parent"] = "self"
-            bricksdict[key]["size"] = [1, 1, zstep]
+        if brick_d["draw"]:
+            brick_d["parent"] = "self"
+            brick_d["size"] = [1, 1, zstep]
 
 
 def split_brick(bricksdict, key, zstep, brick_type, loc=None, v=True, h=True):

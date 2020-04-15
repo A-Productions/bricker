@@ -24,7 +24,6 @@ from .debugging_tools import *
 from .detailing import *
 from .export import *
 from .materials import *
-from .matrix_details import *
 from .merge_settings import *
 from .model_info import *
 from .model_settings import *

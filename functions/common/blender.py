@@ -18,6 +18,7 @@
 # System imports
 import os
 from math import *
+import numpy as np
 
 # Blender imports
 import bpy
@@ -25,7 +26,7 @@ import bmesh
 import mathutils
 from mathutils import Vector, Euler, Matrix
 from bpy_extras import view3d_utils
-from bpy.types import Object, Mesh, Scene, Event, Modifier, Material
+from bpy.types import Object, Mesh, Scene, Event, Modifier, Material, bpy_prop_array
 try:
     from bpy.types import ViewLayer, LayerCollection
 except ImportError:
@@ -645,6 +646,17 @@ def right_align(layout_item):
 def right_align(layout_item):
     layout_item.use_property_split = True
     layout_item.use_property_decorate = False
+
+
+@blender_version_wrapper("<=","2.82")
+def foreach_get(array:bpy_prop_array, dtype=None):
+    new_array = np.array(array[:])
+    return new_array
+@blender_version_wrapper(">=","2.83")
+def foreach_get(array:bpy_prop_array, dtype=np.float32):
+    new_array = np.empty(len(array), dtype=dtype)
+    array.foreach_get(new_array)
+    return new_array
 
 
 def get_item_by_id(collection, id:int):

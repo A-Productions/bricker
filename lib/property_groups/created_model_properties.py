@@ -114,7 +114,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default=0.5,
     )
     merge_seed = IntProperty(
-        name="Random Seed",
+        name="Seed",
         description="Random seed for brick merging calculations",
         update=dirty_build,
         min=0,
@@ -355,7 +355,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         default="BOTH",
     )
     random_mat_seed = IntProperty(
-        name="Random Seed",
+        name="Seed",
         description="Random seed for material assignment",
         min=0,
         update=dirty_material,

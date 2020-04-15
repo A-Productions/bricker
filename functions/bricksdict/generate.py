@@ -193,9 +193,9 @@ def update_bf_matrix(scn, x0, y0, z0, coord_matrix, ray, edge_len, face_idx_matr
 
     return intersections, next_intersection_loc, edge_intersects, target_val
 
-def is_internal(bricksdict, key):
+def is_internal(brick_d):
     """ check if brick entry in bricksdict is internal """
-    val = bricksdict[key]["val"]
+    val = brick_d["val"]
     return (0 < val < 1) or val == -1
 
 def add_column_supports(bricksdict, keys, thickness, step):
@@ -207,7 +207,7 @@ def add_column_supports(bricksdict, keys, thickness, step):
     """
     step = step + thickness
     for key in keys:
-        if not is_internal(bricksdict, key):
+        if not is_internal(bricksdict[key]):
             continue
         x,y,z = get_dict_loc(bricksdict, key)
         if (x % step < thickness and
@@ -222,7 +222,7 @@ def add_lattice_supports(bricksdict, keys, step, height, alternate_xy):
     alternate_xy -- alternate x-beams and y-beams for each Z-axis level
     """
     for key in keys:
-        if not is_internal(bricksdict, key):
+        if not is_internal(bricksdict[key]):
             continue
         x,y,z = get_dict_loc(bricksdict, key)
         z0 = (floor(z / height) if alternate_xy else z) % 2
@@ -238,15 +238,19 @@ def update_internal(bricksdict, cm, keys="ALL", clear_existing=False):
     keys          -- keys to test in bricksdict
     clear_existing -- set draw for all internal bricks to False before adding supports
     """
-    if keys == "ALL": keys = bricksdict.keys()
+    if keys == "ALL":
+        keys = bricksdict.keys()
+        brick_ds = bricksdict.values()
+    else:
+        brick_ds = [bricksdict[k] for k in keys]
     # clear extisting internal structure
     if clear_existing:
         # set all bricks as unmerged
-        split_bricks(bricksdict, cm.zstep, keys=keys)
+        split_bricks(cm.zstep, brick_ds)
         # clear internal
-        for key in keys:
-            if is_internal(bricksdict, key):
-                bricksdict[key]["draw"] = False
+        for brick_d in brick_ds:
+            if is_internal(brick_d):
+                brick_d["draw"] = False
     # Draw column supports
     if cm.internal_supports == "COLUMNS":
         add_column_supports(bricksdict, keys, cm.col_thickness, cm.col_step)
@@ -367,10 +371,13 @@ def get_brick_matrix(source, face_idx_matrix, coord_matrix, brick_shell, axes="x
 
 
 def get_brick_matrix_smoke(cm, source, face_idx_matrix, brick_shell, source_details, print_status=True, cursor_status=False):
+    ct = time.time()
     # source = cm.source_obj
     density_grid, flame_grid, color_grid, domain_res, max_res, adapt, adapt_min, adapt_max = get_smoke_info(source)
+    ct = stopwatch(1, ct)
     brick_freq_matrix = deepcopy(face_idx_matrix)
     color_matrix = deepcopy(face_idx_matrix)
+    ct = stopwatch(2, ct)
     old_percent = 0
     brightness = Vector([(cm.smoke_brightness - 1) / 5]*3)
     sat_mat = get_saturation_matrix(cm.smoke_saturation)
@@ -378,6 +385,7 @@ def get_brick_matrix_smoke(cm, source, face_idx_matrix, brick_shell, source_deta
     flame_intensity = cm.flame_intensity
     flame_color = cm.flame_color
     smoke_density = cm.smoke_density
+    ct = stopwatch(3, ct)
 
     # get starting and ending idx
     if adapt:
@@ -407,29 +415,42 @@ def get_brick_matrix_smoke(cm, source, face_idx_matrix, brick_shell, source_deta
     denom = d.x
 
     # set up brick_freq_matrix values
+    ct = stopwatch(4, ct)
+
+    # iterate over x
     for x in range(int(s_idx[0]), int(e_idx[0])):
+        # get x range
+        x0 = x - s_idx[0]
+        xn = [int(xn0 * x0), int(xn0 * (x0 + 1))]
+        xn[1] += 1 if xn[1] == xn[0] else 0
+        step_x = math.ceil((xn[1] - xn[0]) / quality)
         # print status to terminal
         old_percent = update_progress_bars(x / denom, old_percent, "Shell", print_status, cursor_status)
+
+        # iterate over y
         for y in range(int(s_idx[1]), int(e_idx[1])):
+            # get y range
+            y0 = y - s_idx[1]
+            yn = [int(yn0 * y0), int(yn0 * (y0 + 1))]
+            yn[1] += 1 if yn[1] == yn[0] else 0
+            step_y = math.ceil((yn[1] - yn[0]) / quality)
+
+            # iterate over z
             for z in range(int(s_idx[2]), int(e_idx[2])):
+                # get z range
+                z0 = z - s_idx[2]
+                zn = [int(zn0 * z0), int(zn0 * (z0 + 1))]
+                zn[1] += 1 if zn[1] == zn[0] else 0
+                step_z = math.ceil((zn[1] - zn[0]) / quality)
+
+                # initialize accumulators
                 d_acc = 0
                 f_acc = 0
                 cs_acc = Vector((0, 0, 0))
-                cf_acc = Vector((0, 0, 0))
-                # get indices for
-                x0 = x - s_idx[0]
-                y0 = y - s_idx[1]
-                z0 = z - s_idx[2]
-                xn = [int(xn0 * x0), int(xn0 * (x0 + 1))]
-                yn = [int(yn0 * y0), int(yn0 * (y0 + 1))]
-                zn = [int(zn0 * z0), int(zn0 * (z0 + 1))]
-                xn[1] += 1 if xn[1] == xn[0] else 0
-                yn[1] += 1 if yn[1] == yn[0] else 0
-                zn[1] += 1 if zn[1] == zn[0] else 0
-                step_x = math.ceil((xn[1] - xn[0]) / quality)
-                step_y = math.ceil((yn[1] - yn[0]) / quality)
-                step_z = math.ceil((zn[1] - zn[0]) / quality)
+                cf_acc = 0
                 ave_denom = 0
+
+                # iterate through chunk of density grid near current brick locations
                 for x1 in range(xn[0], xn[1], step_x):
                     for y1 in range(yn[0], yn[1], step_y):
                         for z1 in range(zn[0], zn[1], step_z):
@@ -440,26 +461,40 @@ def get_brick_matrix_smoke(cm, source, face_idx_matrix, brick_shell, source_deta
                             f_acc += f
                             cur_idx_ext = cur_idx * 4
                             cs_acc += _d * Vector((color_grid[cur_idx_ext], color_grid[cur_idx_ext + 1], color_grid[cur_idx_ext + 2]))
-                            cf_acc += Vector(f * flame_intensity * f * flame_color)
+                            cf_acc += f ** 2
                             ave_denom += 1
+
+                # multiply by flame properties
+                cf_acc *= flame_intensity * Vector(flame_color)
+
+                # get acc averages
                 d_ave = d_acc / ave_denom
                 f_ave = f_acc / ave_denom
-                alpha = d_ave + f_ave
                 cs_ave = cs_acc / (ave_denom * (d_ave if d_ave != 0 else 1))
                 cf_ave = cf_acc / (ave_denom * (f_ave if f_ave != 0 else 1))
+
+                # get final color values
                 c_ave = (cs_ave + cf_ave)
+                alpha = d_ave + f_ave
+
                 # add brightness
                 c_ave += brightness
+
                 # add saturation
                 c_ave = mathutils_mult(c_ave, sat_mat)
+
+                # store to matrices
                 brick_freq_matrix[x][y][z] = 0 if alpha < (1 - smoke_density) else 1
                 color_matrix[x][y][z] = list(c_ave) + [alpha]
+
+    ct = stopwatch(5, ct)
 
     # mark inside freqs as internal (-1) and outside next to outsides for removal
     adjust_bfm(brick_freq_matrix, cm.mat_shell_depth, cm.calc_internals)  # REMOVED: , axes="")
 
     # end progress bar
     update_progress_bars(1, 0, "Shell", print_status, cursor_status, end=True)
+    ct = stopwatch(6, ct)
 
     return brick_freq_matrix, color_matrix
 

@@ -19,7 +19,7 @@ bl_info = {
     "name"        : "Bricker",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
     "version"     : (2, 0, 0),
-    "blender"     : (2, 83, 0),
+    "blender"     : (2, 82, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
     "warning"     : "Untested Beta release – update to official release when available",  # used for warning icon and text in addons panel
@@ -46,7 +46,7 @@ from . import addon_updater_ops
 from .functions.brick import get_legal_brick_sizes
 from .functions.common import b280, make_annotations
 from .functions.app_handlers import *
-from .functions.timers import register_bricker_timers
+from .functions.timers import register_bricker_timers, handle_selections, handle_undo_stack
 from .functions.property_callbacks import select_source_model
 from .lib import keymaps, classes_to_register
 from .lib.property_groups import BRICKER_UL_collections_tuple, CreatedModelProperties
