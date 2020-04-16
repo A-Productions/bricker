@@ -95,11 +95,12 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     logo_decimate = cm.logo_decimate
     max_width = cm.max_width
     max_depth = cm.max_depth
-    merge_internals_h = cm.merge_internals in ["BOTH", "HORIZONTAL"]
-    merge_internals_v = cm.merge_internals in ["BOTH", "VERTICAL"]
+    material_type = cm.material_type
+    merge_internals = "NEITHER" if material_type == "NONE" else cm.merge_internals
+    merge_internals_h = merge_internals in ["BOTH", "HORIZONTAL"]
+    merge_internals_v = merge_internals in ["BOTH", "VERTICAL"]
     merge_type = cm.merge_type if mergable_brick_type(brick_type) else "NONE"
     merge_seed = cm.merge_seed
-    material_type = cm.material_type
     offset_brick_layers = cm.offset_brick_layers
     random_mat_seed = cm.random_mat_seed
     random_rot = 0 if temp_brick else round(cm.random_rot, 6)
@@ -113,7 +114,6 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     # initialize other variables
     brick_mats = get_brick_mats(cm)
     brick_size_strings = {}
-    mats = []
     all_meshes = bmesh.new()
     lowest_z = -1
     available_keys = []
@@ -121,9 +121,12 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     max_brick_height = 1 if cm.zstep == 3 else max(legal_bricks.keys())
     connect_thresh = cm.connect_thresh if mergable_brick_type(brick_type) and merge_type == "RANDOM" else 1
     # set up internal material for this object
+    mats = []
     internal_mat = None if len(source.data.materials) == 0 else cm.internal_mat or bpy.data.materials.get("Bricker_%(n)s_internal" % locals()) or bpy.data.materials.new("Bricker_%(n)s_internal" % locals())
-    if internal_mat is not None and cm.material_type == "SOURCE" and cm.mat_shell_depth < cm.shell_thickness:
+    if internal_mat is not None and material_type == "SOURCE" and cm.mat_shell_depth < cm.shell_thickness:
         mats.append(internal_mat)
+    elif material_type in ("CUSTOM", "NONE"):
+        mats.append(custom_mat)
     # set number of times to run through all keys
     num_iters = 2 if brick_type == "BRICKS_AND_PLATES" else 1
     i = 0
@@ -275,11 +278,8 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
         else:
             all_bricks_obj = bpy.data.objects.new(name, m)
             all_bricks_obj.cmlist_id = cm_id
-        if material_type in ("CUSTOM", "NONE"):
-            set_material(all_bricks_obj, custom_mat)
-        elif material_type == "SOURCE" or (material_type == "RANDOM" and len(brick_mats) > 0):
-            for mat in mats:
-                set_material(all_bricks_obj, mat, overwrite=False)
+        for mat in mats:
+            set_material(all_bricks_obj, mat, overwrite=False)
         # set parent
         all_bricks_obj.parent = parent
         # add bricks obj to scene and bricks_created

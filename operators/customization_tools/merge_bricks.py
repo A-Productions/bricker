@@ -129,9 +129,10 @@ class BRICKER_OT_merge_bricks(Operator):
         max_width = cm.max_width
         max_depth = cm.max_depth
         legal_bricks_only = cm.legal_bricks_only
-        merge_internals_h = cm.merge_internals in ["BOTH", "HORIZONTAL"]
-        merge_internals_v = cm.merge_internals in ["BOTH", "VERTICAL"]
         material_type = cm.material_type
+        merge_internals = "NEITHER" if material_type == "NONE" else cm.merge_internals
+        merge_internals_h = merge_internals in ["BOTH", "HORIZONTAL"]
+        merge_internals_v = merge_internals in ["BOTH", "VERTICAL"]
         rand_state = np.random.RandomState(cm.merge_seed)
         merge_vertical = target_type in get_brick_types(height=3) and "PLATES" in brick_type
         height_3_only = merge_vertical and not any_height

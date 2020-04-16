@@ -109,32 +109,34 @@ class VIEW3D_PT_bricker_customize(Panel):
                 split = layout_split(layout, factor=0.9)
                 split.operator("bricksculpt__bricker_addon_.report_error", text="Report Error", icon="URL")
                 split.operator("bricksculpt__bricker_addon_.close_report_error", text="", icon="PANEL_CLOSE")
+            if brick_materials_installed() and not brick_materials_imported():
+                layout.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
         else:
             col.operator("bricker.bricksculpt_null", text="Draw/Cut Tool", icon="GREASEPENCIL").mode = "DRAW"
             col.operator("bricker.bricksculpt_null", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE_SPLIT"
             row = col.row(align=True)
             row.operator("bricker.bricksculpt_null", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
             row.prop_search(scn.bricksculpt, "paintbrush_mat", bpy.data, "materials", text="")
-            # row = col.row(align=True)
-            # row.scale_y = 0.7
-            # row.label(text="BrickSculpt available for purchase")
-            # row = col.row(align=True)
-            # row.scale_y = 0.7
-            # row.label(text="at the Blender Market:")
-            # col = layout.column(align=True)
-            # row = col.row(align=True)
-            # row.operator("wm.url_open", text="View Website", icon="WORLD").url = "http://www.blendermarket.com/products/bricksculpt"
             row = col.row(align=True)
             row.scale_y = 0.7
-            row.label(text="BrickSculpt coming soon to")
+            row.label(text="BrickSculpt available for purchase")
             row = col.row(align=True)
             row.scale_y = 0.7
-            row.label(text="the Blender Market:")
+            row.label(text="at the Blender Market:")
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.operator("wm.url_open", text="View Website", icon="WORLD").url = "https://www.blendermarket.com/creators/bricksbroughttolife"
-            layout.split()
-            layout.split()
+            row.operator("wm.url_open", text="View Website", icon="WORLD").url = "http://www.blendermarket.com/products/bricksculpt"
+            # row = col.row(align=True)
+            # row.scale_y = 0.7
+            # row.label(text="BrickSculpt coming soon to")
+            # row = col.row(align=True)
+            # row.scale_y = 0.7
+            # row.label(text="the Blender Market:")
+            # col = layout.column(align=True)
+            # row = col.row(align=True)
+            # row.operator("wm.url_open", text="View Website", icon="WORLD").url = "https://www.blendermarket.com/creators/bricksbroughttolife"
+            # layout.split()
+            # layout.split()
 
         col1 = layout.column(align=True)
         col1.label(text="Selection:")

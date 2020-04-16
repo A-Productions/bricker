@@ -103,6 +103,13 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
                 if mat is None: self.report({"WARNING"}, "Specified material doesn't exist")
 
                 for brick in bricks:
+                    # update bricksdict mat_name values for split models
+                    if last_split_model:
+                        brick_d = bricksdict[get_dict_key(brick.name)]
+                        if brick_d["custom_mat_name"]:
+                            continue
+                        brick_d["mat_name"] = mat.name
+                    # update the material slots
                     if self.action == "CUSTOM" or (self.action == "INTERNAL" and not is_on_shell(bricksdict, brick.name.split("__")[-1], zstep=cm.zstep, shell_depth=cm.mat_shell_depth) and cm.mat_shell_depth <= cm.last_mat_shell_depth):
                         if len(brick.material_slots) == 0:
                             # Assign material to object data
@@ -112,11 +119,8 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
                             clear_existing_materials(brick, from_idx=1)
                         # assign material to mat slot
                         brick.material_slots[0].material = mat
-                    # update bricksdict mat_name values for split models
-                    if last_split_model:
-                        bricksdict[brick.name.split("__")[-1]]["mat_name"] = mat.name
                 # update bricksdict mat_name values for not split models
-                if self.action == "CUSTOM" and not cm.last_split_model:
+                if self.action == "CUSTOM" and not last_split_model:
                     for brick_d in bricksdict.values():
                         if brick_d["draw"] and brick_d["parent"] == "self":
                             brick_d["mat_name"] = mat.name
@@ -141,7 +145,10 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
             # apply a random material to each brick
             dkeys = sorted(list(bricksdict.keys()))
             for brick in bricks:
-                cur_key = brick.name.split("__")[-1]
+                cur_key = get_dict_key(brick.name)
+                brick_d = bricksdict[cur_key]
+                if brick_d["custom_mat_name"]:
+                    continue
                 # iterate seed and set random index
                 rand_s0.seed(random_mat_seed + dkeys.index(cur_key))
                 rand_idx = rand_s0.randint(0, len(brick_mats)) if len(brick_mats) > 1 else 0
@@ -149,7 +156,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
                 mat = bpy.data.materials.get(brick_mats[rand_idx])
                 set_material(brick, mat)
                 # update bricksdict
-                bricksdict[cur_key]["mat_name"] = mat.name
+                brick_d["mat_name"] = mat.name
         else:
             # apply a random material to each random material slot
             brick = bricks[0]

@@ -104,7 +104,7 @@ def split_brick(bricksdict, key, zstep, brick_type, loc=None, v=True, h=True):
     # initialize vars
     parent_brick_d = bricksdict[key]
     target_type = get_brick_type(brick_type)
-    size = bparent_brick_d["size"]
+    size = parent_brick_d["size"]
     new_size = [1, 1, size[2]]
     if flat_brick_type(brick_type):
         if not v:
