@@ -101,29 +101,25 @@ class VIEW3D_PT_bricker_customize(Panel):
         col.label(text="BrickSculpt Tools:")
         if is_bricksculpt_installed():
             col.operator("bricksculpt.run_tool", text="Draw/Cut Tool", icon="SCULPTMODE_HLT").mode = "DRAW"
-            col.operator("bricksculpt.run_tool", text="Merge/Split Tool", icon="OUTLINER_DATA_GP_LAYER" if b280() else "AUTOMERGE_ON").mode = "MERGE_SPLIT"
+            col.operator("bricksculpt.run_tool", text="Merge/Split Tool", icon="AUTOMERGE_ON").mode = "MERGE_SPLIT"
             row = col.row(align=True)
             row.operator("bricksculpt.run_tool", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
             if bpy.data.texts.find("BrickSculpt (Bricker Addon) log") >= 0:
                 split = layout_split(layout, factor=0.9)
                 split.operator("bricksculpt__bricker_addon_.report_error", text="Report Error", icon="URL")
                 split.operator("bricksculpt__bricker_addon_.close_report_error", text="", icon="PANEL_CLOSE")
+            # allow the user to import abs materials from here
             if brick_materials_installed() and not brick_materials_imported():
                 layout.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
         else:
             col.operator("bricker.bricksculpt_null", text="Draw/Cut Tool", icon="GREASEPENCIL").mode = "DRAW"
             col.operator("bricker.bricksculpt_null", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE_SPLIT"
-            row = col.row(align=True)
-            row.operator("bricker.bricksculpt_null", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
-            row = col.row(align=True)
-            row.scale_y = 0.7
-            row.label(text="BrickSculpt available for purchase")
-            row = col.row(align=True)
-            row.scale_y = 0.7
-            row.label(text="at the Blender Market:")
+            col.operator("bricker.bricksculpt_null", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
             col = layout.column(align=True)
-            row = col.row(align=True)
-            row.operator("wm.url_open", text="View Website", icon="WORLD").url = "http://www.blendermarket.com/products/bricksculpt"
+            col.scale_y = 0.7
+            col.label(text="'BrickSculpt' addon not installed")
+            col = layout.column(align=True)
+            col.operator("wm.url_open", text="View Website", icon="WORLD").url = "http://www.blendermarket.com/products/bricksculpt"
             # row = col.row(align=True)
             # row.scale_y = 0.7
             # row.label(text="BrickSculpt coming soon to")
@@ -135,16 +131,17 @@ class VIEW3D_PT_bricker_customize(Panel):
             # row.operator("wm.url_open", text="View Website", icon="WORLD").url = "https://www.blendermarket.com/creators/bricksbroughttolife"
             # layout.split()
             # layout.split()
+        col.separator()
 
-        col1 = layout.column(align=True)
-        col1.label(text="Selection:")
-        split = layout_split(col1, factor=0.5)
-        # set top exposed
-        col = split.column(align=True)
-        col.operator("bricker.select_bricks_by_type", text="By Type")
-        # set bottom exposed
-        col = split.column(align=True)
-        col.operator("bricker.select_bricks_by_size", text="By Size")
+        # col1 = layout.column(align=True)
+        # col1.label(text="Selection:")
+        # split = layout_split(col1, factor=0.5)
+        # # set top exposed
+        # col = split.column(align=True)
+        # col.operator("bricker.select_bricks_by_type", text="By Type")
+        # # set bottom exposed
+        # col = split.column(align=True)
+        # col.operator("bricker.select_bricks_by_size", text="By Size")
 
 
 class VIEW3D_PT_bricker_legacy_customization_tools(Panel):
