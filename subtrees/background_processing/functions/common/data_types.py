@@ -18,7 +18,9 @@
 # System imports
 import math
 from colorsys import rgb_to_hsv, hsv_to_rgb
+from os.path import join, dirname, basename
 import numpy as np
+import time
 import types
 
 # Blender imports
@@ -28,11 +30,12 @@ import bmesh
 from mathutils import Vector, Color
 
 # Module imports
+from .blender import link_object
 from .color_effects import *
 from .maths import *
+from .paths import *
 from .python_utils import *
 from .reporting import stopwatch
-from .blender import link_object
 
 
 class Vector2:
@@ -516,7 +519,8 @@ class MyImage:
     def write_to_disk(self, directory="//", name=None):
         name = name or self.name
         image = self.make_blend_image(name + "__dup__")
-        image.filepath_raw = os.path.join(directory, name + self.file_extension)
+        image_fp = join(directory, name + self.file_extension)
+        image.filepath_raw = image_fp
         file_formats = {
             ".png": "PNG",
             ".jpg": "JPEG",
@@ -526,6 +530,7 @@ class MyImage:
         image.file_format = file_formats[self.file_extension]
         image.save()
         bpy.data.images.remove(image)
+        return bpy.path.abspath(image_fp)
 
     def to_hsv(self):
         assert self._channels >= 3
@@ -574,9 +579,11 @@ class MyImage:
         im = bpy.data.images.get(name)
         if overwrite and im:
             bpy.data.images.remove(im)
-        im = bpy.data.images.new(name=name, width=self.size[0], height=self.size[1])
-        self.set_channels(4)
-        im.pixels = self.pixels
+        im = bpy.data.images.new(name=name, alpha=self.channels == 4, width=self.size[0], height=self.size[1])
+        im_pix = self._pixels if self.channels == 4 else convert_channels(4, self._pixels, self._channels)
+        if im_pix.dtype != np.float32:
+            im_pix = im_pix.astype(np.float32)
+        set_pixels(im, im_pix)
         return im
 
     def get_channel(self, channel):
@@ -587,10 +594,14 @@ class MyImage:
     def set_alpha_channel(self, value):
         old_pixels = self._pixels
         num_pix = self.size[0] * self.size[1]
-        self.pixels = set_alpha_channel(num_pix, old_pixels, self._channels, value)
+        assert type(value) in (MyImage, float, int)
+        if isinstance(value, MyImage):
+            assert value.channels == 1
+        alpha_val = value.pixels if isinstance(value, MyImage) else value
+        self.pixels = set_alpha_channel(num_pix, old_pixels, self._channels, alpha_val)
         self._channels = 4
 
-    def set_channels(self, value, verbose=False):
+    def set_channels(self, value, verbose=False, use_alpha=False):
         # check for edge cases
         if value == self._channels:
             return
@@ -604,7 +615,7 @@ class MyImage:
         # add or remove color channel(s) from pixel values
         num_pix = self.size[0] * self.size[1]
         old_pixels = self._pixels
-        pixels = convert_channels(num_pix, value, old_pixels, self._channels)
+        pixels = convert_channels(value, old_pixels, self._channels, use_alpha=use_alpha)
         # set new pixel values and channels
         self.pixels = pixels
         self._channels = value
@@ -616,6 +627,11 @@ class MyImage:
         assert self.size == image.size and self.channels == image.channels
         image1_pixels = self._pixels
         image2_pixels = image.images[0]._pixels if isinstance(image, MyImageSequence) else image._pixels
+        if isinstance(factor, MyImageSequence):
+            factor = factor.images[0]._pixels
+        elif isinstance(factor, MyImage):
+            factor = factor._pixels
+
         width, height = self.size
         # ct = time.time()
         self.pixels = blend_pixels(image1_pixels, image2_pixels, width, height, self._channels, blend_type, use_clamp, factor)
@@ -639,8 +655,8 @@ class MyImage:
     def clamp(self, minimum=0, maximum=1):
         self.pixels = clamp_pixels(self._pixels, minimum, maximum)
 
-    def math_operation(self, operation, clamp, value):
-        self.pixels = math_operation_on_pixels(self._pixels, operation, clamp, value)
+    def math_operation(self, operation, value, clamp=False):
+        self.pixels = math_operation_on_pixels(self._pixels, operation, value, clamp)
 
     def adjust_bright_contrast(self, bright=0, contrast=0):
         self.pixels = adjust_bright_contrast(self._pixels, bright, contrast)
@@ -649,7 +665,7 @@ class MyImage:
 
     def adjust_hue_saturation_value(self, hue=0.5, saturation=1, value=1):
         hsv_pixels = np.array(self.to_hsv())
-        adjusted_hsv_pixels = adjust_hue_saturation_value(hsv_pixels, hue, saturation, value)
+        adjusted_hsv_pixels = adjust_hue_saturation_value(hsv_pixels, hue, saturation, value, channels=3)
         self.from_hsv(adjusted_hsv_pixels)
 
     def invert(self, factor=1):
@@ -714,6 +730,10 @@ class MyImageSequence:
         self._images = value
 
     @property
+    def frame_duration(self):
+        return len(self._images)
+
+    @property
     def channels(self):
         assert len(self.images) > 0
         return self.images[0].channels
@@ -764,13 +784,20 @@ class MyImageSequence:
         for im in self.images:
             im.pad_to_size(width, height)
 
-    def write_to_disk(self, directory="//", name=None):
-        for im in self.images:
-            im.write_to_disk(directory, name=im.name)
+    def write_to_disk(self, directory="//"):
+        image_filepaths = list()
+        for j, im in enumerate(self.images):
+            im_name = self.name + "_{num}".format(num=str(j + 1).zfill(4))
+            image_fp = im.write_to_disk(directory, name=im_name)
+            image_filepaths.append(image_fp)
+        return image_filepaths
 
     def make_blend_image(self, name=None, overwrite=True):
         assert len(self.images) > 0
-        return self.images[0].make_blend_image(name, overwrite)
+        image_fps = self.write_to_disk(directory=temp_path())
+        im_seq = bpy.data.images.load(image_fps[0])
+        im_seq.source = "SEQUENCE"
+        return im_seq
 
     def get_channel(self, channel):
         new_images = list()
@@ -779,8 +806,11 @@ class MyImageSequence:
         return MyImageSequence(new_images, self.offset)
 
     def set_alpha_channel(self, value):
-        for im in self.images:
-            im.set_alpha_channel(value)
+        if isinstance(value, MyImageSequence):
+            assert self.frame_duration == value.frame_duration
+        for j, im in enumerate(self.images):
+            alpha_val = value.images[j] if isinstance(value, MyImageSequence) else value
+            im.set_alpha_channel(alpha_val)
 
     def set_channels(self, value, verbose=False):
         # check for edge cases
@@ -807,6 +837,10 @@ class MyImageSequence:
     def clamp(self, minimum=0, maximum=1):
         for im in self.images:
             im.clamp(im, minimum, maximum)
+
+    def math_operation(self, operation, value, clamp=False):
+        for im in self.images:
+            im.math_operation(im, operation, value, clamp)
 
     def adjust_bright_contrast(self, bright=0, contrast=0):
         for im in self.images:

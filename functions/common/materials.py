@@ -57,7 +57,7 @@ def link_material_to_object(obj, mat, index=-1):
 def get_mat_at_face_idx(obj, face_idx):
     """ get material at target face index of object """
     if len(obj.material_slots) == 0:
-        return ""
+        return None
     face = obj.data.polygons[face_idx]
     slot = obj.material_slots[face.material_index]
     mat = slot.material

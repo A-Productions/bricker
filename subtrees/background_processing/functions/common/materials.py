@@ -61,8 +61,7 @@ def get_mat_at_face_idx(obj, face_idx):
     face = obj.data.polygons[face_idx]
     slot = obj.material_slots[face.material_index]
     mat = slot.material
-    mat_name = mat.name if mat else ""
-    return mat_name
+    return mat
 
 
 def get_material_color(mat_name):

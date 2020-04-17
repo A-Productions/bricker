@@ -201,7 +201,7 @@ def safe_execute(default, exception, function, *args):
         return default
 
 
-def get_python_path():
+def get_blend_python_path():
     from os.path import join
     python_dir = join(os.__file__.split("lib" + os.sep)[0], "bin")
     python_name = next((f for f in os.listdir(python_dir) if f.startswith("python")), None)
@@ -210,12 +210,12 @@ def get_python_path():
 
 
 def install_package(package_name):
-    python_path = get_python_path()
+    python_path = get_blend_python_path()
     subprocess.call([python_path, "-m", "pip", "install", "--user", package_name])
 
 
 def uninstall_package(package_name):
-    python_path = get_python_path()
+    python_path = get_blend_python_path()
     subprocess.call([python_path, "-m", "pip", "uninstall", "-y", package_name])
 
 
