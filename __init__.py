@@ -29,7 +29,7 @@ bl_info = {
     "category"    : "Object",
 }
 
-developer_mode = 1  # NOTE: Set to 0 for release, 1 for exposed dictionary
+developer_mode = 1  # NOTE: Set to 0 for release, 1 for developer mode
 # NOTE: Remove beta warning from bl_info
 
 # System imports

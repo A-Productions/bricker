@@ -46,8 +46,11 @@ class BRICKER_MT_specials(bpy.types.Menu):
         layout.operator("cmlist.copy_settings", icon="COPYDOWN", text="Copy Settings")
         layout.operator("cmlist.paste_settings", icon="PASTEDOWN", text="Paste Settings")
         layout.separator()
-        layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_OFF", text="Select Bricks").deselect = False
-        layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_ON", text="Deselect Bricks").deselect = True
+        layout.label(text="Brick Selection:")
+        layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_OFF", text="Select All").deselect = False
+        layout.operator("bricker.select_bricks_by_type", icon="RESTRICT_SELECT_OFF", text="Select By Type")
+        layout.operator("bricker.select_bricks_by_size", icon="RESTRICT_SELECT_OFF", text="Select By Size")
+        layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_ON", text="Deselect All").deselect = True
         if b280():
             layout.separator()
             layout.operator("cmlist.link_animated_model", icon="LINK_BLEND")

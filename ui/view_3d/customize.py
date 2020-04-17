@@ -136,15 +136,15 @@ class VIEW3D_PT_bricker_customize(Panel):
             # layout.split()
             # layout.split()
 
-        col1 = layout.column(align=True)
-        col1.label(text="Selection:")
-        split = layout_split(col1, factor=0.5)
-        # set top exposed
-        col = split.column(align=True)
-        col.operator("bricker.select_bricks_by_type", text="By Type")
-        # set bottom exposed
-        col = split.column(align=True)
-        col.operator("bricker.select_bricks_by_size", text="By Size")
+        # col1 = layout.column(align=True)
+        # col1.label(text="Selection:")
+        # split = layout_split(col1, factor=0.5)
+        # # set top exposed
+        # col = split.column(align=True)
+        # col.operator("bricker.select_bricks_by_type", text="By Type")
+        # # set bottom exposed
+        # col = split.column(align=True)
+        # col.operator("bricker.select_bricks_by_size", text="By Size")
 
 
 class VIEW3D_PT_bricker_legacy_customization_tools(Panel):
