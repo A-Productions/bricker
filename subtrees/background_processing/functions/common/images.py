@@ -26,9 +26,10 @@ from mathutils import Vector
 from mathutils.interpolate import poly_3d_calc
 
 # Module imports
-from .reporting import *
-from .maths import *
 from .colors import *
+from .materials import *
+from .maths import *
+from .reporting import *
 from .wrappers import *
 
 common_pixel_cache = dict()
@@ -57,10 +58,10 @@ def set_pixels(image:Image, pix:list):
     image.pixels.foreach_set(pix)
 
 
-def get_pixels_cache(image:Image, frame_offset:int=0, color_depth:int=-1):
+def get_pixels_cache(image:Image, frame:int=None, color_depth:int=-1):
     """ get pixels from image (cached by image name (and frame if movie/sequence); make copy of result if modifying) """
     scn = bpy.context.scene
-    frame = scn.frame_current + frame_offset
+    frame = scn.frame_current if frame is None else frame
     image_key = image.name if image.source == "FILE" else ("{im_name}_f_{frame}".format(im_name=image.name, frame=frame))
     if color_depth != -1:
          image_key += "_depth_{}".format(color_depth)
@@ -101,7 +102,7 @@ def get_pixels_at_frame(image:Image, frame:int=None, cyclic:bool=True):
     old_image = viewer_space.image
     viewer_space.image = image
     viewer_space.image_user.frame_offset = frame - (bpy.context.scene.frame_current % image.frame_duration)
-    viewer_space.image_user.cyclic = cyclic
+    viewer_space.image_user.use_cyclic = cyclic
     if image.source == "MOVIE" and viewer_space.image_user.frame_duration != image.frame_duration:
         viewer_space.image_user.frame_duration = image.frame_duration
     elif image.source == "SEQUENCE":
@@ -118,15 +119,16 @@ def get_pixels_at_frame(image:Image, frame:int=None, cyclic:bool=True):
 
 
 # reference: https://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts/addons/uv_bake_texture_to_vcols.py
-def get_pixel(image:Image, uv_coord:Vector, premult:bool=False, pixels:list=None, color_depth:int=-1):
+def get_pixel(image:Image, uv_coord:Vector, premult:bool=False, pixels:list=None, image_frame:int=None, color_depth:int=-1):
     """ get RGBA value for specified coordinate in UV image
-    image       -- Blend image holding the pixel data
+    image       -- blend image holding the pixel data
     uv_coord    -- UV coordinate of desired pixel value
     premult     -- premultiply the alpha channel of the image
     pixels      -- list of pixel data from UV texture image
-    color_depth -- Number of colors in the image in the power of 2 (see 'median_cut_clustering.py')
+    image_frame -- frame from image to get pixel values from (defaults to scn.frame_current)
+    color_depth -- number of colors in the image in the power of 2 (see 'median_cut_clustering.py')
     """
-    pixels = pixels or get_pixels_cache(image, color_depth=color_depth)
+    pixels = pixels or get_pixels_cache(image, frame=image_frame, color_depth=color_depth)
     pixel_number = (image.size[0] * round(uv_coord.y) + round(uv_coord.x)) * image.channels
     assert 0 <= pixel_number < len(pixels)
     rgba = pixels[pixel_number:pixel_number + image.channels]
@@ -142,20 +144,18 @@ def get_pixel(image:Image, uv_coord:Vector, premult:bool=False, pixels:list=None
     return rgba
 
 
-def get_uv_pixel_color(obj:Object, face_idx:int, point:Vector, uv_image:Image=None, color_depth:int=-1):
+def get_uv_pixel_color(obj:Object, face_idx:int, point:Vector, uv_image:Image=None, image_frame:int=None, mapping_loc:Vector=Vector((0, 0)), mapping_scale:Vector=Vector((1, 1)), color_depth:int=-1):
     """ get RGBA value in UV image for point at specified face index """
     if face_idx is None:
         return None
-    # get closest material using UV map
-    face = obj.data.polygons[face_idx]
     # get uv_layer image for face
     image = get_uv_image(obj, face_idx, uv_image)
     if image is None:
         return None
     # get uv coordinate based on nearest face intersection
-    uv_coord = get_uv_coord(obj.data, face, point, image)
+    uv_coord = get_uv_coord(obj, face_idx, point, image, mapping_loc, mapping_scale)
     # retrieve rgba value at uv coordinate
-    rgba = get_pixel(image, uv_coord, color_depth=color_depth)
+    rgba = get_pixel(image, uv_coord, image_frame=image_frame, color_depth=color_depth)
     # gamma correct color value
     if image.colorspace_settings.name == "sRGB":
         rgba = gamma_correct_srgb_to_linear(rgba)
@@ -220,20 +220,23 @@ def duplicate_image(img:Image, name:str, new_pixels:np.ndarray=None):
     return new_image
 
 
-def get_uv_coord(mesh:Mesh, face, point:Vector, image:Image):
+@timed_call("test", precision=6)
+def get_uv_coord(obj:Object, face_idx:int, point:Vector, image:Image, mapping_loc:Vector=Vector((0, 0)), mapping_scale:Vector=Vector((1, 1))):
     """ returns UV coordinate of target point in source mesh image texture
-    mesh  -- mesh data from source object
-    face  -- face object from mesh
-    point -- coordinate of target point on source mesh
-    image -- image texture for source mesh
+    mesh          -- source object containing mesh data
+    face          -- index of face from mesh
+    point         -- coordinate of target point on source mesh
+    image         -- image texture for source mesh
+    mapping_loc   -- offset uv coord location (from mapping node)
+    mapping_scale -- offset uv coord scale (from mapping node)
     """
     # get active uv layer data
-    uv_layer = mesh.uv_layers.active
-    if uv_layer is None:
-        return None
-    uv = uv_layer.data
+    mat = get_mat_at_face_idx(obj, face_idx)
+    uv = get_uv_layer_data(obj, mat)
+    # get face from face index
+    face = obj.data.polygons[face_idx]
     # get 3D coordinates of face's vertices
-    lco = [mesh.vertices[i].co for i in face.vertices]
+    lco = [obj.data.vertices[i].co for i in face.vertices]
     # get uv coordinates of face's vertices
     luv = [uv[i].uv for i in face.loop_indices]
     # calculate barycentric weights for point
@@ -241,7 +244,10 @@ def get_uv_coord(mesh:Mesh, face, point:Vector, image:Image):
     # multiply barycentric weights by uv coordinates
     uv_loc = sum((p*w for p,w in zip(luv,lwts)), Vector((0,0)))
     # ensure uv_loc is in range(0,1)
-    # TODO: possibly approach this differently? currently, uv coords are wrapped with modulo
+    uv_loc = Vector((round(uv_loc[0], 5) % 1, round(uv_loc[1], 5) % 1))
+    # apply location and scale offset
+    uv_loc = vec_div(uv_loc - mapping_loc, mapping_scale)
+    # once again ensure uv_loc is in range(0,1)
     uv_loc = Vector((round(uv_loc[0], 5) % 1, round(uv_loc[1], 5) % 1))
     # convert uv_loc in range(0,1) to uv coordinate
     image_size_x, image_size_y = image.size
@@ -274,6 +280,25 @@ def get_uv_coord_in_ref_image(loc:Vector, img_obj:Object):
     return pixel_loc
 
 
+def get_uv_layer_data(obj, mat=None):
+    """ returns data of active uv texture for object """
+    obj_uv_layers = obj.data.uv_layers if b280() else obj.data.uv_textures
+    # get uv layer from node in material's node tree
+    if mat is not None and mat.use_nodes:
+        mat_nodes = mat.node_tree.nodes
+        uv_name_from_node = next((node.uv_map for node in mat_nodes if node.type == "UVMAP"), None)
+        if uv_name_from_node is not None and uv_name_from_node in obj_uv_layers:
+            return obj_uv_layers[uv_name_from_node].data
+    # otherwise, get active uv layer
+    if len(obj_uv_layers) == 0:
+        return None
+    active_uv = obj_uv_layers.active
+    if active_uv is None:
+        obj_uv_layers.active = obj_uv_layers[0]
+        active_uv = obj_uv_layers.active
+    return active_uv.data
+
+
 def get_2d_pixel_array(pixels:np.ndarray, channels:int):
     """ converts 1d pixel array to 2d array
 
@@ -289,7 +314,7 @@ def get_2d_pixel_array(pixels:np.ndarray, channels:int):
     return pixels_2d
 
 
-def get_3d_pixel_array(pixels:np.ndarray, size:list, channels:int):
+def get_3d_pixel_array(pixels:np.ndarray, height:int, width:int, channels:int):
     """ converts 1d pixel array to 3d array
 
     i.e. for a square image with 4 pixels:
@@ -298,31 +323,22 @@ def get_3d_pixel_array(pixels:np.ndarray, size:list, channels:int):
         [[1, 1, 1, 1], [1, 1, 1, 1]],
     ]
     """
-    pixels_3d = np.zeros((size[0], size[1], channels))
-    for row in range(size[0]):
-        for col in range(size[1]):
-            pixel_number = (col * size[0] + row) * channels
-            pixels_3d[row][col] = pixels[pixel_number:pixel_number + channels]
-
+    pixels_3d = np.reshape(pixels, (height, width, channels))
     return pixels_3d
 
 def get_1d_pixel_array(array:np.ndarray):
     """ convert pixel array to 1d from 2d or 3d array """
     assert 2 <= len(array.shape) <= 3
-    if len(array.shape) == 2:  # 2D array input
-        pixels_1d = np.reshape(array, array.shape[0] * array.shape[1])
-    # else:  # 3D array input
-    #     pixels_1d = np.copy(array)
-    #     pixel_type = type(array[0][0])
-    #     if pixel_type in (list, tuple, Vector, np.ndarray, bpy.types.bpy_prop_array):
-    #         for col in range(len(array[0])):
-    #             for row in range(len(array)):
-    #                 pixels_1d += list(array[row][col])
-    #     elif pixel_type == int:
-    #         for col in range(len(array[0])):
-    #             for row in range(len(array)):
-    #                 pixels_1d.append(array[row][col])
+    pixels_1d = np.reshape(array, np.prod(array.shape))
     return pixels_1d
+
+
+def update_empty_image(image:Image):
+    assert bpy.context.area is not None
+    last_ui_type = bpy.context.area.ui_type
+    bpy.context.area.ui_type = "UV"
+    bpy.context.area.spaces[0].image = image
+    bpy.context.area.ui_type = last_ui_type
 
 
 #######################################################

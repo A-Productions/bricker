@@ -18,6 +18,7 @@
 # System imports
 import os
 from math import *
+import numpy as np
 
 # Blender imports
 import bpy
@@ -25,7 +26,7 @@ import bmesh
 import mathutils
 from mathutils import Vector, Euler, Matrix
 from bpy_extras import view3d_utils
-from bpy.types import Object, Mesh, Scene, Event, Modifier, Material
+from bpy.types import Object, Mesh, Scene, Event, Modifier, Material, bpy_prop_array
 try:
     from bpy.types import ViewLayer, LayerCollection
 except ImportError:
@@ -557,7 +558,7 @@ def smooth_mesh_faces(faces:iter):
 @blender_version_wrapper("<=","2.80")
 def clear_geom(mesh:Mesh):
     bmesh.new().to_mesh(mesh)
-@blender_version_wrapper(">=","2.80")
+@blender_version_wrapper(">=","2.81")
 def clear_geom(mesh:Mesh):
     mesh.clear_geometry()
 
@@ -647,6 +648,17 @@ def right_align(layout_item):
     layout_item.use_property_decorate = False
 
 
+@blender_version_wrapper("<=","2.82")
+def foreach_get(array:bpy_prop_array, dtype=None):
+    new_array = np.array(array[:])
+    return new_array
+@blender_version_wrapper(">=","2.83")
+def foreach_get(array:bpy_prop_array, dtype=np.float32):
+    new_array = np.empty(len(array), dtype=dtype)
+    array.foreach_get(new_array)
+    return new_array
+
+
 def get_item_by_id(collection, id:int):
     """ get UIlist item from collection with given id """
     success = False
@@ -710,7 +722,7 @@ def mouse_in_view3d_window(event, include_tools_panel=False, include_ui_panel=Fa
     for region in bpy.context.area.regions:
         regions[region.type] = region
     min_x = 0 if include_tools_panel else regions["TOOLS"].width
-    min_y = 0 if include_header or regions["HEADER"].alignment == "TOP" else regions["HEADER"].height
+    min_y = 0 if include_header or regions["HEADER"].alignment == "TOP" else (regions["HEADER"].height + regions["TOOL_HEADER"].height)
     mouse_region_pos = Vector((event.mouse_x, event.mouse_y)) - Vector((regions["WINDOW"].x, regions["WINDOW"].y))
     window_dimensions = Vector((regions["WINDOW"].width, regions["WINDOW"].height))
     if not include_tools_panel:
@@ -718,7 +730,7 @@ def mouse_in_view3d_window(event, include_tools_panel=False, include_ui_panel=Fa
     if not include_ui_panel:
         window_dimensions.x -= regions["UI"].width
     if not include_header:
-        window_dimensions.y -= regions["HEADER"].height
+        window_dimensions.y -= (regions["HEADER"].height + regions["TOOL_HEADER"].height)
     return min_x < mouse_region_pos.x < window_dimensions.x and min_y < mouse_region_pos.y < window_dimensions.y
 
 
