@@ -188,6 +188,10 @@ class VIEW3D_PT_bricker_included_materials(Panel):
         col = layout.column(align=True)
         if not brick_materials_installed():
             col.label(text="'ABS Plastic Materials' not installed")
+            col.scale_y = 0.75
+            col = layout.column(align=True)
+            col.operator("wm.url_open", text="View Website", icon="WORLD").url = "http://www.blendermarket.com/products/abs-plastic-materials"
+            col.separator()
         elif scn.render.engine not in ("CYCLES", "BLENDER_EEVEE"):
             col.label(text="Switch to 'Cycles' or 'Eevee' for Brick Materials")
         else:
