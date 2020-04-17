@@ -38,7 +38,10 @@ def get_bricksdict(cm, d_type="MODEL", cur_frame=None):
         # if animated, index into that dict
         if "ANIM" in d_type and bricksdict is not None:
             adjusted_frame_current = get_anim_adjusted_frame(cur_frame, cm.last_start_frame, cm.last_stop_frame)
-            bricksdict = bricksdict[str(adjusted_frame_current)]
+            try:
+                bricksdict = bricksdict[str(adjusted_frame_current)]
+            except KeyError:
+                return None
         return bricksdict
     # else, return nothing
     return None
