@@ -101,10 +101,9 @@ class VIEW3D_PT_bricker_customize(Panel):
         col.label(text="BrickSculpt Tools:")
         if is_bricksculpt_installed():
             col.operator("bricksculpt.run_tool", text="Draw/Cut Tool", icon="SCULPTMODE_HLT").mode = "DRAW"
-            col.operator("bricksculpt.run_tool", text="Merge/Split Tool", icon="OUTLINER_DATA_GP_LAYER").mode = "MERGE_SPLIT"
+            col.operator("bricksculpt.run_tool", text="Merge/Split Tool", icon="OUTLINER_DATA_GP_LAYER" if b280() else "AUTOMERGE_ON").mode = "MERGE_SPLIT"
             row = col.row(align=True)
             row.operator("bricksculpt.run_tool", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
-            # row.prop_search(cm, "paintbrush_mat", bpy.data, "materials", text="")
             if bpy.data.texts.find("BrickSculpt (Bricker Addon) log") >= 0:
                 split = layout_split(layout, factor=0.9)
                 split.operator("bricksculpt__bricker_addon_.report_error", text="Report Error", icon="URL")
@@ -116,7 +115,6 @@ class VIEW3D_PT_bricker_customize(Panel):
             col.operator("bricker.bricksculpt_null", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE_SPLIT"
             row = col.row(align=True)
             row.operator("bricker.bricksculpt_null", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
-            row.prop_search(scn.bricksculpt, "paintbrush_mat", bpy.data, "materials", text="")
             row = col.row(align=True)
             row.scale_y = 0.7
             row.label(text="BrickSculpt available for purchase")

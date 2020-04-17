@@ -558,7 +558,7 @@ def smooth_mesh_faces(faces:iter):
 @blender_version_wrapper("<=","2.80")
 def clear_geom(mesh:Mesh):
     bmesh.new().to_mesh(mesh)
-@blender_version_wrapper(">=","2.80")
+@blender_version_wrapper(">=","2.81")
 def clear_geom(mesh:Mesh):
     mesh.clear_geometry()
 

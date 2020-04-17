@@ -61,18 +61,6 @@ def get_abs_mat_names(all:bool=True):
     return materials
 
 
-def get_uv_layer_data(obj):
-    """ returns data of active uv texture for object """
-    obj_uv_layers = obj.data.uv_layers if b280() else obj.data.uv_textures
-    if len(obj_uv_layers) == 0:
-        return None
-    active_uv = obj_uv_layers.active
-    if active_uv is None:
-        obj_uv_layers.active = obj_uv_layers[0]
-        active_uv = obj_uv_layers.active
-    return active_uv.data
-
-
 def update_displacement_of_mat(mat, displacement=0.04):
     """ snippit from 'update_abs_displace' function found in ABS Plastic Materials source code """
     scn = bpy.context.scene
@@ -259,8 +247,9 @@ def get_brick_rgba(obj, face_idx, point, uv_image=None, color_depth:int=-1):
         rgba = get_uv_pixel_color(obj, face_idx, point, image, color_depth=color_depth)
     else:
         # get closest material using material slot of face
-        orig_mat_name = get_mat_at_face_idx(obj, face_idx)
-        rgba = get_material_color(orig_mat_name) if orig_mat_name is not None else None
+        orig_mat = get_mat_at_face_idx(obj, face_idx)
+        orig_mat_name = orig_mat.name if orig_mat is not None else ""
+        rgba = get_material_color(orig_mat_name)
     return rgba, orig_mat_name
 
 

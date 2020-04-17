@@ -79,6 +79,7 @@ classes = [
     SCENE_OT_close_report_error,
     # bricker/ui
     BRICKER_MT_specials,
+    BRICKER_UL_collections_tuple,
     VIEW3D_PT_bricker_brick_models,
     VIEW3D_PT_bricker_animation,
     VIEW3D_PT_bricker_model_transform,
@@ -105,7 +106,3 @@ classes = [
     VIEW3D_PT_bricker_debugging_tools,
     VIEW3D_PT_bricker_matrix_details,
 ]
-
-if b280():
-    # bricker/ui/ (other_property_groups)
-    classes.append(BRICKER_UL_collections_tuple)

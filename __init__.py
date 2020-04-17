@@ -95,8 +95,8 @@ def register():
         description="Smoke data stored for brickify operation",
         default="",
     )
-    if b280():
-        Object.stored_parents = CollectionProperty(type=BRICKER_UL_collections_tuple)
+    # if b280():
+    Object.stored_parents = CollectionProperty(type=BRICKER_UL_collections_tuple)
     Material.num_averaged = IntProperty(
         name="Colors Averaged",
         description="Number of colors averaged together",

@@ -26,9 +26,10 @@ from mathutils import Vector
 from mathutils.interpolate import poly_3d_calc
 
 # Module imports
-from .reporting import *
-from .maths import *
 from .colors import *
+from .materials import *
+from .maths import *
+from .reporting import *
 from .wrappers import *
 
 common_pixel_cache = dict()
@@ -147,14 +148,12 @@ def get_uv_pixel_color(obj:Object, face_idx:int, point:Vector, uv_image:Image=No
     """ get RGBA value in UV image for point at specified face index """
     if face_idx is None:
         return None
-    # get closest material using UV map
-    face = obj.data.polygons[face_idx]
     # get uv_layer image for face
     image = get_uv_image(obj, face_idx, uv_image)
     if image is None:
         return None
     # get uv coordinate based on nearest face intersection
-    uv_coord = get_uv_coord(obj.data, face, point, image, mapping_loc, mapping_scale)
+    uv_coord = get_uv_coord(obj, face_idx, point, image, mapping_loc, mapping_scale)
     # retrieve rgba value at uv coordinate
     rgba = get_pixel(image, uv_coord, image_frame=image_frame, color_depth=color_depth)
     # gamma correct color value
@@ -221,22 +220,23 @@ def duplicate_image(img:Image, name:str, new_pixels:np.ndarray=None):
     return new_image
 
 
-def get_uv_coord(mesh:Mesh, face, point:Vector, image:Image, mapping_loc:Vector=Vector((0, 0)), mapping_scale:Vector=Vector((1, 1))):
+@timed_call("test", precision=6)
+def get_uv_coord(obj:Object, face_idx:int, point:Vector, image:Image, mapping_loc:Vector=Vector((0, 0)), mapping_scale:Vector=Vector((1, 1))):
     """ returns UV coordinate of target point in source mesh image texture
-    mesh          -- mesh data from source object
-    face          -- face object from mesh
+    mesh          -- source object containing mesh data
+    face          -- index of face from mesh
     point         -- coordinate of target point on source mesh
     image         -- image texture for source mesh
     mapping_loc   -- offset uv coord location (from mapping node)
     mapping_scale -- offset uv coord scale (from mapping node)
     """
     # get active uv layer data
-    uv_layer = mesh.uv_layers.active
-    if uv_layer is None:
-        return None
-    uv = uv_layer.data
+    mat = get_mat_at_face_idx(obj, face_idx)
+    uv = get_uv_layer_data(obj, mat)
+    # get face from face index
+    face = obj.data.polygons[face_idx]
     # get 3D coordinates of face's vertices
-    lco = [mesh.vertices[i].co for i in face.vertices]
+    lco = [obj.data.vertices[i].co for i in face.vertices]
     # get uv coordinates of face's vertices
     luv = [uv[i].uv for i in face.loop_indices]
     # calculate barycentric weights for point
@@ -278,6 +278,25 @@ def get_uv_coord_in_ref_image(loc:Vector, img_obj:Object):
     ))
     pixel_loc = Vector(pixel_offset[:2]) - vec_mult(img_size, img_off)
     return pixel_loc
+
+
+def get_uv_layer_data(obj, mat=None):
+    """ returns data of active uv texture for object """
+    obj_uv_layers = obj.data.uv_layers if b280() else obj.data.uv_textures
+    # get uv layer from node in material's node tree
+    if mat is not None and mat.use_nodes:
+        mat_nodes = mat.node_tree.nodes
+        uv_name_from_node = next((node.uv_map for node in mat_nodes if node.type == "UVMAP"), None)
+        if uv_name_from_node is not None and uv_name_from_node in obj_uv_layers:
+            return obj_uv_layers[uv_name_from_node].data
+    # otherwise, get active uv layer
+    if len(obj_uv_layers) == 0:
+        return None
+    active_uv = obj_uv_layers.active
+    if active_uv is None:
+        obj_uv_layers.active = obj_uv_layers[0]
+        active_uv = obj_uv_layers.active
+    return active_uv.data
 
 
 def get_2d_pixel_array(pixels:np.ndarray, channels:int):
