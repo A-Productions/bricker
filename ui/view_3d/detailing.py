@@ -54,6 +54,8 @@ class VIEW3D_PT_bricker_detailing(Panel):
     def draw(self, context):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
+        layout.label(text="Unavailable in Demo Version")
+        layout.enabled = False
 
         if cm.brick_type == "CUSTOM":
             col = layout.column(align=True)

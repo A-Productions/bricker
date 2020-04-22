@@ -80,14 +80,14 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Start",
         description="First frame of the brick animation",
         update=dirty_anim,
-        min=0, max=500000,
+        min=0, max=10,
         default=1,
     )
     stop_frame = IntProperty(
         name="End",
         description="Final frame of the brick animation",
         update=dirty_anim,
-        min=0, max=500000,
+        min=0, max=10,
         default=10,
     )
 
@@ -124,7 +124,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Connectivity",
         description="Quality of the model's brick connectivity (higher numbers are slower but bricks will be more interconnected)",
         update=dirty_build,
-        min=1, soft_max=100,
+        min=1, max=1,
         default=1,
     )
     smoke_density = FloatProperty(
@@ -568,7 +568,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="Number of vertices in each circle in brick mesh",
         update=update_circle_verts,
         min=4, soft_max=64,
-        default=16,
+        default=6,
     )
     # BEVEL SETTINGS
     bevel_added = BoolProperty(

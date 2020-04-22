@@ -93,3 +93,9 @@ class VIEW3D_PT_bricker_animation(Panel):
                     if total_skipped > 0:
                         row = col1.row(align=True)
                         row.label(text="Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
+
+        col = layout.column(align=True)
+        col.active = cm.animated or cm.use_animation
+        col.scale_y = 0.7
+        col.label(text="Demo Version")
+        col.label(text="(up to 10 frames allowed)")

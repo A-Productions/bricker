@@ -58,6 +58,8 @@ class VIEW3D_PT_bricker_merge_settings(Panel):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
         layout.active = cm.instance_method != "POINT_CLOUD"
+        layout.enabled = False
+        layout.label(text="Unavailable in Demo Version")
 
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -96,6 +98,8 @@ class VIEW3D_PT_bricker_merge_alignment(Panel):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
         layout.active = cm.instance_method != "POINT_CLOUD"
+        layout.enabled = False
+        layout.label(text="Unavailable in Demo Version")
 
         col = layout.column(align=True)
         row = col.row(align=True)

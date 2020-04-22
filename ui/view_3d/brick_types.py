@@ -54,9 +54,14 @@ class VIEW3D_PT_bricker_brick_types(Panel):
         layout = self.layout
         # right_align(layout)
         scn, cm, _ = get_active_context_info()
+        layout.enabled = False
 
-        # col = layout.column(align=True)
-        layout.prop(cm, "brick_type", text="")
+        col = layout.column(align=True)
+        col.scale_y = 0.7
+        col.label(text="Unavailable in Demo Version")
+
+        col = layout.column(align=True)
+        col.prop(cm, "brick_type", text="")
 
         if mergable_brick_type(cm.brick_type):
             col = layout.column(align=True)

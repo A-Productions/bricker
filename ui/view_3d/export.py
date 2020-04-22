@@ -58,6 +58,10 @@ class VIEW3D_PT_bricker_export(Panel):
     def draw(self, context):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
+        col = layout.column(align=True)
+        col.scale_y = 0.7
+        col.label(text="Unavailable in Demo Version")
+        layout.enabled = False
 
         col = layout.column(align=True)
         col.operator("bricker.bake_model", text="Bake Model" if cm.model_created else "Bake Current Frame", icon="OBJECT_DATA")

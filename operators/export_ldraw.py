@@ -41,11 +41,11 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
 
     @classmethod
     def poll(self, context):
-        return True
+        return False
 
     def execute(self, context):
         try:
-            self.write_ldraw_file()
+            pass
         except:
             bricker_handle_exception()
         return{"FINISHED"}

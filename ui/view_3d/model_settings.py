@@ -79,10 +79,12 @@ class VIEW3D_PT_bricker_model_settings(Panel):
         row.active = not cm.use_animation and cm.instance_method != "POINT_CLOUD"
         row.prop(cm, "split_model")
 
-        col = layout.column()
+        col = layout.column(align=True)
+        col.enabled = False
         row = col.row(align=True)
         row.active = cm.calc_internals
         row.prop(cm, "shell_thickness")
+        col.label(text="Unavailable in Demo Version")
 
         col = layout.column()
         row = col.row(align=True)

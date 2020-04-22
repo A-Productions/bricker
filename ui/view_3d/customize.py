@@ -60,6 +60,9 @@ class VIEW3D_PT_bricker_customize(Panel):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
 
+        layout.enabled = False
+        layout.label(text="Unavailable in Demo Version")
+
         if cm.animated:
             layout.label(text="Not available for animations")
             return
@@ -115,11 +118,11 @@ class VIEW3D_PT_bricker_customize(Panel):
             col.operator("bricker.bricksculpt_null", text="Draw/Cut Tool", icon="GREASEPENCIL").mode = "DRAW"
             col.operator("bricker.bricksculpt_null", text="Merge/Split Tool", icon="SCULPTMODE_HLT").mode = "MERGE_SPLIT"
             col.operator("bricker.bricksculpt_null", text="Paintbrush Tool", icon="BRUSH_DATA").mode = "PAINT"
-            col = layout.column(align=True)
-            col.scale_y = 0.7
-            col.label(text="'BrickSculpt' addon not installed")
-            col = layout.column(align=True)
-            col.operator("wm.url_open", text="View Website", icon="WORLD").url = "http://www.blendermarket.com/products/bricksculpt"
+            # col = layout.column(align=True)
+            # col.scale_y = 0.7
+            # col.label(text="'BrickSculpt' addon not installed")
+            # col = layout.column(align=True)
+            # col.operator("wm.url_open", text="View Website", icon="WORLD").url = "http://www.blendermarket.com/products/bricksculpt"
             # row = col.row(align=True)
             # row.scale_y = 0.7
             # row.label(text="BrickSculpt coming soon to")
@@ -181,6 +184,9 @@ class VIEW3D_PT_bricker_legacy_customization_tools(Panel):
     def draw(self, context):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
+
+        layout.enabled = False
+        layout.label(text="Unavailable in Demo Version")
 
         col1 = layout.column(align=True)
         col1.label(text="Brick Operations:")

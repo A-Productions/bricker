@@ -250,6 +250,9 @@ class VIEW3D_PT_bricker_material_properties(Panel):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
 
+        layout.enabled = False
+        layout.label(text="Unavailable in Demo Version")
+
         col = layout.column(align=True)
         right_align(col)
         col.prop(cm, "use_abs_template")

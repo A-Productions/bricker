@@ -214,15 +214,15 @@ def add_material_to_list(self, context):
 def get_brick_type_items(self, context):
     description = "Use this brick type to build the model"
     brick_type_items = [
-        ("BRICKS", "Bricks (fast)", description, 0),  # first item will be default
-        ("BRICKS_AND_PLATES", "Bricks and Plates", description, 1),
-        ("CONES", "Cones", description, 2),
-        ("CUSTOM", "Custom", "Use custom object to build the model", 3),
-        ("CYLINDERS", "Cylinders", description, 4),
-        ("PLATES", "Plates", description, 5),
-        ("STUDS", "Studs", description, 7),
-        ("STUD_HOLLOWS", "Hollow Studs", description, 8),
-        ("STUD_TILES", "Round 1x1 Tiles", description, 9),
+        # ("BRICKS", "Bricks (fast)", description, 0),  # first item will be default
+        ("BRICKS_AND_PLATES", "Bricks and Plates", description, 0),
+        # ("CONES", "Cones", description, 2),
+        # ("CUSTOM", "Custom", "Use custom object to build the model", 3),
+        # ("CYLINDERS", "Cylinders", description, 4),
+        # ("PLATES", "Plates", description, 5),
+        # ("STUDS", "Studs", description, 7),
+        # ("STUD_HOLLOWS", "Hollow Studs", description, 8),
+        # ("STUD_TILES", "Round 1x1 Tiles", description, 9),
     ]
     # if bpy.props.bricker_developer_mode != 0:
     #     brick_types.insert(6, ("SLOPES", "Slopes (fast)", description, 6))
