@@ -26,7 +26,7 @@ import bmesh
 import mathutils
 from mathutils import Vector, Euler, Matrix
 from bpy_extras import view3d_utils
-from bpy.types import Object, Mesh, Scene, Event, Modifier, Material, bpy_prop_array
+from bpy.types import Object, Mesh, Context, Scene, Event, Modifier, Material, bpy_prop_array
 try:
     from bpy.types import ViewLayer, LayerCollection
 except ImportError:
@@ -490,16 +490,17 @@ def change_context(context, areaType:str):
     return last_area_type
 
 
-def assemble_override_context(area_type:str="VIEW_3D", scene:Scene=None):
+def assemble_override_context(area_type:str="VIEW_3D", context:Context=None, scene:Scene=None):
     """
     Iterates through the blender GUI's areas & regions to find the View3D space
     NOTE: context override can only be used with bpy.ops that were called from a window/screen with a view3d space
     """
-    win      = bpy.context.window
+    context  = context or bpy.context
+    win      = context.window
     scr      = win.screen
     areas3d  = [area for area in scr.areas if area.type == area_type]
     region   = [region for region in areas3d[0].regions if region.type == "WINDOW"]
-    scene    = scene or bpy.context.scene
+    scene    = scene or context.scene
     override = {
         "window": win,
         "screen": scr,
