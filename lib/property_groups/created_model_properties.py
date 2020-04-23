@@ -222,7 +222,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Shell Thickness",
         description="Thickness of the outer shell of bricks",
         update=dirty_build,
-        min=1, max=50,
+        min=1, max=1,
         default=1,
     )
 
@@ -567,7 +567,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Vertices",
         description="Number of vertices in each circle in brick mesh",
         update=update_circle_verts,
-        min=4, soft_max=64,
+        min=6, soft_max=6,
         default=6,
     )
     # BEVEL SETTINGS

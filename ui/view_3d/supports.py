@@ -60,6 +60,7 @@ class VIEW3D_PT_bricker_supports(Panel):
         row.prop(cm, "internal_supports", text="")
         if cm.internal_supports == "LATTICE":
             col = layout.column(align=True)
+            col.enabled = False
             row = col.row(align=True)
             row.prop(cm, "lattice_step")
             row = col.row(align=True)
@@ -68,9 +69,12 @@ class VIEW3D_PT_bricker_supports(Panel):
             row = col.row(align=True)
             right_align(row)
             row.prop(cm, "alternate_xy")
+            col.label(text="Unavailable in Beta Version")
         elif cm.internal_supports == "COLUMNS":
             col = layout.column(align=True)
+            col.enabled = False
             row = col.row(align=True)
             row.prop(cm, "col_thickness")
             row = col.row(align=True)
             row.prop(cm, "col_step")
+            col.label(text="Unavailable in Beta Version")
