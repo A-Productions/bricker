@@ -220,7 +220,6 @@ def duplicate_image(img:Image, name:str, new_pixels:np.ndarray=None):
     return new_image
 
 
-@timed_call("test", precision=6)
 def get_uv_coord(obj:Object, face_idx:int, point:Vector, image:Image, mapping_loc:Vector=Vector((0, 0)), mapping_scale:Vector=Vector((1, 1))):
     """ returns UV coordinate of target point in source mesh image texture
     mesh          -- source object containing mesh data

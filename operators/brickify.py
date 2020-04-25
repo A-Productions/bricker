@@ -221,7 +221,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             wm.event_timer_remove(self._timer)
         cm.brickifying_in_background = False
         stopwatch("Total Time Elapsed", self.start_time, precision=2)
-        
+
         # refresh model info
         prefs = get_addon_preferences()
         if prefs.auto_refresh_model_info:
