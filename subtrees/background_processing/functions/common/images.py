@@ -159,7 +159,7 @@ def get_uv_pixel_color(obj:Object, face_idx:int, point:Vector, uv_image:Image=No
     # gamma correct color value
     if image.colorspace_settings.name == "sRGB":
         rgba = gamma_correct_srgb_to_linear(rgba)
-    return [round(v, 6) for v in rgba]
+    return [float(round(v, 6)) for v in rgba]
 
 
 def get_uv_image(obj:Object, face_idx:int, uv_image:Image=None):
