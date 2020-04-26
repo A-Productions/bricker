@@ -80,15 +80,15 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Start",
         description="First frame of the brick animation",
         update=dirty_anim,
-        min=0, max=10,
+        min=0, max=5,
         default=1,
     )
     stop_frame = IntProperty(
         name="End",
         description="Final frame of the brick animation",
         update=dirty_anim,
-        min=0, max=10,
-        default=10,
+        min=0, max=5,
+        default=5,
     )
 
     # BASIC MODEL SETTINGS

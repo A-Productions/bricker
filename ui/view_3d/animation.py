@@ -98,4 +98,4 @@ class VIEW3D_PT_bricker_animation(Panel):
         col.active = cm.animated or cm.use_animation
         col.scale_y = 0.7
         col.label(text="Demo Version")
-        col.label(text="(up to frame 10 frames allowed)")
+        col.label(text="(up to frame 5 allowed)")
