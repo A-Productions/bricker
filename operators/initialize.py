@@ -71,7 +71,7 @@ class BRICKER_OT_initialize(Operator):
     def execute(self, context):
         # add new scn.cmlist item
         if self.action == "ADD":
-            CMLIST_OT_list_action.add_item()
+            CMLIST_OT_list_action.add_item(self.report)
         # run modal
         context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}

@@ -60,9 +60,6 @@ class VIEW3D_PT_bricker_customize(Panel):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
 
-        layout.enabled = False
-        layout.label(text="Unavailable in Demo Version")
-
         if cm.animated:
             layout.label(text="Not available for animations")
             return

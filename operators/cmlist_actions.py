@@ -60,7 +60,7 @@ class CMLIST_OT_list_action(Operator):
                 self.remove_item(idx)
 
             elif self.action == "ADD":
-                self.add_item()
+                self.add_item(self.report)
 
             elif self.action == "DOWN" and idx < len(scn.cmlist) - 1:
                 self.move_down(item)
@@ -89,9 +89,12 @@ class CMLIST_OT_list_action(Operator):
     # class methods
 
     @staticmethod
-    def add_item():
+    def add_item(report_fn):
         scn = bpy.context.scene
         active_object = bpy.context.active_object
+        if len(scn.cmlist) > 0:
+            report_fn({"WARNING"}, "Unavailable in Demo Version")
+            return
         if active_object:
             # if active object isn't on visible layer, don't set it as default source for new model
             if not is_obj_visible_in_viewport(active_object):
@@ -99,6 +102,7 @@ class CMLIST_OT_list_action(Operator):
             # if active object is already the source for another model, don't set it as default source for new model
             elif any([cm.source_obj is active_object for cm in scn.cmlist]):
                 active_object = None
+        scn.cmlist.clear()
         item = scn.cmlist.add()
         # initialize source object and name for item
         if active_object and active_object.type == "MESH" and not active_object.name.startswith("Bricker_"):

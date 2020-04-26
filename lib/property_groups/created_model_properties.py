@@ -567,8 +567,8 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Vertices",
         description="Number of vertices in each circle in brick mesh",
         update=update_circle_verts,
-        min=6, soft_max=6,
-        default=6,
+        min=8, soft_max=8,
+        default=8,
     )
     # BEVEL SETTINGS
     bevel_added = BoolProperty(

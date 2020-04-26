@@ -79,6 +79,8 @@ class VIEW3D_PT_bricker_advanced(Panel):
         col = layout.column(align=True)
         col.label(text="Instance Method:")
         col.prop(cm, "instance_method", text="")
+        col.enabled = False
+        col.label(text="Unavailable in Demo Version")
 
         # model orientation preferences
         if not cm.use_animation and not (cm.model_created or cm.animated):
