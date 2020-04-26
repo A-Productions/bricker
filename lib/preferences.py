@@ -35,7 +35,6 @@ class BRICKER_AP_preferences(AddonPreferences):
         description="Method for setting default 'Model Height' value when new model is added",
         items=[
             ("RELATIVE", "Relative (recommended)", "'Model Height' setting defaults to fixed number of bricks tall when new model is added"),
-            ("ABSOLUTE", "Absolute", "'Model Height' setting defaults to fixed height in decimeters when new model is added"),
         ],
         default="RELATIVE",
     )
@@ -122,6 +121,7 @@ class BRICKER_AP_preferences(AddonPreferences):
 
         # draw addon prefs
         row = col1.row(align=False)
+        row.enabled = False
         split = layout_split(row, factor=0.275)
         col = split.column(align=True)
         col.label(text="Default Brick Height:")
@@ -134,6 +134,9 @@ class BRICKER_AP_preferences(AddonPreferences):
             col.prop(self, "relative_brick_height")
         else:
             col.prop(self, "absolute_brick_height")
+        row = col1.row(align=False)
+        row.enabled = False
+        row.label(text="Unavailable in Demo Version")
         col1.separator()
         col1.separator()
         row = col1.row(align=False)
