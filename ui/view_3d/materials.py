@@ -99,7 +99,10 @@ class VIEW3D_PT_bricker_materials(Panel):
             row = col.row(align=True)
             row.prop(cm, "color_snap", expand=True)
             if cm.color_snap == "RGB":
-               col.prop(cm, "color_depth")
+               row = col.row()
+               row.prop(cm, "color_depth")
+               row.enabled = False
+               row.label(text="Unavailable in Demo Version")
             if cm.color_snap == "ABS":
                 col.prop(cm, "transparent_weight", text="Transparent Weight")
 

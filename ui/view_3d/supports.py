@@ -69,7 +69,7 @@ class VIEW3D_PT_bricker_supports(Panel):
             row = col.row(align=True)
             right_align(row)
             row.prop(cm, "alternate_xy")
-            col.label(text="Unavailable in Beta Version")
+            col.label(text="Unavailable in Demo Version")
         elif cm.internal_supports == "COLUMNS":
             col = layout.column(align=True)
             col.enabled = False
@@ -77,4 +77,4 @@ class VIEW3D_PT_bricker_supports(Panel):
             row.prop(cm, "col_thickness")
             row = col.row(align=True)
             row.prop(cm, "col_step")
-            col.label(text="Unavailable in Beta Version")
+            col.label(text="Unavailable in Demo Version")
