@@ -56,14 +56,6 @@ class VIEW3D_PT_bricker_advanced(Panel):
         # right_align(layout)
         scn, cm, n = get_active_context_info()
 
-        # Alert user that update is available
-        if addon_updater_ops.updater.update_ready:
-            col = layout.column(align=True)
-            col.scale_y = 0.7
-            col.label(text="Bricker update available!", icon="INFO")
-            col.label(text="Install from Bricker addon prefs")
-            layout.separator()
-
         # draw test brick generator button (for testing purposes only)
         if BRICKER_OT_test_brick_generators.draw_ui_button():
             col = layout.column(align=True)

@@ -25,7 +25,7 @@ bl_info = {
     "warning"     : "Demo Version – Full version available at the Blender Market!",  # used for warning icon and text in addons panel
     "wiki_url"    : "https://www.blendermarket.com/products/bricker/",
     "doc_url"     : "https://www.blendermarket.com/products/bricker/",  # 2.83+
-    "tracker_url" : "https://github.com/bblanimation/bricker/issues",
+    "tracker_url" : "https://www.blendermarket.com/products/bricker/",
     "category"    : "Object",
 }
 
@@ -42,7 +42,6 @@ from bpy.types import WindowManager, Object, Scene, Material
 from bpy.utils import register_class, unregister_class
 
 # Module imports
-from . import addon_updater_ops
 from .functions.brick import get_legal_brick_sizes
 from .functions.common import b280, make_annotations
 from .functions.app_handlers import *
@@ -159,14 +158,8 @@ def register():
     bpy.app.handlers.load_post.append(handle_upconversion)
     bpy.app.handlers.load_post.append(reset_properties)
 
-    # addon updater code and configurations
-    addon_updater_ops.register(bl_info)
-
 
 def unregister():
-    # addon updater unregister
-    addon_updater_ops.unregister()
-
     # unregister app handlers
     bpy.app.handlers.load_post.remove(reset_properties)
     bpy.app.handlers.load_post.remove(handle_upconversion)
