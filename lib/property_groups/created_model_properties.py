@@ -269,7 +269,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="Type of algorithm used for merging bricks together",
         items=[
             # ("NONE", "None (fast)", "Bricks are not merged"),
-            ("GREEDY", "Greedy", "Creates fewest amount of bricks possible"),
+            # ("GREEDY", "Greedy", "Creates fewest amount of bricks possible"),
             ("RANDOM", "Random", "Merges randomly for realistic build"),
         ],
         update=dirty_build,
@@ -485,9 +485,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         name="Stud Detailing",
         description="Choose where to draw brick studs",
         items=[
-            ("NONE", "None", "Don't include brick studs/logos on bricks"),
             ("EXPOSED", "Exposed Bricks", "Include brick studs/logos only on bricks with the top exposed"),
-            ("ALL", "All Bricks", "Include brick studs/logos only on bricks with the top exposed"),
         ],
         update=dirty_bricks,
         default="EXPOSED",
@@ -495,7 +493,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     logo_type = EnumProperty(
         name="Logo Type",
         description="Choose logo type to draw on brick studs",
-        items=get_logo_types,
+        items=[("NONE", "None", "Don't include Brick Logo on bricks", 0)],
         update=dirty_bricks,
         # default="NONE",
     )
@@ -546,8 +544,6 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="Level of detail on underside of bricks with obstructed undersides",
         items=[
             ("FLAT", "Flat", "Draw single face on brick underside", 0),
-            ("LOW", "Low Detail", "Hollow out brick underside and draw tube supports", 1),
-            ("HIGH", "High Detail", "Draw underside of bricks at full detail (support beams, ticks, inset tubes)", 3),
         ],
         update=dirty_bricks,
         default="FLAT",
@@ -557,8 +553,6 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         description="Level of detail on underside of bricks with exposed undersides",
         items=[
             ("FLAT", "Flat", "Draw single face on brick underside", 0),
-            ("LOW", "Low Detail", "Hollow out brick underside and draw tube supports", 1),
-            ("HIGH", "High Detail", "Draw underside of bricks at full detail (support beams, ticks, inset tubes)", 3),
         ],
         update=dirty_bricks,
         default="FLAT",
