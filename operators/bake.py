@@ -48,7 +48,7 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
 
     def execute(self, context):
         scn, cm, n = get_active_context_info()
-        cur_f = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
+        cur_f = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame, cm.last_step_frame)
         # set is_brick/is_brickified_object to False
         bricks = get_bricks()
         # apply object transformation
@@ -64,7 +64,7 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
         # delete parent/source/dup
         objs_to_delete = [bpy.data.objects.get("Bricker_%(n)s_parent" % locals()), cm.source_obj]
         if cm.animated:
-            for f in range(cm.last_start_frame, cm.last_stop_frame + 1):
+            for f in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
                 objs_to_delete.append(bpy.data.objects.get("Bricker_%(n)s_f_%(f)s" % locals()))
                 objs_to_delete.append(bpy.data.objects.get("Bricker_%(n)s_parent_f_%(f)s" % locals()))
                 if f != cur_f:

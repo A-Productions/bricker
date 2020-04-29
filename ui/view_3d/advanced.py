@@ -97,7 +97,7 @@ class VIEW3D_PT_bricker_ray_casting(Panel):
     bl_idname      = "VIEW3D_PT_bricker_ray_casting"
     bl_parent_id   = "VIEW3D_PT_bricker_advanced"
     bl_context     = "objectmode"
-    bl_options     = {"DEFAULT_CLOSED"}
+    # bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
     def poll(self, context):

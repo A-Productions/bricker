@@ -59,20 +59,21 @@ class VIEW3D_PT_bricker_animation(Panel):
 
     def draw(self, context):
         layout = self.layout
+        right_align(layout)
         scn, cm, _ = get_active_context_info()
 
-        col1 = layout.column(align=True)
-        col1.active = cm.animated or cm.use_animation
-        # col1.scale_y = 0.85
-        row = col1.row(align=True)
-        row.prop(cm, "start_frame")
-        row.prop(cm, "stop_frame")
+        col = layout.column(align=True)
+        col.active = cm.animated or cm.use_animation
+        # col.scale_y = 0.85
+        col.prop(cm, "start_frame", text="Frame Start")
+        col.prop(cm, "stop_frame", text="End")
+        col.prop(cm, "step_frame", text="Step")
         if cm.animated:
-            col1 = layout.column()
-            row = col1.row(align=True)
-            row.enabled = False
-            row.prop(cm, "last_start_frame")
-            row.prop(cm, "last_stop_frame")
+            col = layout.column(align=True)
+            col.enabled = False
+            col.prop(cm, "last_start_frame", text="Start (cur)")
+            col.prop(cm, "last_stop_frame", text="End (cur)")
+            # col.prop(cm, "last_step_frame", text="Step (cur)")
         source = cm.source_obj
         self.applied_mods = False
         if source:
@@ -91,5 +92,5 @@ class VIEW3D_PT_bricker_animation(Panel):
                         e = "-1"
                     total_skipped = int(e) - int(s) + 1
                     if total_skipped > 0:
-                        row = col1.row(align=True)
+                        row = col.row(align=True)
                         row.label(text="Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())

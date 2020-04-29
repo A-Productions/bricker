@@ -102,7 +102,7 @@ class VIEW3D_PT_bricker_matrix_details(Panel):
         row.prop(cm, "active_key", text="")
 
         if cm.animated:
-            bricksdict = get_bricksdict(cm, d_type="ANIM", cur_frame=get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame))
+            bricksdict = get_bricksdict(cm, d_type="ANIM", cur_frame=get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame, cm.last_step_frame))
         elif cm.model_created:
             bricksdict = get_bricksdict(cm)
         if bricksdict is None:

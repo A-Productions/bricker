@@ -98,7 +98,7 @@ class BRICKER_OT_stop_brickifying_in_background(bpy.types.Operator):
             updated_stop_frame = False
             completed_frames = str_to_list(cm.completed_frames)
             # set end frame to last consecutive completed frame and toss non-consecutive frames
-            for frame in range(cm.last_start_frame, cm.last_stop_frame + 1):
+            for frame in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
                 if frame not in completed_frames and not updated_stop_frame:
                     # set end frame to last consecutive completed frame
                     updated_stop_frame = True
@@ -113,7 +113,7 @@ class BRICKER_OT_stop_brickifying_in_background(bpy.types.Operator):
                     delete(bricker_bricks_coll.objects)
                     bpy_collections().remove(bricker_bricks_coll)
             # hide objs unless on scene current frame
-            for frame in range(cm.last_start_frame, cm.last_stop_frame + 1):
+            for frame in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
                 set_frame_visibility(cm, frame)
             # finish animation and kill running jobs
             finish_animation(cm)

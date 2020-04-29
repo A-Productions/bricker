@@ -82,7 +82,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                     " 1 0  0 0 1 0  0 0  1",
                     " 0 0  1 0 1 0 -1 0  0",
                     "-1 0  0 0 1 0  0 0 -1"]
-        for frame in range(cm.start_frame, cm.stop_frame + 1) if cm.animated else [-1]:
+        for frame in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame) if cm.animated else [-1]:
             path = self.filepath
             f = open(path, "w")
             # write META commands

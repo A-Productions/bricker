@@ -237,7 +237,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         scn = bpy.context.scene
         if model_type == "ANIMATION":
             dupe_name = "Bricker_%(n)s_f_" % locals()
-            d_objects = [bpy.data.objects.get(dupe_name + str(fn)) for fn in range(cm.last_start_frame, cm.last_stop_frame + 1)]
+            d_objects = [bpy.data.objects.get(dupe_name + str(fn)) for fn in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame)]
         else:
             d_objects = [bpy.data.objects.get("%(n)s__dup__" % locals())]
         # # if preserve frames, remove those objects from d_objects
@@ -323,7 +323,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             cm.model_created = False
         elif model_type == "ANIMATION":
             # clean up bricks collection
-            for i in range(cm.last_start_frame, cm.last_stop_frame + 1):
+            for i in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
                 if preserved_frames is not None and i >= preserved_frames[0] and i <= preserved_frames[1]:
                     continue
                 percent = (i - cm.last_start_frame + 1)/(cm.last_stop_frame - cm.last_start_frame + 1)

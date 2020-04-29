@@ -65,8 +65,10 @@ def center_mesh_origin(m, dimensions, size):
     m.transform(Matrix.Translation(-Vector(center)))
 
 
-def get_anim_adjusted_frame(frame, start_frame, stop_frame):
-    return min(stop_frame, max(start_frame, frame))
+def get_anim_adjusted_frame(frame, start_frame, stop_frame, step_frame=1):
+    clamped_frame = min(stop_frame, max(start_frame, frame))
+    adjusted_frame = clamped_frame - ((clamped_frame - start_frame) % step_frame)
+    return adjusted_frame
 
 
 def get_bricks(cm=None, typ=None):
@@ -79,7 +81,7 @@ def get_bricks(cm=None, typ=None):
         if bcoll:
             bricks = [obj for obj in bcoll.objects if not (obj.name.endswith("_parent") or "_parent_f_" in obj.name)]
     elif typ == "ANIM":
-        for cf in range(cm.last_start_frame, cm.last_stop_frame+1):
+        for cf in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
             bcoll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
             if bcoll:
                 bricks += [obj for obj in bcoll.objects if not (obj.name.endswith("_parent") or "_parent_f_" in obj.name)]
@@ -95,7 +97,7 @@ def get_collections(cm=None, typ=None):
         bcolls = [bpy_collections()[cn]]
     if typ == "ANIM":
         bcolls = list()
-        for cf in range(cm.last_start_frame, cm.last_stop_frame+1):
+        for cf in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
             cn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
             bcoll = bpy_collections().get(cn)
             if bcoll:
@@ -357,7 +359,7 @@ def set_frame_visibility(cm, frame):
     cur_bricks_coll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
     if cur_bricks_coll is None:
         return
-    adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
+    adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame, cm.last_step_frame)
     if b280():
         cur_bricks_coll.hide_viewport = frame != adjusted_frame_current
         cur_bricks_coll.hide_render   = frame != adjusted_frame_current

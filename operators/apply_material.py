@@ -83,7 +83,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
         bricks = get_bricks()
         cm.last_material_type = cm.material_type
         last_split_model = cm.last_split_model
-        for frame in range(cm.start_frame, cm.stop_frame + 1) if cm.animated else [-1]:
+        for frame in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame) if cm.animated else [-1]:
             # get bricksdict
             bricksdict = get_bricksdict(cm, d_type="ANIM" if cm.animated else "MODEL", cur_frame=frame)
             if bricksdict is None:

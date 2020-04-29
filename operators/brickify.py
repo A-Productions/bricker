@@ -59,6 +59,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if event.type == "TIMER":
             try:
                 scn, cm, n = get_active_context_info(cm=self.cm)
+                try:
+                    self.source.name
+                except ReferenceError:
+                    self.source = cm.source_obj # protect against 'StructRNA has been removed' error
                 remaining_jobs = self.job_manager.num_pending_jobs() + self.job_manager.num_running_jobs()
                 anim_action = "ANIM" in self.action
                 if anim_action:
@@ -103,7 +107,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                                 safe_link(brick)
                                 if anim_action:
                                     # hide obj unless on scene current frame
-                                    adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
+                                    adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame, cm.last_step_frame)
                                     brick.hide        = frame != adjusted_frame_current
                                     brick.hide_render = frame != adjusted_frame_current
                         if anim_action:
@@ -114,7 +118,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                                 if bricker_bricks_coll.name not in anim_coll.children:
                                     anim_coll.children.link(bricker_bricks_coll)
                                 # hide obj unless on scene current frame
-                                adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
+                                adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame, cm.last_step_frame)
                                 bricker_bricks_coll.hide_viewport = frame != adjusted_frame_current
                                 bricker_bricks_coll.hide_render   = frame != adjusted_frame_current
                             # add completed frame and remove job
@@ -196,8 +200,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         bpy.data.objects.remove(obj, do_unlink=True)
                 for cn in get_collections(cm, typ="MODEL" if self.action == "CREATE" else "ANIM"):
                     if cn: bpy_collections().remove(cn, do_unlink=True)
-                if self.source:
-                    self.source.protected = False
+                if cm.source_obj:
+                    cm.source_obj.protected = False
                     select(self.source, active=True)
                 cm.animated = previously_animated
                 cm.model_created = previously_model_created
@@ -215,6 +219,13 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             self.finish(context, cm)
             return {"FINISHED"}
 
+    def cancel(self, context):
+        scn, cm, n = get_active_context_info(self.cm)
+        self.finish(context, cm)
+        if self.job_manager.num_running_jobs() + self.job_manager.num_pending_jobs() > 0:
+            self.job_manager.kill_all()
+            print("Background processes for '%(n)s' model killed" % locals())
+
     def finish(self, context, cm):
         if self._timer is not None:
             wm = context.window_manager
@@ -225,14 +236,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # refresh model info
         prefs = get_addon_preferences()
         if prefs.auto_refresh_model_info:
-            bpy.ops.bricker.refresh_model_info()
-
-    def cancel(self, context):
-        scn, cm, n = get_active_context_info(self.cm)
-        self.finish(context, cm)
-        if self.job_manager.num_running_jobs() + self.job_manager.num_pending_jobs() > 0:
-            self.job_manager.kill_all()
-            print("Background processes for '%(n)s' model killed" % locals())
+            scn = bpy.context.scene
+            bricksdict = get_bricksdict(cm, d_type="MODEL" if cm.model_created else "ANIM", cur_frame=scn.frame_current)
+            set_model_info(bricksdict, cm)
 
     ################################################
     # initialization method
@@ -481,7 +487,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if self.brickify_in_background:
             cm.completed_frames = ""
             cm.num_animated_frames = 0
-            cm.frames_to_animate = (cm.stop_frame - cm.start_frame + 1)
+            cm.frames_to_animate = (cm.stop_frame - cm.start_frame + 1) / cm.step_frame
 
         if (self.action == "ANIMATE" or cm.matrix_is_dirty or cm.anim_is_dirty) and not self.updated_frames_only:
             clear_cache(cm, brick_mesh=False, dupes=False)
@@ -517,7 +523,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         filename = bpy.path.basename(bpy.data.filepath)[:-6]
         overwrite_blend = True
         # iterate through frames of animation and generate Brick Model
-        for cur_frame in range(cm.start_frame, cm.stop_frame + 1):
+        for cur_frame in range(cm.start_frame, cm.stop_frame + 1, cm.step_frame):
             if frame_unchanged(self.updated_frames_only, cm, cur_frame):
                 print("skipped frame %(cur_frame)s" % locals())
                 add_completed_frame(cm, cur_frame)
@@ -544,6 +550,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 if not success:
                     break
 
+        # set active frame to original active frame
+        if scn.frame_current != self.orig_frame:
+            scn.frame_set(self.orig_frame)
+
         # unlink source duplicates
         for obj in duplicates.values():
             unlink_object(obj)
@@ -551,6 +561,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         original_stop_frame = cm.last_stop_frame
         cm.last_start_frame = cm.start_frame
         cm.last_stop_frame = cm.stop_frame
+        cm.last_step_frame = cm.step_frame
 
         # hide last frame of previous anim unless on scene current frame
         if self.action == "UPDATE_ANIM" and cm.stop_frame > original_stop_frame and scn.frame_current > original_stop_frame:
@@ -563,12 +574,16 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         wm = bpy.context.window_manager
         bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         parent0 = bpy.data.objects.get(bricker_parent_on)
-        orig_frame = scn.frame_current
-        scn.frame_set(orig_frame)
+        # orig_frame = scn.frame_current
+        # scn.frame_set(orig_frame)
+        scn.frame_set(cur_frame)
+        # # update brick layer offset (custom code for mantissa project)
+        # cm.offset_brick_layers = cur_frame % 3
         # get duplicated source
         source_dup = bpy.data.objects.get("Bricker_%(n)s_f_%(cur_frame)s" % locals())
         # get source info to update
         if in_background and scn not in source_dup.users_scene:
+            # link source dup object to scene
             link_object(source_dup)
             depsgraph_update()
 
@@ -603,7 +618,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # get all_bricks_object
             obj = cur_frame_coll.objects[0]
             # hide collection/obj unless on scene current frame
-            adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.start_frame, cm.stop_frame)
+            adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.start_frame, cm.stop_frame, cm.last_step_frame)
             if cur_frame != adjusted_frame_current:
                 hide(cur_frame_coll if b280() else obj)
             else:

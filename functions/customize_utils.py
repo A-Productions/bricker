@@ -58,7 +58,7 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     # refresh model info
     prefs = get_addon_preferences()
     if prefs.auto_refresh_model_info and not temp_brick:
-        bpy.ops.bricker.refresh_model_info()
+        set_model_info(bricksdict, cm)
     return bricks_created
 
 

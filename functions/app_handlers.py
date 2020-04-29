@@ -54,7 +54,7 @@ def handle_animation(scn, depsgraph=None):
                 cf = int(cur_bricks_coll.name[cur_bricks_coll.name.rfind("_") + 1:])
             except ValueError:
                 continue
-            adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
+            adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame, cm.last_step_frame)
             on_cur_f = adjusted_frame_current == cf
             # set active obj
             active_obj = bpy.context.active_object if hasattr(bpy.context, "active_object") else None
@@ -129,7 +129,7 @@ def reset_properties(dummy):
         if cm.brickifying_in_background and cm.source_obj is not None:
             cm.brickifying_in_background = False
             n = cm.source_obj.name
-            for cf in range(cm.last_start_frame, cm.last_stop_frame):
+            for cf in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
                 cur_bricks_coll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
                 if cur_bricks_coll is None:
                     cm.last_stop_frame = max(cm.last_start_frame, cf - 1)
@@ -182,7 +182,7 @@ def set_anim_frames_visibility(dummy):
     for cm in bpy.context.scene.cmlist:
         if not cm.animated:
             continue
-        for frame in range(cm.last_start_frame, cm.last_stop_frame):
+        for frame in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
             set_frame_visibility(cm, frame)
 
 
@@ -259,7 +259,7 @@ def handle_upconversion(dummy):
                     n = cm.source_name
                     bricker_bricks_cn = "Bricker_%(n)s_bricks" % locals()
                     if cm.animated:
-                        for i in range(cm.last_start_frame, cm.last_stop_frame + 1):
+                        for i in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
                             bricker_bricks_curf_cn = bricker_bricks_cn + "_frame_" + str(i)
                             bcoll = bpy_collections().get(bricker_bricks_curf_cn)
                             if bcoll is not None:

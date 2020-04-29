@@ -90,6 +90,13 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         min=0, max=500000,
         default=10,
     )
+    step_frame = IntProperty(
+        name="Step",
+        description="Number of frames to skip forward when generating the brick animation",
+        update=dirty_anim,
+        min=0, max=500000,
+        default=1,
+    )
 
     # BASIC MODEL SETTINGS
     brick_height = FloatProperty(
@@ -782,13 +789,18 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     last_logo_type = StringProperty(default="NONE")
     last_split_model = BoolProperty(default=False)
     last_start_frame = IntProperty(
-        name="S (cur)",
+        name="Last Start",
         description="Current start frame of brickified animation",
         default=-1,
     )
     last_stop_frame = IntProperty(
-        name="E (cur)",
+        name="Last End",
         description="Current end frame of brickified animation",
+        default=-1,
+    )
+    last_step_frame = IntProperty(
+        name="Last Step",
+        description="Current number of frames to skip forward when generating brickified animation",
         default=-1,
     )
     last_source_mid = StringProperty(default="-1,-1,-1")

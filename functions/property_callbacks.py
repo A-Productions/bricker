@@ -257,7 +257,7 @@ def select_source_model(self, context):
                     select(bricks, active=True, only=True)
                     scn.bricker_last_active_object_name = obj.name if obj is not None else ""
             elif cm.animated:
-                cf = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
+                cf = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame, cm.last_step_frame)
                 brick_coll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
                 if brick_coll is not None and len(brick_coll.objects) > 0 and brick_coll.objects[0] is not None:
                     select(brick_coll.objects[0], active=True, only=True)
