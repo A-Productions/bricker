@@ -3,7 +3,7 @@
 # System imports
 import numpy as np
 from colorsys import rgb_to_hsv, hsv_to_rgb
-from scipy import ndimage
+# from scipy import ndimage
 
 # Blender imports
 # NONE!
@@ -220,23 +220,23 @@ def invert_pixels(pixels, factor, channels):
 
 def box_blur_pixels(old_pixels, width, height, channels, blur_radius=1):
     old_pixels = get_3d_pixel_array(old_pixels, width, height, channels)
-    new_pixels = np.empty(old_pixels.shape)
-    sample_size = 1 + (blur_radius * 2)
-    new_pixels = ndimage.filters.uniform_filter(old_pixels, size=(sample_size, sample_size, 1))
-    # for row in range(blur_radius, len(pixels) - blur_radius):
-    #     for col in range(blur_radius, len(pixels[0]) - blur_radius):
-    #         new_pixels[row][col] = np.mean(pixels[row - blur_radius:row + blur_radius, col - blur_radius:col + blur_radius])
+    # sample_size = 1 + (blur_radius * 2)
+    # new_pixels = ndimage.filters.uniform_filter(old_pixels, size=(sample_size, sample_size, 1))
+    new_pixels = old_pixels.copy()
+    for row in range(blur_radius, len(pixels) - blur_radius):
+        for col in range(blur_radius, len(pixels[0]) - blur_radius):
+            new_pixels[row][col] = np.mean(pixels[row - blur_radius:row + blur_radius, col - blur_radius:col + blur_radius])
     new_pixels = get_1d_pixel_array(new_pixels)
     return new_pixels
 
 
-def gaussian_blur_pixels(old_pixels, width, height, channels, blur_radius=1):
-    old_pixels = get_3d_pixel_array(old_pixels, width, height, channels)
-    new_pixels = np.empty(old_pixels.shape)
-    sample_size = 1 + (blur_radius * 2)
-    new_pixels = ndimage.filters.gaussian_filter(old_pixels, sigma=(sample_size, sample_size, 1))
-    new_pixels = get_1d_pixel_array(new_pixels)
-    return new_pixels
+# def gaussian_blur_pixels(old_pixels, width, height, channels, blur_radius=1):
+#     old_pixels = get_3d_pixel_array(old_pixels, width, height, channels)
+#     new_pixels = np.empty(old_pixels.shape)
+#     sample_size = 1 + (blur_radius * 2)
+#     new_pixels = ndimage.filters.gaussian_filter(old_pixels, sigma=(sample_size, sample_size, 1))
+#     new_pixels = get_1d_pixel_array(new_pixels)
+#     return new_pixels
 
 
 def flip_pixels(old_pixels, flip_x, flip_y, width, height, channels):

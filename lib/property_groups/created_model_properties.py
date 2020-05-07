@@ -487,11 +487,19 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirty_material,
         default=1,
     )
-    target_material = StringProperty(
+    target_material = PointerProperty(
         name="Target Material",
+        type=bpy.types.Material,
         description="Add material to materials list",
         update=add_material_to_list,
+    )
+    target_material_message = StringProperty(
+        description="Message from target material chosen (warning or success)",
         default="",
+    )
+    target_material_time = StringProperty(  # stored as string because float cuts off digits
+        description="'str(time.time())' from when the material message was created",
+        default="0",
     )
 
     # BRICK DETAIL SETTINGS

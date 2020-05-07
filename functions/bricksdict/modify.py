@@ -49,7 +49,7 @@ def update_materials(bricksdict, source_dup, keys, cur_frame=None, action="CREAT
     transmission = cm.color_snap_transmission
     displacement = cm.color_snap_displacement
     color_depth = cm.color_depth if color_snap == "RGB" else 0
-    blur_radius = cm.blur_radius if color_snap == "RGB" else 0
+    blur_radius = cm.blur_radius  # if color_snap == "RGB" else 0
     use_abs_template = cm.use_abs_template and brick_materials_installed()
     last_use_abs_template = cm.last_use_abs_template and brick_materials_installed()
     rgba_vals = []

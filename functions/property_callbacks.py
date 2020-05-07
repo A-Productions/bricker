@@ -196,17 +196,20 @@ def add_material_to_list(self, context):
     if mat_obj is None:
         return
     num_mats = len(mat_obj.data.materials)
-    mat = bpy.data.materials.get(cm.target_material)
+    mat = cm.target_material
     typ = "RANDOM" if cm.material_type == "RANDOM" else "ABS"
     if mat is None:
+        cm.target_material_message = ""
         return
     elif mat.name in mat_obj.data.materials.keys():
-        cm.target_material = "Already in list!"
+        cm.target_material_message = "Already in list!"
     elif typ == "ABS" and mat.name not in get_abs_mat_names():
-        cm.target_material = "Not ABS Plastic material"
+        cm.target_material_message = "Not ABS Plastic Material!"
     elif mat_obj is not None:
         mat_obj.data.materials.append(mat)
-        cm.target_material = ""
+        cm.target_material = None
+        cm.target_material_message = "Added '{}' to the list!".format(mat.name.replace("ABS Plastic ", ""))
+    cm.target_material_time = str(time.time())
     if num_mats < len(mat_obj.data.materials) and not cm.last_split_model:
         cm.material_is_dirty = True
 

@@ -134,7 +134,7 @@ def select(obj_list, active:bool=False, only:bool=False):
         if obj is not None and not obj.select:
             obj.select = True
     # set active object
-    if active:
+    if active and len(obj_list) > 0:
         set_active_obj(obj_list[0])
 @blender_version_wrapper(">=","2.80")
 def select(obj_list, active:bool=False, only:bool=False):
@@ -149,7 +149,7 @@ def select(obj_list, active:bool=False, only:bool=False):
         if obj is not None and not obj.select_get():
             obj.select_set(True)
     # set active object
-    if active:
+    if active and len(obj_list) > 0:
         set_active_obj(obj_list[0])
 
 

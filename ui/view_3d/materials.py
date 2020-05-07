@@ -99,9 +99,11 @@ class VIEW3D_PT_bricker_materials(Panel):
             row = col.row(align=True)
             row.prop(cm, "color_snap", expand=True)
             if cm.color_snap == "RGB":
-               col.prop(cm, "color_depth")
+                col.prop(cm, "color_depth")
+                col.prop(cm, "blur_radius")
             if cm.color_snap == "ABS":
                 col.prop(cm, "transparent_weight", text="Transparent Weight")
+                col.prop(cm, "blur_radius")
 
             if not b280() and cm.color_snap != "NONE":
                 col = layout.column(align=True)
@@ -220,7 +222,10 @@ class VIEW3D_PT_bricker_included_materials(Panel):
             col = split.column(align=True)
             col.label(text="Add:")
             col = split.column(align=True)
-            col.prop_search(cm, "target_material", bpy.data, "materials", text="")
+            col.prop(cm, "target_material", text="")
+            if cm.target_material_message != "" and time.time() - float(cm.target_material_time) < 4:
+                col = layout.column(align=True)
+                col.label(text=cm.target_material_message, icon="INFO" if cm.target_material_message.startswith("Added") else "ERROR")
 
 
 class VIEW3D_PT_bricker_material_properties(Panel):
