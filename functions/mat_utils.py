@@ -236,7 +236,7 @@ def create_new_material(model_name, rgba, rgba_vals, sss, sat_mat, specular, rou
     return mat_name
 
 
-def get_brick_rgba(obj, face_idx, point, uv_image=None, color_depth:int=-1):
+def get_brick_rgba(obj, face_idx, point, uv_image=None, color_depth:int=0, blur_radius:int=0):
     """ returns RGBA value for brick """
     if face_idx is None:
         return None, None
@@ -244,7 +244,7 @@ def get_brick_rgba(obj, face_idx, point, uv_image=None, color_depth:int=-1):
     image = get_uv_image(obj, face_idx, uv_image)
     if image is not None:
         orig_mat_name = ""
-        rgba = get_uv_pixel_color(obj, face_idx, point, image, color_depth=color_depth)
+        rgba = get_uv_pixel_color(obj, face_idx, point, image, color_depth=color_depth, blur_radius=blur_radius)
     else:
         # get closest material using material slot of face
         orig_mat = get_mat_at_face_idx(obj, face_idx)

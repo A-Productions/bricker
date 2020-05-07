@@ -16,7 +16,7 @@ import random
 import time
 import bmesh
 import os
-from os.path import dirname, abspath
+from os.path import basename, dirname, abspath
 import sys
 import math
 import shutil
@@ -430,7 +430,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # create, transform, and bevel bricks
         if self.brickify_in_background:
-            filename = bpy.path.basename(bpy.data.filepath)[:-6]
+            filename = basename(bpy.data.filepath)[:-6]
             cur_job = "%(filename)s__%(n)s" % locals()
             # temporarily clear stored parents (prevents these collections from being sent to back proc)
             if b280():
@@ -520,7 +520,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         duplicates = get_duplicate_objects(scn, cm, self.action, cm.start_frame, cm.stop_frame, self.updated_frames_only)
         # [link_object(dup) for dup in duplicates]
 
-        filename = bpy.path.basename(bpy.data.filepath)[:-6]
+        filename = basename(bpy.data.filepath)[:-6]
         overwrite_blend = True
         # iterate through frames of animation and generate Brick Model
         for cur_frame in range(cm.start_frame, cm.stop_frame + 1, cm.step_frame):
@@ -577,8 +577,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # orig_frame = scn.frame_current
         # scn.frame_set(orig_frame)
         scn.frame_set(cur_frame)
-        # # update brick layer offset (custom code for mantissa project)
-        # cm.offset_brick_layers = cur_frame % 3
+        # update brick layer offset (custom code for mantissa project)
+        if basename(bpy.data.filepath).startswith("mantissa"):
+            cm.offset_brick_layers = cur_frame % 3
         # get duplicated source
         source_dup = bpy.data.objects.get("Bricker_%(n)s_f_%(cur_frame)s" % locals())
         # get source info to update

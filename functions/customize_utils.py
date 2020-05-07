@@ -28,6 +28,7 @@ from .bricksdict import *
 from .common import *
 from .brickify_utils import create_new_bricks, get_duplicate_object
 from .general import *
+from .model_info import set_model_info
 from .logo_obj import get_logo
 from ..operators.bevel import BRICKER_OT_bevel
 

@@ -387,6 +387,7 @@ class CMLIST_OT_link_animated_model(bpy.types.Operator):
                 # set properties for new cmlist item
                 cm.last_start_frame = start_frame if cm.last_start_frame == -1 else min(start_frame, cm.last_start_frame)
                 cm.last_stop_frame = max(stop_frame, cm.last_stop_frame)
+                cm.last_step_frame = 1
             else:
                 cm.model_created = True
         return{"FINISHED"}

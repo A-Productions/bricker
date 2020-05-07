@@ -119,9 +119,11 @@ class VIEW3D_PT_bricker_brick_models(Panel):
             # draw anim only ui
             if cm.linked_from_external:
                 if cm.animated:
-                    split = layout_split(layout, align=True)
-                    split.prop(cm, "last_start_frame", text="S (cur)")
-                    split.prop(cm, "last_stop_frame", text="E (cur)")
+                    col = layout.column(align=True)
+                    right_align(col)
+                    col.prop(cm, "last_start_frame", text="Frame Start")
+                    col.prop(cm, "last_stop_frame", text="End")
+                    col.prop(cm, "last_step_frame", text="Step")
                 return
 
             # initialize variables

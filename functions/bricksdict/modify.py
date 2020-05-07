@@ -48,7 +48,8 @@ def update_materials(bricksdict, source_dup, keys, cur_frame=None, action="CREAT
     ior = cm.color_snap_ior
     transmission = cm.color_snap_transmission
     displacement = cm.color_snap_displacement
-    color_depth = cm.color_depth if color_snap == "RGB" else -1
+    color_depth = cm.color_depth if color_snap == "RGB" else 0
+    blur_radius = cm.blur_radius if color_snap == "RGB" else 0
     use_abs_template = cm.use_abs_template and brick_materials_installed()
     last_use_abs_template = cm.last_use_abs_template and brick_materials_installed()
     rgba_vals = []
@@ -65,7 +66,7 @@ def update_materials(bricksdict, source_dup, keys, cur_frame=None, action="CREAT
             mat_name = ""
         else:
             ni = Vector(brick_d["near_intersection"])
-            rgba, mat_name = get_brick_rgba(source_dup, nf, ni, uv_image, color_depth=color_depth)
+            rgba, mat_name = get_brick_rgba(source_dup, nf, ni, uv_image, color_depth=color_depth, blur_radius=blur_radius)
 
         if material_type == "SOURCE":
             # get material with snapped RGBA value

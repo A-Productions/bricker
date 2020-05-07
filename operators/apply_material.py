@@ -86,7 +86,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
         for frame in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame) if cm.animated else [-1]:
             # get bricksdict
             bricksdict = get_bricksdict(cm, d_type="ANIM" if cm.animated else "MODEL", cur_frame=frame)
-            if bricksdict is None:
+            if bricksdict is None and self.action != "CUSTOM":
                 self.report({"WARNING"}, "Materials could not be applied manually. Please run 'Update Model'")
                 cm.matrix_is_dirty = True
                 return
@@ -100,11 +100,12 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
                     mat = cm.custom_mat
                 elif self.action == "INTERNAL":
                     mat = cm.internal_mat
-                if mat is None: self.report({"WARNING"}, "Specified material doesn't exist")
+                if mat is None:
+                    self.report({"WARNING"}, "Specified material doesn't exist")
 
                 for brick in bricks:
                     # update bricksdict mat_name values for split models
-                    if last_split_model:
+                    if last_split_model and bricksdict is not None:
                         brick_d = bricksdict[get_dict_key(brick.name)]
                         if brick_d["custom_mat_name"]:
                             continue
@@ -120,7 +121,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
                         # assign material to mat slot
                         brick.material_slots[0].material = mat
                 # update bricksdict mat_name values for not split models
-                if self.action == "CUSTOM" and not last_split_model:
+                if self.action == "CUSTOM" and not last_split_model and bricksdict is not None:
                     for brick_d in bricksdict.values():
                         if brick_d["draw"] and brick_d["parent"] == "self":
                             brick_d["mat_name"] = mat.name

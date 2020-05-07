@@ -398,6 +398,13 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirty_build,
         default=4,
     )
+    blur_radius = IntProperty(
+        name="Blur Radius",
+        description="Distance over which to blur the image before sampling",
+        min=0, max=10,
+        update=dirty_build,
+        default=0,  # 1
+    )
     color_snap_specular = FloatProperty(
         name="Specular",
         description="Specular value for the created materials",

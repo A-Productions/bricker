@@ -31,7 +31,7 @@ from mathutils import Vector, Color
 
 # Module imports
 from .blender import link_object
-from .color_effects import *
+from .images.pixel_effects import *
 from .maths import *
 from .paths import *
 from .python_utils import *
