@@ -39,19 +39,19 @@ common_pixel_cache = dict()
 @blender_version_wrapper("<=","2.82")
 def get_pixels(image:Image, color_depth=0, blur_radius=0):
     pixels = np.array(image.pixels[:])
-    if color_depth > 0:
-        pixels = cluster_pixels(pixels, color_depth, image.channels)
     if blur_radius > 0:
         pixels = box_blur_pixels(pixels, blur_radius, image.size[0], image.size[1], image.channels)
+    if color_depth > 0:
+        pixels = cluster_pixels(pixels, color_depth, image.channels)
     return pixels
 @blender_version_wrapper(">=","2.83")
 def get_pixels(image:Image, color_depth=0, blur_radius=0):
     pixels = np.empty(len(image.pixels), dtype=np.float32)
     image.pixels.foreach_get(pixels)
-    if color_depth > 0:
-        pixels = cluster_pixels(pixels, color_depth, image.channels)
     if blur_radius > 0:
         pixels = box_blur_pixels(pixels, blur_radius, image.size[0], image.size[1], image.channels)
+    if color_depth > 0:
+        pixels = cluster_pixels(pixels, color_depth, image.channels)
     return pixels
 
 

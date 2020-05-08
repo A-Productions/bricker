@@ -21,7 +21,7 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 from os.path import join, dirname, basename
 import numpy as np
 import time
-import types
+import types as py_types
 
 # Blender imports
 import bpy
@@ -41,7 +41,7 @@ from .reporting import stopwatch
 class Vector2:
     """ Implementation of the mathutils 'Vector' data type that supports double precision """
     def __init__(self, value=(0, 0, 0)):
-        assert type(value) in (tuple, list, Vector, Vector2, types.GeneratorType, bpy_prop_array)
+        assert type(value) in (tuple, list, Vector, Vector2, py_types.GeneratorType, bpy_prop_array)
         if type(value) in (Vector, Color, bpy_prop_array):
             self._seq = [round(i, 6) for i in value]
         else:

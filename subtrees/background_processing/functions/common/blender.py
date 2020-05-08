@@ -112,6 +112,16 @@ def set_active_obj(obj:Object, view_layer:ViewLayer=None):
 
 
 @blender_version_wrapper("<=","2.79")
+def get_active_obj(scene:Scene=None):
+    scene = scene or bpy.context.scene
+    return scene.objects.active
+@blender_version_wrapper(">=","2.80")
+def get_active_obj(view_layer:ViewLayer=None):
+    view_layer = view_layer or bpy.context.view_layer
+    return view_layer.objects.active
+
+
+@blender_version_wrapper("<=","2.79")
 def select(obj_list, active:bool=False, only:bool=False):
     """ selects objs in list (deselects the rest if 'only') """
     # confirm obj_list is a list of objects
@@ -124,7 +134,7 @@ def select(obj_list, active:bool=False, only:bool=False):
         if obj is not None and not obj.select:
             obj.select = True
     # set active object
-    if active:
+    if active and len(obj_list) > 0:
         set_active_obj(obj_list[0])
 @blender_version_wrapper(">=","2.80")
 def select(obj_list, active:bool=False, only:bool=False):
@@ -139,7 +149,7 @@ def select(obj_list, active:bool=False, only:bool=False):
         if obj is not None and not obj.select_get():
             obj.select_set(True)
     # set active object
-    if active:
+    if active and len(obj_list) > 0:
         set_active_obj(obj_list[0])
 
 

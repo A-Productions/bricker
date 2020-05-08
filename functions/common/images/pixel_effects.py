@@ -223,9 +223,9 @@ def box_blur_pixels(old_pixels, width, height, channels, blur_radius=1):
     # sample_size = 1 + (blur_radius * 2)
     # new_pixels = ndimage.filters.uniform_filter(old_pixels, size=(sample_size, sample_size, 1))
     new_pixels = old_pixels.copy()
-    for row in range(blur_radius, len(pixels) - blur_radius):
-        for col in range(blur_radius, len(pixels[0]) - blur_radius):
-            new_pixels[row][col] = np.mean(pixels[row - blur_radius:row + blur_radius, col - blur_radius:col + blur_radius])
+    for row in range(blur_radius, len(old_pixels) - blur_radius):
+        for col in range(blur_radius, len(old_pixels[0]) - blur_radius):
+            new_pixels[row][col] = np.mean(old_pixels[row - blur_radius:row + blur_radius, col - blur_radius:col + blur_radius])
     new_pixels = get_1d_pixel_array(new_pixels)
     return new_pixels
 
