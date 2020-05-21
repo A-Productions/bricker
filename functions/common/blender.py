@@ -596,19 +596,22 @@ def get_ray_target(x, y, ray_max=1e4):
     ray_target = ray_origin + (view_vector * 1e4)
 
 
-def get_position_on_grid(mouse_pos, ray_max=1e4):
-    viewport_region = bpy.context.region
-    viewport_r3d = bpy.context.region_data
+def get_position_on_grid(mouse_pos, region=None, r3d=None, space_data=None):
+    viewport_region = region or bpy.context.region
+    viewport_r3d = r3d or bpy.context.region_data
+    mouse_region_pos = (mouse_pos[0] - viewport_region.x, mouse_pos[1] - viewport_region.y)
+    space_data = space_data or bpy.context.space_data
+
+    # Shooting a ray from the viewport "view camera", through the mouse cursor
+    # towards the grid with a length of 1e5 If the "view camera" is more than
+    # 1e5 units away from the grid it won't detect a point.
+
+    # view vector from mouse position
+    ray_end = view3d_utils.region_2d_to_location_3d(viewport_region, viewport_r3d, mouse_region_pos)
     viewport_matrix = viewport_r3d.view_matrix.inverted()
-    cam_obj = bpy.context.space_data.camera
-
-    # Shooting a ray from the camera, through the mouse cursor towards the grid with a length of 1e5
-    # If the camera is more than 1e5 units away from the grid it won't detect a point
-    ray_start = viewport_matrix.to_translation()
-    ray_depth = viewport_matrix @ Vector((0, 0, -1e5))
-
-    # Get the 3D vector position of the mouse
-    ray_end = view3d_utils.region_2d_to_location_3d(viewport_region, viewport_r3d, (mouse_pos[0], mouse_pos[1]), ray_depth)
+    ray_depth = viewport_matrix @ Vector((0, 0, 1e-5))
+    # view origin from mouse position
+    ray_start = view3d_utils.region_2d_to_location_3d(viewport_region, viewport_r3d, mouse_region_pos, ray_depth)
 
     # A triangle on the grid plane. We use these 3 points to define a plane on the grid
     point_1 = Vector((0, 0, 0))
@@ -620,10 +623,6 @@ def get_position_on_grid(mouse_pos, ray_max=1e4):
     position_on_grid = mathutils.geometry.intersect_ray_tri(point_1, point_2, point_3, ray_end, ray_start, False)
     if position_on_grid is None:
         return None
-
-    if viewport_is_orthographic(viewport_r3d, None if cam_obj is None else cam_obj.data):
-        # multiply by ray max
-        position_on_grid = position_on_grid * ray_max
 
     return position_on_grid
 

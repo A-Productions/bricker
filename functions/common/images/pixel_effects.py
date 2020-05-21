@@ -193,6 +193,13 @@ def clamp_pixels(pixels, minimum, maximum):
     return np.clip(pixels, minimum, maximum)
 
 
+def normalize_pixels(pixels, to_sum=False):
+    new_pixels = np.copy(pixels)
+    new_pixels -= np.min(new_pixels, axis=0)
+    new_pixels /= (np.sum(new_pixels, axis=0) if to_sum else np.ptp(new_pixels, axis=0))
+    return new_pixels
+
+
 def adjust_bright_contrast(pixels, bright, contrast):
     return contrast * (pixels - 0.5) + 0.5 + bright
 

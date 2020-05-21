@@ -578,8 +578,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # scn.frame_set(orig_frame)
         scn.frame_set(cur_frame)
         # update brick layer offset (custom code for mantissa project)
-        if basename(bpy.data.filepath).startswith("mantissa"):
-            cm.offset_brick_layers = cur_frame % 3
+        if cm.source_obj.name in ("ABC.Offset", "ABC.Base"):
+            cm.offset_brick_layers = 2 - (cur_frame % 3)
         # get duplicated source
         source_dup = bpy.data.objects.get("Bricker_%(n)s_f_%(cur_frame)s" % locals())
         # get source info to update

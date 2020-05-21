@@ -50,14 +50,17 @@ def make_rectangle(coord1:Vector, coord2:Vector, face:bool=True, flip_normal:boo
 
     # create square with normal facing +x direction
     if coord1.x == coord2.x:
-        v1, v2, v3, v4 = [bme.verts.new((coord1.x, y, z)) for y in (coord1.y, coord2.y) for z in (coord1.z, coord2.z)]
+        co1, co2, co3, co4 = [(coord1.x, y, z) for y in (coord1.y, coord2.y) for z in (coord1.z, coord2.z)]
     # create square with normal facing +y direction
     elif coord1.y == coord2.y:
-        v1, v2, v3, v4 = [bme.verts.new((x, coord1.y, z)) for x in (coord1.x, coord2.x) for z in (coord1.z, coord2.z)]
+        co1, co2, co3, co4 = [(x, coord1.y, z) for x in (coord1.x, coord2.x) for z in (coord1.z, coord2.z)]
     # create square with normal facing +z direction
     else:
-        v1, v2, v3, v4 = [bme.verts.new((x, y, coord1.z)) for x in (coord1.x, coord2.x) for y in (coord1.y, coord2.y)]
-    verts = [v1, v3, v4, v2]
+        co1, co2, co3, co4 = [(x, y, coord1.z) for x in (coord1.x, coord2.x) for y in (coord1.y, coord2.y)]
+
+    # organize coords and create verts
+    coords = [co1, co3, co4, co2]
+    verts = [bme.verts.new(co) for co in coords]
 
     # create face
     if face:

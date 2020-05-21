@@ -50,6 +50,15 @@ class Vector2:
     def __str__(self):
         return "<Vector2(" + str(tuple(self._seq)) + ")>"
 
+    def __neg__(self):
+        return Vector2([-i for i in self._seq])
+
+    def __pos__(self):
+        return self.copy()
+
+    def __abs(self):
+        return Vector2([abs(i) for i in self._seq])
+
     def __add__(self, other):
         new_vec = Vector2(self.to_list())
         if type(other) in (Vector2, Vector):
@@ -142,6 +151,12 @@ class Vector2:
 
     def to_tuple(self):
         return tuple(self._seq)
+
+    def to_3d(self):
+        if self.length == 2:
+            return Vector2(self._seq + [0])
+        else:
+            return Vector2(self._seq[:3])
 
     @property
     def x(self):
@@ -655,6 +670,9 @@ class MyImage:
     def clamp(self, minimum=0, maximum=1):
         self.pixels = clamp_pixels(self._pixels, minimum, maximum)
 
+    def normalize(self):
+        self.pixels = normalize_pixels(self._pixels)
+
     def math_operation(self, operation, value, clamp=False):
         self.pixels = math_operation_on_pixels(self._pixels, operation, value, clamp)
 
@@ -837,6 +855,10 @@ class MyImageSequence:
     def clamp(self, minimum=0, maximum=1):
         for im in self.images:
             im.clamp(im, minimum, maximum)
+
+    def normalize(self):
+        for im in self.images:
+            im.normalize(im)
 
     def math_operation(self, operation, value, clamp=False):
         for im in self.images:
