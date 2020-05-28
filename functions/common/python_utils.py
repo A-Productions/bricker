@@ -209,9 +209,15 @@ def get_blend_python_path():
     return join(python_dir, python_name)
 
 
-def install_package(package_name):
+def install_package(package_name, ensure_pip=False):
     python_path = get_blend_python_path()
-    subprocess.call([python_path, "-m", "pip", "install", "--user", package_name])
+    if ensure_pip:
+        subprocess.call([python_path, "-m", "ensurepip"])
+    try:
+        subprocess.call([python_path, "-m", "pip", "install", "--user", package_name])
+    except:
+        if b280() and not ensure_pip:
+            install_package(package_name, ensure_pip=True)
 
 
 def uninstall_package(package_name):

@@ -126,21 +126,22 @@ def make_cube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flip_normals:b
     coords = [co1, co3, co7, co5, co2, co6, co8, co4]
     # create verts from coords
     verts = [bme.verts.new(co) for co in coords]
+    v1, v2, v3, v4, v5, v6, v7, v8 = verts
 
     # create faces
     new_faces = []
     if sides[0]:
-        new_faces.append([v6, v8, v4, v2])
+        new_faces.append([v6, v7, v8, v5])
     if sides[1]:
-        new_faces.append([v3, v7, v5, v1])
+        new_faces.append([v2, v3, v4, v1])
     if sides[4]:
-        new_faces.append([v4, v8, v7, v3])
+        new_faces.append([v8, v7, v3, v2])
     if sides[3]:
-        new_faces.append([v2, v4, v3, v1])
+        new_faces.append([v5, v8, v2, v1])
     if sides[2]:
-        new_faces.append([v8, v6, v5, v7])
+        new_faces.append([v7, v6, v4, v3])
     if sides[5]:
-        new_faces.append([v6, v2, v1, v5])
+        new_faces.append([v6, v5, v1, v4])
 
     for f in new_faces:
         if flip_normals:

@@ -26,7 +26,7 @@ import bmesh
 import mathutils
 from mathutils import Vector, Euler, Matrix
 from bpy_extras import view3d_utils
-from bpy.types import Object, Mesh, Scene, Event, Modifier, Material, bpy_prop_array
+from bpy.types import Object, Mesh, Context, Scene, Event, Modifier, Material, bpy_prop_array
 try:
     from bpy.types import ViewLayer, LayerCollection
 except ImportError:
@@ -220,31 +220,47 @@ def is_selected(obj):
 
 
 @blender_version_wrapper("<=","2.79")
-def hide(obj:Object, viewport:bool=True, render:bool=True):
-    if not obj.hide and viewport:
-        obj.hide = True
-    if not obj.hide_render and render:
-        obj.hide_render = True
+def hide(objs:list, viewport:bool=True, render:bool=True):
+    # confirm objs is an iterable of objects
+    objs = confirm_iter(objs)
+    # hide objects in list
+    for obj in objs:
+        if not obj.hide and viewport:
+            obj.hide = True
+        if not obj.hide_render and render:
+            obj.hide_render = True
 @blender_version_wrapper(">=","2.80")
-def hide(obj:Object, viewport:bool=True, render:bool=True):
-    if not obj.hide_viewport and viewport:
-        obj.hide_viewport = True
-    if not obj.hide_render and render:
-        obj.hide_render = True
+def hide(objs:list, viewport:bool=True, render:bool=True):
+    # confirm objs is an iterable of objects
+    objs = confirm_iter(objs)
+    # hide objects in list
+    for obj in objs:
+        if not obj.hide_viewport and viewport:
+            obj.hide_viewport = True
+        if not obj.hide_render and render:
+            obj.hide_render = True
 
 
 @blender_version_wrapper("<=","2.79")
-def unhide(obj:Object, viewport:bool=True, render:bool=True):
-    if obj.hide and viewport:
-        obj.hide = False
-    if obj.hide_render and render:
-        obj.hide_render = False
+def unhide(objs:list, viewport:bool=True, render:bool=True):
+    # confirm objs is an iterable of objects
+    objs = confirm_iter(objs)
+    # unhide objects in list
+    for obj in objs:
+        if obj.hide and viewport:
+            obj.hide = False
+        if obj.hide_render and render:
+            obj.hide_render = False
 @blender_version_wrapper(">=","2.80")
-def unhide(obj:Object, viewport:bool=True, render:bool=True):
-    if obj.hide_viewport and viewport:
-        obj.hide_viewport = False
-    if obj.hide_render and render:
-        obj.hide_render = False
+def unhide(objs:list, viewport:bool=True, render:bool=True):
+    # confirm objs is an iterable of objects
+    objs = confirm_iter(objs)
+    # unhide objects in list
+    for obj in objs:
+        if obj.hide_viewport and viewport:
+            obj.hide_viewport = False
+        if obj.hide_render and render:
+            obj.hide_render = False
 
 
 @blender_version_wrapper("<=","2.79")
@@ -513,16 +529,17 @@ def change_context(context, areaType:str):
     return last_area_type
 
 
-def assemble_override_context(area_type:str="VIEW_3D", scene:Scene=None):
+def assemble_override_context(area_type:str="VIEW_3D", context:Context=None, scene:Scene=None):
     """
     Iterates through the blender GUI's areas & regions to find the View3D space
     NOTE: context override can only be used with bpy.ops that were called from a window/screen with a view3d space
     """
-    win      = bpy.context.window
+    context  = context or bpy.context
+    win      = context.window
     scr      = win.screen
     areas3d  = [area for area in scr.areas if area.type == area_type]
     region   = [region for region in areas3d[0].regions if region.type == "WINDOW"]
-    scene    = scene or bpy.context.scene
+    scene    = scene or context.scene
     override = {
         "window": win,
         "screen": scr,
@@ -584,6 +601,7 @@ def clear_geom(mesh:Mesh):
 @blender_version_wrapper(">=","2.81")
 def clear_geom(mesh:Mesh):
     mesh.clear_geometry()
+    
 
 def junk_mesh(name:str="addon_junk_mesh"):
     """ returns junk mesh (only creates one if necessary) """
@@ -615,15 +633,16 @@ def get_position_on_grid(mouse_pos, region=None, r3d=None, space_data=None):
     mouse_region_pos = (mouse_pos[0] - viewport_region.x, mouse_pos[1] - viewport_region.y)
     space_data = space_data or bpy.context.space_data
 
+    # View vector from the mouse pos
+    ray_end = view3d_utils.region_2d_to_location_3d(viewport_region, viewport_r3d, mouse_region_pos)
+
     # Shooting a ray from the viewport "view camera", through the mouse cursor
     # towards the grid with a length of 1e5 If the "view camera" is more than
     # 1e5 units away from the grid it won't detect a point.
 
-    # view vector from mouse position
-    ray_end = view3d_utils.region_2d_to_location_3d(viewport_region, viewport_r3d, mouse_region_pos)
+    # view origin from mouse position
     viewport_matrix = viewport_r3d.view_matrix.inverted()
     ray_depth = viewport_matrix @ Vector((0, 0, 1e-5))
-    # view origin from mouse position
     ray_start = view3d_utils.region_2d_to_location_3d(viewport_region, viewport_r3d, mouse_region_pos, ray_depth)
 
     # A triangle on the grid plane. We use these 3 points to define a plane on the grid
@@ -739,9 +758,10 @@ def set_cursor_location(loc:tuple):
     bpy.context.scene.cursor.location = loc
 
 
-def mouse_in_view3d_window(event, include_tools_panel=False, include_ui_panel=False, include_header=False):
+def mouse_in_view3d_window(event, area, include_tools_panel=False, include_ui_panel=False, include_header=False):
+    area = area or bpy.context.area
     regions = dict()
-    for region in bpy.context.area.regions:
+    for region in area.regions:
         regions[region.type] = region
     min_x = 0 if include_tools_panel else regions["TOOLS"].width
     min_y = 0 if include_header or regions["HEADER"].alignment == "TOP" else (regions["HEADER"].height + regions["TOOL_HEADER"].height)
@@ -855,6 +875,7 @@ def is_navigation_event(event:Event):
         'View Orbit': 'view3d.view_orbit',
         'View Persp/Ortho': 'view3d.view_persportho',
         'View Numpad': 'view3d.viewnumpad',
+        'View Axis': 'view3d.view_axis',
         'NDOF Pan Zoom': 'view2d.ndof',
         'NDOF Orbit View with Zoom': 'view3d.ndof_orbit_zoom',
         'NDOF Orbit View': 'view3d.ndof_orbit',
@@ -864,6 +885,22 @@ def is_navigation_event(event:Event):
         'Center View to Cursor': 'view3d.view_center_cursor',
         #'View Navigation': 'view3d.navigate',
     }
+    return is_event_type(event, navigation_events, "3D View")
+
+
+def is_timeline_event(event:Event):
+    timeline_events = {
+        'Frame Offset': 'screen.frame_offset',
+        'Jump to Endpoint': 'screen.frame_jump',
+        'Jump to Keyframe': 'screen.keyframe_jump',
+        'Play Animation': 'screen.animation_play',
+        'Animation Cancel': 'screen.animation_cancel',
+        'Center View to Cursor': 'view3d.view_center_cursor',
+    }
+    return is_event_type(event, timeline_events, "Frames")
+
+
+def is_event_type(event:Event, target_events:dict, keymap:str):
     keyconfig_name = "blender" if b280() else "Blender"
     # keyconfig_name = "blender user" if b280() else "Blender"
     if keyconfig_name not in bpy.context.window_manager.keyconfigs:
@@ -879,10 +916,10 @@ def is_navigation_event(event:Event):
         else:
             keymap = keyconfig.keymaps[translate(key)]
         return keymap.keymap_items
-    #navigation_events = { translate(key): val for key,val in navigation_events.items() }
-    navigation_idnames = navigation_events.values()
-    for kmi in get_keymap_items('3D View'):
-        if kmi.name not in navigation_events and kmi.idname not in navigation_idnames:
+    #target_events = { translate(key): val for key,val in target_events.items() }
+    event_idnames = target_events.values()
+    for kmi in get_keymap_items(keymap):
+        if kmi.name not in target_events and kmi.idname not in event_idnames:
             continue
         event_type = event.type
         if event_type == "WHEELUPMOUSE":
