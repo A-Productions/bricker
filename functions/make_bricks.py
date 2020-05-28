@@ -235,6 +235,11 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
         # end 'Merging' progress bar
         update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
 
+    # # get connected components
+    # conn_comp = get_connected_components(bricksdict, zstep)
+    # draw_connected_components(bricksdict, conn_comp)
+    # return bricks_created, bricksdict
+
     # begin 'Building' progress bar
     old_percent = update_progress_bars(0.0, -1, "Building", print_status, cursor_status)
 

@@ -159,9 +159,9 @@ def attempt_merge(bricksdict, key, available_keys, default_size, zstep, rand_sta
             update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep, [max_width, max_depth][::i] + [3], height_3_only, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats, merge_vertical=merge_vertical, tall_type=tall_type, short_type=short_type)
         # sort brick types from smallest to largest
         order = rand_state.randint(0,2)
-        brick_sizes.sort(key=lambda x: (x[0] * x[1] * x[2]) if prefer_largest else (x[2], x[order], x[(order+1)%2]))
+        brick_sizes.sort(key=lambda x: (x[0] * x[1] * x[2]) if prefer_largest else (x[2], x[order], x[(order + 1) % 2]))
 
-    # grab the biggest brick size and store to bricksdict
+    # grab the biggest brick size and store to origin brick
     brick_size = brick_sizes[-1]
     brick_d["size"] = brick_size
 
