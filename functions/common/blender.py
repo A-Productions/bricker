@@ -408,18 +408,31 @@ def is_adaptive(ob:Object):
     return False
 
 
-def get_vertices_in_group(obj:Object, vertex_group):
-    if isinstance(vertex_group, int):
-        if vertex_group >= len(obj.vertex_groups):
+def get_verts_in_group(obj:Object, vg_name_or_idx):
+    """ get object vertices in vertex group """
+    if isinstance(vg_name_or_idx, int):
+        if vg_name_or_idx >= len(obj.vertex_groups):
             raise IndexError("Index out of range!")
-    elif isinstance(vertex_group, str):
-        if vertex_group not in obj.vertex_groups:
-            raise NameError("'{obj}' has no vertex group, '{vg}'!".format(obj=obj.name, vg=vertex_group))
-        vertex_group = obj.vertex_groups[vertex_group].index
+    elif isinstance(vg_name_or_idx, str):
+        if vg_name_or_idx not in obj.vertex_groups:
+            raise NameError("'{obj}' has no vertex group, '{vg}'!".format(obj=obj.name, vg=vg_name_or_idx))
+        vg_name_or_idx = obj.vertex_groups[vg_name_or_idx].index
     else:
-        raise ValueError("Expecting second argument to be of type 'str', or 'int'. Got {}".format(type(vertex_group)))
+        raise ValueError("Expecting second argument to be of type 'str', or 'int'. Got {}".format(type(vg_name_or_idx)))
 
-    return [v for v in obj.data.vertices if vertex_group in [vg.group for vg in v.groups]]
+    return [v for v in obj.data.vertices if vg_name_or_idx in [vg.group for vg in v.groups]]
+
+
+def get_verts_in_group_bme(bme:bmesh, vg_idx:int):
+    """ get bmesh verts in vertex group """
+    deform = bme.verts.layers.deform.active
+    verts_in_group = list()
+    for v in bme.verts:
+        for group in v[deform].items():
+            group_index, weight = group
+            if group_index == vg_idx:
+                verts_in_group.append(v)
+    return verts_in_group
 
 
 def get_mat_idx(obj:Object, mat_name:str):
@@ -909,7 +922,10 @@ def load_from_library(blendfile_path, data_attr, filenames=None, overwrite_data=
             if not hasattr(target_attr[i], "name") or target_attr[i].name == data_name or not hasattr(bpy.data, data_attr): continue
             # remap existing data to loaded data
             data_group = getattr(bpy.data, data_attr)
-            data_group.get(data_name).user_remap(target_attr[i])
+            data_block = data_group.get(data_name)
+            if data_block is None:
+                continue
+            data_block.user_remap(target_attr[i])
             # remove remapped existing data
             data_group.remove(data_group.get(data_name))
             # rename loaded data to original name

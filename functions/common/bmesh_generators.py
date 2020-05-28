@@ -42,7 +42,7 @@ def make_rectangle(coord1:Vector, coord2:Vector, face:bool=True, flip_normal:boo
 
     Returns:
         bme         -- bmesh object containing created verts
-        verts       -- list of vertices with normal facing in positive direction (right hand rule)
+        verts       -- list of vertices in the following x,y order: [--, -+, ++, +-]
 
     """
     # create new bmesh object
@@ -86,7 +86,7 @@ def make_square(size:float, location:Vector=Vector((0, 0, 0)), face:bool=True, f
 
     Returns:
         bme         -- bmesh object containing created verts
-        verts       -- list of vertices with normal facing in positive direction (right hand rule)
+        verts       -- list of vertices in the following x,y order: [--, -+, ++, +-]
 
     """
     coord1 = location - Vector((size / 2, size / 2, 0))
@@ -120,9 +120,12 @@ def make_cube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flip_normals:b
     # create new bmesh object
     bme = bme or bmesh.new()
 
-    # create vertices in the following x,y,z order (later reordered): [---, --+, -+-, -++, +--, +-+, ++-, +++]
-    v_list = [bme.verts.new((x, y, z)) for x in (coord1.x, coord2.x) for y in (coord1.y, coord2.y) for z in (coord1.z, coord2.z)]
-    v1, v2, v3, v4, v5, v6, v7, v8 = v_list
+    # create coords in the following x,y,z order: [---, --+, -+-, -++, +--, +-+, ++-, +++]
+    co1, co2, co3, co4, co5, co6, co7, co8 = [(x, y, z) for x in (coord1.x, coord2.x) for y in (coord1.y, coord2.y) for z in (coord1.z, coord2.z)]
+    # reorder coords to the following x,y,z order: [---, -+-, ++-, +--, --+, +-+, +++, -++]
+    coords = [co1, co3, co7, co5, co2, co6, co8, co4]
+    # create verts from coords
+    verts = [bme.verts.new(co) for co in coords]
 
     # create faces
     new_faces = []
@@ -146,9 +149,6 @@ def make_cube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flip_normals:b
         # if seams:
         #     for e in new_f.edges:
         #         e.seam = True
-
-    # reorder verts to the following x,y,z order: [---, -+-, ++-, +--, --+, +-+, +++, -++]
-    verts = [v1, v3, v7, v5, v2, v6, v8, v4]
 
     # return results
     return bme, verts

@@ -157,10 +157,10 @@ def add_oblong_supports(dimensions, height, circle_verts, type, detail, d, scala
     cube_y2 = round(d.y + support_width/2, 8)
     coord1 = Vector((r, cube_y1, d.z - thick.z - support_height))
     coord2 = Vector((d.x - thick.x + (dimensions["tick_depth"] if detail == "HIGH" else 0), cube_y2, d.z - thick.z))
-    make_cube(coord1, coord2, sides=[0,1,0,0,1,1], bme=bme)[1]
+    make_cube(coord1, coord2, sides=[0,1,0,0,1,1], bme=bme)
     coord1 = Vector((-d.x + thick.x, cube_y1, d.z - thick.z - support_height))
     coord2 = Vector((-r, cube_y2, d.z - thick.z))
-    make_cube(coord1, coord2, sides=[0,1,0,0,1,1], bme=bme)[1]
+    make_cube(coord1, coord2, sides=[0,1,0,0,1,1], bme=bme)
 
 
 
