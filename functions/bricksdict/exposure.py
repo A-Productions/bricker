@@ -28,24 +28,7 @@ from ..general import *
 from ..brick import *
 
 
-def is_brick_exposed(bricksdict, zstep, key=None, loc=None):
-    """ return top and bottom exposure of brick loc/key """
-    assert key is not None or loc is not None
-    # initialize vars
-    key = key or list_to_str(loc)
-    loc = loc or get_dict_loc(bricksdict, key)
-    keys_in_brick = get_keys_in_brick(bricksdict, bricksdict[key]["size"], zstep, loc=loc)
-    top_exposed, bot_exposed = False, False
-    # top or bottom exposed if even one location is exposed
-    for k in keys_in_brick:
-        brick_d = bricksdict[k]
-        if brick_d["top_exposed"]: top_exposed = True
-        if brick_d["bot_exposed"]: bot_exposed = True
-    return top_exposed, bot_exposed
-
-
-def set_all_brick_exposures(bricksdict, zstep, key=None, loc=None):
-    """ updates top_exposed/bot_exposed for all bricks in bricksdict """
+def set_brick_exposure(bricksdict, zstep, key=None, loc=None):
     assert key is not None or loc is not None
     # initialize vars
     key = key or list_to_str(loc)
@@ -54,14 +37,16 @@ def set_all_brick_exposures(bricksdict, zstep, key=None, loc=None):
     top_exposed, bot_exposed = False, False
     # set brick exposures
     for k in keys_in_brick:
-        cur_top_exposed, cur_bot_exposed = set_brick_exposure(bricksdict, k)
+        cur_top_exposed, cur_bot_exposed = check_brickd_exposure(bricksdict, k)
         if cur_top_exposed: top_exposed = True
         if cur_bot_exposed: bot_exposed = True
+    bricksdict[key]["top_exposed"] = top_exposed
+    bricksdict[key]["bot_exposed"] = bot_exposed
     return top_exposed, bot_exposed
 
 
-def set_brick_exposure(bricksdict, key=None, loc=None):
-    """ set top and bottom exposure of brick loc/key """
+def check_brickd_exposure(bricksdict, key=None, loc=None):
+    """ check top and bottom exposure of single bricksdict loc/key """
     assert key is not None or loc is not None
     # initialize parameters unspecified
     loc = loc or get_dict_loc(bricksdict, key)
@@ -75,20 +60,18 @@ def set_brick_exposure(bricksdict, key=None, loc=None):
     x, y, z = loc
     key_above = list_to_str((x, y, z + 1))
     key_below = list_to_str((x, y, z - 1))
-    # check if brick top or bottom is exposed
-    top_exposed = check_exposure(bricksdict, key_above, obscuring_types=get_types_obscuring_below())
-    bot_exposed = check_exposure(bricksdict, key_below, obscuring_types=get_types_obscuring_above())
-    brick_d["top_exposed"] = top_exposed
-    brick_d["bot_exposed"] = bot_exposed
+    # check if brickd top or bottom is exposed
+    top_exposed = check_if_brick_obscures(bricksdict, key_above, direction="BELOW")
+    bot_exposed = check_if_brick_obscures(bricksdict, key_below, direction="ABOVE")
     return top_exposed, bot_exposed
 
 
-def check_exposure(bricksdict, key, obscuring_types=[]):
-    """ checks if brick at given key is exposed """
+def check_if_brick_obscures(bricksdict, key, direction="ABOVE"):
+    """ checks if brick obscures the bricks either above or below it """
     try:
         val = bricksdict[key]["val"]
     except KeyError:
         return True
     parent_key = get_parent_key(bricksdict, key)
     typ = bricksdict[parent_key]["type"]
-    return val == 0 or typ not in obscuring_types
+    return val == 0 or typ not in get_obscuring_types(direction)

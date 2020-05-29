@@ -27,8 +27,6 @@ from .customize_utils import *
 from .general import *
 from .hash_object import *
 from .logo_obj import *
-from .make_bricks import *
-from .make_bricks_point_cloud import *
 from .mat_utils import *
 from .matlist_utils import *
 from .model_info import *

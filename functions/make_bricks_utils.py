@@ -40,20 +40,16 @@ from ..lib.caches import bricker_mesh_cache
 
 
 def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, brick_size, brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_method, rand_s2, rand_s3):
-    brick_d = bricksdict[key]
-    # check exposure of current [merged] brick
-    if brick_d["top_exposed"] is None or brick_d["bot_exposed"] is None or build_is_dirty:
-        top_exposed, bot_exposed = set_all_brick_exposures(bricksdict, zstep, key)
-    else:
-        top_exposed, bot_exposed = is_brick_exposed(bricksdict, zstep, key)
+    """ bricksdict values that may be changed: mat_name """
 
     # get brick material
     mat = get_material(bricksdict, key, brick_size, zstep, material_type, custom_mat, random_mat_seed, mat_dirty, seed_keys, brick_mats=brick_mats)
 
     # set up arguments for brick mesh
-    use_stud = (top_exposed and stud_detail != "NONE") or stud_detail == "ALL"
+    brick_d = bricksdict[key]
+    use_stud = (brick_d["top_exposed"] and stud_detail != "NONE") or stud_detail == "ALL"
     logo_to_use = logo if use_stud else None
-    underside_detail = exposed_underside_detail if bot_exposed else hidden_underside_detail
+    underside_detail = exposed_underside_detail if brick_d["bot_exposed"] else hidden_underside_detail
 
     ### CREATE BRICK ###
 
@@ -345,3 +341,26 @@ def update_brick_sizes_and_types_used(cm, sz, typ):
     btu = cm.brick_types_used
     cm.brick_sizes_used += sz if bsu == "" else ("|%(sz)s" % locals() if sz not in bsu else "")
     cm.brick_types_used += typ if btu == "" else ("|%(typ)s" % locals() if typ not in btu else "")
+
+
+def get_parent_keys(bricksdict, keys):
+    parent_keys = [k for k in keys if bricksdict[k]["parent"] == "self"]
+    return parent_keys
+
+
+def generate_brick_object(brick_name="New Brick", brick_size=(1, 1, 1)):
+    scn, cm, n = get_active_context_info()
+    brick_d = create_bricksdict_entry(
+        name=brick_name,
+        loc=(1, 1, 1),
+        val=1,
+        draw=True,
+        b_type=get_brick_type(cm.brick_type),
+    )
+    rand = np.random.RandomState(cm.merge_seed)
+    dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
+    use_stud = cm.stud_detail != "NONE"
+    logo_to_use = get_logo(scn, cm, dimensions) if use_stud and cm.logo_type != "NONE" else None
+    m = get_brick_data(brick_d, dimensions, cm.brick_type, brick_size, cm.circle_verts, cm.exposed_underside_detail, use_stud, logo_to_use, cm.logo_type, cm.logo_inset, None, cm.logo_resolution, cm.logo_decimate, rand)
+    brick = bpy.data.objects.new(brick_name, m)
+    return brick

@@ -30,10 +30,10 @@ from ..brick import *
 
 
 # @timed_call("Time Elapsed")
-def get_connected_components(bricksdict:dict, zstep:int):
+def get_connected_components(bricksdict:dict, zstep:int, parent_keys:list):
     cm = get_active_context_info()[1]
     conn_comps = list()
-    parent_keys = set([k for k, brick_d in bricksdict.items() if brick_d["parent"] == "self" and brick_d["draw"]])
+    parent_keys = set(parent_keys)
     while len(parent_keys) > 0:
         starting_key = parent_keys.pop()
         cur_conn_comp = dict()

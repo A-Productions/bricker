@@ -37,6 +37,7 @@ from .general import *
 
 def make_bricks_point_cloud(cm, bricksdict, keys_dict, parent, source_details, dimensions, bcoll, frame_num=None):
     # generate point cloud
+    n = cm.source_obj.name
     instancer_name = "Bricker_%(n)s_instancer_f_%(frame_num)s" % locals() if frame_num is not None else "Bricker_%(n)s_instancer" % locals()
     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent" % locals())
     point_cloud = bpy.data.meshes.new(instancer_name)
@@ -83,10 +84,10 @@ def make_bricks_point_cloud(cm, bricksdict, keys_dict, parent, source_details, d
     point_cloud_obj.show_instancer_for_render = False
     point_cloud_obj.use_instance_vertices_rotation = True
     # create instance obj
-    brick = generate_brick_object(model_name)
+    brick = generate_brick_object(bcoll.name)
     if cm.material_type == "CUSTOM":
         set_material(brick, cm.custom_mat)
-    bcoll.objects.link(bcoll.name)
+    bcoll.objects.link(brick)
     brick.parent = point_cloud_obj
     point_cloud_obj.parent = parent
     return [point_cloud_obj]

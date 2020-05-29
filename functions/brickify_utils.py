@@ -29,6 +29,7 @@ from .common import *
 from .general import *
 from .cmlist_utils import *
 from .logo_obj import *
+from .make_bricks_point_cloud import *
 from .make_bricks import *
 from .smoke_cache import *
 from .transform_data import *
@@ -342,24 +343,6 @@ def create_new_bricks(source_dup, parent, source_details, dimensions, action, sp
     cm.model_is_dirty = False
     cm.bricks_are_dirty = False
     return model_name, bricks_created
-
-
-def generate_brick_object(brick_name="New Brick", brick_size=(1, 1, 1)):
-    scn, cm, n = get_active_context_info()
-    brick_d = create_bricksdict_entry(
-        name=brick_name,
-        loc=(1, 1, 1),
-        val=1,
-        draw=True,
-        b_type=get_brick_type(cm.brick_type),
-    )
-    rand = np.random.RandomState(cm.merge_seed)
-    dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
-    use_stud = cm.stud_detail != "NONE"
-    logo_to_use = get_logo(scn, cm, dimensions) if use_stud and cm.logo_type != "NONE" else None
-    m = get_brick_data(brick_d, dimensions, cm.brick_type, brick_size, cm.circle_verts, cm.exposed_underside_detail, use_stud, logo_to_use, cm.logo_type, cm.logo_inset, None, cm.logo_resolution, cm.logo_decimate, rand)
-    brick = bpy.data.objects.new(brick_name, m)
-    return brick
 
 
 def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1, 1, 3]):

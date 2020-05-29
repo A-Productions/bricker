@@ -102,8 +102,8 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
             brick_d = bricksdict[key]
             brick_d["parent"] = "self"
             brick_d["size"] = size.copy()
-            set_all_brick_exposures(bricksdict, zstep, key)
             set_flipped_and_rotated(brick_d, bricksdict, [key])
+            set_brick_exposure(bricksdict, zstep, key)
             if brick_d["type"] == "SLOPE" and brick_type == "SLOPES":
                 set_brick_type_for_slope(brick_d, bricksdict, [key])
     else:
@@ -184,26 +184,28 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
                     for k3 in bricksdicts[optimal_test]:
                         bricksdict[k3] = bricksdicts[optimal_test][k3]
 
+        parent_keys = get_parent_keys(bricksdict, sorted_keys)
+
         # update cm.brick_sizes_used and cm.brick_types_used
-        for key in sorted_keys:
-            if bricksdict[key]["parent"] not in (None, "self"):
-                continue
+        for key in parent_keys:
             brick_size = bricksdict[key]["size"]
-            if brick_size is None:
-                continue
             brick_size_str = list_to_str(sorted(brick_size[:2]) + [brick_size[2]])
             update_brick_sizes_and_types_used(cm, brick_size_str, bricksdict[key]["type"])
 
+        # reset 'attempted_merge' for all items in bricksdict
+        for key0 in bricksdict:
+            bricksdict[key0]["attempted_merge"] = False
+
+        # improve sturdiness of model
+        num_connected_components, num_weak_points = improve_sturdiness(bricksdict, zstep, parent_keys, iterations=42)
+        cm.sturdiness = 1 / num_connected_components - (num_weak_points / 100)
+
+        # set brick exposures
+        for k in parent_keys:
+            set_brick_exposure(bricksdict, zstep, key=k)
+
         # end 'Merging' progress bar
         update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
-
-    # reset 'attempted_merge' for all items in bricksdict
-    for key0 in bricksdict:
-        bricksdict[key0]["attempted_merge"] = False
-
-    # improve sturdiness of model
-    num_connected_components, num_weak_points = improve_sturdiness(bricksdict, zstep, iterations=42)
-    cm.sturdiness = 1 / num_connected_components - (num_weak_points / 100)
 
     # begin 'Building' progress bar
     old_percent = update_progress_bars(0.0, -1, "Building", print_status, cursor_status)

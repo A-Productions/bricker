@@ -78,7 +78,7 @@ def verify_all_brick_exposures(scn, zstep, orig_loc, bricksdict, decriment=0, z_
             continue
         parent_key = k if brick_d["parent"] == "self" else brick_d["parent"]
         if parent_key is not None:
-            set_all_brick_exposures(bricksdict, zstep, parent_key)
+            set_brick_exposure(bricksdict, zstep, parent_key)
     return bricksdict
 
 

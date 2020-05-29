@@ -117,7 +117,7 @@ class BRICKER_OT_draw_adjacent(Operator):
 
             # if bricks created on top or bottom, set exposure of original brick
             if self.z_pos or self.z_neg:
-                set_all_brick_exposures(self.bricksdict, cm.zstep, cur_key)
+                set_brick_exposure(self.bricksdict, cm.zstep, cur_key)
                 keys_to_update.append(cur_key)
 
             # draw created bricks
@@ -328,7 +328,7 @@ class BRICKER_OT_draw_adjacent(Operator):
                 adj_brick_d["top_exposed"] = True
                 adj_brick_d["bot_exposed"] = False
             else:
-                set_all_brick_exposures(bricksdict, cm.zstep, adjacent_key)
+                set_brick_exposure(bricksdict, cm.zstep, adjacent_key)
             adj_brick_d["created_from"] = cur_key
             keys_to_merge.append(adjacent_key)
             # set adj_bricks_created to target brick type for current side

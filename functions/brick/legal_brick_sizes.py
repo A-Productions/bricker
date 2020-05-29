@@ -226,12 +226,11 @@ def get_legal_bricks():
     return legal_bricks
 
 
-def get_types_obscuring_above():
-    return ["BRICK", "PLATE", "TILE", "STUD", "SLOPE_INVERTED"]
-
-
-def get_types_obscuring_below():
-    return ["BRICK", "PLATE", "TILE", "STUD", "SLOPE"]
+def get_obscuring_types(direction="BELOW"):
+    if direction == "BELOW":
+        return ["BRICK", "PLATE", "TILE", "STUD", "SLOPE"]
+    elif direction == "ABOVE":
+        return ["BRICK", "PLATE", "TILE", "STUD", "SLOPE_INVERTED"]
 
 
 def is_legal_brick_size(size, type):

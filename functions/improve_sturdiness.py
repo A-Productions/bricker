@@ -25,10 +25,10 @@ import bpy
 from .bricksdict import *
 
 
-def improve_sturdiness(bricksdict, zstep, iterations):
+def improve_sturdiness(bricksdict, zstep, parent_keys, iterations):
     # get connected components
     print("getting connected components...", end="")
-    conn_comps = get_connected_components(bricksdict, zstep)
+    conn_comps = get_connected_components(bricksdict, zstep, parent_keys)
     print(len(conn_comps))
     # get weak articulation points
     print("getting weak articulation points...", end="")

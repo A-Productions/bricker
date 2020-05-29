@@ -639,10 +639,10 @@ def create_bricksdict_entry(name:str, loc:list, val:float=0, draw:bool=False, co
     mat_name          -- name of material attributed to bricks at this location
     custom_mat_name   -- mat_name was set with 'Change Material' customization tool
     parent            -- key into brick dictionary with information about the parent brick merged with this one
-    size              -- 3D size of brick (e.g. standard 2x4 brick -> [2, 4, 3])
+    size              -- 3D size of FULL brick (e.g. standard 2x4 brick -> [2, 4, 3])
     attempted_merge   -- attempt has been made in make_bricks function to merge this brick with nearby bricks
-    top_exposed       -- top of brick is visible to camera
-    bot_exposed       -- bottom of brick is visible to camera
+    top_exposed       -- top of FULL brick is visible to camera
+    bot_exposed       -- bottom of FULL brick is visible to camera
     obscures          -- obscures neighboring locations [+z, -z, +x, -x, +y, -y]
     type              -- type of brick
     flipped           -- brick is flipped over non-mirrored axis
@@ -760,12 +760,6 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
                 )
                 if build_is_dirty and draw:
                     drawn_keys.append(b_key)
-
-    # if build_is_dirty, this is done in draw_brick
-    if not cm.build_is_dirty:
-        # set exposure of brick locs
-        for key in drawn_keys:
-            set_brick_exposure(bricksdict, key)
 
     # return list of created Brick objects
     return bricksdict
