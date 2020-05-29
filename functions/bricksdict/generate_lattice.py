@@ -25,7 +25,7 @@ import bpy
 from mathutils import Vector
 
 # Module imports
-from .common import *
+from ..common import *
 
 
 def generate_lattice(vert_dist:Vector, scale:Vector, offset:Vector=Vector((0, 0, 0)), extra_res:int=0, visualize:bool=False):

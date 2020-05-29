@@ -33,6 +33,7 @@ from .brick import *
 from .bricksdict import *
 from .common import *
 from .general import bounds
+from .improve_sturdiness import *
 from .make_bricks_utils import *
 from .mat_utils import *
 from .matlist_utils import *
@@ -40,7 +41,7 @@ from ..lib.caches import bricker_mesh_cache
 
 
 @timed_call("Time Elapsed")
-def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions, action, bcoll, num_source_mats, cm=None, split=False, brick_scale=None, merge_vertical=True, custom_data=None, clear_existing_collection=True, frame_num=None, cursor_status=False, print_status=True, temp_brick=False, redraw=False):
+def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions, action, bcoll, num_source_mats, split=False, brick_scale=None, merge_vertical=True, custom_data=None, clear_existing_collection=True, frame_num=None, cursor_status=False, print_status=True, temp_brick=False, redraw=False):
     # initialize cmlist attributes (prevents 'update' function from running every time)
     cm_id = cm.id
     align_bricks = cm.align_bricks
@@ -232,7 +233,7 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
                 continue
             loc = get_dict_loc(bricksdict, k2)
             # create brick based on the current brick info
-            draw_brick(cm_id, bricksdict, k2, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, bricksdict[k2]["size"], brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_method, rand_s1, rand_s2, rand_s3)
+            draw_brick(cm_id, bricksdict, k2, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, bricksdict[k2]["size"], brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_method, rand_s2, rand_s3)
             # print status to terminal and cursor
             old_percent = update_progress_bars(i / denom, old_percent, "Building", print_status, cursor_status)
 

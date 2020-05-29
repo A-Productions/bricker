@@ -325,9 +325,9 @@ def create_new_bricks(source_dup, parent, source_details, dimensions, action, sp
             cm.active_key = loc
     # make bricks
     if cm.instance_method == "POINT_CLOUD":
-        bricks_created = make_bricks_point_cloud(cm, bricksdict, parent, source_details, dimensions, bcoll, frame_num=cur_frame)
+        bricks_created = make_bricks_point_cloud(cm, bricksdict, keys_dict, parent, source_details, dimensions, bcoll, frame_num=cur_frame)
     else:
-        bricks_created = make_bricks(cm, bricksdict, parent, ref_logo, dimensions, action, bcoll, num_source_mats=len(source_dup.data.materials), split=split, brick_scale=brick_scale, merge_vertical=merge_vertical, custom_data=custom_data, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, print_status=print_status, temp_brick=temp_brick, redraw=redraw)
+        bricks_created = make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, ref_logo, dimensions, action, bcoll, num_source_mats=len(source_dup.data.materials), split=split, brick_scale=brick_scale, merge_vertical=merge_vertical, custom_data=custom_data, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, print_status=print_status, temp_brick=temp_brick, redraw=redraw)
     # select bricks
     if select_created and len(bricks_created) > 0:
         select(bricks_created)

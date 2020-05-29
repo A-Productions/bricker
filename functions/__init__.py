@@ -26,7 +26,6 @@ from .colors import *
 from .customize_utils import *
 from .general import *
 from .hash_object import *
-from .improve_sturdiness import *
 from .logo_obj import *
 from .make_bricks import *
 from .make_bricks_point_cloud import *

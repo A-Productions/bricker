@@ -87,7 +87,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
     def clean_up(cls, model_type, cm=None, skip_source=False, skip_dupes=False, skip_parents=False, skip_bricks=False, skip_trans_and_anim_data=True, preserved_frames=None, source_name=None):
         """ externally callable cleanup function for bricks, source, dupes, and parents """
         # set up variables
-        scn, cm, n = get_active_context_info(context, cm=cm)
+        scn, cm, n = get_active_context_info(cm=cm)
         source = bpy.data.objects.get(source_name or n)
 
         if not b280():
@@ -114,7 +114,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             brick_loc, brick_rot, brick_scl = None, None, None
 
         # initialize variables for cursor status updates
-        wm = context.window_manager
+        wm = bpy.context.window_manager
         wm.progress_begin(0, 100)
         print()
 
