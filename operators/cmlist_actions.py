@@ -57,16 +57,16 @@ class CMLIST_OT_list_action(Operator):
                 pass
 
             if self.action == "REMOVE" and len(scn.cmlist) > 0 and idx >= 0:
-                self.remove_item(idx)
+                self.remove_item(context, idx)
 
             elif self.action == "ADD":
-                self.add_item()
+                self.add_item(context)
 
             elif self.action == "DOWN" and idx < len(scn.cmlist) - 1:
-                self.move_down(item)
+                self.move_down(context, item)
 
             elif self.action == "UP" and idx >= 1:
-                self.move_up(item)
+                self.move_up(context, item)
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -89,9 +89,9 @@ class CMLIST_OT_list_action(Operator):
     # class methods
 
     @staticmethod
-    def add_item():
-        scn = bpy.context.scene
-        active_object = bpy.context.active_object
+    def add_item(context):
+        scn = context.scene
+        active_object = context.active_object
         if active_object:
             # if active object isn't on visible layer, don't set it as default source for new model
             if not is_obj_visible_in_viewport(active_object):
@@ -130,8 +130,8 @@ class CMLIST_OT_list_action(Operator):
         # create new mat_obj for current cmlist id
         create_mat_objs(item)
 
-    def remove_item(self, idx):
-        scn, cm, sn = get_active_context_info()
+    def remove_item(self, context, idx):
+        scn, cm, sn = get_active_context_info(context)
         n = cm.name
         if cm.linked_from_external and cm.collection is not None:
             bpy_collections().remove(cm.collection)
@@ -151,14 +151,14 @@ class CMLIST_OT_list_action(Operator):
             # run update function of the property
             scn.cmlist_index = scn.cmlist_index
 
-    def move_down(self, item):
-        scn = bpy.context.scene
+    def move_down(self, context, item):
+        scn = context.scene
         scn.cmlist.move(scn.cmlist_index, scn.cmlist_index+1)
         scn.cmlist_index += 1
         self.update_idxs(scn.cmlist)
 
-    def move_up(self, item):
-        scn = bpy.context.scene
+    def move_up(self, context, item):
+        scn = context.scene
         scn.cmlist.move(scn.cmlist_index, scn.cmlist_index-1)
         scn.cmlist_index -= 1
         self.update_idxs(scn.cmlist)
@@ -188,7 +188,7 @@ class CMLIST_OT_copy_settings_to_others(Operator):
 
     def execute(self, context):
         try:
-            scn, cm0, _ = get_active_context_info()
+            scn, cm0, _ = get_active_context_info(context)
             for cm1 in scn.cmlist:
                 if cm0 != cm1:
                     match_properties(cm1, cm0, override_idx=cm1.idx)
@@ -212,7 +212,7 @@ class CMLIST_OT_copy_settings(Operator):
 
     def execute(self, context):
         try:
-            scn, cm, _ = get_active_context_info()
+            scn, cm, _ = get_active_context_info(context)
             scn.bricker_copy_from_id = cm.id
         except:
             bricker_handle_exception()
@@ -235,7 +235,7 @@ class CMLIST_OT_paste_settings(Operator):
 
     def execute(self, context):
         try:
-            scn, cm0, _ = get_active_context_info()
+            scn, cm0, _ = get_active_context_info(context)
             for cm1 in scn.cmlist:
                 if cm0 != cm1 and cm1.id == scn.bricker_copy_from_id:
                     match_properties(cm0, cm1)
@@ -286,13 +286,13 @@ class CMLIST_OT_link_animated_model(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        # scn = bpy.context.scene
+        # scn = context.scene
         # if scn.cmlist_index == -1:
         #     return False
         return True
 
     def execute(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         filenames = [f.name for f in self.files]
         model_frames = dict()
         # set up model_frames dict with start and end frames to import
@@ -358,7 +358,7 @@ class CMLIST_OT_link_animated_model(bpy.types.Operator):
                     return {"CANCELLED"}
             else:
                 # link new collection to scene
-                parent_coll = bpy.context.collection if self.active_collection and bpy.context.collection is not None else scn.collection
+                parent_coll = context.collection if self.active_collection and context.collection is not None else scn.collection
                 parent_coll.children.link(collection)
                 # create new cmlist item
                 bpy.ops.cmlist.list_action(action="ADD")
@@ -446,13 +446,13 @@ class CMLIST_OT_link_frames(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         if scn.cmlist_index == -1:
             return False
         return True
 
     def execute(self, context):
-        scn, cm, n = get_active_context_info()
+        scn, cm, n = get_active_context_info(context)
         filenames = [file.name for file in self.files]
         for fn in filenames:
             if not (fn.startswith("Bricker_") and "_bricks_f_" in fn):

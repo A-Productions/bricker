@@ -26,21 +26,17 @@ from bpy.props import *
 # Module imports
 # from ..created_model_uilist import *
 # from ..matslot_uilist import *
+from ..panel_info import *
 # from ...lib.caches import cache_exists
 # from ...operators.revert_settings import *
 # from ...operators.brickify import *
 from ...functions import *
 
 
-class VIEW3D_PT_bricker_model_info(Panel):
+class VIEW3D_PT_bricker_model_info(BrickerPanel, Panel):
     """ Display Matrix details for specified brick location """
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
     bl_label       = "Model Info"
     bl_idname      = "VIEW3D_PT_bricker_model_info"
-    # bl_parent_id   = "VIEW3D_PT_bricker_debugging_tools"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -86,3 +82,10 @@ class VIEW3D_PT_bricker_model_info(Panel):
         row.enabled = False
         col = row.column(align=True)
         col.prop(cm, "real_world_dimensions", text="")
+
+        col = layout.column(align=True)
+        col.label(text="Sturdiness:")
+        row = col.row(align=True)
+        row.enabled = False
+        col = row.column(align=True)
+        col.prop(cm, "sturdiness", text="")

@@ -49,16 +49,17 @@ class BRICKER_OT_generate_brick(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        if context.scene.cmlist_index == -1:
+        scn = context.scene
+        if scn.cmlist_index == -1:
             return False
-        scn, cm, n = get_active_context_info()
+        cm = scn.cmlist[scn.cmlist_index]
         if cm.brick_type == "CUSTOM":
             return False
         return True
 
     def execute(self, context):
         try:
-            scn, cm, n = get_active_context_info()
+            scn, cm, n = get_active_context_info(context)
             brick = generate_brick_object(self.brick_name, (self.brick_width, self.brick_depth, 1 if flat_brick_type(cm.brick_type) else 3))
             safe_link(brick)
             return {"FINISHED"}

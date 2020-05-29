@@ -15,24 +15,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .brick import *
+# System imports
+# NONE!
+
+# Blender imports
+import bpy
+
+# Module imports
 from .bricksdict import *
-from .common import *
-from .app_handlers import *
-from .brickify_utils import *
-from .clear_cache import *
-from .cmlist_utils import *
-from .colors import *
-from .customize_utils import *
-from .general import *
-from .hash_object import *
-from .improve_sturdiness import *
-from .logo_obj import *
-from .make_bricks import *
-from .make_bricks_point_cloud import *
-from .mat_utils import *
-from .matlist_utils import *
-from .model_info import *
-from .smoke_cache import *
-from .transform_data import *
-from .timers import *
+
+
+def improve_sturdiness(bricksdict, zstep, iterations):
+    # get connected components
+    print("getting connected components...", end="")
+    conn_comps = get_connected_components(bricksdict, zstep)
+    print(len(conn_comps))
+    # get weak articulation points
+    print("getting weak articulation points...", end="")
+    weak_points = get_weak_articulation_points(conn_comps)
+    print(len(weak_points))
+    # update sturdiness
+    # draw connected components (for debugging)
+    print("drawing connected components...")
+    draw_connected_components(bricksdict, conn_comps, weak_points)
+    # return sturdiness info
+    return len(conn_comps), len(weak_points)

@@ -49,7 +49,7 @@ class BRICKER_OT_refresh_model_info(Operator):
             if self.bricksdict is None:
                 self.report({"WARNING"}, "Could not refresh model info - model is not cached")
                 return {"CANCELLED"}
-            scn, cm, _ = get_active_context_info()
+            scn, cm, _ = get_active_context_info(context)
             bricksdict = get_bricksdict(cm, d_type="MODEL" if cm.model_created else "ANIM", cur_frame=scn.frame_current)
             set_model_info(bricksdict, cm)
             return{"FINISHED"}

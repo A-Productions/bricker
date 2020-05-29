@@ -27,11 +27,11 @@ from bpy.types import Object
 from mathutils import Matrix, Vector
 
 # Module imports
+from .generate_lattice import generate_lattice
 from ..common import *
 from ..general import *
 from ..colors import *
 from ..mat_utils import *
-from ..generate_lattice import generate_lattice
 from ..smoke_sim import *
 from ..brick import *
 

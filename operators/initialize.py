@@ -49,7 +49,7 @@ class BRICKER_OT_initialize(Operator):
         return True
 
     def modal(self, context, event):
-        scn = bpy.context.scene
+        scn = context.scene
         if self.stop:
             self.cancel(context)
             return {"CANCELLED"}
@@ -71,7 +71,7 @@ class BRICKER_OT_initialize(Operator):
     def execute(self, context):
         # add new scn.cmlist item
         if self.action == "ADD":
-            CMLIST_OT_list_action.add_item()
+            CMLIST_OT_list_action.add_item(context)
         # run modal
         context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}

@@ -51,6 +51,7 @@ def clear_cache(cm, brick_mesh=True, light_matrix=True, deep_matrix=True, rgba_v
             for cf in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
                 delete(bpy.data.objects.get("Bricker_%(n)s_f_%(cf)s"), remove_meshes=True)
 
+
 def clear_caches(brick_mesh=True, light_matrix=True, deep_matrix=True, images=True, dupes=True):
     """clear all caches in cmlist"""
     scn = bpy.context.scene

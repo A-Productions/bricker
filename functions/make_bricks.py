@@ -40,36 +40,7 @@ from ..lib.caches import bricker_mesh_cache
 
 
 @timed_call("Time Elapsed")
-def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, split=False, brick_scale=None, custom_data=None, coll_name=None, clear_existing_collection=True, frame_num=None, cursor_status=False, keys="ALL", print_status=True, temp_brick=False, redraw=False):
-    # set up variables
-    scn, cm, n = get_active_context_info(cm=cm)
-
-    # reset brick_sizes/TypesUsed
-    if keys == "ALL":
-        cm.brick_sizes_used = ""
-        cm.brick_types_used = ""
-    # initialize cm.zstep
-    cm.zstep = get_zstep(cm)
-
-    merge_vertical = (keys != "ALL" and "PLATES" in cm.brick_type) or cm.brick_type == "BRICKS_AND_PLATES"
-
-    # get brick collection
-    coll_name = coll_name or "Bricker_%(n)s_bricks" % locals()
-    bcoll = get_brick_collection(coll_name, clear_existing_collection)
-
-    # get bricksdict keys
-    if keys == "ALL":
-        keys = list(bricksdict.keys())
-    if len(keys) == 0:
-        return False, None
-    # get dictionary of keys based on z value
-    keys_dict, sorted_keys = get_keys_dict(bricksdict, keys)
-    denom = sum([len(keys_dict[z0]) for z0 in keys_dict.keys()])
-    # store first key to active keys
-    if cm.active_key[0] == -1 and len(keys) > 0:
-        loc = get_dict_loc(bricksdict, keys[0])
-        cm.active_key = loc
-
+def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions, action, bcoll, num_source_mats, cm=None, split=False, brick_scale=None, merge_vertical=True, custom_data=None, clear_existing_collection=True, frame_num=None, cursor_status=False, print_status=True, temp_brick=False, redraw=False):
     # initialize cmlist attributes (prevents 'update' function from running every time)
     cm_id = cm.id
     align_bricks = cm.align_bricks
@@ -112,31 +83,21 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     rand_s2 = None if temp_brick else np.random.RandomState(cm.merge_seed + 1)
     rand_s3 = None if temp_brick else np.random.RandomState(cm.merge_seed + 2)
     # initialize other variables
-    brick_mats = get_brick_mats(cm)
-    brick_size_strings = {}
-    all_meshes = bmesh.new()
     lowest_z = -1
     available_keys = []
-    bricks_created = []
     max_brick_height = 1 if cm.zstep == 3 else max(legal_bricks.keys())
     connect_thresh = cm.connect_thresh if mergable_brick_type(brick_type) and merge_type == "RANDOM" else 1
-    # set up internal material for this object
-    mats = []
-    internal_mat = None if len(source.data.materials) == 0 else cm.internal_mat or bpy.data.materials.get("Bricker_%(n)s_internal" % locals()) or bpy.data.materials.new("Bricker_%(n)s_internal" % locals())
-    if internal_mat is not None and material_type == "SOURCE" and cm.mat_shell_depth < cm.shell_thickness:
-        mats.append(internal_mat)
-    elif material_type in ("CUSTOM", "NONE"):
-        mats.append(custom_mat)
+    denom = sum([len(keys_dict[z0]) for z0 in keys_dict.keys()])
     # set number of times to run through all keys
     num_iters = 2 if brick_type == "BRICKS_AND_PLATES" else 1
     i = 0
     # if merging unnecessary, simply update bricksdict values
     if not redraw and not (mergable_brick_type(brick_type, up=cm.zstep == 1) and (max_depth != 1 or max_width != 1)):
         size = [1, 1, cm.zstep]
-        if len(keys) > 0:
-            update_brick_sizes_and_types_used(cm, list_to_str(size), bricksdict[keys[0]]["type"])
-        available_keys = keys
-        for key in keys:
+        if len(sorted_keys) > 0:
+            update_brick_sizes_and_types_used(cm, list_to_str(size), bricksdict[sorted_keys[0]]["type"])
+        available_keys = sorted_keys
+        for key in sorted_keys:
             brick_d = bricksdict[key]
             brick_d["parent"] = "self"
             brick_d["size"] = size.copy()
@@ -223,7 +184,7 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
                         bricksdict[k3] = bricksdicts[optimal_test][k3]
 
         # update cm.brick_sizes_used and cm.brick_types_used
-        for key in keys:
+        for key in sorted_keys:
             if bricksdict[key]["parent"] not in (None, "self"):
                 continue
             brick_size = bricksdict[key]["size"]
@@ -235,13 +196,31 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
         # end 'Merging' progress bar
         update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
 
-    # # get connected components
-    # conn_comp = get_connected_components(bricksdict, zstep)
-    # draw_connected_components(bricksdict, conn_comp)
-    # return bricks_created, bricksdict
+    # reset 'attempted_merge' for all items in bricksdict
+    for key0 in bricksdict:
+        bricksdict[key0]["attempted_merge"] = False
+
+    # improve sturdiness of model
+    num_connected_components, num_weak_points = improve_sturdiness(bricksdict, zstep, iterations=42)
+    cm.sturdiness = 1 / num_connected_components - (num_weak_points / 100)
 
     # begin 'Building' progress bar
     old_percent = update_progress_bars(0.0, -1, "Building", print_status, cursor_status)
+
+    # set up internal material for this object
+    mats = []
+    if num_source_mats == 0:
+        internal_mat = None
+    else:
+        internal_mat = cm.internal_mat or bpy.data.materials.get("Bricker_%(n)s_internal" % locals()) or bpy.data.materials.new("Bricker_%(n)s_internal" % locals())
+    if internal_mat is not None and material_type == "SOURCE" and cm.mat_shell_depth < cm.shell_thickness:
+        mats.append(internal_mat)
+    elif material_type in ("CUSTOM", "NONE"):
+        mats.append(custom_mat)
+    # initialize vars for brick drawing
+    all_meshes = bmesh.new()
+    brick_mats = get_brick_mats(cm)
+    bricks_created = []
 
     # draw merged bricks
     seed_keys = sorted_keys if material_type == "RANDOM" else None
@@ -263,8 +242,6 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     # remove duplicate of original logo
     if logo_type != "LEGO" and logo is not None:
         bpy.data.objects.remove(logo)
-
-    denom2 = len(bricksdict.keys())
 
     # combine meshes to a single object, link to scene, and add relevant data to the new Blender MESH object
     if not split:
@@ -293,9 +270,5 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
         bricks_created.append(all_bricks_obj)
         # protect all_bricks_obj from being deleted
         all_bricks_obj.is_brickified_object = True
-
-    # reset 'attempted_merge' for all items in bricksdict
-    for key0 in bricksdict:
-        bricksdict[key0]["attempted_merge"] = False
 
     return bricks_created, bricksdict

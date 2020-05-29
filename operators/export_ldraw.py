@@ -45,7 +45,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
 
     def execute(self, context):
         try:
-            self.write_ldraw_file()
+            self.write_ldraw_file(context)
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -69,9 +69,9 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
     #############################################
     # class methods
 
-    def write_ldraw_file(self):
+    def write_ldraw_file(self, context):
         """ create and write Ldraw file """
-        scn, cm, n = get_active_context_info()
+        scn, cm, n = get_active_context_info(context)
         # initialize vars
         legal_bricks = get_legal_bricks()
         abs_mat_properties = bpy.props.abs_mat_properties if hasattr(bpy.props, "abs_mat_properties") else None

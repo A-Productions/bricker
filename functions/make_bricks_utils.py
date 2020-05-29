@@ -39,7 +39,7 @@ from .mat_utils import *
 from ..lib.caches import bricker_mesh_cache
 
 
-def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, brick_size, brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_method, rand_s1, rand_s2, rand_s3):
+def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, brick_size, brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_method, rand_s2, rand_s3):
     brick_d = bricksdict[key]
     # check exposure of current [merged] brick
     if brick_d["top_exposed"] is None or brick_d["bot_exposed"] is None or build_is_dirty:
@@ -159,11 +159,11 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
 
 
 def merge_with_adjacent_bricks(brick_d, bricksdict, key, loc, keys_not_checked, default_size, zstep, rand_s1, build_is_dirty, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_vertical=True):
-    if brick_d["size"] is None or build_is_dirty:
+    brick_size = brick_d["size"]
+    if brick_size is None or build_is_dirty:
         prefer_largest = 0 < brick_d["val"] < 1
         brick_size, keys_in_brick = attempt_merge(bricksdict, key, keys_not_checked, default_size, zstep, rand_s1, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, loc=loc, prefer_largest=prefer_largest, merge_vertical=merge_vertical, height_3_only=brick_d["type"] in get_brick_types(height=3))
     else:
-        brick_size = brick_d["size"]
         keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc=loc)
     return brick_size, keys_in_brick
 

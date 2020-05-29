@@ -601,7 +601,7 @@ def clear_geom(mesh:Mesh):
 @blender_version_wrapper(">=","2.81")
 def clear_geom(mesh:Mesh):
     mesh.clear_geometry()
-    
+
 
 def junk_mesh(name:str="addon_junk_mesh"):
     """ returns junk mesh (only creates one if necessary) """
@@ -634,7 +634,7 @@ def get_position_on_grid(mouse_pos, region=None, r3d=None, space_data=None):
     space_data = space_data or bpy.context.space_data
 
     # View vector from the mouse pos
-    ray_end = view3d_utils.region_2d_to_location_3d(viewport_region, viewport_r3d, mouse_region_pos)
+    ray_end = view3d_utils.region_2d_to_vector_3d(viewport_region, viewport_r3d, mouse_region_pos)
 
     # Shooting a ray from the viewport "view camera", through the mouse cursor
     # towards the grid with a length of 1e5 If the "view camera" is more than

@@ -27,6 +27,7 @@ from bpy.props import *
 # Module imports
 from ..created_model_uilist import *
 from ..matslot_uilist import *
+from ..panel_info import *
 from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
@@ -57,13 +58,9 @@ class BRICKER_MT_specials(bpy.types.Menu):
             # layout.operator("cmlist.link_frames", icon="LINK_BLEND")
 
 
-class VIEW3D_PT_bricker_brick_models(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_brick_models(BrickerPanel, Panel):
     bl_label       = "Brick Models"
     bl_idname      = "VIEW3D_PT_bricker_brick_models"
-    bl_context     = "objectmode"
 
     @classmethod
     def poll(self, context):

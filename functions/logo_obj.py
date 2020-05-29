@@ -71,6 +71,7 @@ def get_lego_stud_font():
         lego_stud_font = bpy.data.fonts.load(font_path)
     return lego_stud_font
 
+
 def get_lego_logo_txt_obj(scn, res, name):
     # get logo_txt_ref from Bricker_storage scene
     logo_txt = bpy.data.objects.get(name)

@@ -27,6 +27,7 @@ from bpy.props import *
 # Module imports
 from ..created_model_uilist import *
 from ..matslot_uilist import *
+from ..panel_info import *
 from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
@@ -34,14 +35,10 @@ from ...functions import *
 from ... import addon_updater_ops
 
 
-class VIEW3D_PT_bricker_export(Panel):
+class VIEW3D_PT_bricker_export(BrickerPanel, Panel):
     """ Export Bricker Model """
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
     bl_label       = "Bake/Export"
     bl_idname      = "VIEW3D_PT_bricker_export"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod

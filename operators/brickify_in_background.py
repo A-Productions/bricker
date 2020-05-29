@@ -46,12 +46,12 @@ class BRICKER_OT_brickify_in_background(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         return bpy.props.bricker_initialized and scn.cmlist_index != -1
 
     def execute(self, context):
         # get active context info
-        scn, cm, n = get_active_context_info()
+        scn, cm, n = get_active_context_info(context)
         # run brickify for current frame
         if "ANIM" in self.action:
             BRICKER_OT_brickify.brickify_current_frame(self.frame, self.action, in_background=True)
@@ -87,11 +87,11 @@ class BRICKER_OT_stop_brickifying_in_background(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         return bpy.props.bricker_initialized and scn.cmlist_index != -1
 
     def execute(self, context):
-        scn, cm, n = get_active_context_info()
+        scn, cm, n = get_active_context_info(context)
         cm.stop_background_process = True
         job_manager = JobManager.get_instance(cm.id)
         if "ANIM" in self.action and job_manager.num_completed_jobs() > 0:

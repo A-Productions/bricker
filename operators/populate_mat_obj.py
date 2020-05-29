@@ -36,14 +36,14 @@ class BRICKER_OT_populate_mat_obj(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         if scn.cmlist_index == -1:
             return False
         return True
 
     def execute(self, context):
         try:
-            scn, cm, _ = get_active_context_info()
+            scn, cm, _ = get_active_context_info(context)
             mat_obj = get_mat_obj(cm)
             cm.material_is_dirty = True
             for mat_name in get_abs_mat_names(all=False):

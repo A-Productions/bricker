@@ -220,7 +220,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             return {"FINISHED"}
 
     def cancel(self, context):
-        scn, cm, n = get_active_context_info(self.cm)
+        scn, cm, n = get_active_context_info(cm=self.cm)
         self.finish(context, cm)
         if self.job_manager.num_running_jobs() + self.job_manager.num_pending_jobs() > 0:
             self.job_manager.kill_all()
@@ -286,7 +286,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
     def run_brickify(self, context):
         # set up variables
-        scn, cm, n = get_active_context_info(self.cm)
+        scn, cm, n = get_active_context_info(context, cm=self.cm)
         self.undo_stack.iterate_states(cm)
 
         # ensure that Bricker can run successfully
@@ -469,7 +469,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
     def brickify_animation(self, scn, cm, n, matrix_dirty):
         """ create brick animation """
         # set up variables
-        scn, cm, n = get_active_context_info()
         objs_to_select = []
 
         if self.action == "UPDATE_ANIM":

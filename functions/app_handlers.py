@@ -171,15 +171,17 @@ def handle_storing_to_deep_cache(dummy):
 
 @persistent
 def show_all_anim_frames(dummy):
-    for cm in bpy.context.scene.cmlist:
+    scn = bpy.context.scene
+    for cm in scn.cmlist:
         if not cm.animated:
             continue
         for coll in cm.collection.children:
             unhide(coll)
 
 
-def set_anim_frames_visibility(dummy):
-    for cm in bpy.context.scene.cmlist:
+def set_anim_frames_visibility(scn):
+    scn = bpy.context.scene
+    for cm in scn.cmlist:
         if not cm.animated:
             continue
         for frame in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
@@ -187,7 +189,7 @@ def set_anim_frames_visibility(dummy):
 
 
 # @persistent
-# def undo_bricksdict_changes(scene):
+# def undo_bricksdict_changes(dummy):
 #     scn = bpy.context.scene
 #     if scn.cmlist_index == -1:
 #         return
@@ -205,7 +207,7 @@ def set_anim_frames_visibility(dummy):
 #
 #
 # @persistent
-# def redo_bricksdict_changes(scene):
+# def redo_bricksdict_changes(dummy):
 #     scn = bpy.context.scene
 #     if scn.cmlist_index == -1:
 #         return

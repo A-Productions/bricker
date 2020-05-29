@@ -27,6 +27,7 @@ from bpy.props import *
 # Module imports
 from ..created_model_uilist import *
 from ..matslot_uilist import *
+from ..panel_info import *
 from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
@@ -34,14 +35,10 @@ from ...functions import *
 from ... import addon_updater_ops
 
 
-class VIEW3D_PT_bricker_detailing(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_detailing(BrickerPanel, Panel):
     bl_label       = "Detailing"
     bl_idname      = "VIEW3D_PT_bricker_detailing"
     bl_parent_id   = "VIEW3D_PT_bricker_model_settings"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -134,14 +131,10 @@ class VIEW3D_PT_bricker_detailing(Panel):
             row.operator("bricker.bevel", text="Bevel bricks", icon="MOD_BEVEL")
 
 
-# class VIEW3D_PT_bricker_detailing_bevel(Panel):
-#     bl_space_type  = "VIEW_3D"
-#     bl_region_type = "UI" if b280() else "TOOLS"
-#     bl_category    = "Bricker"
+# class VIEW3D_PT_bricker_detailing_bevel(BrickerPanel, Panel):
 #     bl_label       = "Bevel"
 #     bl_idname      = "VIEW3D_PT_bricker_detailing_bevel"
 #     bl_parent_id   = "VIEW3D_PT_bricker_detailing"
-#     bl_context     = "objectmode"
 #     bl_options     = {"DEFAULT_CLOSED"}
 #
 #     @classmethod

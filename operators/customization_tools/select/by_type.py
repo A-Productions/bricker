@@ -38,7 +38,7 @@ class BRICKER_OT_select_bricks_by_type(Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         return bpy.props.bricker_initialized and scn.cmlist_index != -1
 
     def execute(self, context):
@@ -61,7 +61,7 @@ class BRICKER_OT_select_bricks_by_type(Operator):
         col = layout.column(align=True)
         right_align(col)
         col.prop(self, "brick_type")
-        if len(bpy.context.selected_objects) > 0:
+        if len(context.selected_objects) > 0:
             col.prop(self, "only")
         if len(scn.cmlist) > 1:
             col.prop(self, "all_models")

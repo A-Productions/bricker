@@ -41,7 +41,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         if scn.cmlist_index == -1:
             return False
         cm = scn.cmlist[scn.cmlist_index]
@@ -79,7 +79,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
     def run_apply_material(self, context):
 
         # set up variables
-        scn, cm, _ = get_active_context_info()
+        scn, cm, _ = get_active_context_info(context)
         bricks = get_bricks()
         cm.last_material_type = cm.material_type
         last_split_model = cm.last_split_model

@@ -41,8 +41,8 @@ class BRICKER_OT_change_brick_type(Operator):
     def poll(self, context):
         if not bpy.props.bricker_initialized:
             return False
-        scn = bpy.context.scene
-        objs = bpy.context.selected_objects
+        scn = context.scene
+        objs = context.selected_objects
         # check that at least 1 selected object is a brick
         for obj in objs:
             if not obj.is_brick:
@@ -53,10 +53,10 @@ class BRICKER_OT_change_brick_type(Operator):
         return False
 
     def execute(self, context):
-        wm = bpy.context.window_manager
+        wm = context.window_manager
         wm.bricker_running_blocking_operation = True
         try:
-            self.change_type()
+            self.change_type(context)
         except:
             bricker_handle_exception()
         wm.bricker_running_blocking_operation = False
@@ -140,18 +140,18 @@ class BRICKER_OT_change_brick_type(Operator):
     ###################################################
     # class methods
 
-    def change_type(self):
+    def change_type(self, context):
         # revert to last bricksdict
         self.undo_stack.match_python_to_blender_state()
         # push to undo stack
         if self.orig_undo_stack_length == self.undo_stack.get_length():
             self.undo_stack.undo_push("change_type", affected_ids=list(self.obj_names_dict.keys()))
-        scn = bpy.context.scene
+        scn = context.scene
         legal_brick_sizes = bpy.props.bricker_legal_brick_sizes
         # get original active and selected objects
-        active_obj = bpy.context.active_object
+        active_obj = context.active_object
         initial_active_obj_name = active_obj.name if active_obj else ""
-        selected_objects = bpy.context.selected_objects
+        selected_objects = context.selected_objects
         obj_names_to_select = []
         bricks_were_generated = False
         # only reference self.brick_type once (runs get_items)

@@ -31,7 +31,7 @@ from .brick.legal_brick_sizes import *
 def set_model_info(bricksdict, cm=None):
     if bricksdict is None:
         return
-    scn, cm = get_active_context_info(cm)[:2]
+    scn, cm = get_active_context_info(cm=cm)[:2]
     legal_bricks = get_legal_bricks()
     num_bricks_in_model = 0
     model_weight = 0

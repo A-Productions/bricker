@@ -51,7 +51,7 @@ class BRICKER_OT_matlist_actions(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            scn, cm, n = get_active_context_info()
+            scn, cm, n = get_active_context_info(context)
             mat_obj = get_mat_obj(cm)
             idx = mat_obj.active_material_index
 

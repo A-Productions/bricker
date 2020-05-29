@@ -46,7 +46,7 @@ class BRICKER_OT_clear_cache(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            scn, cm, n = get_active_context_info()
+            scn, cm, n = get_active_context_info(context)
             self.undo_stack.iterate_states(cm)
             cm.matrix_is_dirty = True
             clear_caches()

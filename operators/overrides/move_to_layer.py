@@ -91,7 +91,7 @@ class OBJECT_OT_move_to_layer_override(Operator):
     # class methods
 
     def run_move(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         for name in self.object_names:
             obj = scn.objects.get(name)
             obj.layers = self.layers

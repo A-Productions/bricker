@@ -35,12 +35,12 @@ class BRICKER_OT_debug_toggle_view_source(bpy.types.Operator):
     def poll(self, context):
         if not settings_can_be_drawn():
             return False
-        scn, cm, n = get_active_context_info()
+        scn, cm, n = get_active_context_info(context)
         return cm.animated or cm.model_created
 
     def execute(self, context):
         try:
-            scn, cm, n = get_active_context_info()
+            scn, cm, n = get_active_context_info(context)
             if cm.source_obj.name in scn.objects:
                 safe_unlink(cm.source_obj)
             else:

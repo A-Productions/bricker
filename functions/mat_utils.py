@@ -255,7 +255,7 @@ def get_brick_rgba(obj, face_idx, point, uv_image=None, color_depth:int=0, blur_
 
 def get_materials_in_model(cm, cur_frame=None):
     """ cannot account for materials added with BrickSculpt paintbrush """
-    scn, cm, n = get_active_context_info(cm)
+    scn, cm, n = get_active_context_info(cm=cm)
     if cm.color_snap in ("ABS", "RANDOM"):
         return [mat for mat in get_mat_obj(cm).data.materials]
     else:

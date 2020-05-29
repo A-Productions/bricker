@@ -193,7 +193,7 @@ class OBJECT_OT_delete_override(Operator):
             if obj is None:
                 continue
             if obj.is_brickified_object or obj.is_brick:
-                self.delete_brick_object(obj, update_model, use_global)
+                self.delete_brick_object(context, obj, update_model, use_global)
             elif not obj.protected:
                 obj_users_scene = len(obj.users_scene)
                 if use_global or obj_users_scene == 1:
@@ -249,8 +249,8 @@ class OBJECT_OT_delete_override(Operator):
                 keys_to_update.append(k1)
         return keys_to_update, new_bricks
 
-    def delete_brick_object(self, obj, update_model=True, use_global=False):
-        scn = bpy.context.scene
+    def delete_brick_object(self, context, obj, update_model=True, use_global=False):
+        scn = context.scene
         cm = None
         for cm_cur in scn.cmlist:
             n = get_source_name(cm_cur)
@@ -266,7 +266,7 @@ class OBJECT_OT_delete_override(Operator):
                     break
         if cm and update_model:
             BRICKER_OT_delete_model.run_full_delete(cm=cm)
-            deselect(bpy.context.active_object)
+            deselect(context.active_object)
         else:
             obj_users_scene = len(obj.users_scene)
             if use_global or obj_users_scene == 1:

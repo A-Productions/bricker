@@ -39,8 +39,8 @@ class BRICKER_OT_set_exposure(Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
-        objs = bpy.context.selected_objects
+        scn = context.scene
+        objs = context.selected_objects
         # check that at least 1 selected object is a brick
         for obj in objs:
             if not obj.is_brick:
@@ -53,9 +53,9 @@ class BRICKER_OT_set_exposure(Operator):
 
     def execute(self, context):
         try:
-            scn = bpy.context.scene
-            selected_objects = bpy.context.selected_objects
-            active_obj = bpy.context.active_object
+            scn = context.scene
+            selected_objects = context.selected_objects
+            active_obj = context.active_object
             initial_active_obj_name = active_obj.name if active_obj else ""
             objs_to_select = []
 
@@ -90,7 +90,7 @@ class BRICKER_OT_set_exposure(Operator):
                 # draw modified bricks
                 draw_updated_bricks(cm, bricksdict, keys_to_update)
                 # add selected objects to objects to select at the end
-                objs_to_select += bpy.context.selected_objects
+                objs_to_select += context.selected_objects
             # select the new objects created
             select(objs_to_select)
             orig_obj = bpy.data.objects.get(initial_active_obj_name)

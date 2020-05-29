@@ -53,16 +53,16 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         if scn.cmlist_index == -1:
             return False
         return True
 
     def execute(self, context):
-        wm = bpy.context.window_manager
+        wm = context.window_manager
         wm.bricker_running_blocking_operation = True
         try:
-            cm = get_active_context_info()[1]
+            cm = get_active_context_info(context)[1]
             self.undo_stack.iterate_states(cm)
             self.run_full_delete()
         except:
@@ -87,7 +87,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
     def clean_up(cls, model_type, cm=None, skip_source=False, skip_dupes=False, skip_parents=False, skip_bricks=False, skip_trans_and_anim_data=True, preserved_frames=None, source_name=None):
         """ externally callable cleanup function for bricks, source, dupes, and parents """
         # set up variables
-        scn, cm, n = get_active_context_info(cm=cm)
+        scn, cm, n = get_active_context_info(context, cm=cm)
         source = bpy.data.objects.get(source_name or n)
 
         if not b280():
@@ -114,7 +114,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             brick_loc, brick_rot, brick_scl = None, None, None
 
         # initialize variables for cursor status updates
-        wm = bpy.context.window_manager
+        wm = context.window_manager
         wm.progress_begin(0, 100)
         print()
 

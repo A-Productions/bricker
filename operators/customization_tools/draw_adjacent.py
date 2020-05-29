@@ -41,8 +41,8 @@ class BRICKER_OT_draw_adjacent(Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
-        active_obj = bpy.context.active_object
+        scn = context.scene
+        active_obj = context.active_object
         # check active object is not None
         if active_obj is None:
             return False
@@ -71,7 +71,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             # get fresh copy of self.bricksdict
             self.bricksdict = get_bricksdict(cm)
             # initialize vars
-            obj = bpy.context.active_object
+            obj = context.active_object
             initial_active_obj_name = obj.name
             cm.customized = True
             keys_to_merge = []

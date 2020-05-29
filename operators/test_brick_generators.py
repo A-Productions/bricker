@@ -33,7 +33,7 @@ class BRICKER_OT_test_brick_generators(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         return bpy.props.bricker_initialized and scn.cmlist_index != -1
 
     def execute(self, context):

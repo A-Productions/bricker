@@ -27,6 +27,7 @@ from bpy.props import *
 # Module imports
 from ..created_model_uilist import *
 from ..matslot_uilist import *
+from ..panel_info import *
 from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
@@ -34,14 +35,10 @@ from ...functions import *
 from ... import addon_updater_ops
 
 
-class VIEW3D_PT_bricker_merge_settings(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_merge_settings(BrickerPanel, Panel):
     bl_label       = "Merging"
     bl_idname      = "VIEW3D_PT_bricker_merge_settings"
     bl_parent_id   = "VIEW3D_PT_bricker_model_settings"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -72,14 +69,10 @@ class VIEW3D_PT_bricker_merge_settings(Panel):
             col.prop(cm, "merge_internals", text="")
 
 
-class VIEW3D_PT_bricker_merge_alignment(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_merge_alignment(BrickerPanel, Panel):
     bl_label       = "Alignment"
     bl_idname      = "VIEW3D_PT_bricker_merge_alignment"
     bl_parent_id   = "VIEW3D_PT_bricker_merge_settings"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod

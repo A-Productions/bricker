@@ -32,8 +32,9 @@ from bpy.types import Object
 from .common import *
 
 
-def get_active_context_info(cm=None, cm_id=None):
-    scn = bpy.context.scene
+def get_active_context_info(context=None, cm=None, cm_id=None):
+    context = context or bpy.context
+    scn = context.scene
     cm = cm or scn.cmlist[scn.cmlist_index]
     return scn, cm, get_source_name(cm)
 

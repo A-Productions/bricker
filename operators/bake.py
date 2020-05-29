@@ -39,7 +39,7 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
     @classmethod
     def poll(self, context):
         try:
-            scn, cm, n = get_active_context_info()
+            scn, cm, n = get_active_context_info(context)
         except IndexError:
             return False
         if (cm.model_created or cm.animated) and not cm.brickifying_in_background:
@@ -47,7 +47,7 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
         return False
 
     def execute(self, context):
-        scn, cm, n = get_active_context_info()
+        scn, cm, n = get_active_context_info(context)
         cur_f = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame, cm.last_step_frame)
         # set is_brick/is_brickified_object to False
         bricks = get_bricks()

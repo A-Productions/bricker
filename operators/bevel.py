@@ -45,7 +45,7 @@ class BRICKER_OT_bevel(bpy.types.Operator):
     @classmethod
     def poll(self, context):
         try:
-            scn, cm, n = get_active_context_info()
+            scn, cm, n = get_active_context_info(context)
         except IndexError:
             return False
         if cm.model_created or cm.animated:
@@ -54,7 +54,7 @@ class BRICKER_OT_bevel(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            cm = get_active_context_info()[1]
+            cm = get_active_context_info(context)[1]
             # set bevel action to add or remove
             try:
                 test_brick = get_bricks()[0]

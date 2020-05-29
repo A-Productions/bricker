@@ -27,6 +27,7 @@ from bpy.props import *
 # Module imports
 from ..created_model_uilist import *
 from ..matslot_uilist import *
+from ..panel_info import *
 from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
@@ -35,14 +36,10 @@ from ...functions import *
 from ... import addon_updater_ops
 
 
-class VIEW3D_PT_bricker_advanced(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_advanced(BrickerPanel, Panel):
     bl_label       = "Advanced"
     bl_idname      = "VIEW3D_PT_bricker_advanced"
     bl_parent_id   = "VIEW3D_PT_bricker_model_settings"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -89,15 +86,10 @@ class VIEW3D_PT_bricker_advanced(Panel):
             col.prop(cm, "use_local_orient", text="Use Local Orientation")
 
 
-class VIEW3D_PT_bricker_ray_casting(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_ray_casting(BrickerPanel, Panel):
     bl_label       = "Ray Casting"
     bl_idname      = "VIEW3D_PT_bricker_ray_casting"
     bl_parent_id   = "VIEW3D_PT_bricker_advanced"
-    bl_context     = "objectmode"
-    # bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
     def poll(self, context):

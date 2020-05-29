@@ -39,8 +39,8 @@ class BRICKER_OT_change_brick_material(Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
-        objs = bpy.context.selected_objects
+        scn = context.scene
+        objs = context.selected_objects
         if scn.cmlist_index == -1:
             return False
         cm = scn.cmlist[scn.cmlist_index]
@@ -62,7 +62,7 @@ class BRICKER_OT_change_brick_material(Operator):
             target_mat_name = self.mat_name
             if target_mat_name == "NONE":
                 return {"FINISHED"}
-            scn = bpy.context.scene
+            scn = context.scene
             objs_to_select = []
             # iterate through cm_ids of selected objects
             for cm_id in self.obj_names_dict.keys():
@@ -88,7 +88,7 @@ class BRICKER_OT_change_brick_material(Operator):
                 draw_updated_bricks(cm, bricksdict, list(keys_to_update))
 
                 # add selected objects to objects to select at the end
-                objs_to_select += bpy.context.selected_objects
+                objs_to_select += context.selected_objects
             # select the new objects created
             select(objs_to_select)
         except:

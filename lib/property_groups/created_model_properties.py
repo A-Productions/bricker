@@ -790,6 +790,13 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         precision=6,
         default=(0, 0, 0),
     )
+    sturdiness = FloatProperty(
+        name="Sturdiness",
+        description="Structural integrity of the brick model (perfect score is 100)",
+        subtype="FACTOR",
+        min=0, max=1,
+        default=0,
+    )
     # real_world_dimensions = FloatVectorProperty(unit="LENGTH", default=(-1, -1, -1))
 
     # Properties for checking of model needs updating
