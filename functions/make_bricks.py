@@ -200,10 +200,10 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
         update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
 
         # update cm.brick_sizes_used and cm.brick_types_used
-        for key in parent_keys:
-            brick_size = bricksdict[key]["size"]
+        for k in parent_keys:
+            brick_size = bricksdict[k]["size"]
             brick_size_str = list_to_str(sorted(brick_size[:2]) + [brick_size[2]])
-            update_brick_sizes_and_types_used(cm, brick_size_str, bricksdict[key]["type"])
+            update_brick_sizes_and_types_used(cm, brick_size_str, bricksdict[k]["type"])
 
         # set brick exposures
         for k in parent_keys:
