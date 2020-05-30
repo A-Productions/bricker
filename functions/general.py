@@ -285,9 +285,99 @@ def update_can_run(typ):
 
 
 # loc param is more efficient than key, but one or the other must be passed
-def get_locs_in_brick(bricksdict, size, zstep, loc:list=None, key:str=None):
-    x0, y0, z0 = loc or get_dict_loc(bricksdict, key)
+def get_locs_in_brick(size, zstep, loc):
+    x0, y0, z0 = loc
     return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0])]
+
+
+def get_lowest_locs_in_brick(size, loc):
+    x0, y0, z0 = loc
+    return [[x0 + x, y0 + y, z0] for y in range(size[1]) for x in range(size[0])]
+
+
+def get_highest_locs_in_brick(size, zstep, loc):
+    x0, y0, z0 = loc
+    # add last item in iterator to z0
+    for i in range(0, size[2], zstep):
+        pass
+    z0 += i
+    return [[x0 + x, y0 + y, z0] for y in range(size[1]) for x in range(size[0])]
+#
+#
+# def get_locs_neighboring_brick(size, zstep, loc):
+#     x0, y0, z0 = loc
+#     all_neighbor_locs = [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in set((-1, size[1])) for x in set((-1, size[0]))]
+#     existing_neighbor_locs = [l for l in all_neighbor_locs if
+#     return existing_neighbor_locs
+
+
+def get_keys_neighboring_brick(bricksdict, size, zstep, loc):
+    x0, y0, z0 = loc
+    all_neighbor_locs = [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in set((-1, size[1])) for x in set((-1, size[0]))]
+    existing_neighbor_keys = list()
+    for loc0 in all_neighbor_locs:
+        key0 = list_to_str(loc0)
+        if key0 in bricksdict:
+            existing_neighbor_keys.append(key0)
+    return existing_neighbor_keys
+
+
+def get_outer_locs(size, zstep, loc):
+    x0, y0, z0 = loc
+    outer_locs = [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in set((0, size[1] - 1)) for x in set((0, size[0] - 1))]
+    return outer_locs
+
+
+def get_neighbored_keys(bricksdict, size, zstep, loc):
+    """ get (key, key) pairs where locs neighbor another for a given brick """
+    x0, y0, z0 = loc
+    neighbored_keys = list()
+    # +x check
+    locs = [[x0 + size[0], y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1])]
+    for loc0 in locs:
+        key0 = str_to_list(loc0)
+        if key0 in bricksdict:
+            loc1 = [loc0[0] - 1, loc0[1], loc0[2]]
+            key1 = str_to_list(loc1)
+            neighbored_keys.append(key0, key1)
+    # -x check
+    locs = [[x0 - 1, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1])]
+    for loc0 in locs:
+        key0 = str_to_list(loc0)
+        if key0 in bricksdict:
+            loc1 = [loc0[0] + 1, loc0[1], loc0[2]]
+            key1 = str_to_list(loc1)
+            neighbored_keys.append(key0, key1)
+    # +y check
+    locs = [[x0 + x, y0 + size[1], z0 + z] for z in range(0, size[2], zstep) for x in range(size[0])]
+    for loc0 in locs:
+        key0 = str_to_list(loc0)
+        if key0 in bricksdict:
+            loc1 = [loc0[0], loc0[1] - 1, loc0[2]]
+            key1 = str_to_list(loc1)
+            neighbored_keys.append(key0, key1)
+    # -y check
+    locs = [[x0 + x, y0 - 1, z0 + z] for z in range(0, size[2], zstep) for x in range(size[0])]
+    for loc0 in locs:
+        key0 = str_to_list(loc0)
+        if key0 in bricksdict:
+            loc1 = [loc0[0], loc0[1] + 1, loc0[2]]
+            key1 = str_to_list(loc1)
+            neighbored_keys.append(key0, key1)
+
+    return neighbored_keys
+
+
+def get_neighboring_bricks(bricksdict, size, zstep, loc):
+    neighboring_keys = get_keys_neighboring_brick(bricksdict, size, zstep, loc)
+    neighboring_bricks = set()
+    for key in neighboring_keys:
+        parent_key = bricksdict[key]["parent"]
+        if parent_key == "self":
+            neighboring_bricks.add(key)
+        elif parent_key is not None:
+            neighboring_bricks.add(parent_key)
+    return neighboring_bricks
 
 
 # loc param is more efficient than key, but one or the other must be passed

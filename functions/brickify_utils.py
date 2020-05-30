@@ -294,6 +294,36 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
     return bricksdict, brick_scale
 
 
+def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", select_created=True, temp_brick=False):
+    if len(keys_to_update) == 0: return []
+    if not is_unique(keys_to_update): raise ValueError("keys_to_update cannot contain duplicate values")
+    if action is not None:
+        print("[Bricker] %(action)s..." % locals())
+    # get arguments for create_new_bricks
+    source = cm.source_obj
+    source_dup = get_duplicate_object(cm, source.name, source)
+    source_details, dimensions = get_details_and_bounds(source_dup, cm)
+    parent = cm.parent_obj
+    action = "UPDATE_MODEL"
+    # actually draw the bricks
+    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, cm=cm, bricksdict=bricksdict, keys=keys_to_update, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, redraw=True)
+    # link new bricks to scene
+    if not b280():
+        for brick in bricks_created:
+            safe_link(brick)
+    # unlink source_dup if linked
+    safe_unlink(source_dup)
+    # add bevel if it was previously added
+    if cm.bevel_added and not temp_brick:
+        bricks = get_bricks(cm)
+        BRICKER_OT_bevel.run_bevel_action(bricks, cm)
+    # refresh model info
+    prefs = get_addon_preferences()
+    if prefs.auto_refresh_model_info and not temp_brick:
+        set_model_info(bricksdict, cm)
+    return bricks_created
+
+
 def create_new_bricks(source_dup, parent, source_details, dimensions, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
     """ gets/creates bricksdict, runs make_bricks, and caches the final bricksdict """
     # initialization for getting bricksdict

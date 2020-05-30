@@ -185,19 +185,21 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
                     for k3 in bricksdicts[optimal_test]:
                         bricksdict[k3] = bricksdicts[optimal_test][k3]
 
+        # improve sturdiness of model
+        num_connected_components, num_weak_points = improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations=42)
+
         # reset 'attempted_merge' for all items in bricksdict
         for key0 in bricksdict:
             bricksdict[key0]["attempted_merge"] = False
 
+        # end 'Merging' progress bar
+        update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
+
         # get all parent keys
         parent_keys = get_parent_keys(bricksdict, sorted_keys)
 
-        # # improve sturdiness of model
-        # num_connected_components, num_weak_points = improve_sturdiness(bricksdict, zstep, parent_keys, iterations=42)
-        # cm.sturdiness = 1 / num_connected_components - (num_weak_points / 100)
-
-        # end 'Merging' progress bar
-        update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
+        # set sturdiness value
+        cm.sturdiness = 1 / num_connected_components - (num_weak_points / len(parent_keys))
 
         # update cm.brick_sizes_used and cm.brick_types_used
         for k in parent_keys:

@@ -26,41 +26,10 @@ from bpy.types import Operator
 from .brick import *
 from .bricksdict import *
 from .common import *
-from .brickify_utils import create_new_bricks, get_duplicate_object
 from .general import *
 from .model_info import set_model_info
 from .logo_obj import get_logo
 from ..operators.bevel import BRICKER_OT_bevel
-
-
-def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", select_created=True, temp_brick=False):
-    if len(keys_to_update) == 0: return []
-    if not is_unique(keys_to_update): raise ValueError("keys_to_update cannot contain duplicate values")
-    if action is not None:
-        print("[Bricker] %(action)s..." % locals())
-    # get arguments for create_new_bricks
-    source = cm.source_obj
-    source_dup = get_duplicate_object(cm, source.name, source)
-    source_details, dimensions = get_details_and_bounds(source_dup, cm)
-    parent = cm.parent_obj
-    action = "UPDATE_MODEL"
-    # actually draw the bricks
-    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, cm=cm, bricksdict=bricksdict, keys=keys_to_update, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, redraw=True)
-    # link new bricks to scene
-    if not b280():
-        for brick in bricks_created:
-            safe_link(brick)
-    # unlink source_dup if linked
-    safe_unlink(source_dup)
-    # add bevel if it was previously added
-    if cm.bevel_added and not temp_brick:
-        bricks = get_bricks(cm)
-        BRICKER_OT_bevel.run_bevel_action(bricks, cm)
-    # refresh model info
-    prefs = get_addon_preferences()
-    if prefs.auto_refresh_model_info and not temp_brick:
-        set_model_info(bricksdict, cm)
-    return bricks_created
 
 
 def verify_all_brick_exposures(scn, zstep, orig_loc, bricksdict, decriment=0, z_neg=False, z_pos=False):
@@ -304,6 +273,36 @@ def select_bricks(obj_names_dict, bricksdicts, brick_size="NULL", brick_type="NU
 
         # if no brick_size bricks exist, remove from cm.brick_sizes_used or cm.brick_types_used
         remove_unused_from_list(cm, brick_type=brick_type, brick_size=brick_size, selected_something=selected_something)
+
+
+def merge_bricks(bricksdict, keys, cm, target_type="BRICK", any_height=False, merge_seed=None, merge_inconsistent_mats=False, sort_keys=True):
+    # initialize vars
+    updated_keys = []
+    brick_type = cm.brick_type
+    max_width = cm.max_width
+    max_depth = cm.max_depth
+    legal_bricks_only = cm.legal_bricks_only
+    material_type = cm.material_type
+    merge_seed = merge_seed or cm.merge_seed
+    merge_internals = "NEITHER" if material_type == "NONE" else cm.merge_internals
+    merge_internals_h = merge_internals in ["BOTH", "HORIZONTAL"]
+    merge_internals_v = merge_internals in ["BOTH", "VERTICAL"]
+    rand_state = np.random.RandomState(merge_seed)
+    merge_vertical = target_type in get_brick_types(height=3) and "PLATES" in brick_type
+    height_3_only = merge_vertical and not any_height
+
+    # sort keys
+    if sort_keys:
+        keys.sort(key=lambda k: (str_to_list(k)[0] * str_to_list(k)[1] * str_to_list(k)[2]))
+
+    for key in keys:
+        # skip keys already merged to another brick
+        if bricksdict[key]["parent"] not in (None, "self"):
+            continue
+        # attempt to merge current brick with other bricks in keys, according to available brick types
+        brick_size,_ = attempt_merge(bricksdict, key, keys, bricksdict[key]["size"], cm.zstep, rand_state, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats=merge_inconsistent_mats, prefer_largest=True, merge_vertical=merge_vertical, target_type=target_type, height_3_only=height_3_only)
+        updated_keys.append(key)
+    return updated_keys
 
 
 def remove_unused_from_list(cm, brick_type="NULL", brick_size="NULL", selected_something=True):

@@ -217,7 +217,7 @@ class BRICKER_OT_change_brick_type(Operator):
                 b_and_p_brick = flat_brick_type(brick_type) and size[2] == 3
 
                 # verify exposure above and below
-                brick_locs = get_locs_in_brick(bricksdict, size, cm.zstep, dloc)
+                brick_locs = get_locs_in_brick(size, cm.zstep, dloc)
                 for cur_loc in brick_locs:
                     bricksdict = verify_all_brick_exposures(scn, cm.zstep, cur_loc, bricksdict, decriment=3 if b_and_p_brick else 1)
                     # add bricks to keys_to_update

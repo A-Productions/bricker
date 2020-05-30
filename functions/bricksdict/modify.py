@@ -184,7 +184,7 @@ def attempt_merge(bricksdict, key, available_keys, default_size, zstep, rand_sta
 
 def get_num_aligned_edges(bricksdict, size, key, loc, bricks_and_plates=False):
     num_aligned_edges = 0
-    locs = get_locs_in_brick(bricksdict, size, 1, loc)
+    locs = get_locs_in_brick(size, 1, loc)
     got_one = False
 
     for l in locs:

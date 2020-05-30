@@ -24,7 +24,7 @@ from bpy.types import Operator
 from bpy.props import *
 
 # Module imports
-from .merge_bricks import *
+# from .merge_bricks import *
 from ..brickify import *
 from ...lib.undo_stack import *
 from ...functions import *
@@ -113,7 +113,7 @@ class BRICKER_OT_draw_adjacent(Operator):
                 set_cur_brick_val(self.bricksdict, loc0)
 
             # attempt to merge created bricks
-            keys_to_update = BRICKER_OT_merge_bricks.merge_bricks(self.bricksdict, keys_to_merge, cm, target_type=target_type)
+            keys_to_update = merge_bricks(self.bricksdict, keys_to_merge, cm, target_type=target_type)
 
             # if bricks created on top or bottom, set exposure of original brick
             if self.z_pos or self.z_neg:

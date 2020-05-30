@@ -82,7 +82,7 @@ class BRICKER_OT_merge_bricks(Operator):
                     delete(bpy.data.objects.get(obj_name))
 
                 # run self.merge_bricks
-                keys_to_update = BRICKER_OT_merge_bricks.merge_bricks(bricksdict, all_split_keys, cm, any_height=True, merge_inconsistent_mats=self.merge_inconsistent_mats)
+                keys_to_update = merge_bricks(bricksdict, all_split_keys, cm, any_height=True, merge_inconsistent_mats=self.merge_inconsistent_mats)
 
                 # draw modified bricks
                 draw_updated_bricks(cm, bricksdict, keys_to_update)
@@ -121,32 +121,6 @@ class BRICKER_OT_merge_bricks(Operator):
     #############################################
     # class methods
 
-    @staticmethod
-    def merge_bricks(bricksdict, keys, cm, target_type="BRICK", any_height=False, merge_inconsistent_mats=False):
-        # initialize vars
-        updated_keys = []
-        brick_type = cm.brick_type
-        max_width = cm.max_width
-        max_depth = cm.max_depth
-        legal_bricks_only = cm.legal_bricks_only
-        material_type = cm.material_type
-        merge_internals = "NEITHER" if material_type == "NONE" else cm.merge_internals
-        merge_internals_h = merge_internals in ["BOTH", "HORIZONTAL"]
-        merge_internals_v = merge_internals in ["BOTH", "VERTICAL"]
-        rand_state = np.random.RandomState(cm.merge_seed)
-        merge_vertical = target_type in get_brick_types(height=3) and "PLATES" in brick_type
-        height_3_only = merge_vertical and not any_height
-
-        # sort keys
-        keys.sort(key=lambda k: (str_to_list(k)[0] * str_to_list(k)[1] * str_to_list(k)[2]))
-
-        for key in keys:
-            # skip keys already merged to another brick
-            if bricksdict[key]["parent"] not in (None, "self"):
-                continue
-            # attempt to merge current brick with other bricks in keys, according to available brick types
-            brick_size,_ = attempt_merge(bricksdict, key, keys, bricksdict[key]["size"], cm.zstep, rand_state, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats=merge_inconsistent_mats, prefer_largest=True, merge_vertical=merge_vertical, target_type=target_type, height_3_only=height_3_only)
-            updated_keys.append(key)
-        return updated_keys
+    # NONE!
 
     #############################################
