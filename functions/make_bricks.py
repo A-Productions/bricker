@@ -42,7 +42,8 @@ from ..lib.caches import bricker_mesh_cache
 
 @timed_call("Time Elapsed")
 def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions, action, bcoll, num_source_mats, split=False, brick_scale=None, merge_vertical=True, custom_data=None, clear_existing_collection=True, frame_num=None, cursor_status=False, print_status=True, temp_brick=False, redraw=False):
-    # initialize cmlist attributes (prevents 'update' function from running every time)
+    # initialize cmlist attributes (prevents 'update' function for each property from running every time)
+    n = cm.source_obj.name
     cm_id = cm.id
     align_bricks = cm.align_bricks
     build_is_dirty = cm.build_is_dirty
@@ -103,7 +104,7 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
             brick_d["parent"] = "self"
             brick_d["size"] = size.copy()
             set_flipped_and_rotated(brick_d, bricksdict, [key])
-            set_brick_exposure(bricksdict, zstep, key)
+            set_brick_exposure(bricksdict, zstep, key)  # TODO: is this necessary? Just passing by and noticed it may not be...
             if brick_d["type"] == "SLOPE" and brick_type == "SLOPES":
                 set_brick_type_for_slope(brick_d, bricksdict, [key])
     else:
@@ -184,7 +185,19 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
                     for k3 in bricksdicts[optimal_test]:
                         bricksdict[k3] = bricksdicts[optimal_test][k3]
 
+        # reset 'attempted_merge' for all items in bricksdict
+        for key0 in bricksdict:
+            bricksdict[key0]["attempted_merge"] = False
+
+        # get all parent keys
         parent_keys = get_parent_keys(bricksdict, sorted_keys)
+
+        # # improve sturdiness of model
+        # num_connected_components, num_weak_points = improve_sturdiness(bricksdict, zstep, parent_keys, iterations=42)
+        # cm.sturdiness = 1 / num_connected_components - (num_weak_points / 100)
+
+        # end 'Merging' progress bar
+        update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
 
         # update cm.brick_sizes_used and cm.brick_types_used
         for key in parent_keys:
@@ -192,26 +205,28 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
             brick_size_str = list_to_str(sorted(brick_size[:2]) + [brick_size[2]])
             update_brick_sizes_and_types_used(cm, brick_size_str, bricksdict[key]["type"])
 
-        # reset 'attempted_merge' for all items in bricksdict
-        for key0 in bricksdict:
-            bricksdict[key0]["attempted_merge"] = False
-
-        # improve sturdiness of model
-        num_connected_components, num_weak_points = improve_sturdiness(bricksdict, zstep, parent_keys, iterations=42)
-        cm.sturdiness = 1 / num_connected_components - (num_weak_points / 100)
-
         # set brick exposures
         for k in parent_keys:
             set_brick_exposure(bricksdict, zstep, key=k)
 
-        # end 'Merging' progress bar
-        update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
+        # set brick materials
+        brick_mats = get_brick_mats(cm)
+        seed_keys = sorted_keys if material_type == "RANDOM" else None
+        for k in parent_keys:
+            brick_d = bricksdict[k]
+            brick_size = brick_d["size"]
+            mat = get_material(bricksdict, k, brick_size, zstep, material_type, custom_mat, random_mat_seed, seed_keys, brick_mats=brick_mats)
+            if mat:
+                loc = get_dict_loc(bricksdict, k)
+                keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc)
+                for k0 in keys_in_brick:
+                    bricksdict[k0]["mat_name"] = mat.name
 
     # begin 'Building' progress bar
     old_percent = update_progress_bars(0.0, -1, "Building", print_status, cursor_status)
 
     # set up internal material for this object
-    mats = []
+    mats = list()
     if num_source_mats == 0:
         internal_mat = None
     else:
@@ -222,11 +237,9 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
         mats.append(custom_mat)
     # initialize vars for brick drawing
     all_meshes = bmesh.new()
-    brick_mats = get_brick_mats(cm)
-    bricks_created = []
+    bricks_created = list()
 
     # draw merged bricks
-    seed_keys = sorted_keys if material_type == "RANDOM" else None
     i = 0
     for z in sorted(keys_dict.keys()):
         for k2 in keys_dict[z]:
@@ -235,7 +248,7 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
                 continue
             loc = get_dict_loc(bricksdict, k2)
             # create brick based on the current brick info
-            draw_brick(cm_id, bricksdict, k2, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, bricksdict[k2]["size"], brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_method, rand_s2, rand_s3)
+            draw_brick(cm_id, bricksdict, k2, loc, bcoll, clear_existing_collection, parent, dimensions, zstep, bricksdict[k2]["size"], brick_type, split, custom_data, bricks_created, all_meshes, mats, internal_mat, logo, logo_resolution, logo_decimate, logo_type, logo_scale, logo_inset, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, circle_verts, instance_method, rand_s2, rand_s3)
             # print status to terminal and cursor
             old_percent = update_progress_bars(i / denom, old_percent, "Building", print_status, cursor_status)
 
@@ -274,4 +287,4 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
         # protect all_bricks_obj from being deleted
         all_bricks_obj.is_brickified_object = True
 
-    return bricks_created, bricksdict
+    return bricks_created

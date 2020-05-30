@@ -39,11 +39,8 @@ from .mat_utils import *
 from ..lib.caches import bricker_mesh_cache
 
 
-def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, brick_size, brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_method, rand_s2, rand_s3):
-    """ bricksdict values that may be changed: mat_name """
-
-    # get brick material
-    mat = get_material(bricksdict, key, brick_size, zstep, material_type, custom_mat, random_mat_seed, mat_dirty, seed_keys, brick_mats=brick_mats)
+def draw_brick(cm_id, bricksdict, key, loc, bcoll, clear_existing_collection, parent, dimensions, zstep, brick_size, brick_type, split, custom_data, bricks_created, all_meshes, mats, internal_mat, logo, logo_resolution, logo_decimate, logo_type, logo_scale, logo_inset, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, circle_verts, instance_method, rand_s2, rand_s3):
+    """ draws current brick in bricksdict """
 
     # set up arguments for brick mesh
     brick_d = bricksdict[key]
@@ -66,6 +63,10 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
     # get brick location
     loc_offset = get_random_loc(random_loc, rand_s2, dimensions["half_width"], dimensions["half_height"])
     brick_loc = get_brick_center(bricksdict, key, zstep, loc) + loc_offset
+    # get brick material
+    mat = bpy.data.materials.get(brick_d["mat_name"])
+    if mat is None:
+        mat = internal_mat
 
     if split:
         brick = bpy.data.objects.get(brick_d["name"])
@@ -85,12 +86,7 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
         # set brick location
         brick.location = brick_loc
         # set brick material
-        mat = mat or internal_mat
         set_material(brick, mat)
-        if mat:
-            keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc)
-            for k in keys_in_brick:
-                bricksdict[k]["mat_name"] = mat.name
         # append to bricks_created
         bricks_created.append(brick)
         # set remaining brick info if brick object just created
@@ -110,12 +106,6 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
         # transform brick mesh to coordinate on matrix
         m.transform(Matrix.Translation(brick_loc))
 
-        # set to internal mat if material not set
-        internal = False
-        if mat is None:
-            mat = internal_mat
-            internal = True
-
         # keep track of mats already used
         if mat in mats:
             mat_idx = mats.index(mat)
@@ -125,9 +115,6 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
 
         # set material
         if mat is not None:
-            # set material name in dictionary
-            if not internal:
-                brick_d["mat_name"] = mat.name
             # point all polygons to target material (index will correspond in all_meshes object)
             for p in m.polygons:
                 p.material_index = mat_idx
@@ -301,7 +288,7 @@ def get_brick_data(brick_d, dimensions, brick_type, brick_size=(1, 1, 1), circle
     return m0
 
 
-def get_material(bricksdict, key, size, zstep, material_type, custom_mat, random_mat_seed, mat_dirty, seed_keys, brick_mats=None):
+def get_material(bricksdict, key, size, zstep, material_type, custom_mat, random_mat_seed, seed_keys, brick_mats=None):
     mat = None
     highest_val = 0
     mats_L = []
