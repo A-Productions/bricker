@@ -65,7 +65,6 @@ def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations
             # for k0 in split_keys:
             #     key_weights[k0] = conn_comp_len
         keys_dict, split_keys = get_keys_dict(bricksdict, split_keys)
-            split_keys =  + split_keys
         # split_keys.sort(key=lambda k: key_weights[k])
         # merge split bricks
         new_merge_seed = merge_seed + i + 1
