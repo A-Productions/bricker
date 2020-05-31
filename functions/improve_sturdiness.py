@@ -58,18 +58,17 @@ def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations
         # improve sturdiness
         # split up bricks
         split_keys = list()
-        # key_weights = dict()
+        key_weights = dict()
         for k in weak_points | weak_point_neighbors | component_interfaces:
             split_keys += split_brick(bricksdict, k, zstep, brick_type)
-            # conn_comp_len = len(next(cc for cc in conn_comps if k in cc))
-            # for k0 in split_keys:
-            #     key_weights[k0] = conn_comp_len
-        keys_dict, split_keys = get_keys_dict(bricksdict, split_keys)
-            split_keys =  + split_keys
-        # split_keys.sort(key=lambda k: key_weights[k])
+            conn_comp_len = len(next(cc for cc in conn_comps if k in cc))
+            for k0 in split_keys:
+                key_weights[k0] = conn_comp_len
+        split_keys.sort(key=lambda k: key_weights[k])
         # merge split bricks
         new_merge_seed = merge_seed + i + 1
-        merged_keys = merge_bricks(bricksdict, split_keys, cm, merge_seed=new_merge_seed, target_type="BRICK" if brick_type == "BRICKS_AND_PLATES" else brick_type, any_height=brick_type == "BRICKS_AND_PLATES", sort_keys=False)
+        direction_mult = (random.choice((1, -1)), random.choice((1, -1)), random.choice((1, -1)))
+        merged_keys = merge_bricks(bricksdict, split_keys, cm, merge_seed=new_merge_seed, target_type="BRICK" if brick_type == "BRICKS_AND_PLATES" else brick_type, any_height=brick_type == "BRICKS_AND_PLATES", direction_mult=direction_mult, sort_keys=False)
         # break if consistently sturdy
         if len(weak_points) in (0, num_last_weak_points) and len(conn_comps) in (0, num_last_conn_comps):
             break
