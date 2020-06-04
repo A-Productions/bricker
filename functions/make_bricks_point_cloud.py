@@ -55,6 +55,8 @@ def make_bricks_point_cloud(cm, bricksdict, keys_dict, parent, source_details, d
     rand_s2 = np.random.RandomState(cm.merge_seed + 1)
     random_rot = cm.random_rot
     random_loc = cm.random_loc
+    use_local_orient = cm.use_local_orient
+    source_obj = cm.source_obj
     zstep = cm.zstep
     i = 0
     # create points in cloud
@@ -63,7 +65,7 @@ def make_bricks_point_cloud(cm, bricksdict, keys_dict, parent, source_details, d
     for z in sorted(keys_dict.keys()):
         for key in keys_dict[z]:
             brick_d = bricksdict[key]
-            brick_d["size"] = (1, 1, 1)
+            brick_d["size"] = [1, 1, 1]
             # apply random rotation to edit mesh according to parameters
             random_rot_angle = get_random_rot_angle(random_rot * 2, rand_s2, brick_d["size"])
             # get brick location

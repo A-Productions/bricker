@@ -46,7 +46,7 @@ class OBJECT_OT_duplicate_override(bpy.types.Operator):
         return {"FINISHED"}
 
     def invoke(self, context, event):
-        self.duplicate_objects()
+        self.duplicate_objects(context)
         return {"FINISHED"}
 
     ################################################
@@ -58,7 +58,7 @@ class OBJECT_OT_duplicate_override(bpy.types.Operator):
     #############################################
     # class methods
 
-    def duplicate_objects(self):
+    def duplicate_objects(self, context):
         scn = context.scene
         new_bricker_objs = []
         lock_bools = (False, False, False)

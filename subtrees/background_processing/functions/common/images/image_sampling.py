@@ -87,9 +87,10 @@ def clear_pixel_cache(image_name:str=None):
                 common_pixel_cache.pop(key)
 
 
-def get_pixels_at_frame(image:Image, frame:int=None, cyclic:bool=True):
+def get_pixels_at_frame(image:Image, frame:int=None, frame_duration:int=None, cyclic:bool=True):
     assert image.source in ("SEQUENCE", "MOVIE")
     frame = frame or bpy.context.scene.frame_current
+    frame_duration = frame_duration or image.frame_duration
     old_viewer_area = ""
     viewer_area = None
     viewer_space = None
@@ -106,12 +107,10 @@ def get_pixels_at_frame(image:Image, frame:int=None, cyclic:bool=True):
 
     old_image = viewer_space.image
     viewer_space.image = image
-    viewer_space.image_user.frame_offset = frame - (bpy.context.scene.frame_current % image.frame_duration)
+    viewer_space.image_user.frame_offset = frame - (bpy.context.scene.frame_current % frame_duration)
     viewer_space.image_user.use_cyclic = cyclic
-    if image.source == "MOVIE" and viewer_space.image_user.frame_duration != image.frame_duration:
-        viewer_space.image_user.frame_duration = image.frame_duration
-    elif image.source == "SEQUENCE":
-        viewer_space.image_user.frame_duration = frame + 1
+    if image.source in ("MOVIE", "SEQUENCE"):
+        viewer_space.image_user.frame_duration = frame_duration
     viewer_space.display_channels = "COLOR"  # force refresh of image pixels
     pixels = get_pixels(viewer_space.image)
 
@@ -137,7 +136,7 @@ def get_pixel(image:Image, uv_coord:Vector, premult:bool=False, pixels:list=None
     pixels = pixels or get_pixels_cache(image, frame=image_frame, color_depth=color_depth, blur_radius=blur_radius)
     pixel_number = (image.size[0] * round(uv_coord.y) + round(uv_coord.x)) * image.channels
     assert 0 <= pixel_number < len(pixels)
-    rgba = pixels[pixel_number:pixel_number + image.channels]
+    rgba = tuple(float(v) for v in pixels[pixel_number:pixel_number + image.channels])
     # premultiply
     if premult and image.alpha_mode != "PREMUL":
         rgba = [v * rgba[3] for v in rgba[:3]] + [rgba[3]]

@@ -78,7 +78,7 @@ def pad_pixels(size, channels, old_pixels, old_size):
     return new_pixels
 
 
-def blend_pixels(im1_pixels, im2_pixels, width, height, channels, operation, use_clamp, factor_pixels):
+def blend_pixels(im1_pixels, im2_pixels, width, height, channels, operation, use_clamp, factor):
     new_pixels = np.empty((width * height, channels))
     im1_pixels = get_2d_pixel_array(im1_pixels, channels)
     im2_pixels = get_2d_pixel_array(im2_pixels, channels)
@@ -191,6 +191,13 @@ def math_operation_on_pixels(pixels, operation, value, clamp=False):
 
 def clamp_pixels(pixels, minimum, maximum):
     return np.clip(pixels, minimum, maximum)
+
+
+def normalize_pixels(pixels, to_sum=False):
+    new_pixels = np.copy(pixels)
+    new_pixels -= np.min(new_pixels, axis=0)
+    new_pixels /= (np.sum(new_pixels, axis=0) if to_sum else np.ptp(new_pixels, axis=0))
+    return new_pixels
 
 
 def adjust_bright_contrast(pixels, bright, contrast):

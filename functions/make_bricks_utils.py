@@ -145,7 +145,7 @@ def merge_with_adjacent_bricks(brick_d, bricksdict, key, loc, keys_not_checked, 
     brick_size = brick_d["size"]
     if brick_size is None or build_is_dirty:
         prefer_largest = 0 < brick_d["val"] < 1
-        brick_size, keys_in_brick = attempt_merge(bricksdict, key, keys_not_checked, default_size, zstep, rand_s1, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, loc=loc, prefer_largest=prefer_largest, merge_vertical=merge_vertical, height_3_only=brick_d["type"] in get_brick_types(height=3))
+        brick_size, _, keys_in_brick = attempt_merge(bricksdict, key, keys_not_checked, default_size, zstep, rand_s1, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, loc=loc, prefer_largest=prefer_largest, merge_vertical=merge_vertical, height_3_only=brick_d["type"] in get_brick_types(height=3))
     else:
         keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc=loc)
     return brick_size, keys_in_brick
@@ -330,7 +330,8 @@ def update_brick_sizes_and_types_used(cm, sz, typ):
     cm.brick_types_used += typ if btu == "" else ("|%(typ)s" % locals() if typ not in btu else "")
 
 
-def get_parent_keys(bricksdict, keys):
+def get_parent_keys(bricksdict, keys=None):
+    keys = keys or bricksdict.keys()
     parent_keys = [k for k in keys if bricksdict[k]["parent"] == "self"]
     return parent_keys
 

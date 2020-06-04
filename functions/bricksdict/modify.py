@@ -149,9 +149,8 @@ def attempt_merge(bricksdict, key, available_keys, default_size, zstep, rand_sta
     # get loc from key
     loc = loc or get_dict_loc(bricksdict, key)
     brick_sizes = [default_size]
-    brick_d = bricksdict[key]
-    tall_type = get_tall_type(brick_d, target_type)
-    short_type = get_short_type(brick_d, target_type)
+    tall_type = get_tall_type(bricksdict[key], target_type)
+    short_type = get_short_type(bricksdict[key], target_type)
 
     if brick_type != "CUSTOM":
         # check width-depth and depth-width
@@ -165,24 +164,21 @@ def attempt_merge(bricksdict, key, available_keys, default_size, zstep, rand_sta
 
     # grab the biggest brick size
     brick_size = brick_sizes[-1]
-    abs_brick_size = [abs(v) for v in brick_size]
-    print(brick_size)
 
     # switch to origin brick
-    print(loc)
+    loc = loc.copy()
     if brick_size[0] < 0:
-        loc[0] -= abs_brick_size[0] - 1
+        loc[0] -= abs(brick_size[0]) - 1
     if brick_size[1] < 0:
-        loc[1] -= abs_brick_size[1] - 1
+        loc[1] -= abs(brick_size[1]) - 1
     if brick_size[2] < 0:
-        loc[2] -= abs_brick_size[2] - 1
-    print(loc)
-    print()
+        loc[2] -= abs(brick_size[2] // zstep) - 1
     key = list_to_str(loc)
     brick_d = bricksdict[key]
 
     # store the biggest brick size to origin brick
-    brick_d["size"] = abs_brick_size
+    brick_size = [abs(v) for v in brick_size]
+    brick_d["size"] = brick_size
 
     # set attributes for merged brick keys
     keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc=loc)
@@ -198,7 +194,7 @@ def attempt_merge(bricksdict, key, available_keys, default_size, zstep, rand_sta
     if brick_d["type"] == "SLOPE" and brick_type == "SLOPES":
         set_brick_type_for_slope(brick_d, bricksdict, keys_in_brick)
 
-    return brick_size, keys_in_brick
+    return brick_size, key, keys_in_brick
 
 
 def get_num_aligned_edges(bricksdict, size, key, loc, bricks_and_plates=False):

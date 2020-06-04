@@ -55,4 +55,5 @@ python_data = {
     "brick_sizes_used": cm.brick_sizes_used,
     "brick_types_used": cm.brick_types_used,
     "rgba_vals": cm.rgba_vals,
+    "sturdiness": cm.sturdiness,
 }

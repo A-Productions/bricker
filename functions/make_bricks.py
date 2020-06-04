@@ -126,67 +126,44 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
                 for ii in range(max_brick_height):
                     if ii + z in keys_dict:
                         available_keys_base += keys_dict[z + ii]
-                # get small duplicate of bricksdict for variations
-                if connect_thresh > 1:
-                    bricksdicts_base = {}
-                    for k4 in available_keys_base:
-                        bricksdicts_base[k4] = bricksdict[k4]
-                    bricksdicts = [deepcopy(bricksdicts_base) for j in range(connect_thresh)]
-                    num_aligned_edges = [0 for idx in range(connect_thresh)]
-                else:
-                    bricksdicts = [bricksdict]
                 # calculate build variations for current z level
-                for j in range(connect_thresh):
-                    available_keys = available_keys_base.copy()
-                    num_bricks = 0
-                    if merge_type == "RANDOM":
-                        random.seed(merge_seed + i)
-                        random.shuffle(keys_dict[z])
-                    # iterate through keys on current z level
-                    for key in keys_dict[z]:
-                        i += 1 / connect_thresh
-                        brick_d = bricksdicts[j][key]
-                        # skip keys that are already drawn or have attempted merge
-                        if brick_d["attempted_merge"] or brick_d["parent"] not in (None, "self"):
-                            # remove ignored key if it exists in available_keys (for attempt_merge)
-                            remove_item(available_keys, key)
-                            continue
+                available_keys = available_keys_base.copy()
+                num_bricks = 0
+                if merge_type == "RANDOM":
+                    random.seed(merge_seed + i)
+                    random.shuffle(keys_dict[z])
+                # iterate through keys on current z level
+                for key in keys_dict[z]:
+                    i += 1
+                    brick_d = bricksdict[key]
+                    # skip keys that are already drawn or have attempted merge
+                    if brick_d["attempted_merge"] or brick_d["parent"] not in (None, "self"):
+                        # remove ignored key if it exists in available_keys (for attempt_merge)
+                        remove_item(available_keys, key)
+                        continue
 
-                        # initialize loc
-                        loc = get_dict_loc(bricksdict, key)
+                    # initialize loc
+                    loc = get_dict_loc(bricksdict, key)
 
-                        # merge current brick with available adjacent bricks
-                        brick_size, keys_in_brick = merge_with_adjacent_bricks(brick_d, bricksdicts[j], key, loc, available_keys, [1, 1, zstep], zstep, rand_s1, build_is_dirty, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_vertical=merge_vertical)
-                        brick_d["size"] = brick_size
-                        # iterate number aligned edges and bricks if generating multiple variations
-                        if connect_thresh > 1:
-                            num_aligned_edges[j] += get_num_aligned_edges(bricksdict, brick_size, key, loc, bricks_and_plates)
-                            num_bricks += 1
+                    # merge current brick with available adjacent bricks
+                    brick_size, keys_in_brick = merge_with_adjacent_bricks(brick_d, bricksdict, key, loc, available_keys, [1, 1, zstep], zstep, rand_s1, build_is_dirty, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_vertical=merge_vertical)
 
-                        # print status to terminal and cursor
-                        cur_percent = (i / denom)
-                        old_percent = update_progress_bars(cur_percent, old_percent, "Merging", print_status, cursor_status)
+                    # print status to terminal and cursor
+                    cur_percent = (i / denom)
+                    old_percent = update_progress_bars(cur_percent, old_percent, "Merging", print_status, cursor_status)
 
-                        # remove keys in new brick from available_keys (for attempt_merge)
-                        for k in keys_in_brick:
-                            remove_item(available_keys, k)
-
-                    if connect_thresh > 1:
-                        # if no aligned edges / bricks found, skip to next z level
-                        if num_aligned_edges[j] == 0:
-                            i += (len(keys_dict[z]) * connect_thresh - 1) / connect_thresh
-                            break
-                        # add double the number of bricks so connectivity threshold is weighted towards larger bricks
-                        num_aligned_edges[j] += num_bricks * 2
-
-                # choose optimal variation from above for current z level
-                if connect_thresh > 1:
-                    optimal_test = num_aligned_edges.index(min(num_aligned_edges))
-                    for k3 in bricksdicts[optimal_test]:
-                        bricksdict[k3] = bricksdicts[optimal_test][k3]
+                    # remove keys in new brick from available_keys (for attempt_merge)
+                    for k in keys_in_brick:
+                        remove_item(available_keys, k)
 
         # improve sturdiness of model
-        num_connected_components, num_weak_points = improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations=42)
+        num_connected_components, num_weak_points = improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations=connect_thresh)
+
+        # get all parent keys
+        parent_keys = get_parent_keys(bricksdict, sorted_keys)
+
+        # set sturdiness of connected components
+        cm.sturdiness = 1 / num_connected_components - (num_weak_points / len(parent_keys))
 
         # reset 'attempted_merge' for all items in bricksdict
         for key0 in bricksdict:
@@ -194,12 +171,6 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
 
         # end 'Merging' progress bar
         update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
-
-        # get all parent keys
-        parent_keys = get_parent_keys(bricksdict, sorted_keys)
-
-        # set sturdiness value
-        cm.sturdiness = 1 / num_connected_components - (num_weak_points / len(parent_keys))
 
         # update cm.brick_sizes_used and cm.brick_types_used
         for k in parent_keys:

@@ -42,7 +42,7 @@ def make_rectangle(coord1:Vector, coord2:Vector, face:bool=True, flip_normal:boo
 
     Returns:
         bme         -- bmesh object containing created verts
-        verts       -- list of vertices with normal facing in positive direction (right hand rule)
+        verts       -- list of vertices in the following x,y order: [--, -+, ++, +-]
 
     """
     # create new bmesh object
@@ -50,14 +50,17 @@ def make_rectangle(coord1:Vector, coord2:Vector, face:bool=True, flip_normal:boo
 
     # create square with normal facing +x direction
     if coord1.x == coord2.x:
-        v1, v2, v3, v4 = [bme.verts.new((coord1.x, y, z)) for y in (coord1.y, coord2.y) for z in (coord1.z, coord2.z)]
+        co1, co2, co3, co4 = [(coord1.x, y, z) for y in (coord1.y, coord2.y) for z in (coord1.z, coord2.z)]
     # create square with normal facing +y direction
     elif coord1.y == coord2.y:
-        v1, v2, v3, v4 = [bme.verts.new((x, coord1.y, z)) for x in (coord1.x, coord2.x) for z in (coord1.z, coord2.z)]
+        co1, co2, co3, co4 = [(x, coord1.y, z) for x in (coord1.x, coord2.x) for z in (coord1.z, coord2.z)]
     # create square with normal facing +z direction
     else:
-        v1, v2, v3, v4 = [bme.verts.new((x, y, coord1.z)) for x in (coord1.x, coord2.x) for y in (coord1.y, coord2.y)]
-    verts = [v1, v3, v4, v2]
+        co1, co2, co3, co4 = [(x, y, coord1.z) for x in (coord1.x, coord2.x) for y in (coord1.y, coord2.y)]
+
+    # organize coords and create verts
+    coords = [co1, co3, co4, co2]
+    verts = [bme.verts.new(co) for co in coords]
 
     # create face
     if face:
@@ -83,7 +86,7 @@ def make_square(size:float, location:Vector=Vector((0, 0, 0)), face:bool=True, f
 
     Returns:
         bme         -- bmesh object containing created verts
-        verts       -- list of vertices with normal facing in positive direction (right hand rule)
+        verts       -- list of vertices in the following x,y order: [--, -+, ++, +-]
 
     """
     coord1 = location - Vector((size / 2, size / 2, 0))
@@ -117,24 +120,28 @@ def make_cube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flip_normals:b
     # create new bmesh object
     bme = bme or bmesh.new()
 
-    # create vertices in the following x,y,z order (later reordered): [---, --+, -+-, -++, +--, +-+, ++-, +++]
-    v_list = [bme.verts.new((x, y, z)) for x in (coord1.x, coord2.x) for y in (coord1.y, coord2.y) for z in (coord1.z, coord2.z)]
-    v1, v2, v3, v4, v5, v6, v7, v8 = v_list
+    # create coords in the following x,y,z order: [---, --+, -+-, -++, +--, +-+, ++-, +++]
+    co1, co2, co3, co4, co5, co6, co7, co8 = [(x, y, z) for x in (coord1.x, coord2.x) for y in (coord1.y, coord2.y) for z in (coord1.z, coord2.z)]
+    # reorder coords to the following x,y,z order: [---, -+-, ++-, +--, --+, +-+, +++, -++]
+    coords = [co1, co3, co7, co5, co2, co6, co8, co4]
+    # create verts from coords
+    verts = [bme.verts.new(co) for co in coords]
+    v1, v2, v3, v4, v5, v6, v7, v8 = verts
 
     # create faces
     new_faces = []
     if sides[0]:
-        new_faces.append([v6, v8, v4, v2])
+        new_faces.append([v6, v7, v8, v5])
     if sides[1]:
-        new_faces.append([v3, v7, v5, v1])
+        new_faces.append([v2, v3, v4, v1])
     if sides[4]:
-        new_faces.append([v4, v8, v7, v3])
+        new_faces.append([v8, v7, v3, v2])
     if sides[3]:
-        new_faces.append([v2, v4, v3, v1])
+        new_faces.append([v5, v8, v2, v1])
     if sides[2]:
-        new_faces.append([v8, v6, v5, v7])
+        new_faces.append([v7, v6, v4, v3])
     if sides[5]:
-        new_faces.append([v6, v2, v1, v5])
+        new_faces.append([v6, v5, v1, v4])
 
     for f in new_faces:
         if flip_normals:
@@ -143,9 +150,6 @@ def make_cube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flip_normals:b
         # if seams:
         #     for e in new_f.edges:
         #         e.seam = True
-
-    # reorder verts to the following x,y,z order: [---, -+-, ++-, +--, --+, +-+, +++, -++]
-    verts = [v1, v3, v7, v5, v2, v6, v8, v4]
 
     # return results
     return bme, verts

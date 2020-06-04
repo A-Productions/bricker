@@ -764,7 +764,7 @@ def mouse_in_view3d_window(event, area, include_tools_panel=False, include_ui_pa
     for region in area.regions:
         regions[region.type] = region
     min_x = 0 if include_tools_panel else regions["TOOLS"].width
-    min_y = 0 if include_header or regions["HEADER"].alignment == "TOP" else (regions["HEADER"].height + regions["TOOL_HEADER"].height)
+    min_y = 0 if include_header or not b280() or regions["HEADER"].alignment == "TOP" else (regions["HEADER"].height + regions["TOOL_HEADER"].height)
     mouse_region_pos = Vector((event.mouse_x, event.mouse_y)) - Vector((regions["WINDOW"].x, regions["WINDOW"].y))
     window_dimensions = Vector((regions["WINDOW"].width, regions["WINDOW"].height))
     if not include_tools_panel:

@@ -53,22 +53,26 @@ def recurse_connected(bricksdict:dict, key:str, conn_comp:dict, zstep:int):
     # get locs in current brick
     loc = get_dict_loc(bricksdict, key)
     brick_size = bricksdict[key]["size"]
-    locs_in_brick = get_lowest_locs_in_brick(brick_size, loc)
+    lowest_locs_in_brick = get_lowest_locs_in_brick(brick_size, loc)
     # find connected brick parent keys
     connected_brick_parent_keys = set()
-    for loc0 in locs_in_brick:
+    for loc0 in lowest_locs_in_brick:
         loc_neg = [loc0[0], loc0[1], loc0[2] - 1]
         parent_key_neg = get_parent_key(bricksdict, list_to_str(loc_neg))
         if parent_key_neg is not None and bricksdict[parent_key_neg]["draw"]:
             connected_brick_parent_keys.add(parent_key_neg)
+        # make sure key doesn't reference itself as neighbor (for debugging purposes)
+        # NOTE: if assertion hit, that probably means that the 'bricksdict[list_to_str(loc_neg)]["size"]' was set improperly before entering this function
+        assert parent_key_neg != key
         loc_pos = [loc0[0], loc0[1], loc0[2] + brick_size[2] // zstep]
         parent_key_pos = get_parent_key(bricksdict, list_to_str(loc_pos))
         if parent_key_pos is not None and bricksdict[parent_key_pos]["draw"]:
             connected_brick_parent_keys.add(parent_key_pos)
+        # make sure key doesn't reference itself as neighbor (for debugging purposes)
+        # NOTE: if assertion hit, that probably means that the 'bricksdict[list_to_str(loc_pos)]["size"]' was set improperly before entering this function
+        assert parent_key_pos != key
     # store connected bricks to new entry in 'conn_comp'
     conn_comp[key] = connected_brick_parent_keys
-    if key in conn_comp[key]:
-        print(key, conn_comp[key])
     # recurse through connected bricks
     for key0 in connected_brick_parent_keys:
         recurse_connected(bricksdict, key0, conn_comp, zstep)
@@ -129,7 +133,8 @@ def get_component_interfaces(bricksdict:dict, zstep:int, conn_comps:list):
 
 
 # @timed_call("Time Elapsed")
-def draw_connected_components(bricksdict:dict, conn_comps:list, weak_points:set, component_interfaces:set, name:str="connected components"):
+def draw_connected_components(bricksdict:dict, cm, conn_comps:list, weak_points:set, component_interfaces:set=set(), name:str="connected components"):
+    print(type(cm))
     bme = bmesh.new()
     # get bmesh vertices
     verts = dict()
@@ -153,6 +158,7 @@ def draw_connected_components(bricksdict:dict, conn_comps:list, weak_points:set,
     # create blender object from bmesh
     m = bpy.data.meshes.new(name)
     obj = bpy.data.objects.new(name, m)
+    obj.parent = cm.parent_obj
     bme.to_mesh(m)
     # link object to scene
-    bpy.context.scene.collection.objects.link(obj)
+    cm.collection.objects.link(obj)

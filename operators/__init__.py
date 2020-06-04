@@ -27,6 +27,7 @@ __all__ = [
     "cmlist_actions",
     "debug_toggle_view_source",
     "delete_model",
+    "draw_conn_comps",
     "export_ldraw",
     "generate_brick",
     "initialize",

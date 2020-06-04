@@ -143,9 +143,6 @@ class Vector2:
         else:
             raise StopIteration
 
-    def length(self):
-        return len(self._seq)
-
     def to_list(self):
         return self._seq.copy()
 
@@ -157,6 +154,14 @@ class Vector2:
             return Vector2(self._seq + [0])
         else:
             return Vector2(self._seq[:3])
+
+    def dot(self, vec):
+        assert len(vec) == len(self._seq)
+        return sum(i[0] * i[1] for i in zip(self._seq, vec))
+
+    @property
+    def length(self):
+        return math.sqrt(sum([v**2 for v in self._seq]))
 
     @property
     def x(self):

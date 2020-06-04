@@ -16,18 +16,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-import marshal
-import itertools
-import operator
+import binascii
 import hashlib
-import re
+from io import StringIO
+import importlib.util as getutil
+import itertools
+import marshal
+import operator
 import os
+import re
 import subprocess
 import sys
 import zlib
-import binascii
-from io import StringIO
-import re
 
 # Blender imports
 # NONE!
@@ -214,7 +214,10 @@ def install_package(package_name, ensure_pip=False):
     if ensure_pip:
         subprocess.call([python_path, "-m", "ensurepip"])
     try:
-        subprocess.call([python_path, "-m", "pip", "install", "--user", package_name])
+        subprocess.call([python_path, "-m", "pip", "--disable-pip-version-check", "install", package_name])
+        if getutil.find_spec(package_name) is None:
+            uninstall_package(package_name)
+            subprocess.call([python_path, "-m", "pip", "--disable-pip-version-check", "install", package_name])
     except:
         if b280() and not ensure_pip:
             install_package(package_name, ensure_pip=True)

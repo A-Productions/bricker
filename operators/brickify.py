@@ -65,7 +65,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     self.source = cm.source_obj # protect against 'StructRNA has been removed' error
                 remaining_jobs = self.job_manager.num_pending_jobs() + self.job_manager.num_running_jobs()
                 anim_action = "ANIM" in self.action
-                if anim_action:
+                if anim_action and cm.frames_to_animate > 0:
                     cm.job_progress = round(cm.num_animated_frames * 100 / cm.frames_to_animate, 2)
                 for job in self.jobs.copy():
                     # cancel if model was deleted before process completed
@@ -82,6 +82,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         cm.brick_sizes_used = retrieved_data["brick_sizes_used"]
                         cm.brick_types_used = retrieved_data["brick_types_used"]
                         cm.rgba_vals = retrieved_data["rgba_vals"]
+                        cm.sturdiness = retrieved_data["sturdiness"]
                         if bricksdict is not None: cache_bricks_dict(self.action, cm, bricksdict[str(frame)] if anim_action else bricksdict, cur_frame=frame)
                         # process retrieved bricker data
                         bricker_instancer = bpy.data.objects.get("Bricker_%(n)s_instancer%(obj_frames_str)s" % locals())
@@ -422,7 +423,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         parent_loc = source_dup_details.mid
         if parent is None:
             parent = get_new_parent(bricker_parent_on, parent_loc)
-            cm.parent_name = parent.name
         cm.parent_obj = parent
         children_clear(cm.parent_obj)  # clear children so they aren't sent to background processor
         parent["loc_diff"] = self.source.location - parent_loc
