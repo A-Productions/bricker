@@ -48,8 +48,7 @@ def handle_animation(scn, depsgraph=None):
         if not cm.animated:
             continue
         n = get_source_name(cm)
-        parent_coll = bpy_collections().get("Bricker_%(n)s_bricks" % locals())
-        for cur_bricks_coll in parent_coll.children:
+        for cur_bricks_coll in cm.collection.children:
             try:
                 cf = int(cur_bricks_coll.name[cur_bricks_coll.name.rfind("_") + 1:])
             except ValueError:

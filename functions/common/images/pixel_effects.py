@@ -78,7 +78,7 @@ def pad_pixels(size, channels, old_pixels, old_size):
     return new_pixels
 
 
-def blend_pixels(im1_pixels, im2_pixels, width, height, channels, operation, use_clamp, factor_pixels):
+def blend_pixels(im1_pixels, im2_pixels, width, height, channels, operation, use_clamp, factor):
     new_pixels = np.empty((width * height, channels))
     im1_pixels = get_2d_pixel_array(im1_pixels, channels)
     im2_pixels = get_2d_pixel_array(im2_pixels, channels)

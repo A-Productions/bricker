@@ -39,6 +39,7 @@ classes = [
     brickify_in_background.BRICKER_OT_stop_brickifying_in_background,
     cache.BRICKER_OT_clear_cache,
     delete_model.BRICKER_OT_delete_model,
+    draw_conn_comps.BRICKER_OT_draw_connected_components,
     debug_toggle_view_source.BRICKER_OT_debug_toggle_view_source,
     export_ldraw.BRICKER_OT_export_ldraw,
     apply_material.BRICKER_OT_apply_material,

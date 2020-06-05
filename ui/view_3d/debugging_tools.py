@@ -58,6 +58,7 @@ class VIEW3D_PT_bricker_debugging_tools(BrickerPanel, Panel):
         source_name = cm.source_obj.name if cm.source_obj else ""
         layout.operator("bricker.generate_brick", icon="MOD_BUILD")
         layout.operator("bricker.debug_toggle_view_source", icon="RESTRICT_VIEW_OFF" if source_name in scn.objects else "RESTRICT_VIEW_ON")
+        layout.operator("bricker.draw_connected_components", icon="PARTICLE_DATA")
 
 
 class VIEW3D_PT_bricker_matrix_details(BrickerPanel, Panel):

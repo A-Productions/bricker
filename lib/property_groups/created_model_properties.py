@@ -129,10 +129,10 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     )
     connect_thresh = IntProperty(
         name="Connectivity",
-        description="Quality of the model's brick connectivity (higher numbers are slower but bricks will be more interconnected)",
+        description="Max number of iterations to improve structural stability (higher numbers are slower but bricks will be more interconnected)",
         update=dirty_build,
-        min=1, soft_max=100,
-        default=1,
+        min=0, soft_max=100,
+        default=42,
     )
     smoke_density = FloatProperty(
         name="Smoke Density",
@@ -792,7 +792,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     )
     sturdiness = FloatProperty(
         name="Sturdiness",
-        description="Structural integrity of the brick model (perfect score is 100)",
+        description="Structural integrity of the brick model (perfect score is 1)",
         subtype="FACTOR",
         min=0, max=1,
         default=0,

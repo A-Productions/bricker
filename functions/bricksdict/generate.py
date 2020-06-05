@@ -581,6 +581,7 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
                 surrounded = False
             if surrounded:
                 brick_freq_matrix[x][y][z] = -1
+                face_idx_matrix[x][y][z] = 0
             else:
                 shell_vals.append((x, y, z))
 
@@ -650,28 +651,29 @@ def create_bricksdict_entry(name:str, loc:list, val:float=0, draw:bool=False, co
     created_from      -- key of brick this brick was created from in draw_adjacent
 
     """
-    return {"name": name,
-            "loc": loc,
-            "val": val,
-            "draw": draw,
-            "co": co,
-            "near_face": near_face,
-            "near_intersection": near_intersection,
-            "near_normal": near_normal,
-            "rgba": rgba,
-            "mat_name": mat_name,
-            "custom_mat_name": custom_mat_name,
-            "parent": parent,
-            "size": size,
-            "attempted_merge": attempted_merge,
-            "top_exposed": top_exposed,
-            "bot_exposed": bot_exposed,
-            "obscures": obscures,
-            "type": b_type,
-            "flipped": flipped,
-            "rotated": rotated,
-            "created_from": created_from,
-           }
+    return {
+        "name": name,
+        "loc": loc,
+        "val": val,
+        "draw": draw,
+        "co": co,
+        "near_face": near_face,
+        "near_intersection": near_intersection,
+        "near_normal": near_normal,
+        "rgba": rgba,
+        "mat_name": mat_name,
+        "custom_mat_name": custom_mat_name,
+        "parent": parent,
+        "size": size,
+        "attempted_merge": attempted_merge,
+        "top_exposed": top_exposed,
+        "bot_exposed": bot_exposed,
+        "obscures": obscures,
+        "type": b_type,
+        "flipped": flipped,
+        "rotated": rotated,
+        "created_from": created_from,
+    }
 
 @timed_call("Time Elapsed")
 def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
