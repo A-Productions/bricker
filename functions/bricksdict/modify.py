@@ -144,7 +144,7 @@ def update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep,
         if break_outer2: break
 
 
-def attempt_merge(bricksdict, key, available_keys, default_size, zstep, rand_state, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, loc=None, merge_inconsistent_mats=False, prefer_largest=False, direction_mult=(1, 1, 1), merge_vertical=True, target_type=None, height_3_only=False):
+def attempt_merge(bricksdict, key, available_keys, default_size, zstep, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, loc=None, axis_sort_order=(2, 0, 1), merge_inconsistent_mats=False, prefer_largest=False, direction_mult=(1, 1, 1), merge_vertical=True, target_type=None, height_3_only=False):
     """ attempt to merge bricksdict[key] with adjacent bricks """
     # get loc from key
     loc = loc or get_dict_loc(bricksdict, key)
@@ -157,10 +157,8 @@ def attempt_merge(bricksdict, key, available_keys, default_size, zstep, rand_sta
         for i in (1, -1) if max_width != max_depth else [1]:
             # iterate through adjacent locs to find available brick sizes
             update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep, [max_width, max_depth][::i] + [3], height_3_only, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats, merge_vertical=merge_vertical, mult=direction_mult, tall_type=tall_type, short_type=short_type)
-        # sort brick types from smallest to largest
-        order = rand_state.randint(0,2)
-        # brick_sizes.sort(key=lambda x: (x[0] * x[1] * x[2]) if prefer_largest else (x[2], x[order], x[(order + 1) % 2]))
-        brick_sizes.sort(key=lambda x: abs(x[0] * x[1] * x[2]) if prefer_largest else (abs(x[2]), abs(x[order]), abs(x[(order + 1) % 2])))
+        # sort brick sizes from smallest to largest
+        brick_sizes.sort(key=lambda x: abs(x[0] * x[1] * x[2]) if prefer_largest else (abs(x[axis_sort_order[0]]), abs(x[axis_sort_order[1]]), abs(x[axis_sort_order[2]])))
 
     # grab the biggest brick size
     brick_size = brick_sizes[-1]

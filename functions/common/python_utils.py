@@ -209,15 +209,15 @@ def get_blend_python_path():
     return join(python_dir, python_name)
 
 
-def install_package(package_name, ensure_pip=False):
+def install_package(package_name:str, ensure_pip:bool=False, version:str=None):
+    """ Install package via pip (use specific version number if passed) """
     python_path = get_blend_python_path()
     if ensure_pip:
         subprocess.call([python_path, "-m", "ensurepip"])
     try:
-        subprocess.call([python_path, "-m", "pip", "--disable-pip-version-check", "install", package_name])
-        if getutil.find_spec(package_name) is None:
-            uninstall_package(package_name)
-            subprocess.call([python_path, "-m", "pip", "--disable-pip-version-check", "install", package_name])
+        target_folder = [p for p in sys.path if p.endswith("site-packages")][0]
+        package_param = package_name + ("=={}".format(version) if version is not None else "")
+        subprocess.call([python_path, "-m", "pip", "install", "--disable-pip-version-check", "--target={}".format(target_folder), package_param])
     except:
         if b280() and not ensure_pip:
             install_package(package_name, ensure_pip=True)

@@ -29,12 +29,11 @@ from .make_bricks_utils import get_parent_keys
 
 
 def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations):
-    keys = bricksdict.keys()
+    # handle case of no sturdiness iterations
     if iterations == 0:
-        parent_keys = get_parent_keys(bricksdict, keys)
-        conn_comps = get_connected_components(bricksdict, zstep, parent_keys)
-        weak_points, weak_point_neighbors = get_weak_articulation_points(bricksdict, conn_comps)
+        conn_comps, weak_points, weak_point_neighbors = get_connectivity_data(bricksdict, cm)
         return len(conn_comps), len(weak_points)
+    # run sturdiness improvement iteratively
     num_last_weak_points = 0
     num_last_conn_comps = 0
     j = 0
@@ -42,22 +41,9 @@ def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations
         # reset 'attempted_merge' for all items in bricksdict
         for key0 in bricksdict:
             bricksdict[key0]["attempted_merge"] = False
-        # get all parent keys
-        parent_keys = get_parent_keys(bricksdict, keys)
-        # get connected components
-        print("\ngetting connected components...", end="")
-        conn_comps = get_connected_components(bricksdict, zstep, parent_keys)
-        print(len(conn_comps))
-        # get weak articulation points
-        print("getting weak articulation points...", end="")
-        weak_points, weak_point_neighbors = get_weak_articulation_points(bricksdict, conn_comps)
-        print(len(weak_points))
-        # get weak point neighbors
-        weak_point_neighbors = set()
-        for k in weak_points:
-            neighboring_bricks = get_neighboring_bricks(bricksdict, bricksdict[k]["size"], zstep, get_dict_loc(bricksdict, k))
-            weak_point_neighbors |= set(neighboring_bricks)
-        # break if sturdy or consistent for 2 iterations
+        # get connectivity data
+        conn_comps, weak_points, weak_point_neighbors = get_connectivity_data(bricksdict, cm)
+        # break if sturdy, or consistent for 2 iterations
         is_sturdy = len(conn_comps) == 1 and len(weak_points) == 0
         consistent_sturdiness = len(weak_points) == num_last_weak_points and len(conn_comps) == num_last_conn_comps
         if is_sturdy or consistent_sturdiness:
@@ -71,16 +57,37 @@ def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations
         split_keys = list()
         for k in weak_points | weak_point_neighbors | component_interfaces:
             split_keys += split_brick(bricksdict, k, zstep, brick_type)
-        # get sort order
+        # get merge direction and sort order
         new_merge_seed = merge_seed + i + 1
-        direction_mult = (random.choice((1, -1)), random.choice((1, -1)), random.choice((1, -1)))
-        sort_fn = lambda k: (str_to_list(k)[0] * direction_mult[0], str_to_list(k)[1] * direction_mult[1], str_to_list(k)[2] * direction_mult[2])
+        rand_state = np.random.RandomState(new_merge_seed)
+        direction_mult = (int(rand_state.choice((1, -1))), int(rand_state.choice((1, -1))), int(rand_state.choice((1, -1))))
+        axis_sort_order = [0, 1, 2]
+        rand_state.shuffle(axis_sort_order)
+        sort_fn = lambda k: (str_to_list(k)[axis_sort_order[0]] * direction_mult[axis_sort_order[0]], str_to_list(k)[axis_sort_order[1]] * direction_mult[axis_sort_order[1]], str_to_list(k)[axis_sort_order[2]] * direction_mult[axis_sort_order[2]])
         # merge split bricks
         ct = time.time()
-        merged_keys = merge_bricks(bricksdict, split_keys, cm, merge_seed=new_merge_seed, target_type="BRICK" if brick_type == "BRICKS_AND_PLATES" else brick_type, any_height=brick_type == "BRICKS_AND_PLATES", direction_mult=direction_mult, sort_fn=sort_fn)
+        merged_keys = merge_bricks(bricksdict, split_keys, cm, merge_seed=new_merge_seed, target_type="BRICK" if brick_type == "BRICKS_AND_PLATES" else brick_type, any_height=brick_type == "BRICKS_AND_PLATES", direction_mult=direction_mult, axis_sort_order=axis_sort_order, sort_fn=sort_fn)
         ct = stopwatch("merge", ct)
         # set last connectivity vals
         num_last_weak_points = len(weak_points)
         num_last_conn_comps = len(conn_comps)
     # return sturdiness info
     return len(conn_comps), len(weak_points)
+
+
+def get_connectivity_data(bricksdict, cm):
+    zstep = get_zstep(cm)
+    parent_keys = get_parent_keys(bricksdict)
+    # get connected components
+    print("\ngetting connected components...", end="")
+    conn_comps = get_connected_components(bricksdict, zstep, parent_keys)
+    print(len(conn_comps))
+    # get weak articulation points
+    print("getting weak articulation points...", end="")
+    weak_points = get_weak_articulation_points(conn_comps)
+    print(len(weak_points))
+    # get weak point neighbors
+    print("getting weak point neighbors...", end="")
+    weak_point_neighbors = get_weak_point_neighbors(bricksdict, weak_points, zstep)
+    print(len(weak_point_neighbors))
+    return conn_comps, weak_points, weak_point_neighbors

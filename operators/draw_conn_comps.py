@@ -53,14 +53,14 @@ class BRICKER_OT_draw_connected_components(bpy.types.Operator):
             return {"CANCELLED"}
 
         # get connected components & weak points
-        parent_keys = get_parent_keys(bricksdict)
-        conn_comps = get_connected_components(bricksdict, get_zstep(cm), parent_keys)
-        weak_points, weak_point_neighbors = get_weak_articulation_points(bricksdict, conn_comps)
+        conn_comps, weak_points, weak_point_neighbors = get_connectivity_data(bricksdict, cm)
 
         # draw connected components
         print("drawing connected components...")
-        draw_connected_components(bricksdict, cm, conn_comps, weak_points, name="Bricker_{n}_conn_comps".format(n=cm.source_obj.name))
+        obj = draw_connected_components(bricksdict, cm, conn_comps, weak_points, name="Bricker_{n}_conn_comps".format(n=cm.source_obj.name))
+        select(obj, only=True, active=True)
 
+        self.report({"INFO"}, "Connected components drawn to object! Enter local view to isolate the object.")
         return{"FINISHED"}
 
     ################################################
