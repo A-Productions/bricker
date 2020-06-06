@@ -629,7 +629,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             obj.lock_scale    = (True, True, True)
             # add bevel if it was previously added
             if cm.bevel_added:
-                BRICKER_OT_bevel.run_bevel_action([obj], cm)
+                create_bevel_mods(cm, [obj])
 
         wm.progress_update(cur_frame-cm.start_frame)
         print("-"*100)
@@ -666,7 +666,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # add bevel if it was previously added
         if cm.bevel_added:
             bricks = get_bricks(cm, typ="MODEL")
-            BRICKER_OT_bevel.run_bevel_action(bricks, cm)
+            create_bevel_mods(cm, bricks)
 
         return bcoll
 

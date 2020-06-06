@@ -46,7 +46,7 @@ def get_connected_components(bricksdict:dict, zstep:int, parent_keys:list):
             for k0 in connected_parent_keys:
                 if k0 in cur_conn_comp:
                     continue
-                keys_connected_to_k0 = get_connected_keys(bricksdict, k0, cur_conn_comp, zstep)
+                keys_connected_to_k0 = get_connected_keys(bricksdict, k0, bricksdict[k0]["size"], zstep)
                 cur_conn_comp[k0] = keys_connected_to_k0
                 next_parent_keys += keys_connected_to_k0
         # remove keys in current conn_comp list from parent_keys
@@ -57,24 +57,25 @@ def get_connected_components(bricksdict:dict, zstep:int, parent_keys:list):
     return conn_comps
 
 
-def get_connected_keys(bricksdict:dict, key:str, conn_comp:dict, zstep:int):
+def get_connected_keys(bricksdict:dict, key:str, brick_size:list, zstep:int, require_merge_attempt:bool=False):
     # get locs in current brick
     loc = get_dict_loc(bricksdict, key)
-    brick_size = bricksdict[key]["size"]
     lowest_locs_in_brick = get_lowest_locs_in_brick(brick_size, loc)
     # find connected brick parent keys
     connected_brick_parent_keys = set()
     for loc0 in lowest_locs_in_brick:
+        # check locations below current brick
         loc_neg = [loc0[0], loc0[1], loc0[2] - 1]
         parent_key_neg = get_parent_key(bricksdict, list_to_str(loc_neg))
-        if parent_key_neg is not None and bricksdict[parent_key_neg]["draw"]:
+        if parent_key_neg is not None and bricksdict[parent_key_neg]["draw"] and (not require_merge_attempt or bricksdict[parent_key_neg]["attempted_merge"]):
             connected_brick_parent_keys.add(parent_key_neg)
         # make sure key doesn't reference itself as neighbor (for debugging purposes)
         # NOTE: if assertion hit, that probably means that the 'bricksdict[list_to_str(loc_neg)]["size"]' was set improperly before entering this function
         assert parent_key_neg != key
+        # check locations above current brick
         loc_pos = [loc0[0], loc0[1], loc0[2] + brick_size[2] // zstep]
         parent_key_pos = get_parent_key(bricksdict, list_to_str(loc_pos))
-        if parent_key_pos is not None and bricksdict[parent_key_pos]["draw"]:
+        if parent_key_pos is not None and bricksdict[parent_key_pos]["draw"] and (not require_merge_attempt or bricksdict[parent_key_pos]["attempted_merge"]):
             connected_brick_parent_keys.add(parent_key_pos)
         # make sure key doesn't reference itself as neighbor (for debugging purposes)
         # NOTE: if assertion hit, that probably means that the 'bricksdict[list_to_str(loc_pos)]["size"]' was set improperly before entering this function
@@ -82,48 +83,65 @@ def get_connected_keys(bricksdict:dict, key:str, conn_comp:dict, zstep:int):
     return connected_brick_parent_keys
 
 
-# # @timed_call("Time Elapsed")
-# def get_weak_articulation_points(bricksdict:dict, conn_comps:list):
-#     weak_points = set()
-#     weak_point_neighbors = set()
-#     for conn_comp in conn_comps:
-#         # get starting key from the list
-#         starting_key = next(iter(conn_comp.keys()))
-#         # visit nearby verts for that starting key
-#         i = 0
-#         node_infos = dict()  # used to find weak points then discarded
-#         visited = [starting_key]
-#         while len(visited) > 0:
-#             queued = visited
-#             visited = list()
-#             for cur_node in queued:
-#                 if neighbor not in node_infos:
-#                     node_infos[cur_node] = {"id": cur_idx, "low_link": cur_idx}
-#                     i += 1
-#                     for neighbor_node in conn_comp[cur_node]:
-#                         i, low_link = depth_first_search(bricksdict, conn_comp, weak_points, weak_point_neighbors, node_infos, i, neighbor_node, cur_node)
-#     return weak_points, weak_point_neighbors
-#
-#
-# # adapted from: https://emre.me/algorithms/tarjans-algorithm/
-# def depth_first_search(bricksdict:dict, conn_comp:dict, weak_points:set, weak_point_neighbors:set, node_infos:dict, cur_idx:int, cur_node:str, last_node:str=""):
-#     # add cur and neighbor nodes as weak articulation points if they bridge two non-trivial components
-#     if node_infos[cur_node]["id"] < low_link and len(conn_comp[neighbor_node]) > 1:
-#         # weak_points.add(cur_node)
-#         weak_points.add(neighbor_node)
-#         # # get verts neighboring weak point
-#         # neighboring_bricks = get_neighboring_bricks(bricksdict, bricksdict[neighbor_node]["size"], zstep, get_dict_loc(bricksdict, neighbor_node))
-#         # for k in neighboring_bricks:
-#         #     if k not in conn_comp:
-#         #         weak_point_neighbors.add(k)
-#     # replace low link of current node if next node's low link is lower
-#     if low_link < node_infos[cur_node]["low_link"] and neighbor_node != last_node:
-#         node_infos[cur_node]["low_link"] = low_link
-#     return cur_idx, node_infos[cur_node]["low_link"]
+# adapted from code written by Dr. Jon Denning
+def get_bridges(conn_comps:list):
+    # bridges = []
+    weak_points = set()
+    for conn_comp in conn_comps:
+        # initial setup
+        starting_node = next(iter(conn_comp.keys()))
+        visited       = []  # initialize visited list
+
+        # use iterative (recursion-free) DFS using explicit stack
+        order   = []  # order of visiting during DFS
+        working = [(None, starting_node)]  # from node, to node
+        while working:
+            node_prev, node_current = working.pop()
+            # record order of visiting
+            order.append((node_prev, node_current, node_current not in visited))
+            # check if already visited here
+            if node_current in visited:
+                continue
+            # add to visited
+            visited.append(node_current)
+            # add neighbors to stack
+            working += [
+                (node_current, node_next) for node_next in conn_comp[node_current]
+                if node_next != node_prev
+            ]
+
+        # use DFS traversal info to solve problem!
+
+        # label nodes
+        node_infos = dict()
+        id_current = 1
+        for (node_prev, node_current, visit) in order:
+            if not visit: continue  # only update data when visiting
+            node_infos[node_current] = {"id": id_current, "low_link": id_current}
+            id_current += 1
+
+        # pop the first item in order (with 'None' as the from node)
+        order.pop(0)
+
+        # note: need to process in reverse order to propagate low_links and ids from leaves to root
+        for (node_current, node_next, visit) in reversed(order):
+            if visit:
+                # we visited node_next from node_current during DFS
+                node_infos[node_current]["low_link"] = min(node_infos[node_current]["low_link"], node_infos[node_next]["low_link"])
+                if node_infos[node_current]["id"] < node_infos[node_next]["low_link"] and len(conn_comp[node_next]) > 1:
+                    # found the bridge!
+                    # bridges.append((node_current, node_next))  # changed to tuple
+                    weak_points.add(node_next)
+            else:
+                # we visited node_next from some other node (not node_current)
+                node_infos[node_current]["low_link"] = min(node_infos[node_current]["low_link"], node_infos[node_next]["id"])
+
+    # done processing
+    return weak_points
 
 
-def get_weak_articulation_points(conn_comps:list):
-    """ get both 'nodes' at each bridge connecting two non-trivial components """
+def get_bridges_recursive(conn_comps:list):
+    """ get one of the nodes at each bridge connecting two non-trivial components """
     weak_points = set()
     for conn_comp in conn_comps:
         node_infos = dict()
@@ -134,6 +152,7 @@ def get_weak_articulation_points(conn_comps:list):
 
 # adapted from: https://emre.me/algorithms/tarjans-algorithm/
 def depth_first_search(conn_comp:dict, weak_points:set, node_infos:dict, cur_idx:int, cur_node:str, last_node:str=""):
+    """ recursive implementation of DFS to discover weak points in connected components data structure """
     # trying to visit an already visited node, which may have a lower id than the current low link value
     if cur_node in node_infos:
         return cur_idx, node_infos[cur_node]["low_link"]
@@ -169,6 +188,7 @@ def get_weak_point_neighbors(bricksdict:dict, weak_points:set, zstep:int):
 
 
 def get_component_interfaces(bricksdict:dict, zstep:int, conn_comps:list):
+    """ get parent keys of neighboring bricks between two connected components """
     component_interfaces = set()
     # get largest conn comp
     conn_comp_lengths = [len(comp) for comp in conn_comps]
@@ -190,6 +210,7 @@ def get_component_interfaces(bricksdict:dict, zstep:int, conn_comps:list):
 
 # @timed_call("Time Elapsed")
 def draw_connected_components(bricksdict:dict, cm, conn_comps:list, weak_points:set, component_interfaces:set=set(), name:str="connected components"):
+    """ draw connected component grid for model in 3D space """
     print(type(cm))
     bme = bmesh.new()
     # get bmesh vertices

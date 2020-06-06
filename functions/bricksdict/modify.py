@@ -22,6 +22,7 @@
 import bpy
 
 # Module imports
+from .connected_components import *
 from .exposure import *
 from ..mat_utils import *
 from ..matlist_utils import *
@@ -159,23 +160,28 @@ def attempt_merge(bricksdict, key, available_keys, default_size, zstep, brick_ty
             update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep, [max_width, max_depth][::i] + [3], height_3_only, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats, merge_vertical=merge_vertical, mult=direction_mult, tall_type=tall_type, short_type=short_type)
         # sort brick sizes from smallest to largest
         brick_sizes.sort(key=lambda x: abs(x[0] * x[1] * x[2]) if prefer_largest else (abs(x[axis_sort_order[0]]), abs(x[axis_sort_order[1]]), abs(x[axis_sort_order[2]])))
+        key, brick_size = get_new_parent_key_and_size(brick_sizes[-1], loc, zstep)
+        # get brick size with the most connections to last layer
+        # brick_size = default_size
+        # max_connected = 0
+        # brick_sizes.sort(key=lambda x: -abs(x[0] * x[1] * x[2]))  # sort by largest to smallest to get largest brick possible
+        # brick_sizes.sort(key=lambda x: abs(x[0] * x[1] * x[2]))  # sort by smallest to largest to get more connections with other merges
+        # if prefer_largest:
+        #     key, brick_size = get_new_parent_key_and_size(brick_sizes[0], loc, zstep)
+        # else:
+        # print()
+        # for size in brick_sizes:
+        #     new_key, new_size = get_new_parent_key_and_size(size, loc, zstep)
+        #     connected_keys = get_connected_keys(bricksdict, new_key, new_size, zstep, require_merge_attempt=True)
+        #     print(len(connected_keys))
+        #     if len(connected_keys) > max_connected:
+        #         max_connected = len(connected_keys)
+        #         brick_size = size
+        #         key = new_key
+        loc = get_dict_loc(bricksdict, key)
 
-    # grab the biggest brick size
-    brick_size = brick_sizes[-1]
-
-    # switch to origin brick
-    loc = loc.copy()
-    if brick_size[0] < 0:
-        loc[0] -= abs(brick_size[0]) - 1
-    if brick_size[1] < 0:
-        loc[1] -= abs(brick_size[1]) - 1
-    if brick_size[2] < 0:
-        loc[2] -= abs(brick_size[2] // zstep) - 1
-    key = list_to_str(loc)
+    # store the best brick size to origin brick
     brick_d = bricksdict[key]
-
-    # store the biggest brick size to origin brick
-    brick_size = [abs(v) for v in brick_size]
     brick_d["size"] = brick_size
 
     # set attributes for merged brick keys
@@ -193,6 +199,23 @@ def attempt_merge(bricksdict, key, available_keys, default_size, zstep, brick_ty
         set_brick_type_for_slope(brick_d, bricksdict, keys_in_brick)
 
     return brick_size, key, keys_in_brick
+
+
+def get_new_parent_key_and_size(size, loc, zstep):
+    # switch to origin brick
+    loc = loc.copy()
+    if size[0] < 0:
+        loc[0] -= abs(size[0]) - 1
+    if size[1] < 0:
+        loc[1] -= abs(size[1]) - 1
+    if size[2] < 0:
+        loc[2] -= abs(size[2] // zstep) - 1
+    new_key = list_to_str(loc)
+
+    # store the biggest brick size to origin brick
+    new_size = [abs(v) for v in size]
+
+    return new_key, new_size
 
 
 def get_num_aligned_edges(bricksdict, size, key, loc, bricks_and_plates=False):

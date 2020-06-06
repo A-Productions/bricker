@@ -316,7 +316,7 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     # add bevel if it was previously added
     if cm.bevel_added and not temp_brick:
         bricks = get_bricks(cm)
-        BRICKER_OT_bevel.run_bevel_action(bricks, cm)
+        create_bevel_mods(cm, bricks)
     # refresh model info
     prefs = get_addon_preferences()
     if prefs.auto_refresh_model_info and not temp_brick:

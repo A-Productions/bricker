@@ -58,6 +58,32 @@ class VIEW3D_PT_bricker_debugging_tools(BrickerPanel, Panel):
         source_name = cm.source_obj.name if cm.source_obj else ""
         layout.operator("bricker.generate_brick", icon="MOD_BUILD")
         layout.operator("bricker.debug_toggle_view_source", icon="RESTRICT_VIEW_OFF" if source_name in scn.objects else "RESTRICT_VIEW_ON")
+
+
+class VIEW3D_PT_bricker_connectivity(BrickerPanel, Panel):
+    """ Display debugging tools for connectivity algorithm """
+    bl_label       = "Connectivity"
+    bl_idname      = "VIEW3D_PT_bricker_connectivity"
+    bl_parent_id   = "VIEW3D_PT_bricker_debugging_tools"
+    bl_options     = {"DEFAULT_CLOSED"}
+
+
+    @classmethod
+    def poll(self, context):
+        if not settings_can_be_drawn():
+            return False
+        scn, cm, _ = get_active_context_info()
+        if created_with_unsupported_version(cm):
+            return False
+        if not (cm.model_created or cm.animated):
+            return False
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        scn, cm, _ = get_active_context_info()
+
+        layout.operator("bricker.select_disconnected", icon="MOD_PHYSICS")
         layout.operator("bricker.draw_connected_components", icon="PARTICLE_DATA")
 
 
