@@ -1,5 +1,5 @@
 """
-Copyright (C) 2019 Bricks Brought to Life
+Copyright (C) 2020 Bricks Brought to Life
 http://bblanimation.com/
 chris@bblanimation.com
 
