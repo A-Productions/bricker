@@ -161,23 +161,6 @@ def attempt_merge(bricksdict, key, available_keys, default_size, zstep, brick_ty
         # sort brick sizes from smallest to largest
         brick_sizes.sort(key=lambda x: abs(x[0] * x[1] * x[2]) if prefer_largest else (abs(x[axis_sort_order[0]]), abs(x[axis_sort_order[1]]), abs(x[axis_sort_order[2]])))
         key, brick_size = get_new_parent_key_and_size(brick_sizes[-1], loc, zstep)
-        # get brick size with the most connections to last layer
-        # brick_size = default_size
-        # max_connected = 0
-        # brick_sizes.sort(key=lambda x: -abs(x[0] * x[1] * x[2]))  # sort by largest to smallest to get largest brick possible
-        # brick_sizes.sort(key=lambda x: abs(x[0] * x[1] * x[2]))  # sort by smallest to largest to get more connections with other merges
-        # if prefer_largest:
-        #     key, brick_size = get_new_parent_key_and_size(brick_sizes[0], loc, zstep)
-        # else:
-        # print()
-        # for size in brick_sizes:
-        #     new_key, new_size = get_new_parent_key_and_size(size, loc, zstep)
-        #     connected_keys = get_connected_keys(bricksdict, new_key, new_size, zstep, require_merge_attempt=True)
-        #     print(len(connected_keys))
-        #     if len(connected_keys) > max_connected:
-        #         max_connected = len(connected_keys)
-        #         brick_size = size
-        #         key = new_key
         loc = get_dict_loc(bricksdict, key)
 
     # store the best brick size to origin brick
@@ -194,9 +177,10 @@ def attempt_merge(bricksdict, key, available_keys, default_size, zstep, brick_ty
         if flat_brick_type(brick_type):
             brick_d0["type"] = short_type if brick_size[2] == 1 else tall_type
     # set flipped and rotated
-    set_flipped_and_rotated(brick_d, bricksdict, keys_in_brick)
-    if brick_d["type"] == "SLOPE" and brick_type == "SLOPES":
-        set_brick_type_for_slope(brick_d, bricksdict, keys_in_brick)
+    if brick_d["type"] == "SLOPE":
+        set_flipped_and_rotated(brick_d, bricksdict, keys_in_brick)
+        if brick_type == "SLOPES":
+            set_brick_type_for_slope(brick_d, bricksdict, keys_in_brick)
 
     return brick_size, key, keys_in_brick
 

@@ -35,7 +35,7 @@ __all__ = [
     "populate_mat_obj",
     "redraw_custom_bricks",
     "refresh_model_info",
-    "select_disconnected",
+    "select_components",
     "revert_settings",
     "test_brick_generators",
 ]

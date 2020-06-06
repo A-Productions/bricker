@@ -26,10 +26,10 @@ props = bpy.props
 from ..functions import *
 
 
-class BRICKER_OT_select_disconnected_components(bpy.types.Operator):
-    """ Select all disconnected components """
-    bl_idname = "bricker.select_disconnected"
-    bl_label = "Select Disconnected Components"
+class BRICKER_OT_select_components(bpy.types.Operator):
+    """ Select components of a certain type (e.g. disconnected, weak points, etc.) """
+    bl_idname = "bricker.select_components"
+    bl_label = "Select Components"
     bl_options = {"REGISTER", "UNDO"}
 
     ################################################
@@ -57,12 +57,27 @@ class BRICKER_OT_select_disconnected_components(bpy.types.Operator):
 
         # select disconnected components
         print("select disconnected components...")
-        largest_conn_comp = max(len(cc) for cc in conn_comps)
         objs_to_select = []
-        for cc in conn_comps:
-            if len(cc) == largest_conn_comp:
-                continue
-            for k in cc:
+        if self.type == "DISCONNECTED":
+            largest_conn_comp = max(len(cc) for cc in conn_comps)
+            for cc in conn_comps:
+                if len(cc) == largest_conn_comp:
+                    continue
+                for k in cc:
+                    brick_obj = bpy.data.objects.get(bricksdict[k]["name"])
+                    objs_to_select.append(brick_obj)
+        elif self.type == "WEAK_POINTS":
+            for k in weak_points:
+                brick_obj = bpy.data.objects.get(bricksdict[k]["name"])
+                objs_to_select.append(brick_obj)
+        elif self.type == "COMP_INTERFACES":
+            component_interfaces = get_component_interfaces(bricksdict, get_zstep(cm), conn_comps, test=True)
+            for k in component_interfaces:
+                brick_obj = bpy.data.objects.get(bricksdict[k]["name"])
+                objs_to_select.append(brick_obj)
+        elif self.type == "ALL_TO_BE_MODIFIED":
+            component_interfaces = get_component_interfaces(bricksdict, get_zstep(cm), conn_comps)
+            for k in weak_points | weak_point_neighbors | component_interfaces:
                 brick_obj = bpy.data.objects.get(bricksdict[k]["name"])
                 objs_to_select.append(brick_obj)
         select(objs_to_select, only=True, active=True)
@@ -75,6 +90,21 @@ class BRICKER_OT_select_disconnected_components(bpy.types.Operator):
 
     def __init__(self):
         pass
+
+    #############################################
+    # class variables
+
+    type = EnumProperty(
+        name="Selection Type",
+        description="",
+        items=[
+            ("DISCONNECTED", "Disconnected", "", 0),
+            ("WEAK_POINTS", "Weak Points", "", 2),
+            ("COMP_INTERFACES", "Component Interfaces", "", 1),
+            ("ALL_TO_BE_MODIFIED", "All to be modified", "", 3),
+        ],
+        default="DISCONNECTED",
+    )
 
     #############################################
     # class methods

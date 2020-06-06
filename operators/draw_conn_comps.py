@@ -54,6 +54,8 @@ class BRICKER_OT_draw_connected_components(bpy.types.Operator):
 
         # get connected components & weak points
         conn_comps, weak_points, weak_point_neighbors = get_connectivity_data(bricksdict, cm)
+        with open('/Users/cgear13/Desktop/cc_data.txt', 'w') as outfile:
+            json.dump(conn_comps, outfile)
 
         # draw connected components
         print("drawing connected components...")

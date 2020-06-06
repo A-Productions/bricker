@@ -115,6 +115,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             # attempt to merge created bricks
             keys_to_update = merge_bricks(self.bricksdict, keys_to_merge, cm, target_type=target_type)
 
+
             # if bricks created on top or bottom, set exposure of original brick
             if self.z_pos or self.z_neg:
                 set_brick_exposure(self.bricksdict, cm.zstep, cur_key)

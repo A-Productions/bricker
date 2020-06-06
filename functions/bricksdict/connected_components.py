@@ -27,6 +27,7 @@ from ..general import *
 from ..brick import *
 
 # For reference on this implementation, see 2.2 of: https://lgg.epfl.ch/publications/2013/lego/lego.pdf
+# For additional reference, see the following article: https://dl.acm.org/doi/pdf/10.1145/2739480.2754667
 
 
 # @timed_call("Time Elapsed")
@@ -131,6 +132,7 @@ def get_bridges(conn_comps:list):
                 if node_infos[node_current]["id"] < node_infos[node_next]["low_link"] and len(conn_comp[node_next]) > 1:
                     # found the bridge!
                     # bridges.append((node_current, node_next))  # changed to tuple
+                    weak_points.add(node_current)
                     weak_points.add(node_next)
             else:
                 # we visited node_next from some other node (not node_current)
@@ -168,7 +170,7 @@ def depth_first_search(conn_comp:dict, weak_points:set, node_infos:dict, cur_idx
         cur_idx, low_link = depth_first_search(conn_comp, weak_points, node_infos, cur_idx, neighbor_node, cur_node)
         # found a weak bridge between two non-trivial components
         if node_infos[cur_node]["id"] < low_link and len(conn_comp[neighbor_node]) > 1:
-            # weak_points.add(cur_node)
+            weak_points.add(cur_node)
             weak_points.add(neighbor_node)
         # replace low link of current node if next node's low link is lower
         node_infos[cur_node]["low_link"] = min(low_link, node_infos[cur_node]["low_link"])
@@ -187,7 +189,7 @@ def get_weak_point_neighbors(bricksdict:dict, weak_points:set, zstep:int):
     return weak_point_neighbors
 
 
-def get_component_interfaces(bricksdict:dict, zstep:int, conn_comps:list):
+def get_component_interfaces(bricksdict:dict, zstep:int, conn_comps:list, test=False):
     """ get parent keys of neighboring bricks between two connected components """
     component_interfaces = set()
     # get largest conn comp
@@ -197,14 +199,23 @@ def get_component_interfaces(bricksdict:dict, zstep:int, conn_comps:list):
     for i, conn_comp in enumerate(conn_comps):
         if i == largest_conn_comp_idx:
             continue
+
         for k in conn_comp:
             neighboring_bricks = get_neighboring_bricks(bricksdict, bricksdict[k]["size"], zstep, get_dict_loc(bricksdict, k))
-            # neighboring_keys = get_neighbored_keys(bricksdict, bricksdict[k]["size"], zstep, get_dict_loc(bricksdict, k))
+            if test:
+                component_interfaces.add(k)
+                component_interfaces |= set(neighboring_bricks)
+                continue
             for k0 in neighboring_bricks:
                 pkey = get_parent_key(bricksdict, k0)
-                if pkey not in conn_comp:
+                if pkey not in conn_comp and pkey is not None:
                     component_interfaces.add(k)
-                    component_interfaces.add(k0)
+                    component_interfaces.add(pkey)
+                    # also add neighbors to this neighbor brick in another conn_comp
+                    neighboring_bricks_1 = get_neighboring_bricks(bricksdict, bricksdict[pkey]["size"], zstep, get_dict_loc(bricksdict, pkey))
+                    for k1 in neighboring_bricks_1:
+                        component_interfaces.add(k1)
+
     return component_interfaces
 
 

@@ -313,7 +313,9 @@ def get_highest_locs_in_brick(size, zstep, loc):
 
 def get_keys_neighboring_brick(bricksdict, size, zstep, loc):
     x0, y0, z0 = loc
-    all_neighbor_locs = [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in set((-1, size[1])) for x in set((-1, size[0]))]
+    neighbor_locs_x = [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1]) for x in set((-1, size[0]))]
+    neighbor_locs_y = [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in set((-1, size[1])) for x in range(size[0])]
+    all_neighbor_locs = neighbor_locs_x + neighbor_locs_y
     existing_neighbor_keys = list()
     for loc0 in all_neighbor_locs:
         key0 = list_to_str(loc0)

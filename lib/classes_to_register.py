@@ -54,7 +54,7 @@ classes = [
     cmlist_actions.CMLIST_OT_link_animated_model,
     cmlist_actions.CMLIST_OT_link_frames,
     matlist_actions.BRICKER_OT_matlist_actions,
-    select_disconnected.BRICKER_OT_select_disconnected_components,
+    select_components.BRICKER_OT_select_components,
     test_brick_generators.BRICKER_OT_test_brick_generators,
     initialize.BRICKER_OT_initialize,
     # bricker/operators/customization_tools
