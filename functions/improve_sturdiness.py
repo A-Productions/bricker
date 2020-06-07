@@ -78,7 +78,7 @@ def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations
     conn_comps, weak_points, weak_point_neighbors = get_connectivity_data(bricksdict, cm)
     print()
 
-    # conn_comps, weak_points, weak_point_neighbors = get_connectivity_data(bricksdict, cm)
+    # TODO: Post-hollowing (see Section 3 of: https://lgg.epfl.ch/publications/2013/lego/lego.pdf)
 
     return conn_comps, weak_points
 
