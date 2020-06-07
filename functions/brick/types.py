@@ -40,12 +40,16 @@ def get_zstep(cm):
     return 1 if flat_brick_type(cm.brick_type) else 3
 
 
-def flat_brick_type(typ):
-    return type(typ) == str and ("PLATE" in typ or "STUD" in typ or "TILE" in typ)
+def flat_brick_type(typ:str):
+    if typ is None:
+        return False
+    return "PLATE" in typ or "STUD" in typ or "TILE" in typ
 
 
-def mergable_brick_type(typ, up=False):
-    return type(typ) == str and ("PLATE" in typ or "BRICK" in typ or "SLOPE" in typ or (up and typ == "CYLINDER"))
+def mergable_brick_type(typ:str, up:bool=False):
+    if typ is None:
+        return False
+    return "PLATE" in typ or "BRICK" in typ or "SLOPE" in typ or (up and typ == "CYLINDER")
 
 
 def get_tall_type(brick_d, target_type=None):

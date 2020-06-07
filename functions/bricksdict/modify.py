@@ -100,7 +100,7 @@ def update_materials(bricksdict, source_dup, keys, cur_frame=None, action="CREAT
     return bricksdict
 
 
-def update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep, max_L, height_3_only, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats=False, merge_vertical=False, mult=(1, 1, 1), tall_type="BRICK", short_type="PLATE"):
+def update_brick_sizes(bricksdict, key, loc, brick_sizes, zstep, max_L, height_3_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats=False, merge_vertical=False, mult=(1, 1, 1)):
     """ update 'brick_sizes' with available brick sizes surrounding bricksdict[key] """
     if not merge_vertical:
         max_L[2] = 1
@@ -116,7 +116,7 @@ def update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep,
             if j >= new_max1: break
             # break case 2
             key1 = list_to_str((loc[0] + (i * mult[0]), loc[1] + (j * mult[1]), loc[2]))
-            if not brick_avail(bricksdict, key, key1, merge_internals_h, material_type, merge_inconsistent_mats) or key1 not in available_keys:
+            if not brick_avail(bricksdict, key, key1, merge_internals_h, material_type, merge_inconsistent_mats):
                 if j == 0: break_outer2 = True
                 else:      new_max1 = j
                 break
@@ -126,7 +126,7 @@ def update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep,
                 if k >= new_max2: break
                 # break case 2
                 key2 = list_to_str((loc[0] + (i * mult[0]), loc[1] + (j * mult[1]), loc[2] + (k * mult[2])))
-                if not brick_avail(bricksdict, key, key2, merge_internals_v, material_type, merge_inconsistent_mats) or key2 not in available_keys:
+                if not brick_avail(bricksdict, key, key2, merge_internals_v, material_type, merge_inconsistent_mats):
                     if k == 0: break_outer1 = True
                     else:      new_max2 = k
                     break
@@ -137,15 +137,14 @@ def update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep,
                     new_size = [(i+1) * mult[0], (j+1) * mult[1], (k+zstep) * mult[2]]
                     if new_size in brick_sizes:
                         continue
-                    abs_new_size = [i+1, j+1, k+zstep]
-                    if not (abs_new_size[2] == 1 and height_3_only) and (not legal_bricks_only or is_legal_brick_size(size=abs_new_size, type=tall_type if abs_new_size[2] == 3 else short_type)):
+                    if not (abs(new_size[2]) == 1 and height_3_only):
                         brick_sizes.append(new_size)
             if break_outer1: break
         break_outer1 = False
         if break_outer2: break
 
 
-def attempt_merge(bricksdict, key, available_keys, default_size, zstep, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, loc=None, axis_sort_order=(2, 0, 1), merge_inconsistent_mats=False, prefer_largest=False, direction_mult=(1, 1, 1), merge_vertical=True, target_type=None, height_3_only=False):
+def attempt_merge(bricksdict, key, default_size, zstep, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, loc=None, axis_sort_order=(2, 0, 1), merge_inconsistent_mats=False, prefer_largest=False, direction_mult=(1, 1, 1), merge_vertical=True, target_type=None, height_3_only=False):
     """ attempt to merge bricksdict[key] with adjacent bricks """
     # get loc from key
     loc = loc or get_dict_loc(bricksdict, key)
@@ -157,10 +156,13 @@ def attempt_merge(bricksdict, key, available_keys, default_size, zstep, brick_ty
         # check width-depth and depth-width
         for i in (1, -1) if max_width != max_depth else [1]:
             # iterate through adjacent locs to find available brick sizes
-            update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep, [max_width, max_depth][::i] + [3], height_3_only, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats, merge_vertical=merge_vertical, mult=direction_mult, tall_type=tall_type, short_type=short_type)
-        # sort brick sizes from smallest to largest
-        brick_sizes.sort(key=lambda x: abs(x[0] * x[1] * x[2]) if prefer_largest else (abs(x[axis_sort_order[0]]), abs(x[axis_sort_order[1]]), abs(x[axis_sort_order[2]])))
-        key, brick_size = get_new_parent_key_and_size(brick_sizes[-1], loc, zstep)
+            update_brick_sizes(bricksdict, key, loc, brick_sizes, zstep, [max_width, max_depth][::i] + [3], height_3_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats, merge_vertical=merge_vertical, mult=direction_mult)
+        # get largest (legal, if checked) brick size found
+        brick_sizes.sort(key=lambda x: -abs(x[0] * x[1] * x[2]) if prefer_largest else (-abs(x[axis_sort_order[0]]), -abs(x[axis_sort_order[1]]), -abs(x[axis_sort_order[2]])))
+        target_brick_size = next((sz for sz in brick_sizes if not legal_bricks_only or is_legal_brick_size(size=[abs(v) for v in sz], type=tall_type if abs(sz[2]) == 3 else short_type)), None)
+        assert target_brick_size is not None
+        # get new brick_size, loc, and key for largest brick size
+        key, brick_size = get_new_parent_key_and_size(target_brick_size, loc, zstep)
         loc = get_dict_loc(bricksdict, key)
 
     # store the best brick size to origin brick
@@ -256,14 +258,23 @@ def get_num_aligned_edges(bricksdict, size, key, loc, bricks_and_plates=False):
 
 def brick_avail(bricksdict, source_key, target_key, merge_with_internals, material_type, merge_inconsistent_mats):
     """ check brick is available to merge """
-    brick = bricksdict.get(target_key)
-    if brick is None:
+    brick_d = bricksdict.get(target_key)
+    # ensure brick exists and should be drawn
+    if brick_d is None or not brick_d["draw"]:
         return False
-    source_brick = bricksdict[source_key]
-    # checks if brick materials can be merged (same material or one of the mats is "" (internal)
-    mats_mergable = source_brick["mat_name"] == brick["mat_name"] or (merge_with_internals and "" in (source_brick["mat_name"], brick["mat_name"])) or merge_inconsistent_mats
-    # returns True if brick is present, brick isn't drawn already, and brick materials can be merged
-    return brick["draw"] and not brick["attempted_merge"] and mats_mergable and mergable_brick_type(brick["type"], up=False)
+    # ensure brick hasn't already been merged and is available for merging
+    if brick_d["attempted_merge"] or not brick_d["available_for_merge"]:
+        return False
+    # ensure brick materials can be merged (same material or one of the mats is "" (internal)
+    source_brick_d = bricksdict[source_key]
+    mats_mergable = source_brick_d["mat_name"] == brick_d["mat_name"] or (merge_with_internals and "" in (source_brick_d["mat_name"], brick_d["mat_name"])) or merge_inconsistent_mats
+    if not mats_mergable:
+        return False
+    # ensure brick type is mergable
+    if not mergable_brick_type(brick_d["type"], up=False):
+        return False
+    # passed all the checks; brick is available!
+    return True
 
 
 def get_most_common_dir(i_s, i_e, norms):

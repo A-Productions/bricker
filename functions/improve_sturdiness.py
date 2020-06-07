@@ -71,10 +71,8 @@ def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations
         sort_fn = lambda k: (str_to_list(k)[axis_sort_order[0]] * direction_mult[axis_sort_order[0]], str_to_list(k)[axis_sort_order[1]] * direction_mult[axis_sort_order[1]], str_to_list(k)[axis_sort_order[2]] * direction_mult[axis_sort_order[2]])
 
         # merge split bricks
-        ct = time.time()
         merged_keys = merge_bricks(bricksdict, split_keys, cm, merge_seed=new_merge_seed, target_type="BRICK" if brick_type == "BRICKS_AND_PLATES" else brick_type, any_height=brick_type == "BRICKS_AND_PLATES", direction_mult=direction_mult, sort_fn=sort_fn)
-        ct = stopwatch("merge", ct)
-    
+
     # return sturdiness info
     return len(conn_comps), len(weak_points)
 

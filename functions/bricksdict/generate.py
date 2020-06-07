@@ -623,32 +623,33 @@ def getThreshold(cm):
     return 1.01 - (cm.shell_thickness / 100)
 
 
-def create_bricksdict_entry(name:str, loc:list, val:float=0, draw:bool=False, co:tuple=(0, 0, 0), near_face:int=None, near_intersection:str=None, near_normal:tuple=None, rgba:tuple=None, mat_name:str="", custom_mat_name:bool=False, parent:str=None, size:list=None, attempted_merge:bool=False, top_exposed:bool=None, bot_exposed:bool=None, obscures:list=[False]*6, b_type:str=None, flipped:bool=False, rotated:bool=False, created_from:str=None):
+def create_bricksdict_entry(name:str, loc:list, val:float=0, draw:bool=False, co:tuple=(0, 0, 0), near_face:int=None, near_intersection:str=None, near_normal:tuple=None, rgba:tuple=None, mat_name:str="", custom_mat_name:bool=False, parent:str=None, size:list=None, attempted_merge:bool=False, available_for_merge:bool=False, top_exposed:bool=None, bot_exposed:bool=None, obscures:list=[False]*6, b_type:str=None, flipped:bool=False, rotated:bool=False, created_from:str=None):
     """
     create an entry in the dictionary of brick locations
 
     Keyword Arguments:
-    name              -- name of the brick object
-    loc               -- str_to_list(key)
-    val               -- location of brick in model (0: outside of model, 0.00-1.00: number of bricks away from shell / 100, 1: on shell)
-    draw              -- draw the brick in 3D space
-    co                -- 1x1 brick centered at this location
-    near_face         -- index of nearest face intersection with source mesh
-    near_intersection -- coordinate location of nearest intersection with source mesh
-    near_normal       -- normal of the nearest face intersection
-    rgba              -- [red, green, blue, alpha] values of brick color
-    mat_name          -- name of material attributed to bricks at this location
-    custom_mat_name   -- mat_name was set with 'Change Material' customization tool
-    parent            -- key into brick dictionary with information about the parent brick merged with this one
-    size              -- 3D size of FULL brick (e.g. standard 2x4 brick -> [2, 4, 3])
-    attempted_merge   -- attempt has been made in make_bricks function to merge this brick with nearby bricks
-    top_exposed       -- top of FULL brick is visible to camera
-    bot_exposed       -- bottom of FULL brick is visible to camera
-    obscures          -- obscures neighboring locations [+z, -z, +x, -x, +y, -y]
-    type              -- type of brick
-    flipped           -- brick is flipped over non-mirrored axis
-    rotated           -- brick is rotated 90 degrees about the Z axis
-    created_from      -- key of brick this brick was created from in draw_adjacent
+    name                -- name of the brick object
+    loc                 -- str_to_list(key)
+    val                 -- location of brick in model (0: outside of model, 0.00-1.00: number of bricks away from shell / 100, 1: on shell)
+    draw                -- draw the brick in 3D space
+    co                  -- 1x1 brick centered at this location
+    near_face           -- index of nearest face intersection with source mesh
+    near_intersection   -- coordinate location of nearest intersection with source mesh
+    near_normal         -- normal of the nearest face intersection
+    rgba                -- [red, green, blue, alpha] values of brick color
+    mat_name            -- name of material attributed to bricks at this location
+    custom_mat_name     -- mat_name was set with 'Change Material' customization tool
+    parent              -- key into brick dictionary with information about the parent brick merged with this one
+    size                -- 3D size of FULL brick (e.g. standard 2x4 brick -> [2, 4, 3])
+    attempted_merge     -- successful attempt has been made in make_bricks function to merge this brick with nearby bricks
+    available_for_merge -- brick needs to be merged
+    top_exposed         -- top of FULL brick is visible to camera
+    bot_exposed         -- bottom of FULL brick is visible to camera
+    obscures            -- obscures neighboring locations [+z, -z, +x, -x, +y, -y]
+    type                -- type of brick
+    flipped             -- brick is flipped over non-mirrored axis
+    rotated             -- brick is rotated 90 degrees about the Z axis
+    created_from        -- key of brick this brick was created from in draw_adjacent
 
     """
     return {
@@ -666,6 +667,7 @@ def create_bricksdict_entry(name:str, loc:list, val:float=0, draw:bool=False, co
         "parent": parent,
         "size": size,
         "attempted_merge": attempted_merge,
+        "available_for_merge": available_for_merge,
         "top_exposed": top_exposed,
         "bot_exposed": bot_exposed,
         "obscures": obscures,
