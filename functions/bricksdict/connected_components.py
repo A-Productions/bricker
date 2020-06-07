@@ -32,9 +32,10 @@ from ..brick import *
 
 # @timed_call("Time Elapsed")
 def get_connected_components(bricksdict:dict, zstep:int, parent_keys:list):
-    cm = get_active_context_info()[1]
+    # initialize variables
     conn_comps = list()
     parent_keys = set(parent_keys)
+    # start at a node and build connected components, iteratively, till all nodes visited
     while len(parent_keys) > 0:
         # get a starting key from the list
         starting_key = parent_keys.pop()

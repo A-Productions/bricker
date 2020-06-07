@@ -37,6 +37,7 @@ def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations
     iters_before_consistent = 3
     last_weak_points = [-1, -1]
     last_conn_comps = [-1, -1]
+    print()
     # run sturdiness improvement iteratively
     for i in range(iterations):
         # reset 'attempted_merge' for all items in bricksdict
@@ -76,7 +77,6 @@ def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations
     # get the final components data
     print("Result:")
     conn_comps, weak_points, weak_point_neighbors = get_connectivity_data(bricksdict, cm)
-    print()
 
     # TODO: Post-hollowing (see Section 3 of: https://lgg.epfl.ch/publications/2013/lego/lego.pdf)
 
@@ -87,7 +87,7 @@ def get_connectivity_data(bricksdict, cm):
     zstep = get_zstep(cm)
     parent_keys = get_parent_keys(bricksdict)
     # get connected components
-    print("\ngetting connected components...", end="")
+    print("getting connected components...", end="")
     conn_comps = get_connected_components(bricksdict, zstep, parent_keys)
     print(len(conn_comps))
     # get weak articulation points
@@ -102,4 +102,5 @@ def get_connectivity_data(bricksdict, cm):
     print("getting weak point neighbors...", end="")
     weak_point_neighbors = get_weak_point_neighbors(bricksdict, weak_points, zstep)
     print(len(weak_point_neighbors))
+    print()
     return conn_comps, weak_points, weak_point_neighbors
