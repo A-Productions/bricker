@@ -89,9 +89,12 @@ def get_bridges(conn_comps:list):
     # bridges = []
     weak_points = set()
     for conn_comp in conn_comps:
-        # initial setup
+        # get starting node
         starting_node = next(iter(conn_comp.keys()))
-        visited       = []  # initialize visited list
+        # initialize visited list
+        visited = {}
+        for node in conn_comp:
+            visited[node] = False
 
         # use iterative (recursion-free) DFS using explicit stack
         order   = []  # order of visiting during DFS
@@ -99,12 +102,12 @@ def get_bridges(conn_comps:list):
         while working:
             node_prev, node_current = working.pop()
             # record order of visiting
-            order.append((node_prev, node_current, node_current not in visited))
+            order.append((node_prev, node_current, not visited[node_current]))
             # check if already visited here
-            if node_current in visited:
+            if visited[node_current]:
                 continue
             # add to visited
-            visited.append(node_current)
+            visited[node_current] = True
             # add neighbors to stack
             working += [
                 (node_current, node_next) for node_next in conn_comp[node_current]
@@ -219,7 +222,6 @@ def get_component_interfaces(bricksdict:dict, zstep:int, conn_comps:list, test=F
     return component_interfaces
 
 
-# @timed_call("Time Elapsed")
 def draw_connected_components(bricksdict:dict, cm, conn_comps:list, weak_points:set, component_interfaces:set=set(), name:str="connected components"):
     """ draw connected component grid for model in 3D space """
     print(type(cm))

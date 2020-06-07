@@ -152,14 +152,14 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
         update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
 
         # improve sturdiness of model
-        num_connected_components, num_weak_points = improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations=connect_thresh)
+        conn_comps, weak_points = improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations=connect_thresh)
 
         # get all parent keys
         parent_keys = get_parent_keys(bricksdict, sorted_keys)
 
         # set sturdiness of connected components
-        if len(parent_keys) not in (0, num_weak_points) and num_connected_components != 0:
-            cm.sturdiness = 1 / num_connected_components - (num_weak_points / len(parent_keys))
+        if len(parent_keys) not in (0, len(weak_points)) and len(conn_comps) != 0:
+            cm.sturdiness = 1 / len(conn_comps) - (len(weak_points) / len(parent_keys))
 
         # reset 'attempted_merge' for all items in bricksdict
         for key0 in bricksdict:

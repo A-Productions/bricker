@@ -73,8 +73,14 @@ def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations
         # merge split bricks
         merged_keys = merge_bricks(bricksdict, split_keys, cm, merge_seed=new_merge_seed, target_type="BRICK" if brick_type == "BRICKS_AND_PLATES" else brick_type, any_height=brick_type == "BRICKS_AND_PLATES", direction_mult=direction_mult, sort_fn=sort_fn)
 
-    # return sturdiness info
-    return len(conn_comps), len(weak_points)
+    # get the final components data
+    print("Result:")
+    conn_comps, weak_points, weak_point_neighbors = get_connectivity_data(bricksdict, cm)
+    print()
+
+    # conn_comps, weak_points, weak_point_neighbors = get_connectivity_data(bricksdict, cm)
+
+    return conn_comps, weak_points
 
 
 def get_connectivity_data(bricksdict, cm):
