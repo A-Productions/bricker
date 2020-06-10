@@ -453,12 +453,12 @@ def get_verts_in_group_bme(bme:bmesh, vg_idx:int):
 
 def get_mat_idx(obj:Object, mat_name:str):
     """ returns index of material in object (adds to object if not present) """
-    mats = obj.data.materials
+    mats = [ms.material for ms in obj.material_slots]
     if mat_name in mats:
-        mat_idx = mats.keys().index(mat_name)
+        mat_idx = mats.index(mat_name)
     elif bpy.data.materials.get(mat_name) is not None:
-        mats.append(bpy.data.materials[mat_name])
-        mat_idx = len(mats) - 1
+        obj.data.materials.append(bpy.data.materials[mat_name])
+        mat_idx = len(mats)
     else:
         mat_idx = -1
         # raise IndexError("Material '{}' does not exist".format(mat_name))

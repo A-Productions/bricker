@@ -529,7 +529,7 @@ class MyImage:
         self.pixels = pixels
         self.size = new_size
 
-    def pad_to_size(self, width=None, height=None, fill=0):
+    def pad_to_size(self, width=None, height=None):
         if width is None:
             width = self.size[0]
         if height is None:
@@ -539,10 +539,7 @@ class MyImage:
         new_size = np.array((width, height))
         old_pixels = self._pixels
         old_size = np.array(self.size)
-        self.pixels = pad_pixels(new_size, self._channels, old_pixels, old_size, fill)
-        # print(len(pixels))
-        # self.pixels = np.pad(old_pixels, new_size[0] * new_size[1])
-        # print(len(self.pixels))
+        self.pixels = pad_pixels(new_size, self._channels, old_pixels, old_size)
         self.dimensions = vec_mult(self.dimensions, new_size / self.size)
         self.size = new_size
 

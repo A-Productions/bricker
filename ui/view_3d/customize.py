@@ -186,7 +186,7 @@ class VIEW3D_PT_bricker_legacy_customization_tools(Panel):
         split.operator("bricker.merge_bricks", text="Merge")
         col1.operator("bricker.draw_adjacent", text="Draw Adjacent Bricks")
         col1.operator("bricker.change_brick_type", text="Change Type")
-        # col1.operator("bricker.change_brick_material", text="Change Material")
+        col1.operator("bricker.change_brick_material", text="Change Material")
         # col1.operator("bricker.redraw_bricks")
 
         col1 = layout.column(align=True)

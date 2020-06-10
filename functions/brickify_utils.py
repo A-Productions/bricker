@@ -31,6 +31,7 @@ from .cmlist_utils import *
 from .logo_obj import *
 from .make_bricks_point_cloud import *
 from .make_bricks import *
+from .model_info import set_model_info
 from .smoke_cache import *
 from .transform_data import *
 

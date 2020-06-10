@@ -51,9 +51,10 @@ class BRICKER_OT_select_components(bpy.types.Operator):
         if bricksdict is None:
             self.report({"ERROR"}, "The model's data is not cached – please update the model")
             return {"CANCELLED"}
+        zstep = get_zstep(cm)
 
         # get connected components & weak points
-        conn_comps, weak_points, weak_point_neighbors = get_connectivity_data(bricksdict, cm)
+        conn_comps, weak_points, weak_point_neighbors, parent_keys = get_connectivity_data(bricksdict, zstep)
 
         # select disconnected components
         print("select disconnected components...")
@@ -71,12 +72,12 @@ class BRICKER_OT_select_components(bpy.types.Operator):
                 brick_obj = bpy.data.objects.get(bricksdict[k]["name"])
                 objs_to_select.append(brick_obj)
         elif self.type == "COMP_INTERFACES":
-            component_interfaces = get_component_interfaces(bricksdict, get_zstep(cm), conn_comps, test=True)
+            component_interfaces = get_component_interfaces(bricksdict, conn_comps, parent_keys, zstep)
             for k in component_interfaces:
                 brick_obj = bpy.data.objects.get(bricksdict[k]["name"])
                 objs_to_select.append(brick_obj)
         elif self.type == "ALL_TO_BE_MODIFIED":
-            component_interfaces = get_component_interfaces(bricksdict, get_zstep(cm), conn_comps)
+            component_interfaces = get_component_interfaces(bricksdict, conn_comps, parent_keys, zstep)
             for k in weak_points | weak_point_neighbors | component_interfaces:
                 brick_obj = bpy.data.objects.get(bricksdict[k]["name"])
                 objs_to_select.append(brick_obj)

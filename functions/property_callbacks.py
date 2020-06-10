@@ -24,11 +24,11 @@ from bpy.props import *
 
 # Module imports
 from .brick.types import *
+from .bevel_bricks import *
 from .general import *
 from .transform_data import *
 from .mat_utils import *
 from .matlist_utils import *
-from ..operators.bevel import BRICKER_OT_bevel
 from ..subtrees.background_processing.classes.job_manager import JobManager
 
 
@@ -67,7 +67,7 @@ def update_bevel(self, context):
         scn, cm, n = get_active_context_info()
         if cm.last_bevel_width != cm.bevel_width or cm.last_bevel_segments != cm.bevel_segments or cm.last_bevel_profile != cm.bevel_profile:
             bricks = get_bricks()
-            BRICKER_OT_bevel.create_bevel_mods(cm, bricks)
+            create_bevel_mods(cm, bricks)
             cm.last_bevel_width = cm.bevel_width
             cm.last_bevel_segments = cm.bevel_segments
             cm.last_bevel_profile = cm.bevel_profile

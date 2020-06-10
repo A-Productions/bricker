@@ -86,7 +86,7 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
     rand_s3 = None if temp_brick else np.random.RandomState(cm.merge_seed + 2)
     # initialize other variables
     lowest_z = -1
-    connect_thresh = cm.connect_thresh if mergable_brick_type(brick_type) and merge_type == "RANDOM" else 1
+    connect_thresh = cm.connect_thresh if mergable_brick_type(brick_type) and merge_type == "RANDOM" else 0
     denom = sum([len(keys_dict[z0]) for z0 in keys_dict.keys()])
     # set number of times to run through all keys
     num_iters = 2 if brick_type == "BRICKS_AND_PLATES" else 1
@@ -152,7 +152,7 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
         update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
 
         # improve sturdiness of model
-        conn_comps, weak_points = improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations=connect_thresh)
+        conn_comps, weak_points = improve_sturdiness(bricksdict, sorted_keys, cm, zstep, brick_type, merge_seed, iterations=connect_thresh)
 
         # get all parent keys
         parent_keys = get_parent_keys(bricksdict, sorted_keys)

@@ -28,11 +28,7 @@ from .customize_utils import merge_bricks
 from .make_bricks_utils import get_parent_keys
 
 
-def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations):
-    # handle case of no sturdiness iterations
-    if iterations == 0:
-        conn_comps, weak_points, weak_point_neighbors = get_connectivity_data(bricksdict, cm)
-        return len(conn_comps), len(weak_points)
+def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iterations):
     # initialize last connectivity data
     iters_before_consistent = 3
     last_weak_points = [-1, -1]
@@ -44,7 +40,7 @@ def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations
         for key0 in bricksdict:
             bricksdict[key0]["attempted_merge"] = False
         # get connectivity data
-        conn_comps, weak_points, weak_point_neighbors = get_connectivity_data(bricksdict, cm)
+        conn_comps, weak_points, weak_point_neighbors, parent_keys = get_connectivity_data(bricksdict, zstep, keys)
         # set last connectivity vals
         last_weak_points.append(len(weak_points))
         last_conn_comps.append(len(conn_comps))
@@ -55,8 +51,9 @@ def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations
             break
         # get component interfaces
         print("getting component interfaces...", end="")
-        component_interfaces = get_component_interfaces(bricksdict, zstep, conn_comps)
+        component_interfaces = get_component_interfaces(bricksdict, conn_comps, parent_keys, zstep)
         print(len(component_interfaces))
+        print()
         # improve sturdiness
         # split up bricks
         split_keys = list()
@@ -76,31 +73,26 @@ def improve_sturdiness(bricksdict, cm, zstep, brick_type, merge_seed, iterations
 
     # get the final components data
     print("Result:")
-    conn_comps, weak_points, weak_point_neighbors = get_connectivity_data(bricksdict, cm)
+    conn_comps, weak_points, weak_point_neighbors, _ = get_connectivity_data(bricksdict, zstep, keys)
 
     # TODO: Post-hollowing (see Section 3 of: https://lgg.epfl.ch/publications/2013/lego/lego.pdf)
 
     return conn_comps, weak_points
 
 
-def get_connectivity_data(bricksdict, cm):
-    zstep = get_zstep(cm)
-    parent_keys = get_parent_keys(bricksdict)
+def get_connectivity_data(bricksdict, zstep, keys=None):
+    parent_keys = get_parent_keys(bricksdict, keys)
     # get connected components
     print("getting connected components...", end="")
     conn_comps = get_connected_components(bricksdict, zstep, parent_keys)
     print(len(conn_comps))
     # get weak articulation points
     print("getting weak articulation points...", end="")
-    # ct = time.time()
     # weak_points = get_bridges_recursive(conn_comps)
-    # ct = stopwatch(1, ct)
     weak_points = get_bridges(conn_comps)
-    # ct = stopwatch(2, ct)
     print(len(weak_points))
     # get weak point neighbors
     print("getting weak point neighbors...", end="")
-    weak_point_neighbors = get_weak_point_neighbors(bricksdict, weak_points, zstep)
+    weak_point_neighbors = get_weak_point_neighbors(bricksdict, weak_points, parent_keys, zstep)
     print(len(weak_point_neighbors))
-    print()
-    return conn_comps, weak_points, weak_point_neighbors
+    return conn_comps, weak_points, weak_point_neighbors, parent_keys

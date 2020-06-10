@@ -18,6 +18,7 @@
 # System imports
 import numpy as np
 import time
+import traceback
 
 # Blender imports
 import bpy
@@ -211,6 +212,7 @@ def verify_img(im:Image):
         return None
     if not im.has_data:
         try:
+            # im.reload()
             im.update()
         except RuntimeError:
             pass

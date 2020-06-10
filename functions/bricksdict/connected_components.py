@@ -67,7 +67,7 @@ def get_connected_keys(bricksdict:dict, key:str, brick_size:list, zstep:int, req
     connected_brick_parent_keys = set()
     for loc0 in lowest_locs_in_brick:
         # check locations below current brick
-        loc_neg = [loc0[0], loc0[1], loc0[2] - 1]
+        loc_neg = (loc0[0], loc0[1], loc0[2] - 1)
         parent_key_neg = get_parent_key(bricksdict, list_to_str(loc_neg))
         if parent_key_neg is not None and bricksdict[parent_key_neg]["draw"] and (not require_merge_attempt or bricksdict[parent_key_neg]["attempted_merge"]):
             connected_brick_parent_keys.add(parent_key_neg)
@@ -75,7 +75,7 @@ def get_connected_keys(bricksdict:dict, key:str, brick_size:list, zstep:int, req
         # NOTE: if assertion hit, that probably means that the 'bricksdict[list_to_str(loc_neg)]["size"]' was set improperly before entering this function
         assert parent_key_neg != key
         # check locations above current brick
-        loc_pos = [loc0[0], loc0[1], loc0[2] + brick_size[2] // zstep]
+        loc_pos = (loc0[0], loc0[1], loc0[2] + brick_size[2] // zstep)
         parent_key_pos = get_parent_key(bricksdict, list_to_str(loc_pos))
         if parent_key_pos is not None and bricksdict[parent_key_pos]["draw"] and (not require_merge_attempt or bricksdict[parent_key_pos]["attempted_merge"]):
             connected_brick_parent_keys.add(parent_key_pos)
@@ -181,7 +181,7 @@ def depth_first_search(conn_comp:dict, weak_points:set, node_infos:dict, cur_idx
     return cur_idx, node_infos[cur_node]["low_link"]
 
 
-def get_weak_point_neighbors(bricksdict:dict, weak_points:set, zstep:int):
+def get_weak_point_neighbors(bricksdict:dict, weak_points:set, parent_keys:list, zstep:int):
     """ get verts neighboring weak points """
     weak_point_neighbors = set()
     for k in weak_points:
@@ -189,13 +189,17 @@ def get_weak_point_neighbors(bricksdict:dict, weak_points:set, zstep:int):
         neighboring_bricks = get_neighboring_bricks(bricksdict, bricksdict[k]["size"], zstep, get_dict_loc(bricksdict, k))
         # add neighboring bricks (parent keys) to weak point neighbors
         weak_point_neighbors |= set(neighboring_bricks)
+    weak_point_neighbors &= set(parent_keys)
     weak_point_neighbors.difference_update(weak_points)
     return weak_point_neighbors
 
 
-def get_component_interfaces(bricksdict:dict, zstep:int, conn_comps:list, test=False):
+def get_component_interfaces(bricksdict:dict, conn_comps:list, parent_keys:list, zstep:int):
     """ get parent keys of neighboring bricks between two connected components """
+    # initialize empty set of component interfaces
     component_interfaces = set()
+    if len(conn_comps) == 0:
+        return component_interfaces
     # get largest conn comp
     conn_comp_lengths = [len(comp) for comp in conn_comps]
     largest_conn_comp_idx = conn_comp_lengths.index(max(conn_comp_lengths))
@@ -206,10 +210,6 @@ def get_component_interfaces(bricksdict:dict, zstep:int, conn_comps:list, test=F
 
         for k in conn_comp:
             neighboring_bricks = get_neighboring_bricks(bricksdict, bricksdict[k]["size"], zstep, get_dict_loc(bricksdict, k))
-            if test:
-                component_interfaces.add(k)
-                component_interfaces |= set(neighboring_bricks)
-                continue
             for k0 in neighboring_bricks:
                 pkey = get_parent_key(bricksdict, k0)
                 if pkey not in conn_comp and pkey is not None:
@@ -219,6 +219,9 @@ def get_component_interfaces(bricksdict:dict, zstep:int, conn_comps:list, test=F
                     neighboring_bricks_1 = get_neighboring_bricks(bricksdict, bricksdict[pkey]["size"], zstep, get_dict_loc(bricksdict, pkey))
                     for k1 in neighboring_bricks_1:
                         component_interfaces.add(k1)
+
+    # ensure all interfaces are in parent_keys
+    component_interfaces &= set(parent_keys)
 
     return component_interfaces
 
