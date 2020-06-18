@@ -85,16 +85,14 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
 def get_connectivity_data(bricksdict, zstep, keys=None, get_neighbors=True):
     parent_keys = get_parent_keys(bricksdict, keys)
     # get connected components
-    ct = time.time()
     print("getting connected components...", end="")
     conn_comps = get_connected_components(bricksdict, zstep, parent_keys)
     print(len(conn_comps))
-    ct = stopwatch(1, ct)
     # get weak articulation points
     print("getting weak articulation points...", end="")
     # weak_points = get_bridges_recursive(conn_comps)
     weak_points = get_bridges(conn_comps)
-    ct = stopwatch(2, ct)
+    print(len(weak_points))
     # get weak point neighbors
     if get_neighbors:
         print("getting weak point neighbors...", end="")

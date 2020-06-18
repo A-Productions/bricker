@@ -185,7 +185,7 @@ class Vector2:
             raise AttributeErorr("unavailable on 2d vector")
         return self._seq[2]
 
-    @y.setter
+    @z.setter
     def z(self, value):
         self._seq[2] = value
 

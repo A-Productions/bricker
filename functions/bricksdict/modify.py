@@ -108,6 +108,7 @@ def update_brick_sizes(bricksdict, key, loc, brick_sizes, zstep, max_L, height_3
     new_max2 = max_L[2]
     break_outer1 = False
     break_outer2 = False
+    brick_mat_name = bricksdict[key]["mat_name"]
     # iterate in x direction
     for i in range(max_L[0]):
         # iterate in y direction
@@ -116,7 +117,8 @@ def update_brick_sizes(bricksdict, key, loc, brick_sizes, zstep, max_L, height_3
             if j >= new_max1: break
             # break case 2
             key1 = list_to_str((loc[0] + (i * mult[0]), loc[1] + (j * mult[1]), loc[2]))
-            if not brick_avail(bricksdict, key, key1, merge_internals_h, material_type, merge_inconsistent_mats):
+            brick_available, brick_mat_name = brick_avail(bricksdict, key1, brick_mat_name, merge_internals_h, material_type, merge_inconsistent_mats)
+            if not brick_available:
                 if j == 0: break_outer2 = True
                 else:      new_max1 = j
                 break
@@ -126,7 +128,8 @@ def update_brick_sizes(bricksdict, key, loc, brick_sizes, zstep, max_L, height_3
                 if k >= new_max2: break
                 # break case 2
                 key2 = list_to_str((loc[0] + (i * mult[0]), loc[1] + (j * mult[1]), loc[2] + (k * mult[2])))
-                if not brick_avail(bricksdict, key, key2, merge_internals_v, material_type, merge_inconsistent_mats):
+                brick_available, brick_mat_name = brick_avail(bricksdict, key2, brick_mat_name, merge_internals_v, material_type, merge_inconsistent_mats)
+                if not brick_available:
                     if k == 0: break_outer1 = True
                     else:      new_max2 = k
                     break
@@ -256,25 +259,27 @@ def get_num_aligned_edges(bricksdict, size, key, loc, bricks_and_plates=False):
     return num_aligned_edges
 
 
-def brick_avail(bricksdict, source_key, target_key, merge_with_internals, material_type, merge_inconsistent_mats):
+def brick_avail(bricksdict, target_key, brick_mat_name, merge_with_internals, material_type, merge_inconsistent_mats):
     """ check brick is available to merge """
     brick_d = bricksdict.get(target_key)
     # ensure brick exists and should be drawn
     if brick_d is None or not brick_d["draw"]:
-        return False
+        return False, brick_mat_name
     # ensure brick hasn't already been merged and is available for merging
     if brick_d["attempted_merge"] or not brick_d["available_for_merge"]:
-        return False
+        return False, brick_mat_name
     # ensure brick materials can be merged (same material or one of the mats is "" (internal)
-    source_brick_d = bricksdict[source_key]
-    mats_mergable = source_brick_d["mat_name"] == brick_d["mat_name"] or (merge_with_internals and "" in (source_brick_d["mat_name"], brick_d["mat_name"])) or merge_inconsistent_mats
+    mats_mergable = brick_mat_name == brick_d["mat_name"] or (merge_with_internals and "" in (brick_mat_name, brick_d["mat_name"])) or merge_inconsistent_mats
     if not mats_mergable:
-        return False
+        return False, brick_mat_name
+    # set brick material name if it wasn't already set
+    elif brick_mat_name == "":
+        brick_mat_name = brick_d["mat_name"]
     # ensure brick type is mergable
     if not mergable_brick_type(brick_d["type"], up=False):
-        return False
+        return False, brick_mat_name
     # passed all the checks; brick is available!
-    return True
+    return True, brick_mat_name
 
 
 def get_most_common_dir(i_s, i_e, norms):
