@@ -16,11 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
+import bmesh
 import collections
 import json
 import math
 import numpy as np
-import bmesh
 
 # Blender imports
 import bpy
@@ -138,7 +138,7 @@ def matrix_really_is_dirty(cm, include_lost_matrix=True):
 
 
 def vec_to_str(vec, separate_by=","):
-    return list_to_str(list(vec), separate_by=separate_by)
+    return str(list_to_str(list(vec), separate_by=separate_by))
 
 
 def compress_rgba_vals(lst):
@@ -154,7 +154,7 @@ def decompress_rgba_vals(string, channels=4):
 
 
 def list_to_str(lst, separate_by=","):
-    assert type(lst) in (list, tuple)
+    # assert type(lst) in (list, tuple)
     return separate_by.join(map(str, lst))
 
 
@@ -398,10 +398,10 @@ def get_keys_dict(bricksdict, keys=None):
         if bricksdict[k0]["draw"]:
             z = get_dict_loc(bricksdict, k0)[2]
             if z in keys_dict:
-                keys_dict[z].append(k0)
+                keys_dict[z].add(k0)
             else:
-                keys_dict[z] = [k0]
-    return keys_dict, keys
+                keys_dict[z] = {k0}  # initialize set
+    return keys_dict, set(keys)
 
 
 def get_parent_key(bricksdict, key):

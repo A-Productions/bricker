@@ -56,6 +56,9 @@ def check_brickd_exposure(bricksdict, key=None, loc=None):
         brick_d = bricksdict[key]
     except KeyError:
         return None, None
+    # not exposed if brick is internal
+    if brick_d["val"] < 1:
+        return False, False
     # get keys above and below
     x, y, z = loc
     key_above = list_to_str((x, y, z + 1))

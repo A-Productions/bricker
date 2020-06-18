@@ -53,7 +53,7 @@ class BRICKER_OT_draw_connected_components(bpy.types.Operator):
             return {"CANCELLED"}
 
         # get connected components & weak points
-        conn_comps, weak_points, weak_point_neighbors, _ = get_connectivity_data(bricksdict, get_zstep(cm))
+        conn_comps, weak_points, _, _ = get_connectivity_data(bricksdict, get_zstep(cm), get_neighbors=False)
         with open('/Users/cgear13/Desktop/cc_data.txt', 'w') as outfile:
             json.dump(conn_comps, outfile)
 

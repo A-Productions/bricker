@@ -84,9 +84,9 @@ class VIEW3D_PT_bricker_connectivity(BrickerPanel, Panel):
         scn, cm, _ = get_active_context_info()
 
         layout.operator("bricker.draw_connected_components", icon="PARTICLE_DATA")
-        layout.operator("bricker.select_components", icon="RESTRICT_SELECT_OFF", text="Select Disconnected").type = "DISCONNECTED"
+        layout.operator("bricker.select_components", icon="RESTRICT_SELECT_OFF", text="Select Disconnected").type = "DISCONNECTED_COMPONENTS"
         layout.operator("bricker.select_components", icon="RESTRICT_SELECT_OFF", text="Select Weak Points").type = "WEAK_POINTS"
-        layout.operator("bricker.select_components", icon="RESTRICT_SELECT_OFF", text="Select Component Interfaces").type = "COMP_INTERFACES"
+        layout.operator("bricker.select_components", icon="RESTRICT_SELECT_OFF", text="Select Component Interfaces").type = "COMPONENT_INTERFACES"
 
 
 class VIEW3D_PT_bricker_matrix_details(BrickerPanel, Panel):

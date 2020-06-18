@@ -31,6 +31,7 @@ from .logo_obj import *
 from .mat_utils import *
 from .matlist_utils import *
 from .model_info import *
+from .post_hollowing import *
 from .smoke_cache import *
 from .transform_data import *
 from .timers import *

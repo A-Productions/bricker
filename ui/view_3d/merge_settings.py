@@ -62,7 +62,14 @@ class VIEW3D_PT_bricker_merge_settings(BrickerPanel, Panel):
         if cm.merge_type == "RANDOM":
             col = layout.column(align=True)
             col.prop(cm, "merge_seed")
-            col.prop(cm, "connect_thresh")
+            internals_exist = cm.shell_thickness > 1 and cm.calc_internals
+            row = col.row()
+            row.prop(cm, "connect_thresh")
+            row.active = internals_exist
+            col = layout.column(align=True)
+            col.prop(cm, "post_hollowing")
+            right_align(col)
+            col.active = internals_exist
         if cm.shell_thickness > 1:
             col = layout.column(align=True)
             col.label(text="Merge Shell with Internals:")

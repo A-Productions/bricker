@@ -71,28 +71,35 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
         # merge split bricks
         merged_keys = merge_bricks(bricksdict, split_keys, cm, merge_seed=new_merge_seed, target_type="BRICK" if brick_type == "BRICKS_AND_PLATES" else brick_type, any_height=brick_type == "BRICKS_AND_PLATES", direction_mult=direction_mult, sort_fn=sort_fn)
 
-    # get the final components data
-    print("Result:")
-    conn_comps, weak_points, weak_point_neighbors, _ = get_connectivity_data(bricksdict, zstep, keys)
-
-    # TODO: Post-hollowing (see Section 3 of: https://lgg.epfl.ch/publications/2013/lego/lego.pdf)
+    # print the result
+    if iterations > 0 and len(conn_comps) == 1 and len(weak_points) == 0:
+        print("\nModel is fully stable!")
+    else:
+        # get the final components data
+        print("\nResult:")
+        conn_comps, weak_points, _, _ = get_connectivity_data(bricksdict, zstep, keys, get_neighbors=False)
 
     return conn_comps, weak_points
 
 
-def get_connectivity_data(bricksdict, zstep, keys=None):
+def get_connectivity_data(bricksdict, zstep, keys=None, get_neighbors=True):
     parent_keys = get_parent_keys(bricksdict, keys)
     # get connected components
+    ct = time.time()
     print("getting connected components...", end="")
     conn_comps = get_connected_components(bricksdict, zstep, parent_keys)
     print(len(conn_comps))
+    ct = stopwatch(1, ct)
     # get weak articulation points
     print("getting weak articulation points...", end="")
     # weak_points = get_bridges_recursive(conn_comps)
     weak_points = get_bridges(conn_comps)
-    print(len(weak_points))
+    ct = stopwatch(2, ct)
     # get weak point neighbors
-    print("getting weak point neighbors...", end="")
-    weak_point_neighbors = get_weak_point_neighbors(bricksdict, weak_points, parent_keys, zstep)
-    print(len(weak_point_neighbors))
+    if get_neighbors:
+        print("getting weak point neighbors...", end="")
+        weak_point_neighbors = get_weak_point_neighbors(bricksdict, weak_points, parent_keys, zstep)
+        print(len(weak_point_neighbors))
+    else:
+        weak_point_neighbors = list()
     return conn_comps, weak_points, weak_point_neighbors, parent_keys

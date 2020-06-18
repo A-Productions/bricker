@@ -331,10 +331,20 @@ def update_brick_sizes_and_types_used(cm, sz, typ):
     cm.brick_types_used += typ if btu == "" else ("|%(typ)s" % locals() if typ not in btu else "")
 
 
-def get_parent_keys(bricksdict, keys=None):
+def get_parent_keys(bricksdict:dict, keys:list=None):
     keys = keys or bricksdict.keys()
     parent_keys = [k for k in keys if bricksdict[k]["parent"] == "self"]
     return parent_keys
+
+
+def get_parent_keys_internal(bricksdict:dict, zstep:int, keys:list=None):
+    parent_keys = get_parent_keys(bricksdict, keys)
+    internal_keys = list()
+    for k in parent_keys:
+        keys_in_brick = get_keys_in_brick(bricksdict, bricksdict[k]["size"], zstep, key=k)
+        if not any(bricksdict[k0]["val"] == 1 for k0 in keys_in_brick):
+            internal_keys.append(k)
+    return internal_keys
 
 
 def generate_brick_object(brick_name="New Brick", brick_size=(1, 1, 1)):

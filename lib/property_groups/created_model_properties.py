@@ -134,6 +134,12 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         min=0, soft_max=100,
         default=42,
     )
+    post_hollowing = BoolProperty(
+        name="Post-Hollowing",
+        description="Remove bricks from the interior after merging if they don't add structural integrity",
+        update=dirty_build,
+        default=False,
+    )
     smoke_density = FloatProperty(
         name="Smoke Density",
         description="Density of brickified smoke (threshold for smoke: 1 - d)",

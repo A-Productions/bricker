@@ -22,6 +22,7 @@ import bpy
 from mathutils import Vector, Euler, Matrix
 
 # Module imports
+from .bevel_bricks import *
 from .bricksdict import *
 from .brick.bricks import get_brick_dimensions
 from .brick.types import mergable_brick_type

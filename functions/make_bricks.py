@@ -37,6 +37,7 @@ from .improve_sturdiness import *
 from .make_bricks_utils import *
 from .mat_utils import *
 from .matlist_utils import *
+from .post_hollowing import *
 from ..lib.caches import bricker_mesh_cache
 
 
@@ -125,9 +126,12 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
                 num_bricks = 0
                 if merge_type == "RANDOM":
                     random.seed(merge_seed + i)
-                    random.shuffle(keys_dict[z])
+                    cur_keys = list(keys_dict[z])
+                    random.shuffle(cur_keys)
+                else:
+                    cur_keys = keys_dict[z]
                 # iterate through keys on current z level
-                for key in keys_dict[z]:
+                for key in cur_keys:
                     i += 1
                     brick_d = bricksdict[key]
                     # skip keys that are already drawn or have attempted merge
@@ -151,14 +155,25 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
         # end 'Merging' progress bar
         update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
 
-        # improve sturdiness of model
-        conn_comps, weak_points = improve_sturdiness(bricksdict, sorted_keys, cm, zstep, brick_type, merge_seed, iterations=connect_thresh)
+        # if there are internal bricks, improve the sturdiness and run post hollowing
+        run_sturdiness_improvements = cm.shell_thickness > 1 and cm.calc_internals and not redraw
+        if run_sturdiness_improvements:
+            # improve sturdiness of model
+            conn_comps, weak_points = improve_sturdiness(bricksdict, sorted_keys, cm, zstep, brick_type, merge_seed, iterations=connect_thresh)
+
+            if cm.post_hollowing:
+                # remove unnecessary internal bricks
+                removed_keys = run_post_hollowing(bricksdict, sorted_keys, cm, zstep, brick_type, conn_comps, weak_points)
+                # remove those keys from the sorted_keys and keys_dict
+                sorted_keys.difference_update(removed_keys)
+                for z in sorted(keys_dict.keys()):
+                    keys_dict[z].difference_update(removed_keys)
 
         # get all parent keys
         parent_keys = get_parent_keys(bricksdict, sorted_keys)
 
         # set sturdiness of connected components
-        if len(parent_keys) not in (0, len(weak_points)) and len(conn_comps) != 0:
+        if run_sturdiness_improvements and len(parent_keys) not in (0, len(weak_points)) and len(conn_comps) != 0:
             cm.sturdiness = 1 / len(conn_comps) - (len(weak_points) / len(parent_keys))
 
         # reset 'attempted_merge' for all items in bricksdict
