@@ -333,7 +333,7 @@ def update_brick_sizes_and_types_used(cm, sz, typ):
 
 def get_parent_keys(bricksdict:dict, keys:list=None):
     keys = keys or bricksdict.keys()
-    parent_keys = [k for k in keys if bricksdict[k]["parent"] == "self"]
+    parent_keys = [k for k in keys if bricksdict[k]["parent"] == "self" and bricksdict[k]["draw"]]
     return parent_keys
 
 

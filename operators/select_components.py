@@ -58,7 +58,7 @@ class BRICKER_OT_select_components(bpy.types.Operator):
         # get connected components & weak points
         conn_comps, weak_points, weak_point_neighbors, parent_keys = get_connectivity_data(bricksdict, zstep)
 
-        # select disconnected components
+        # select specified components
         objs_to_select = []
         if self.type == "DISCONNECTED_COMPONENTS":
             largest_conn_comp = max(len(cc) for cc in conn_comps)
@@ -68,17 +68,26 @@ class BRICKER_OT_select_components(bpy.types.Operator):
                 for k in cc:
                     brick_obj = bpy.data.objects.get(bricksdict[k]["name"])
                     objs_to_select.append(brick_obj)
+            if len(objs_to_select) == 0:
+                self.report({"INFO"}, "No disconnected components to select!")
+                return {"FINISHED"}
             self.report({"INFO"}, "Disconnected components selected!")
         elif self.type == "WEAK_POINTS":
             for k in weak_points:
                 brick_obj = bpy.data.objects.get(bricksdict[k]["name"])
                 objs_to_select.append(brick_obj)
+            if len(objs_to_select) == 0:
+                self.report({"INFO"}, "No weak pointsto select!")
+                return {"FINISHED"}
             self.report({"INFO"}, "Weak Points selected!")
         elif self.type == "COMPONENT_INTERFACES":
             component_interfaces = get_component_interfaces(bricksdict, conn_comps, parent_keys, zstep)
             for k in component_interfaces:
                 brick_obj = bpy.data.objects.get(bricksdict[k]["name"])
                 objs_to_select.append(brick_obj)
+            if len(objs_to_select) == 0:
+                self.report({"INFO"}, "No component interfaces to select!")
+                return {"FINISHED"}
             self.report({"INFO"}, "Component interfaces selected!")
         elif self.type == "ALL_TO_BE_MODIFIED":
             component_interfaces = get_component_interfaces(bricksdict, conn_comps, parent_keys, zstep)

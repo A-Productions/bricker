@@ -55,6 +55,7 @@ classes = [
     cmlist_actions.CMLIST_OT_link_frames,
     matlist_actions.BRICKER_OT_matlist_actions,
     select_components.BRICKER_OT_select_components,
+    post_hollowing_op.BRICKER_OT_run_post_hollowing,
     test_brick_generators.BRICKER_OT_test_brick_generators,
     initialize.BRICKER_OT_initialize,
     # bricker/operators/customization_tools

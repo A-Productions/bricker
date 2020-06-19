@@ -36,6 +36,7 @@ __all__ = [
     "redraw_custom_bricks",
     "refresh_model_info",
     "select_components",
+    "post_hollowing_op",
     "revert_settings",
     "test_brick_generators",
 ]
