@@ -255,10 +255,6 @@ def make_bricks(source, parent, logo, dimensions, bricksdict, action, cm=None, s
     # end progress bars
     update_progress_bars(1, 0, "Building", print_status, cursor_status, end=True)
 
-    # remove duplicate of original logo
-    if logo_type != "LEGO" and logo is not None:
-        bpy.data.objects.remove(logo)
-
     denom2 = len(bricksdict.keys())
 
     # combine meshes to a single object, link to scene, and add relevant data to the new Blender MESH object
