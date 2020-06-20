@@ -88,7 +88,7 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
         # remove current cmlist index
         cm.model_created = False
         cm.animated = False
-        CMLIST_OT_list_action.remove_item(self, scn.cmlist_index)
+        CMLIST_OT_list_action.remove_item(self, context, scn.cmlist_index)
         scn.cmlist_index = -1
         return{"FINISHED"}
 

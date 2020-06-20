@@ -26,7 +26,6 @@ props = bpy.props
 # Module imports
 from .common import *
 from .general import *
-from .make_bricks import *
 
 
 def remove_bevel_mods(objs):

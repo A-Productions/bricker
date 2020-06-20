@@ -99,7 +99,7 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
     if not redraw and not (mergable_brick_type(brick_type, up=cm.zstep == 1) and (max_depth != 1 or max_width != 1)):
         size = [1, 1, cm.zstep]
         if len(sorted_keys) > 0:
-            update_brick_sizes_and_types_used(cm, list_to_str(size), bricksdict[sorted_keys[0]]["type"])
+            update_brick_sizes_and_types_used(cm, list_to_str(size), bricksdict[next(iter(sorted_keys))]["type"])
         for key in sorted_keys:
             brick_d = bricksdict[key]
             brick_d["parent"] = "self"
@@ -235,10 +235,6 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
 
     # end progress bars
     update_progress_bars(1, 0, "Building", print_status, cursor_status, end=True)
-
-    # remove duplicate of original logo
-    if logo_type != "LEGO" and logo is not None:
-        bpy.data.objects.remove(logo)
 
     # combine meshes to a single object, link to scene, and add relevant data to the new Blender MESH object
     if not split:
