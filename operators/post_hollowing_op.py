@@ -59,10 +59,7 @@ class BRICKER_OT_run_post_hollowing(Operator):
             # get conn comps/weak points
             conn_comps, weak_points = improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iterations=connect_thresh)
             # run post hollowing
-            removed_keys = run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, conn_comps, weak_points)
-            for k in removed_keys:
-                brick = bpy.data.objects.get(bricksdict[k]["name"])
-                delete(brick)
+            removed_keys = run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, conn_comps, weak_points, remove_object=True)
         except:
             bricker_handle_exception()
         return{"FINISHED"}

@@ -28,6 +28,21 @@ from ..general import *
 from ..brick import *
 
 
+def is_brick_connected(bricksdict, zstep, key=None, loc=None):
+    assert key is not None or loc is not None
+    # initialize vars
+    key = key or list_to_str(loc)
+    loc = loc or get_dict_loc(bricksdict, key)
+    keys_in_brick = get_keys_in_brick(bricksdict, bricksdict[key]["size"], zstep, loc=loc)
+    top_exposed, bot_exposed = False, False
+    # set brick exposures
+    for k in keys_in_brick:
+        cur_top_exposed, cur_bot_exposed = check_brickd_exposure(bricksdict, k)
+        if not cur_top_exposed: top_connected = True
+        if not cur_bot_exposed: bot_connected = True
+    return top_connected, bot_connected
+
+
 def set_brick_exposure(bricksdict, zstep, key=None, loc=None):
     assert key is not None or loc is not None
     # initialize vars

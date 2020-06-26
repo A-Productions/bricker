@@ -30,7 +30,7 @@ from .improve_sturdiness import *
 from .make_bricks_utils import *
 
 
-def run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, last_conn_comps, last_weak_points):
+def run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, last_conn_comps, last_weak_points, remove_object=False):
     # TODO: Post-hollowing (see Section 3 of: https://lgg.epfl.ch/publications/2013/lego/lego.pdf)
     # get all parent keys of bricks exclusively inside the model
     internal_keys = get_parent_keys_internal(bricksdict, zstep, keys)
@@ -46,8 +46,11 @@ def run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, last_conn_comps,
         conn_comps, weak_points, _, _ = get_connectivity_data(bricksdict, zstep, get_neighbors=False)
         # check if conn_comps or weak_points are the same (if so, the key can stay removed)
         if len(conn_comps) <= len(last_conn_comps) and len(weak_points) <= len(last_weak_points):
-            print("Successfully removed a brick!")
             removed_keys |= popped_keys.keys()
+            if remove_object:
+                obj_name = popped_keys[k]["name"]
+                delete(bpy.data.objects.get(obj_name))
+            print("Successfully removed a brick!")
             continue
         # otherwise, put the key back
         for k1, v1 in popped_keys.items():

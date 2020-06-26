@@ -59,29 +59,32 @@ def get_connected_components(bricksdict:dict, zstep:int, parent_keys:list):
     return conn_comps
 
 
-def get_connected_keys(bricksdict:dict, key:str, brick_size:list, zstep:int, require_merge_attempt:bool=False):
+def get_connected_keys(bricksdict:dict, key:str, brick_size:list, zstep:int, require_merge_attempt:bool=False, check_above:bool=True, check_below:bool=True):
     # get locs in current brick
     loc = get_dict_loc(bricksdict, key)
     lowest_locs_in_brick = get_lowest_locs_in_brick(brick_size, loc)
     # find connected brick parent keys
     connected_brick_parent_keys = set()
-    for loc0 in lowest_locs_in_brick:
-        # check locations below current brick
-        loc_neg = (loc0[0], loc0[1], loc0[2] - 1)
-        parent_key_neg = get_parent_key(bricksdict, list_to_str(loc_neg))
-        if parent_key_neg is not None and bricksdict[parent_key_neg]["draw"] and (not require_merge_attempt or bricksdict[parent_key_neg]["attempted_merge"]):
-            connected_brick_parent_keys.add(parent_key_neg)
-        # make sure key doesn't reference itself as neighbor (for debugging purposes)
-        # NOTE: if assertion hit, that probably means that the 'bricksdict[list_to_str(loc_neg)]["size"]' was set improperly before entering this function
-        assert parent_key_neg != key
-        # check locations above current brick
-        loc_pos = (loc0[0], loc0[1], loc0[2] + brick_size[2] // zstep)
-        parent_key_pos = get_parent_key(bricksdict, list_to_str(loc_pos))
-        if parent_key_pos is not None and bricksdict[parent_key_pos]["draw"] and (not require_merge_attempt or bricksdict[parent_key_pos]["attempted_merge"]):
-            connected_brick_parent_keys.add(parent_key_pos)
-        # make sure key doesn't reference itself as neighbor (for debugging purposes)
-        # NOTE: if assertion hit, that probably means that the 'bricksdict[list_to_str(loc_pos)]["size"]' was set improperly before entering this function
-        assert parent_key_pos != key
+    # check locations below current brick
+    if check_below:
+        for loc0 in lowest_locs_in_brick:
+            loc_neg = (loc0[0], loc0[1], loc0[2] - 1)
+            parent_key_neg = get_parent_key(bricksdict, list_to_str(loc_neg))
+            if parent_key_neg is not None and bricksdict[parent_key_neg]["draw"] and (not require_merge_attempt or bricksdict[parent_key_neg]["attempted_merge"]):
+                connected_brick_parent_keys.add(parent_key_neg)
+            # make sure key doesn't reference itself as neighbor (for debugging purposes)
+            # NOTE: if assertion hit, that probably means that the 'bricksdict[list_to_str(loc_neg)]["size"]' was set improperly before entering this function
+            assert parent_key_neg != key
+    # check locations above current brick
+    if check_above:
+        for loc0 in lowest_locs_in_brick:
+            loc_pos = (loc0[0], loc0[1], loc0[2] + brick_size[2] // zstep)
+            parent_key_pos = get_parent_key(bricksdict, list_to_str(loc_pos))
+            if parent_key_pos is not None and bricksdict[parent_key_pos]["draw"] and (not require_merge_attempt or bricksdict[parent_key_pos]["attempted_merge"]):
+                connected_brick_parent_keys.add(parent_key_pos)
+            # make sure key doesn't reference itself as neighbor (for debugging purposes)
+            # NOTE: if assertion hit, that probably means that the 'bricksdict[list_to_str(loc_pos)]["size"]' was set improperly before entering this function
+            assert parent_key_pos != key
     return connected_brick_parent_keys
 
 

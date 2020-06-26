@@ -388,19 +388,20 @@ def get_keys_in_brick(bricksdict, size, zstep:int, loc:list=None, key:str=None):
     return [list_to_str((x0 + x, y0 + y, z0 + z)) for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0])]
 
 
-def get_keys_dict(bricksdict, keys=None):
+def get_keys_dict(bricksdict, keys=None, parents_only=False):
     """ get dictionary of bricksdict keys based on z value """
     keys = keys or list(bricksdict.keys())
     if len(keys) > 1:
         keys.sort(key=lambda x: (get_dict_loc(bricksdict, x)[0], get_dict_loc(bricksdict, x)[1]))
     keys_dict = {}
     for k0 in keys:
-        if bricksdict[k0]["draw"]:
-            z = get_dict_loc(bricksdict, k0)[2]
-            if z in keys_dict:
-                keys_dict[z].add(k0)
-            else:
-                keys_dict[z] = {k0}  # initialize set
+        if not bricksdict[k0]["draw"] or (parents_only and bricksdict[k0]["parent"] != "self"):
+            continue
+        z = get_dict_loc(bricksdict, k0)[2]
+        if z in keys_dict:
+            keys_dict[z].add(k0)
+        else:
+            keys_dict[z] = {k0}  # initialize set
     return keys_dict, set(keys)
 
 

@@ -3,6 +3,7 @@
 # System imports
 import numpy as np
 from colorsys import rgb_to_hsv, hsv_to_rgb
+# from scipy import signal
 # from scipy import ndimage
 
 # Blender imports
@@ -12,6 +13,7 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 from .pixel_effects_reshape import *
 from .pixel_effects_median_cut import *
 from ..reporting import b280
+from ..maths import *
 # try:
 #     from .pixel_effects_numba import *
 # except ModuleNotFoundError if b280() else ImportError:
@@ -225,25 +227,30 @@ def invert_pixels(pixels, factor, channels):
     return pixels
 
 
-def box_blur_pixels(old_pixels, width, height, channels, blur_radius=1):
-    old_pixels = get_3d_pixel_array(old_pixels, width, height, channels)
-    # sample_size = 1 + (blur_radius * 2)
-    # new_pixels = ndimage.filters.uniform_filter(old_pixels, size=(sample_size, sample_size, 1))
+def blur_pixels(old_pixels, width, height, channels, blur_radius=1, filter_type="FLAT"):
+    old_pixels = get_3d_pixel_array(old_pixels, height, width, channels)
     new_pixels = old_pixels.copy()
-    for row in range(blur_radius, len(old_pixels) - blur_radius):
-        for col in range(blur_radius, len(old_pixels[0]) - blur_radius):
-            new_pixels[row][col] = np.mean(old_pixels[row - blur_radius:row + blur_radius, col - blur_radius:col + blur_radius])
+    # get 2d blur radius
+    assert type(blur_radius) in (int, tuple, list)
+    blur_radius_2d = (blur_radius, blur_radius) if isinstance(blur_radius, int) else blur_radius
+    # apply blur filter
+    if filter_type == "FLAT":
+        # get kernel
+        kernel_size = (1 + (blur_radius_2d[1] * 2), 1 + (blur_radius_2d[0] * 2))
+        kernel = np.ones(kernel_size)
+        # run convolve2d to blur pixels
+        for i in range(channels):
+            neighbor_sum = signal.convolve2d(old_pixels[:, :, i], kernel, mode="same", boundary="fill", fillvalue=0)
+            num_neighbor = signal.convolve2d(np.ones((height, width)), kernel, mode="same", boundary="fill", fillvalue=0)
+            new_pixels[:, :, i] = neighbor_sum / num_neighbor
+    elif filter_type == "GAUSS":
+        sigma_2d = (blur_radius_2d[1] / 2, blur_radius_2d[0] / 2)
+        for i in range(channels):
+            result = ndimage.filters.gaussian_filter(old_pixels[:, :, i], sigma=sigma_2d)
+            new_pixels[:, :, i] = result
+    # reshape back to 1d aray and return
     new_pixels = get_1d_pixel_array(new_pixels)
     return new_pixels
-
-
-# def gaussian_blur_pixels(old_pixels, width, height, channels, blur_radius=1):
-#     old_pixels = get_3d_pixel_array(old_pixels, width, height, channels)
-#     new_pixels = np.empty(old_pixels.shape)
-#     sample_size = 1 + (blur_radius * 2)
-#     new_pixels = ndimage.filters.gaussian_filter(old_pixels, sigma=(sample_size, sample_size, 1))
-#     new_pixels = get_1d_pixel_array(new_pixels)
-#     return new_pixels
 
 
 def flip_pixels(old_pixels, flip_x, flip_y, width, height, channels):

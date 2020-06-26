@@ -482,7 +482,7 @@ class MyImage:
         if space == "RELATIVE":
             translate_x = round(translate_x * self.size[0])
             translate_y = round(translate_y * self.size[1])
-        elif space == "DIMENSIONS":
+        elif space == "METRIC":
             translate_x = round(translate_x * (self.size[0] / self.dimensions[0]))
             translate_y = round(translate_y * (self.size[1] / self.dimensions[1]))
         elif space == "PIXELS":
@@ -701,6 +701,11 @@ class MyImage:
     def invert(self, factor=1):
         self.pixels = invert_pixels(self._pixels, factor, channels=self._channels)
 
+    def blur(self, radius, filter_type="FLAT", expand_canvas=False):
+        if expand_canvas:
+            self.pad_to_size(width=self.size[0] + radius[0] * 4, height=self.size[1] + radius[1] * 4)
+        self.pixels = blur_pixels(self._pixels, self.size[0], self.size[1], channels=self._channels, blur_radius=radius, filter_type=filter_type)
+
     def dilate(self, pixel_dist:tuple, threshold:float, mode:str="STEP"):  # method: STEP, DISTANCE
         self.set_channels(1)
         if not any(pixel_dist):
@@ -887,6 +892,10 @@ class MyImageSequence:
     def invert(self, factor=1):
         for im in self.images:
             im.invert(factor)
+
+    def blur(self, radius, filter_type="FLAT", expand_canvas=False):
+        for im in self.images:
+            im.blur(radius, filter_type, expand_canvas)
 
     def dilate(self, pixel_dist:tuple, threshold:float, mode:str="STEP"):
         for im in self.images:
