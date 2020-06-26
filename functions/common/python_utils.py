@@ -120,6 +120,11 @@ def is_unique(lst:list):
         return len(lst) == len(set(lst))
 
 
+def nth_index(iterable, value, n:int):
+    matches = (idx for idx, val in enumerate(iterable) if val == value)
+    return next(islice(matches, n-1, n), None)
+
+
 #################### STRINGS ####################
 
 

@@ -48,7 +48,7 @@ def get_connected_components(bricksdict:dict, zstep:int, parent_keys:list):
             for k0 in connected_parent_keys:
                 if k0 in cur_conn_comp:
                     continue
-                keys_connected_to_k0 = get_connected_keys(bricksdict, k0, bricksdict[k0]["size"], zstep)
+                keys_connected_to_k0 = get_connected_keys(bricksdict, k0, zstep)
                 cur_conn_comp[k0] = keys_connected_to_k0
                 next_parent_keys |= keys_connected_to_k0
         # remove keys in current conn_comp list from parent_keys
@@ -59,8 +59,9 @@ def get_connected_components(bricksdict:dict, zstep:int, parent_keys:list):
     return conn_comps
 
 
-def get_connected_keys(bricksdict:dict, key:str, brick_size:list, zstep:int, require_merge_attempt:bool=False, check_above:bool=True, check_below:bool=True):
+def get_connected_keys(bricksdict:dict, key:str, zstep:int, require_merge_attempt:bool=False, check_above:bool=True, check_below:bool=True):
     # get locs in current brick
+    brick_size = bricksdict[key]["size"]
     loc = get_dict_loc(bricksdict, key)
     lowest_locs_in_brick = get_lowest_locs_in_brick(brick_size, loc)
     # find connected brick parent keys
