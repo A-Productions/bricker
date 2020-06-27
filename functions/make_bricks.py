@@ -42,7 +42,7 @@ from ..lib.caches import bricker_mesh_cache
 
 
 @timed_call("Time Elapsed")
-def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions, action, bcoll, num_source_mats, split=False, brick_scale=None, merge_vertical=True, custom_data=None, clear_existing_collection=True, frame_num=None, cursor_status=False, print_status=True, temp_brick=False, redraw=False):
+def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions, action, bcoll, num_source_mats, split=False, brick_scale=None, merge_vertical=True, custom_data=None, clear_existing_collection=True, frame_num=None, cursor_status=False, print_status=True, temp_brick=False, run_pre_merge=False):
     # initialize cmlist attributes (prevents 'update' function for each property from running every time)
     n = cm.source_obj.name
     cm_id = cm.id
@@ -96,7 +96,7 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
     for key0 in sorted_keys:
         bricksdict[key0]["available_for_merge"] = True
     # if merging unnecessary, skip entirely
-    if redraw:
+    if not run_pre_merge:
         # update bricksdict info since build probably changed
         parent_keys = get_parent_keys(bricksdict, sorted_keys)
         update_bricksdict_after_updated_build(bricksdict, parent_keys, zstep, cm, sorted_keys, material_type, custom_mat, random_mat_seed)

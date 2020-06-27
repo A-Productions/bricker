@@ -256,7 +256,7 @@ def get_args_for_background_processor(cm, bricker_addon_path, source_dup=None, s
     return script, cmlist_props, cmlist_pointer_props, data_blocks_to_send
 
 
-def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, brick_scale, bricksdict, keys, redraw, update_cursor):
+def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, brick_scale, bricksdict, keys, run_pre_merge, update_cursor):
     if bricksdict is None:
         # load bricksdict from cache
         bricksdict = get_bricksdict(cm, d_type=action, cur_frame=cur_frame)
@@ -270,7 +270,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
     else:
         loaded_from_cache = True
     # reset all values for certain keys in bricksdict dictionaries
-    if cm.build_is_dirty and loaded_from_cache and not redraw:
+    if cm.build_is_dirty and loaded_from_cache and run_pre_merge:
         threshold = getThreshold(cm)
         shell_thickness_changed = cm.last_shell_thickness != cm.shell_thickness
         for kk, brick_d in bricksdict.items():
@@ -306,7 +306,7 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     action = "UPDATE_MODEL"
     # actually draw the bricks
     keys = keys_to_update if cm.last_split_model else "ALL"
-    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, split=cm.last_split_model, cm=cm, bricksdict=bricksdict, keys=keys, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, redraw=True)
+    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, split=cm.last_split_model, cm=cm, bricksdict=bricksdict, keys=keys, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, run_pre_merge=False)
     # link new bricks to scene
     if not b280():
         for brick in bricks_created:
@@ -324,14 +324,14 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     return bricks_created
 
 
-def create_new_bricks(source_dup, parent, source_details, dimensions, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, redraw=False, orig_source=None):
+def create_new_bricks(source_dup, parent, source_details, dimensions, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, run_pre_merge=True, orig_source=None):
     """ gets/creates bricksdict, runs make_bricks, and caches the final bricksdict """
     # initialization for getting bricksdict
     scn, cm, n = get_active_context_info(cm=cm)
     brick_scale, custom_data = get_arguments_for_bricksdict(cm, source=source_dup, dimensions=dimensions)
     update_cursor = action in ("CREATE", "UPDATE_MODEL")
     # get bricksdict
-    bricksdict, brick_scale = get_bricksdict_for_model(cm, source_dup, source_details, action, cur_frame, brick_scale, bricksdict, keys, redraw, update_cursor)
+    bricksdict, brick_scale = get_bricksdict_for_model(cm, source_dup, source_details, action, cur_frame, brick_scale, bricksdict, keys, run_pre_merge, update_cursor)
     # initialization for making bricks
     if True:
         cm.zstep = get_zstep(cm)
@@ -358,7 +358,7 @@ def create_new_bricks(source_dup, parent, source_details, dimensions, action, sp
     if cm.instance_method == "POINT_CLOUD":
         bricks_created = make_bricks_point_cloud(cm, bricksdict, keys_dict, parent, source_details, dimensions, bcoll, frame_num=cur_frame)
     else:
-        bricks_created = make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, ref_logo, dimensions, action, bcoll, num_source_mats=len(source_dup.data.materials), split=split, brick_scale=brick_scale, merge_vertical=merge_vertical, custom_data=custom_data, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, print_status=print_status, temp_brick=temp_brick, redraw=redraw)
+        bricks_created = make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, ref_logo, dimensions, action, bcoll, num_source_mats=len(source_dup.data.materials), split=split, brick_scale=brick_scale, merge_vertical=merge_vertical, custom_data=custom_data, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, print_status=print_status, temp_brick=temp_brick, run_pre_merge=run_pre_merge)
     # select bricks
     if select_created and len(bricks_created) > 0:
         select(bricks_created)
