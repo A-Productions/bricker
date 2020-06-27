@@ -95,8 +95,13 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
     # set all keys as available for merge
     for key0 in sorted_keys:
         bricksdict[key0]["available_for_merge"] = True
-    # if merging unnecessary, simply update bricksdict values
-    if not redraw and not (mergable_brick_type(brick_type, up=cm.zstep == 1) and (max_depth != 1 or max_width != 1)):
+    # if merging unnecessary, skip entirely
+    if redraw:
+        # update bricksdict info since build probably changed
+        parent_keys = get_parent_keys(bricksdict, sorted_keys)
+        update_bricksdict_after_updated_build(bricksdict, parent_keys, zstep, cm, sorted_keys, material_type, custom_mat, random_mat_seed)
+    # if unable to merge brick type, simply update bricksdict values
+    elif not (mergable_brick_type(brick_type, up=cm.zstep == 1) and (max_depth != 1 or max_width != 1)):
         size = [1, 1, cm.zstep]
         if len(sorted_keys) > 0:
             update_brick_sizes_and_types_used(cm, list_to_str(size), bricksdict[next(iter(sorted_keys))]["type"])
@@ -156,7 +161,7 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
         update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
 
         # if there are internal bricks, improve the sturdiness and run post hollowing
-        run_sturdiness_improvements = cm.shell_thickness > 1 and cm.calc_internals and not redraw
+        run_sturdiness_improvements = cm.shell_thickness > 1 and cm.calc_internals
         if run_sturdiness_improvements:
             # improve sturdiness of model
             conn_comps, weak_points = improve_sturdiness(bricksdict, sorted_keys, cm, zstep, brick_type, merge_seed, iterations=connect_thresh)
@@ -180,28 +185,8 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
         for key0 in bricksdict:
             bricksdict[key0]["attempted_merge"] = False
 
-        # update cm.brick_sizes_used and cm.brick_types_used
-        for k in parent_keys:
-            brick_size = bricksdict[k]["size"]
-            brick_size_str = list_to_str(sorted(brick_size[:2]) + [brick_size[2]])
-            update_brick_sizes_and_types_used(cm, brick_size_str, bricksdict[k]["type"])
-
-        # set brick exposures
-        for k in parent_keys:
-            set_brick_exposure(bricksdict, zstep, key=k)
-
-        # set brick materials
-        brick_mats = get_brick_mats(cm)
-        seed_keys = sorted_keys if material_type == "RANDOM" else None
-        for k in parent_keys:
-            brick_d = bricksdict[k]
-            brick_size = brick_d["size"]
-            mat = get_material(bricksdict, k, brick_size, zstep, material_type, custom_mat, random_mat_seed, seed_keys, brick_mats=brick_mats)
-            if mat:
-                loc = get_dict_loc(bricksdict, k)
-                keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc)
-                for k0 in keys_in_brick:
-                    bricksdict[k0]["mat_name"] = mat.name
+        # update bricksdict info after build changed
+        update_bricksdict_after_updated_build(bricksdict, parent_keys, zstep, cm, sorted_keys, material_type, custom_mat, random_mat_seed)
 
     # begin 'Building' progress bar
     old_percent = update_progress_bars(0.0, -1, "Building", print_status, cursor_status)
@@ -265,3 +250,28 @@ def make_bricks(cm, bricksdict, keys_dict, sorted_keys, parent, logo, dimensions
         all_bricks_obj.is_brickified_object = True
 
     return bricks_created
+
+
+def update_bricksdict_after_updated_build(bricksdict, parent_keys, zstep, cm, sorted_keys, material_type, custom_mat, random_mat_seed):
+    # update cm.brick_sizes_used and cm.brick_types_used
+    for k in parent_keys:
+        brick_size = bricksdict[k]["size"]
+        brick_size_str = list_to_str(sorted(brick_size[:2]) + [brick_size[2]])
+        update_brick_sizes_and_types_used(cm, brick_size_str, bricksdict[k]["type"])
+
+    # set brick exposures
+    for k in parent_keys:
+        set_brick_exposure(bricksdict, zstep, key=k)
+
+    # set brick materials
+    brick_mats = get_brick_mats(cm)
+    seed_keys = sorted_keys if material_type == "RANDOM" else None
+    for k in parent_keys:
+        brick_d = bricksdict[k]
+        brick_size = brick_d["size"]
+        mat = get_material(bricksdict, k, brick_size, zstep, material_type, custom_mat, random_mat_seed, seed_keys, brick_mats=brick_mats)
+        if mat:
+            loc = get_dict_loc(bricksdict, k)
+            keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc)
+            for k0 in keys_in_brick:
+                bricksdict[k0]["mat_name"] = mat.name

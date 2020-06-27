@@ -166,8 +166,8 @@ class VIEW3D_PT_bricker_legacy_customization_tools(Panel):
             return False
         if not cm.last_split_model:
             return False
-        if cm.build_is_dirty:
-            return False
+        # if cm.build_is_dirty:
+        #     return False
         if cm.brickifying_in_background:
             return False
         if not cache_exists(cm):

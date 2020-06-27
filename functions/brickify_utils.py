@@ -270,7 +270,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
     else:
         loaded_from_cache = True
     # reset all values for certain keys in bricksdict dictionaries
-    if cm.build_is_dirty and loaded_from_cache:
+    if cm.build_is_dirty and loaded_from_cache and not redraw:
         threshold = getThreshold(cm)
         shell_thickness_changed = cm.last_shell_thickness != cm.shell_thickness
         for kk, brick_d in bricksdict.items():
@@ -284,9 +284,6 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
             else:
                 # don't merge bricks not in 'keys'
                 brick_d["attempted_merge"] = True
-    elif redraw:
-        for kk in keys:
-            bricksdict[kk]["attempted_merge"] = False
     if (not loaded_from_cache or cm.internal_is_dirty) and cm.calc_internals:
         update_internal(bricksdict, cm, keys, clear_existing=loaded_from_cache)
         cm.build_is_dirty = True
@@ -308,7 +305,8 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     parent = cm.parent_obj
     action = "UPDATE_MODEL"
     # actually draw the bricks
-    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, cm=cm, bricksdict=bricksdict, keys=keys_to_update, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, redraw=True)
+    keys = keys_to_update if cm.last_split_model else "ALL"
+    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, split=cm.last_split_model, cm=cm, bricksdict=bricksdict, keys=keys, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, redraw=True)
     # link new bricks to scene
     if not b280():
         for brick in bricks_created:

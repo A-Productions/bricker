@@ -27,10 +27,10 @@ from bpy.types import Operator
 from ..functions import *
 
 
-class BRICKER_OT_run_post_hollowing(Operator):
-    """Remove internal bricks that don't introduce new weak points/connected components"""
-    bl_idname = "bricker.run_post_hollowing"
-    bl_label = "Run Post Hollowing"
+class BRICKER_OT_run_post_merging(Operator):
+    """Grow bricks by merging nearby bricks that fit together"""
+    bl_idname = "bricker.run_post_merging"
+    bl_label = "Run Post Merging"
     bl_options = {"REGISTER", "UNDO"}
 
     ################################################
@@ -54,15 +54,28 @@ class BRICKER_OT_run_post_hollowing(Operator):
             bricksdict = get_bricksdict(cm)
             keys = bricksdict.keys()
             brick_type = cm.brick_type
-            merge_seed = cm.merge_seed
-            connect_thresh = cm.connect_thresh
-            # get conn comps/weak points
-            conn_comps, weak_points, _, _ = get_connectivity_data(bricksdict, zstep, keys)
-            # run post hollowing
-            removed_keys = run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, conn_comps, weak_points, remove_object=True)
-            # report how many keys were removed
-            num_bricks_removed = len(tuple((k for k in removed_keys if bricksdict[k]["self"])))
-            report_str = f"{num_bricks_removed} unnecessary internal bricks removed!"
+            legal_bricks_only = cm.legal_bricks_only
+            max_length = 8  # max(cm.max_width, cm.max_depth)
+            # run post merging
+            updated_keys = set()
+            all_engulfed_keys = set()
+            for key in keys:
+                # skip non-parent keys (must check each time as this is constantly changing)
+                if bricksdict[key]["parent"] != "self":
+                    continue
+                success, engulfed_keys = attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, max_length=max_length)
+                if success:
+                    updated_keys.add(key)
+                    all_engulfed_keys |= engulfed_keys
+            # redraw merged bricks
+            deselect_all()
+            draw_updated_bricks(cm, bricksdict, list(updated_keys))
+            # remove engulfed bricks
+            for k in all_engulfed_keys:
+                delete(bpy.data.objects.get(bricksdict[k]["name"]))
+            # report how many keys were merged
+            num_bricks_merged = len(all_engulfed_keys) + len(updated_keys)
+            report_str = f"{num_bricks_merged} bricks merged!"
             self.report({"INFO"}, report_str)
             print(report_str)
         except:

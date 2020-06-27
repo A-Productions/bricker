@@ -20,13 +20,20 @@ from ..maths import *
 #     print("'numba' python module not installed")
 
 
-def initialize_gradient_texture(width, height, quadratic=False):
+def initialize_gradient_texture(width, height, quadratic=False, orientation="VERTICAL"):
     pixels = np.empty((height, width))
-    for row in range(height):
-        val = 1 - (height - 1 - row) / (height - 1)
-        if quadratic:
-            val = val ** 0.5
-        pixels[row, :] = val
+    if orientation == "VERTICAL":
+        for row in range(height):
+            val = 1 - (height - 1 - row) / (height - 1)
+            if quadratic:
+                val = val ** 0.5
+            pixels[row, :] = val
+    else:
+        for col in range(width):
+            val = 1 - (width - 1 - col) / (width - 1)
+            if quadratic:
+                val = val ** 0.5
+            pixels[:, col] = val
     pixels = get_1d_pixel_array(pixels)
     return pixels
 

@@ -152,6 +152,7 @@ def attempt_merge(bricksdict, key, default_size, zstep, brick_type, max_width, m
     # get loc from key
     loc = loc or get_dict_loc(bricksdict, key)
     brick_sizes = [default_size]
+    brick_size = default_size
     tall_type = get_tall_type(bricksdict[key], target_type)
     short_type = get_short_type(bricksdict[key], target_type)
 
@@ -161,20 +162,78 @@ def attempt_merge(bricksdict, key, default_size, zstep, brick_type, max_width, m
             # iterate through adjacent locs to find available brick sizes
             update_brick_sizes(bricksdict, key, loc, brick_sizes, zstep, [max_width, max_depth][::i] + [3], height_3_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats, merge_vertical=merge_vertical, mult=direction_mult)
         # get largest (legal, if checked) brick size found
-        brick_sizes.sort(key=lambda x: -abs(x[0] * x[1] * x[2]) if prefer_largest else (-abs(x[axis_sort_order[0]]), -abs(x[axis_sort_order[1]]), -abs(x[axis_sort_order[2]])))
+        brick_sizes.sort(key=lambda v: -abs(v[0] * v[1] * v[2]) if prefer_largest else (-abs(v[axis_sort_order[0]]), -abs(v[axis_sort_order[1]]), -abs(v[axis_sort_order[2]])))
         target_brick_size = next((sz for sz in brick_sizes if not legal_bricks_only or is_legal_brick_size(size=[abs(v) for v in sz], type=tall_type if abs(sz[2]) == 3 else short_type)), None)
         assert target_brick_size is not None
         # get new brick_size, loc, and key for largest brick size
         key, brick_size = get_new_parent_key_and_size(target_brick_size, loc, zstep)
         loc = get_dict_loc(bricksdict, key)
 
+    # update bricksdict for keys merged together
+    keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc=loc)
+    update_merged_keys_in_bricksdict(bricksdict, key, keys_in_brick, brick_size, brick_type, short_type, tall_type)
+
+    return brick_size, key, keys_in_brick
+
+
+def attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, max_length=8, loc=None, merge_inconsistent_mats=False, merge_vertical=True):
+    # get loc from key
+    starting_size = bricksdict[key]["size"].copy()
+    loc = loc or get_dict_loc(bricksdict, key)
+    target_type = "BRICK" if brick_type == "BRICKS_AND_PLATES" else brick_type
+    tall_type = get_tall_type(bricksdict[key], target_type)
+    short_type = get_short_type(bricksdict[key], target_type)
+    brick_sizes = [starting_size]
+
+    # go in the x direction
+    for axis in range(3):
+        cur_size = starting_size.copy()
+        while True:
+            loc1 = loc.copy()
+            loc1[axis] += cur_size[axis]
+            key0 = list_to_str(loc1)
+            # check key is not parent key
+            brick_d = bricksdict.get(key0)
+            if brick_d is None or brick_d["parent"] != "self":
+                break
+            next_size = brick_d["size"]
+            # ensure next brick's size on other 2 axes line up with current brick
+            other_axes = ((axis + 1) % 3, (axis + 2) % 3)
+            if next_size[other_axes[0]] != starting_size[other_axes[0]] or next_size[other_axes[1]] != starting_size[other_axes[1]]:
+                break
+            # create new cur_size
+            cur_size[axis] += next_size[axis]
+            # enforce max width/depth cap, and for Z axis enforce max height of 3
+            if cur_size[axis] > (max_length if axis < 2 else 3):
+                break
+            # skip height of 2 for Z axis
+            if axis == 2 and cur_size[2] == 2:
+                continue
+            # ensure new size is legal brick size
+            if legal_bricks_only and not is_legal_brick_size(size=cur_size, type=tall_type if abs(cur_size[2]) == 3 else short_type):
+                continue
+            # if successful, add this to the possible brick sizes
+            brick_sizes.append(cur_size.copy())
+
+    # get target brick size (weight X/Y a bit more heavily as this increases stability)
+    new_size = sorted(brick_sizes, key=lambda v: ((v[0] * v[1] * 1.5) * v[2]))[-1]
+
+    # update bricksdict for keys of bricks merged together
+    keys_in_brick = get_keys_in_brick(bricksdict, new_size, zstep, loc=loc)
+    engulfed_keys = set(k for k in keys_in_brick if bricksdict[k]["parent"] == "self" and k != key)
+    update_merged_keys_in_bricksdict(bricksdict, key, keys_in_brick, new_size, brick_type, short_type, tall_type)
+
+    # return whether successful and keys that were engulfed
+    return new_size != starting_size, engulfed_keys
+
+
+def update_merged_keys_in_bricksdict(bricksdict, key, merged_keys, brick_size, brick_type, short_type, tall_type):
     # store the best brick size to origin brick
     brick_d = bricksdict[key]
     brick_d["size"] = brick_size
 
     # set attributes for merged brick keys
-    keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc=loc)
-    for k in keys_in_brick:
+    for k in merged_keys:
         brick_d0 = bricksdict[k]
         brick_d0["attempted_merge"] = True
         brick_d0["parent"] = "self" if k == key else key
@@ -186,8 +245,6 @@ def attempt_merge(bricksdict, key, default_size, zstep, brick_type, max_width, m
         set_flipped_and_rotated(brick_d, bricksdict, keys_in_brick)
         if brick_type == "SLOPES":
             set_brick_type_for_slope(brick_d, bricksdict, keys_in_brick)
-
-    return brick_size, key, keys_in_brick
 
 
 def get_new_parent_key_and_size(size, loc, zstep):
