@@ -70,7 +70,7 @@ def set_alpha_channel(num_pix, old_pixels, old_channels, value):
 
 
 def crop_pixels(size, channels, old_pixels, old_size):
-    old_pixels = get_3d_pixel_array(old_pixels, old_size[0], old_size[1], channels)
+    old_pixels = get_3d_pixel_array(old_pixels, old_size[1], old_size[0], channels)
     offset_col = (old_size[0] - size[0]) // 2
     offset_row = (old_size[1] - size[1]) // 2
     new_pixels = old_pixels[offset_row:offset_row + size[1], offset_col:offset_col + size[0]]
@@ -261,7 +261,7 @@ def blur_pixels(old_pixels, width, height, channels, blur_radius=1, filter_type=
 
 
 def flip_pixels(old_pixels, flip_x, flip_y, width, height, channels):
-    old_pixels = get_3d_pixel_array(old_pixels, width, height, channels)
+    old_pixels = get_3d_pixel_array(old_pixels, height, width, channels)
     if flix_x and not flip_y:
         new_pixels = old_pixels[:, ::-1]
     elif not flix_x and flip_y:
