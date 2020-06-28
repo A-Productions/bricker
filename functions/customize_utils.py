@@ -323,7 +323,7 @@ def merge_bricks(bricksdict, keys, cm, target_type="BRICK", any_height=False, me
         if bricksdict[key]["attempted_merge"]:
             continue
         # attempt to merge current brick with other bricks in keys, according to available brick types
-        _, new_key, _ = attempt_merge(bricksdict, key, bricksdict[key]["size"], cm.zstep, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats=merge_inconsistent_mats, prefer_largest=True, direction_mult=direction_mult, merge_vertical=merge_vertical, target_type=target_type, height_3_only=height_3_only)
+        _, new_key, _ = attempt_pre_merge(bricksdict, key, bricksdict[key]["size"], cm.zstep, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats=merge_inconsistent_mats, prefer_largest=True, direction_mult=direction_mult, merge_vertical=merge_vertical, target_type=target_type, height_3_only=height_3_only)
         updated_keys.add(new_key)
 
     # unset all keys as to be merged

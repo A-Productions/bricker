@@ -155,7 +155,7 @@ class OBJECT_OT_delete_override(Operator):
                 cm.build_is_dirty = True
             # merge and draw modified bricks
             if len(keys_to_update) > 0:
-                # split up bricks before draw_updated_bricks calls attempt_merge
+                # split up bricks before draw_updated_bricks calls attempt_pre_merge
                 for k0 in keys_to_update.copy():
                     keys_to_update |= split_brick(bricksdict, k0, cm.zstep, cm.brick_type)
                 # remove duplicate keys from the list and delete those objects

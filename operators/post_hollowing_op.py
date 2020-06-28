@@ -25,6 +25,7 @@ from bpy.types import Operator
 
 # Module imports
 from ..functions import *
+from ..lib.undo_stack import *
 
 
 class BRICKER_OT_run_post_hollowing(Operator):
@@ -50,6 +51,7 @@ class BRICKER_OT_run_post_hollowing(Operator):
         try:
             # initialize vars
             scn, cm, n = get_active_context_info()
+            self.undo_stack.iterate_states(cm)
             zstep = get_zstep(cm)
             bricksdict = get_bricksdict(cm)
             keys = bricksdict.keys()
@@ -65,6 +67,15 @@ class BRICKER_OT_run_post_hollowing(Operator):
         except:
             bricker_handle_exception()
         return{"FINISHED"}
+
+    ################################################
+    # initialization method
+
+    def __init__(self):
+        scn, cm, n = get_active_context_info()
+        # push to undo stack
+        self.undo_stack = UndoStack.get_instance()
+        self.cached_bfm = self.undo_stack.undo_push("post-hollowing", affected_ids=[cm.id])
 
     ################################################
     # class methods

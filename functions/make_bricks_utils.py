@@ -146,7 +146,7 @@ def merge_with_adjacent_bricks(brick_d, bricksdict, key, loc, default_size, zste
     if brick_size is None or build_is_dirty:
         prefer_largest = 0 < brick_d["val"] < 1
         axis_sort_order = [2, 0, 1] if rand_s1.randint(0, 2) else [2, 1, 0]
-        brick_size, _, keys_in_brick = attempt_merge(bricksdict, key, default_size, zstep, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, axis_sort_order=axis_sort_order, loc=loc, prefer_largest=prefer_largest, merge_vertical=merge_vertical, height_3_only=brick_d["type"] in get_brick_types(height=3))
+        brick_size, _, keys_in_brick = attempt_pre_merge(bricksdict, key, default_size, zstep, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, axis_sort_order=axis_sort_order, loc=loc, prefer_largest=prefer_largest, merge_vertical=merge_vertical, height_3_only=brick_d["type"] in get_brick_types(height=3))
     else:
         keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc=loc)
     return brick_size, keys_in_brick
