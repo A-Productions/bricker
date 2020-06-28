@@ -60,6 +60,11 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
     )
     # path_mode = path_reference_mode
     check_extension = True
+    model_author = StringProperty(
+        name="Author",
+        description="Author name for the file's metadata",
+        default="",
+    )
 
     ################################################
     # initialization method
@@ -110,7 +115,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
             self.filelines.append(f"0 {n}\n")
             self.filelines.append(f"0 Name: {n}\n")
             self.filelines.append("0 Unofficial model\n")
-            self.filelines.append("0 Author: Unknown\n")
+            self.filelines.append(f"0 Author: {self.model_author}\n")
             self.filelines.append("0 CustomBrick\n")
             self.filelines.append("0 NOFILE\n")
             bricksdict = get_bricksdict(cm, d_type="ANIM" if cm.animated else "MODEL", cur_frame=frame)
@@ -136,7 +141,6 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                 # skip 2 out of every 3 layers, intentionally out of sync with brick_layer offset
                 if (z + self.offset_brick_layers) % 3 != 2:
                     continue
-                print(z)
                 # store all keys on this layer for later
                 all_valid_keys_on_layer = self.get_valid_keys(bricksdict, p_keys_dict, z)
                 # start a submodel for this layer
@@ -167,20 +171,16 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                         self.add_build_step(bricksdict, p_keys_dict, starting_keys[z], cm, offset)
                         while True:
                             # move up to bricks connected to it
-                            print(1)
                             conn_keys = self.iterate_connections(bricksdict, z, starting_keys, p_keys_dict, cm, offset, direction="UP")
                             if not conn_keys:
                                 break
                             # if we can keep going up, do so one more time
                             if z + 2 <= sorted_z_vals[-1]:
                                 # move up to bricks connected to those
-                                print(2)
                                 self.iterate_connections(bricksdict, z + 1, starting_keys, p_keys_dict, cm, offset, direction="UP")
                                 # move down to bricks connected to those
-                                print(3)
                                 self.iterate_connections(bricksdict, z + 2, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
                             # move down to bricks connected to those
-                            print(4)
                             self.iterate_connections(bricksdict, z + 1, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
                 # reset bottom starting keys to everything on this layer
                 starting_keys[z] = all_valid_keys_on_layer
@@ -286,7 +286,6 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         while starting_keys[z0] and z0 - 1 in p_keys_dict.keys():  # and p_keys_dict[z0 - 1]:
             # get keys below starting keys
             starting_keys[z0 - 1] = set()
-            print(6)
             self.iterate_connections(bricksdict, z0, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
             # get keys above those that aren't connected above
             conn_keys = set()

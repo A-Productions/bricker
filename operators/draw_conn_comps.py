@@ -29,7 +29,7 @@ from ..functions import *
 class BRICKER_OT_draw_connected_components(bpy.types.Operator):
     """Delete brickified model (restores original source object)"""
     bl_idname = "bricker.draw_connected_components"
-    bl_label = "Draw Connected Components"
+    bl_label = "Draw Connectivity Graph"
     bl_options = {"REGISTER", "UNDO"}
 
     ################################################

@@ -60,7 +60,7 @@ class BRICKER_OT_select_components(bpy.types.Operator):
 
         # select specified components
         objs_to_select = []
-        if self.type == "DISCONNECTED_COMPONENTS":
+        if self.type == "DISCONNECTED":
             largest_conn_comp = max(len(cc) for cc in conn_comps)
             for cc in conn_comps:
                 if len(cc) == largest_conn_comp:
@@ -80,6 +80,15 @@ class BRICKER_OT_select_components(bpy.types.Operator):
                 self.report({"INFO"}, "No weak pointsto select!")
                 return {"FINISHED"}
             self.report({"INFO"}, "Weak Points selected!")
+        # elif self.type == "COLUMNS":
+        #     columns = get_columns(conn_comps, bricksdict)
+        #     for k in columns:
+        #         brick_obj = bpy.data.objects.get(bricksdict[k]["name"])
+        #         objs_to_select.append(brick_obj)
+        #     if len(objs_to_select) == 0:
+        #         self.report({"INFO"}, "No columns to select!")
+        #         return {"FINISHED"}
+        #     self.report({"INFO"}, "Columns selected!")
         elif self.type == "COMPONENT_INTERFACES":
             component_interfaces = get_component_interfaces(bricksdict, conn_comps, parent_keys, zstep)
             for k in component_interfaces:
@@ -101,6 +110,9 @@ class BRICKER_OT_select_components(bpy.types.Operator):
 
         return{"FINISHED"}
 
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
     ################################################
     # initialization method
 
@@ -114,12 +126,13 @@ class BRICKER_OT_select_components(bpy.types.Operator):
         name="Selection Type",
         description="",
         items=[
-            ("DISCONNECTED_COMPONENTS", "Disconnected", "", 0),
-            ("WEAK_POINTS", "Weak Points", "", 2),
-            ("COMPONENT_INTERFACES", "Component Interfaces", "", 1),
-            ("ALL_TO_BE_MODIFIED", "All to be modified", "", 3),
+            ("DISCONNECTED", "Disconnected", "", 0),
+            ("WEAK_POINTS", "Weak Points", "", 1),
+            # ("COLUMNS", "Columns", "", 2),
+            ("COMPONENT_INTERFACES", "Component Interfaces", "", 3),
+            ("ALL_TO_BE_MODIFIED", "All to be modified", "", 4),
         ],
-        default="DISCONNECTED_COMPONENTS",
+        default="DISCONNECTED",
     )
 
     #############################################

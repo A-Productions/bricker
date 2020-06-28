@@ -187,6 +187,26 @@ def get_bridges_recursive(conn_comps:list):
     return weak_points
 
 
+# def get_columns(conn_comps:list, bricksdict:dict):
+#     columns = set()
+#     for conn_comp in conn_comps:
+#         for k in conn_comp:
+#             if len(conn_comp[k]) != 2 or not z_values_differ(bricksdict, conn_comp[k]):
+#                 continue
+#             connected_are_also_columns = False
+#             for k1 in conn_comp[k]:
+#                 if len(conn_comp[k1]) != 2 or not z_values_differ(bricksdict, conn_comp[k1]):
+#                     connected_are_also_columns = True
+#             if connected_are_also_columns:
+#                 continue
+#             columns.add(k)
+#     return columns
+
+
+def z_values_differ(bricksdict, keys):
+    return is_unique([get_dict_loc(bricksdict, k)[2] for k in keys])
+
+
 # adapted from: https://emre.me/algorithms/tarjans-algorithm/
 def depth_first_search(conn_comp:dict, weak_points:set, node_infos:dict, cur_idx:int, cur_node:str, last_node:str=""):
     """ recursive implementation of DFS to discover weak points in connected components data structure """
