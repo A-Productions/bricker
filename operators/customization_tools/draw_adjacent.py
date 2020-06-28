@@ -74,7 +74,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             obj = context.active_object
             initial_active_obj_name = obj.name
             cm.customized = True
-            keys_to_merge = []
+            keys_to_merge = set()
             update_has_custom_objs(cm, target_type)
 
             # get dict key details of current obj
@@ -115,11 +115,10 @@ class BRICKER_OT_draw_adjacent(Operator):
             # attempt to merge created bricks
             keys_to_update = merge_bricks(self.bricksdict, keys_to_merge, cm, target_type=target_type)
 
-
             # if bricks created on top or bottom, set exposure of original brick
             if self.z_pos or self.z_neg:
                 set_brick_exposure(self.bricksdict, cm.zstep, cur_key)
-                keys_to_update.append(cur_key)
+                keys_to_update.add(cur_key)
 
             # draw created bricks
             draw_updated_bricks(cm, self.bricksdict, keys_to_update, select_created=False)
@@ -300,7 +299,7 @@ class BRICKER_OT_draw_adjacent(Operator):
                         dir_bool = [side, False]
                         return {"val":False, "dir_bool":dir_bool, "report_type":"INFO", "msg":"Brick already exists in the following location: %(new_key)s" % locals()}
                     elif side in (4, 5):
-                        keys_to_merge.append(new_key)
+                        keys_to_merge.add(new_key)
             # update dictionary of locations above brick
             if flat_brick_type(cm.brick_type) and side in (4, 5):
                 update_brick_size_and_dict(dimensions, n, bricksdict, [1, 1, new_brick_height], adjacent_key, adjacent_loc, dec=2 if side == 5 else 0, cur_type=cur_type, target_type=target_type, created_from=cur_key)
@@ -323,7 +322,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             else:
                 set_brick_exposure(bricksdict, cm.zstep, adjacent_key)
             adj_brick_d["created_from"] = cur_key
-            keys_to_merge.append(adjacent_key)
+            keys_to_merge.add(adjacent_key)
             # set adj_bricks_created to target brick type for current side
             adj_bricks_created[side][brick_num] = target_type
 

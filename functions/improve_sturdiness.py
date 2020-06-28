@@ -56,9 +56,9 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
         print()
         # improve sturdiness
         # split up bricks
-        split_keys = list()
+        split_keys = set()
         for k in weak_points | weak_point_neighbors | component_interfaces:
-            split_keys += split_brick(bricksdict, k, zstep, brick_type)
+            split_keys |= split_brick(bricksdict, k, zstep, brick_type)
         # get merge direction and sort order
         new_merge_seed = merge_seed + i + 1
         rand_state = np.random.RandomState(new_merge_seed)

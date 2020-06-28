@@ -153,12 +153,12 @@ class BRICKER_OT_split_bricks(Operator):
                         # split the bricks in the matrix and set size of active brick's bricksdict entries to 1x1x[lastZSize]
                         split_keys = split_brick(bricksdict, dkey, cm.zstep, cm.brick_type, loc=dloc, v=self.vertical, h=self.horizontal)
                         # append new split_keys to keys_to_update
-                        keys_to_update |= set(split_keys)
+                        keys_to_update |= split_keys
                     else:
                         keys_to_update.add(dkey)
 
                 # draw modified bricks
-                draw_updated_bricks(cm, bricksdict, list(keys_to_update))
+                draw_updated_bricks(cm, bricksdict, keys_to_update)
 
                 # add selected objects to objects to select at the end
                 objs_to_select += context.selected_objects

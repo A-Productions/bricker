@@ -233,26 +233,21 @@ def add_lattice_supports(bricksdict, keys, step, height, alternate_xy):
         elif y % step == 0 and (not alternate_xy or z0 == 1):
             brick_d["draw"] = True
 
-def update_internal(bricksdict, cm, keys="ALL", clear_existing=False):
+def update_internal(bricksdict, cm, keys, clear_existing=False):
     """ update bricksdict internal entries
     cm            -- active cmlist object
     bricksdict    -- dictionary with brick information at each lattice coordinate
     keys          -- keys to test in bricksdict
     clear_existing -- set draw for all internal bricks to False before adding supports
     """
-    if keys == "ALL":
-        keys = bricksdict.keys()
-        brick_ds = bricksdict.values()
-    else:
-        brick_ds = [bricksdict[k] for k in keys]
     # clear extisting internal structure
     if clear_existing:
         # set all bricks as unmerged
         split_bricks(bricksdict, cm.zstep, keys)
         # clear internal
-        for brick_d in brick_ds:
-            if is_internal(brick_d):
-                brick_d["draw"] = False
+        for k in keys:
+            if is_internal(bricksdict[k]):
+                bricksdict[k]["draw"] = False
     # Draw column supports
     if cm.internal_supports == "COLUMNS":
         add_column_supports(bricksdict, keys, cm.col_thickness, cm.col_step)

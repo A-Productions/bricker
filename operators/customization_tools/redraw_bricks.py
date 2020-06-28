@@ -63,7 +63,7 @@ class BRICKER_OT_redraw_bricks(Operator):
                 keys_to_update = []
 
                 # add keys for updated objects to simple bricksdict for drawing
-                keys_to_update = [get_dict_key(obj.name) for obj in self.obj_names_dict[cm_id]]
+                keys_to_update = set(get_dict_key(obj.name) for obj in self.obj_names_dict[cm_id])
 
                 # draw modified bricks
                 draw_updated_bricks(cm, bricksdict, keys_to_update)

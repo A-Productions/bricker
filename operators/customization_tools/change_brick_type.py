@@ -221,11 +221,11 @@ class BRICKER_OT_change_brick_type(Operator):
                 for cur_loc in brick_locs:
                     bricksdict = verify_all_brick_exposures(scn, cm.zstep, cur_loc, bricksdict, decriment=3 if b_and_p_brick else 1)
                     # add bricks to keys_to_update
-                    keys_to_update |= set([get_parent_key(bricksdict, list_to_str((x0 + x, y0 + y, z0 + z))) for z in (-1, 0, 3 if b_and_p_brick else 1) for y in range(size[1]) for x in range(size[0])])
+                    keys_to_update |= set(get_parent_key(bricksdict, list_to_str((x0 + x, y0 + y, z0 + z))) for z in (-1, 0, 3 if b_and_p_brick else 1) for y in range(size[1]) for x in range(size[0]))
                 obj_names_to_select += [bricksdict[list_to_str(loc)]["name"] for loc in brick_locs]
 
-            # remove null keys
-            keys_to_update = [x for x in keys_to_update if x != None]
+            # remove null key if present
+            keys_to_update.discard(None)
             # if something was updated, set bricks_were_generated
             bricks_were_generated = bricks_were_generated or len(keys_to_update) > 0
 

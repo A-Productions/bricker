@@ -293,7 +293,7 @@ default_sort_fn = lambda k: (str_to_list(k)[0] * str_to_list(k)[1] * str_to_list
 def merge_bricks(bricksdict, keys, cm, target_type="BRICK", any_height=False, merge_seed=None, merge_inconsistent_mats=False, direction_mult=(1, 1, 1), sort_fn=default_sort_fn):
     """ attempts to merge bricks in 'keys' parameter with all bricks in bricksdict not marked with 'attempted_merge' """
     # initialize vars
-    updated_keys = []
+    updated_keys = set()
     brick_type = cm.brick_type
     max_width = cm.max_width
     max_depth = cm.max_depth
@@ -309,6 +309,8 @@ def merge_bricks(bricksdict, keys, cm, target_type="BRICK", any_height=False, me
 
     # sort keys
     if sort_fn is not None:
+        if isinstance(keys, set):
+            keys = list(keys)
         keys.sort(key=sort_fn)
 
     # set all keys as to be merged
@@ -322,7 +324,7 @@ def merge_bricks(bricksdict, keys, cm, target_type="BRICK", any_height=False, me
             continue
         # attempt to merge current brick with other bricks in keys, according to available brick types
         _, new_key, _ = attempt_merge(bricksdict, key, bricksdict[key]["size"], cm.zstep, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats=merge_inconsistent_mats, prefer_largest=True, direction_mult=direction_mult, merge_vertical=merge_vertical, target_type=target_type, height_3_only=height_3_only)
-        updated_keys.append(new_key)
+        updated_keys.add(new_key)
 
     # unset all keys as to be merged
     for key in keys:

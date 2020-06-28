@@ -85,7 +85,7 @@ class BRICKER_OT_change_brick_material(Operator):
                     keys_to_update.add(dkey)
 
                 # draw modified bricks
-                draw_updated_bricks(cm, bricksdict, list(keys_to_update))
+                draw_updated_bricks(cm, bricksdict, keys_to_update)
 
                 # add selected objects to objects to select at the end
                 objs_to_select += context.selected_objects

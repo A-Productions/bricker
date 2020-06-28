@@ -62,7 +62,7 @@ class BRICKER_OT_redraw_custom_bricks(bpy.types.Operator):
         bricksdict = get_bricksdict(cm)
         if bricksdict is None:
             return
-        keys_to_update = [k for k in bricksdict if bricksdict[k]["type"] == "CUSTOM " + self.target_prop[-1]]
+        keys_to_update = set(k for k in bricksdict if bricksdict[k]["type"] == "CUSTOM " + self.target_prop[-1])
         if len(keys_to_update) != 0:
             draw_updated_bricks(cm, bricksdict, keys_to_update)
 

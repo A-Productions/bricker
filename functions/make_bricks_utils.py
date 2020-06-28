@@ -315,7 +315,7 @@ def get_material(bricksdict, key, size, zstep, material_type, custom_mat, random
     elif material_type == "RANDOM" and brick_mats is not None and len(brick_mats) > 0:
         if len(brick_mats) > 1:
             rand_state = np.random.RandomState(0)
-            rand_state.seed(random_mat_seed + hash(key))
+            rand_state.seed(random_mat_seed + int(str(hash(key))[-9:]))
             rand_idx = rand_state.randint(0, len(brick_mats))
         else:
             rand_idx = 0

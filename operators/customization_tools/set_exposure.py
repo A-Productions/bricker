@@ -64,7 +64,7 @@ class BRICKER_OT_set_exposure(Operator):
                 cm = get_item_by_id(scn.cmlist, cm_id)
                 self.undo_stack.iterate_states(cm)
                 bricksdict = marshal.loads(self.cached_bfm[cm_id])
-                keys_to_update = []
+                keys_to_update = set()
                 cm.customized = True
                 zstep = cm.zstep
 
@@ -85,7 +85,7 @@ class BRICKER_OT_set_exposure(Operator):
                         if self.side in ("BOTTOM", "BOTH"):
                             brick_d["bot_exposed"] = not brick_d["bot_exposed"]
                     # add cur_key to keys_to_update
-                    keys_to_update.append(dkey)
+                    keys_to_update.add(dkey)
 
                 # draw modified bricks
                 draw_updated_bricks(cm, bricksdict, keys_to_update)

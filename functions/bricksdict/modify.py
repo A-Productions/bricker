@@ -34,7 +34,6 @@ def update_materials(bricksdict, source_dup, keys, cur_frame=None, action="CREAT
     scn, cm, n = get_active_context_info()
     use_uv_map = cm.use_uv_map and (len(source_dup.data.uv_layers) > 0 or cm.uv_image is not None)
     # initialize variables
-    if keys == "ALL": keys = sorted(list(bricksdict.keys()))  # sort so materials are consistent for multiple frames of the same model
     is_smoke = cm.is_smoke
     material_type = cm.material_type
     color_snap = cm.color_snap
@@ -147,8 +146,8 @@ def update_brick_sizes(bricksdict, key, loc, brick_sizes, zstep, max_L, height_3
         if break_outer2: break
 
 
-def attempt_merge(bricksdict, key, default_size, zstep, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, loc=None, axis_sort_order=(2, 0, 1), merge_inconsistent_mats=False, prefer_largest=False, direction_mult=(1, 1, 1), merge_vertical=True, target_type=None, height_3_only=False):
-    """ attempt to merge bricksdict[key] with adjacent bricks """
+def attempt_pre_merge(bricksdict, key, default_size, zstep, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, loc=None, axis_sort_order=(2, 0, 1), merge_inconsistent_mats=False, prefer_largest=False, direction_mult=(1, 1, 1), merge_vertical=True, target_type=None, height_3_only=False):
+    """ attempt to merge bricksdict[key] with adjacent bricks (assuming available keys are all 1x1s) """
     # get loc from key
     loc = loc or get_dict_loc(bricksdict, key)
     brick_sizes = [default_size]
@@ -177,6 +176,7 @@ def attempt_merge(bricksdict, key, default_size, zstep, brick_type, max_width, m
 
 
 def attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, merge_internals_h, merge_internals_v, max_width, max_depth, loc=None):
+    """ attempt to merge bricksdict[key] with adjacent bricks (engulfs bricks without compromizing connectivity) """
     # get loc from key
     starting_size = bricksdict[key]["size"].copy()
     loc = loc or get_dict_loc(bricksdict, key)
@@ -186,7 +186,7 @@ def attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, me
     brick_sizes = [starting_size]
 
     # go in the x direction
-    for axis in range(3):
+    for axis in range(3 if brick_type == "BRICKS_AND_PLATES" else 2):
         cur_size = starting_size.copy()
         brick_mat_name = bricksdict[key]["mat_name"]
         while True:

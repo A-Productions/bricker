@@ -269,12 +269,13 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
             bricksdict = make_bricksdict(source, source_details, brick_scale2, cursor_status=update_cursor)
     else:
         loaded_from_cache = True
+    if keys == "ALL": keys = set(bricksdict.keys())
     # reset all values for certain keys in bricksdict dictionaries
     if cm.build_is_dirty and loaded_from_cache and run_pre_merge:
         threshold = getThreshold(cm)
         shell_thickness_changed = cm.last_shell_thickness != cm.shell_thickness
         for kk, brick_d in bricksdict.items():
-            if keys == "ALL" or kk in keys:
+            if kk in keys:
                 brick_d["size"] = None
                 brick_d["parent"] = None
                 brick_d["top_exposed"] = None
@@ -295,7 +296,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
 
 def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", select_created=True, temp_brick=False):
     if len(keys_to_update) == 0: return []
-    if not is_unique(keys_to_update): raise ValueError("keys_to_update cannot contain duplicate values")
+    assert isinstance(keys_to_update, set)
     if action is not None:
         print("[Bricker] %(action)s..." % locals())
     # get arguments for create_new_bricks
@@ -306,7 +307,7 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     action = "UPDATE_MODEL"
     # actually draw the bricks
     keys = keys_to_update if cm.last_split_model else "ALL"
-    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, split=cm.last_split_model, cm=cm, bricksdict=bricksdict, keys=keys, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, run_pre_merge=True, run_pre_sturdy=False)
+    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, split=cm.last_split_model, cm=cm, bricksdict=bricksdict, keys=keys, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, run_pre_merge=True, run_pre_sturdy=False, merge_plate_type_vertically=True)
     # link new bricks to scene
     if not b280():
         for brick in bricks_created:
@@ -324,7 +325,7 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     return bricks_created
 
 
-def create_new_bricks(source_dup, parent, source_details, dimensions, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, run_pre_merge=True, run_pre_sturdy=True, orig_source=None):
+def create_new_bricks(source_dup, parent, source_details, dimensions, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, temp_brick=False, run_pre_merge=True, run_pre_sturdy=True, orig_source=None, merge_plate_type_vertically=False):
     """ gets/creates bricksdict, runs make_bricks, and caches the final bricksdict """
     # initialization for getting bricksdict
     scn, cm, n = get_active_context_info(cm=cm)
@@ -332,28 +333,27 @@ def create_new_bricks(source_dup, parent, source_details, dimensions, action, sp
     update_cursor = action in ("CREATE", "UPDATE_MODEL")
     # get bricksdict
     bricksdict, brick_scale = get_bricksdict_for_model(cm, source_dup, source_details, action, cur_frame, brick_scale, bricksdict, keys, run_pre_merge, update_cursor)
+    # reset brick_sizes/types_used
+    if keys == "ALL":
+        cm.brick_sizes_used = ""
+        cm.brick_types_used = ""
+    # get bricksdict keys
+    if keys == "ALL":
+        keys = set(bricksdict.keys())
+    if len(keys) == 0:
+        return False, None
+    # get dictionary of keys based on z value
+    keys_dict = get_keys_dict(bricksdict, keys)
     # initialization for making bricks
-    if True:
-        cm.zstep = get_zstep(cm)
-        ref_logo = None if temp_brick else get_logo(scn, cm, dimensions)  # update ref_logo
-        model_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
-        bcoll = get_brick_collection(model_name, clear_existing_collection)
-        merge_vertical = (keys != "ALL" and "PLATES" in cm.brick_type) or cm.brick_type == "BRICKS_AND_PLATES"
-        # reset brick_sizes/types_used
-        if keys == "ALL":
-            cm.brick_sizes_used = ""
-            cm.brick_types_used = ""
-        # get bricksdict keys
-        if keys == "ALL":
-            keys = set(bricksdict.keys())
-        if len(keys) == 0:
-            return False, None
-        # get dictionary of keys based on z value
-        keys_dict = get_keys_dict(bricksdict, keys)
-        # store some key as active key
-        if cm.active_key[0] == -1 and len(keys) > 0:
-            loc = get_dict_loc(bricksdict, keys.pop())
-            cm.active_key = loc
+    cm.zstep = get_zstep(cm)
+    ref_logo = None if temp_brick else get_logo(scn, cm, dimensions)  # update ref_logo
+    model_name = "Bricker_%(n)s_bricks_f_%(cur_frame)s" % locals() if cur_frame is not None else "Bricker_%(n)s_bricks" % locals()
+    bcoll = get_brick_collection(model_name, clear_existing_collection)
+    merge_vertical = (merge_plate_type_vertically and "PLATES" in cm.brick_type) or cm.brick_type == "BRICKS_AND_PLATES"
+    # store some key as active key
+    if cm.active_key[0] == -1 and len(keys) > 0:
+        loc = get_dict_loc(bricksdict, keys.pop())
+        cm.active_key = loc
     # make bricks
     if cm.instance_method == "POINT_CLOUD":
         bricks_created = make_bricks_point_cloud(cm, bricksdict, keys_dict, parent, source_details, dimensions, bcoll, frame_num=cur_frame)

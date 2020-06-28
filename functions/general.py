@@ -385,7 +385,7 @@ def get_neighboring_bricks(bricksdict, size, zstep, loc):
 # loc param is more efficient than key, but one or the other must be passed
 def get_keys_in_brick(bricksdict, size, zstep:int, loc:list=None, key:str=None):
     x0, y0, z0 = loc or get_dict_loc(bricksdict, key)
-    return [list_to_str((x0 + x, y0 + y, z0 + z)) for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0])]
+    return set(list_to_str((x0 + x, y0 + y, z0 + z)) for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0]))
 
 
 def get_keys_dict(bricksdict, keys=None, parents_only=False):

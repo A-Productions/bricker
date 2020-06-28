@@ -66,7 +66,7 @@ class BRICKER_OT_merge_bricks(Operator):
                 self.undo_stack.iterate_states(cm)
                 # initialize vars
                 bricksdict = self.bricksdicts[cm_id]
-                all_split_keys = list()
+                all_split_keys = set()
                 cm.customized = True
                 brick_type = cm.brick_type
 
@@ -77,7 +77,7 @@ class BRICKER_OT_merge_bricks(Operator):
 
                     # split brick in matrix
                     split_keys = split_brick(bricksdict, dkey, cm.zstep, brick_type)
-                    all_split_keys += split_keys
+                    all_split_keys |= split_keys
                     # delete the object that was split
                     delete(bpy.data.objects.get(obj_name))
 

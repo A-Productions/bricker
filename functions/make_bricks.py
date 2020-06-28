@@ -148,7 +148,7 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
                     loc = get_dict_loc(bricksdict, key)
 
                     # merge current brick with available adjacent bricks
-                    brick_size, keys_in_brick = merge_with_adjacent_bricks(brick_d, bricksdict, key, loc, [1, 1, zstep], zstep, rand_s1, build_is_dirty, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_vertical=merge_vertical)
+                    merge_with_adjacent_bricks(brick_d, bricksdict, key, loc, [1, 1, zstep], zstep, rand_s1, build_is_dirty, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_vertical=merge_vertical)
 
                     # print status to terminal and cursor
                     cur_percent = (i / denom)
