@@ -272,18 +272,10 @@ class BRICKER_OT_draw_adjacent(Operator):
                 return {"val":False, "dir_bool":dir_bool, "report_type":"INFO", "msg":"Brick already exists in the following location: %(adjacent_key)s" % locals()}
             # if attempting to remove brick
             elif adj_brick_d["created_from"] == cur_key:
-                # update bricksdict values for brick being removed
+                # update bricksdict entries for brick being removed
                 x0, y0, z0 = adjacent_loc
                 brick_keys = [list_to_str((x0, y0, z0 + z)) for z in range((cm.zstep + 2) % 4 if side in (4, 5) else 1)]
-                for k in brick_keys:
-                    brick_d0 = bricksdict[k]
-                    brick_d0["draw"] = False
-                    set_cur_brick_val(bricksdict, get_dict_loc(bricksdict, k), k, action="REMOVE")
-                    brick_d0["size"] = None
-                    brick_d0["parent"] = None
-                    brick_d0["bot_exposed"] = None
-                    brick_d0["top_exposed"] = None
-                    brick_d0["created_from"] = None
+                reset_bricksdict_entries(bricksdict, brick_keys)
                 adj_bricks_created[side][brick_num] = False
                 return {"val":True, "dir_bool":dir_bool, "report_type":None, "msg":None}
         # if brick doesn't exist there

@@ -55,18 +55,18 @@ class BRICKER_OT_run_post_merging(Operator):
             keys = bricksdict.keys()
             brick_type = cm.brick_type
             legal_bricks_only = cm.legal_bricks_only
-            max_length = 8  # max(cm.max_width, cm.max_depth)
+            max_width = cm.max_width
+            max_depth = cm.max_depth
+            material_type = cm.material_type
+            custom_mat = cm.custom_mat
+            random_mat_seed = cm.random_mat_seed
+            merge_internals = "NEITHER" if material_type == "NONE" else cm.merge_internals
+            merge_internals_h = merge_internals in ["BOTH", "HORIZONTAL"]
+            merge_internals_v = merge_internals in ["BOTH", "VERTICAL"]
             # run post merging
-            updated_keys = set()
-            all_engulfed_keys = set()
-            for key in keys:
-                # skip non-parent keys (must check each time as this is constantly changing)
-                if bricksdict[key]["parent"] != "self":
-                    continue
-                success, engulfed_keys = attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, max_length=max_length)
-                if success:
-                    updated_keys.add(key)
-                    all_engulfed_keys |= engulfed_keys
+            updated_keys, all_engulfed_keys = run_post_merging(bricksdict, keys, zstep, brick_type, legal_bricks_only, merge_internals_h, merge_internals_v, max_width, max_depth)
+            parent_keys = get_parent_keys(bricksdict, keys)
+            update_bricksdict_after_updated_build(bricksdict, parent_keys, zstep, cm, material_type, custom_mat, random_mat_seed)
             # redraw merged bricks
             deselect_all()
             draw_updated_bricks(cm, bricksdict, list(updated_keys))
@@ -75,7 +75,7 @@ class BRICKER_OT_run_post_merging(Operator):
                 delete(bpy.data.objects.get(bricksdict[k]["name"]))
             # report how many keys were merged
             num_bricks_merged = len(all_engulfed_keys) + len(updated_keys)
-            report_str = f"{num_bricks_merged} bricks merged!"
+            report_str = f"{num_bricks_merged} bricks merged"
             self.report({"INFO"}, report_str)
             print(report_str)
         except:

@@ -75,7 +75,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
         elif cm.material_type == "RANDOM":
             self.action = "RANDOM"
 
-    @timed_call("Total Time Elapsed")
+    @timed_call(label="Total Time Elapsed")
     def run_apply_material(self, context):
 
         # set up variables

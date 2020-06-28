@@ -56,13 +56,10 @@ class BRICKER_OT_run_post_hollowing(Operator):
             brick_type = cm.brick_type
             merge_seed = cm.merge_seed
             connect_thresh = cm.connect_thresh
-            # get conn comps/weak points
-            conn_comps, weak_points, _, _ = get_connectivity_data(bricksdict, zstep, keys)
             # run post hollowing
-            removed_keys = run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, conn_comps, weak_points, remove_object=True)
+            _, num_removed_bricks = run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, remove_object=True)
             # report how many keys were removed
-            num_bricks_removed = len(tuple((k for k in removed_keys if bricksdict[k]["self"])))
-            report_str = f"{num_bricks_removed} unnecessary internal bricks removed!"
+            report_str = f"{num_removed_bricks} unnecessary internal bricks removed"
             self.report({"INFO"}, report_str)
             print(report_str)
         except:

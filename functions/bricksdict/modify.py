@@ -176,7 +176,7 @@ def attempt_merge(bricksdict, key, default_size, zstep, brick_type, max_width, m
     return brick_size, key, keys_in_brick
 
 
-def attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, max_length=8, loc=None, merge_inconsistent_mats=False, merge_vertical=True):
+def attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, merge_internals_h, merge_internals_v, max_width, max_depth, loc=None):
     # get loc from key
     starting_size = bricksdict[key]["size"].copy()
     loc = loc or get_dict_loc(bricksdict, key)
@@ -188,6 +188,7 @@ def attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, ma
     # go in the x direction
     for axis in range(3):
         cur_size = starting_size.copy()
+        brick_mat_name = bricksdict[key]["mat_name"]
         while True:
             loc1 = loc.copy()
             loc1[axis] += cur_size[axis]
@@ -204,8 +205,17 @@ def attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, ma
             # create new cur_size
             cur_size[axis] += next_size[axis]
             # enforce max width/depth cap, and for Z axis enforce max height of 3
-            if cur_size[axis] > (max_length if axis < 2 else 3):
+            if axis == 2 and cur_size[axis] > 3:
                 break
+            elif cur_size[axis] > max(max_width, max_depth):
+                break
+            elif cur_size[(axis + 1) % 2] > min(max_width, max_depth):
+                break
+            # make sure materials can be merged
+            merge_internals = merge_internals_v if axis == 2 else merge_internals_h
+            if not mats_are_mergable(brick_d, brick_mat_name, merge_internals):
+                break
+            brick_mat_name = brick_mat_name or brick_d["mat_name"]
             # skip height of 2 for Z axis
             if axis == 2 and cur_size[2] == 2:
                 continue
@@ -326,7 +336,7 @@ def brick_avail(bricksdict, target_key, brick_mat_name, merge_with_internals, ma
     if brick_d["attempted_merge"] or not brick_d["available_for_merge"]:
         return False, brick_mat_name
     # ensure brick materials can be merged (same material or one of the mats is "" (internal)
-    mats_mergable = brick_mat_name == brick_d["mat_name"] or (merge_with_internals and "" in (brick_mat_name, brick_d["mat_name"])) or merge_inconsistent_mats
+    mats_mergable = mats_are_mergable(brick_d, brick_mat_name, merge_with_internals, merge_inconsistent_mats)
     if not mats_mergable:
         return False, brick_mat_name
     # set brick material name if it wasn't already set
@@ -337,6 +347,10 @@ def brick_avail(bricksdict, target_key, brick_mat_name, merge_with_internals, ma
         return False, brick_mat_name
     # passed all the checks; brick is available!
     return True, brick_mat_name
+
+
+def mats_are_mergable(brick_d, brick_mat_name, merge_with_internals, merge_inconsistent_mats=False):
+    return brick_mat_name == brick_d["mat_name"] or (merge_with_internals and "" in (brick_mat_name, brick_d["mat_name"])) or merge_inconsistent_mats
 
 
 def get_most_common_dir(i_s, i_e, norms):

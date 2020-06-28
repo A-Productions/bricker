@@ -136,6 +136,21 @@ def update_brick_size_and_dict(dimensions, source_name, bricksdict, brick_size, 
     return brick_size
 
 
+def reset_bricksdict_entries(bricksdict, keys):
+    for k in keys:
+        brick_d = bricksdict[k]
+        brick_d["draw"] = False
+        set_cur_brick_val(bricksdict, get_dict_loc(bricksdict, k), k, action="REMOVE")
+        brick_d["size"] = None
+        brick_d["parent"] = None
+        brick_d["flipped"] = False
+        brick_d["rotated"] = False
+        brick_d["bot_exposed"] = None
+        brick_d["top_exposed"] = None
+        brick_d["created_from"] = None
+        brick_d["custom_mat_name"] = None
+
+
 def create_addl_bricksdict_entry(source_name, bricksdict, source_key, key, full_d, x, y, z):
     brick_d = bricksdict[source_key]
     new_name = "Bricker_%(source_name)s__%(key)s" % locals()
@@ -171,7 +186,7 @@ def set_cur_brick_val(bricksdict, loc, key=None, action="ADD"):
     if action == "ADD" and (0 in adj_brick_vals or len(adj_brick_vals) < 6 or min(adj_brick_vals) == 1):
         new_val = 1
     elif action == "REMOVE":
-        new_val = 0 if 0 in adj_brick_vals or len(adj_brick_vals) < 6 else max(adj_brick_vals)
+        new_val = 0 if 0 in adj_brick_vals or len(adj_brick_vals) < 6 else (max(adj_brick_vals) - 0.01)
     else:
         new_val = max(adj_brick_vals) - 0.01
     bricksdict[key]["val"] = new_val

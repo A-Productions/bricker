@@ -40,7 +40,7 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
         for key0 in bricksdict:
             bricksdict[key0]["attempted_merge"] = False
         # get connectivity data
-        conn_comps, weak_points, weak_point_neighbors, parent_keys = get_connectivity_data(bricksdict, zstep, keys)
+        conn_comps, weak_points, weak_point_neighbors, parent_keys = get_connectivity_data(bricksdict, zstep, keys, verbose=True)
         # set last connectivity vals
         last_weak_points.append(len(weak_points))
         last_conn_comps.append(len(conn_comps))
@@ -50,9 +50,9 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
         if is_sturdy or consistent_sturdiness:
             break
         # get component interfaces
-        print("getting component interfaces...", end="")
+        # print("getting component interfaces...", end="")
         component_interfaces = get_component_interfaces(bricksdict, conn_comps, parent_keys, zstep)
-        print(len(component_interfaces))
+        # print(len(component_interfaces))
         print()
         # improve sturdiness
         # split up bricks
@@ -77,27 +77,33 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
     else:
         # get the final components data
         print("\nResult:")
-        conn_comps, weak_points, _, _ = get_connectivity_data(bricksdict, zstep, keys, get_neighbors=False)
+        conn_comps, weak_points, _, _ = get_connectivity_data(bricksdict, zstep, keys, get_neighbors=False, verbose=True)
 
     return conn_comps, weak_points
 
 
-def get_connectivity_data(bricksdict, zstep, keys=None, get_neighbors=True):
+def get_connectivity_data(bricksdict, zstep, keys=None, get_neighbors=True, verbose=False):
     parent_keys = get_parent_keys(bricksdict, keys)
     # get connected components
-    print("getting connected components...", end="")
+    if verbose:
+        print("getting connected components...", end="")
     conn_comps = get_connected_components(bricksdict, zstep, parent_keys)
-    print(len(conn_comps))
+    if verbose:
+        print(len(conn_comps))
     # get weak articulation points
-    print("getting weak articulation points...", end="")
+    if verbose:
+        print("getting weak articulation points...", end="")
     # weak_points = get_bridges_recursive(conn_comps)
     weak_points = get_bridges(conn_comps)
-    print(len(weak_points))
+    if verbose:
+        print(len(weak_points))
     # get weak point neighbors
     if get_neighbors:
-        print("getting weak point neighbors...", end="")
+        # if verbose:
+        #     print("getting weak point neighbors...", end="")
         weak_point_neighbors = get_weak_point_neighbors(bricksdict, weak_points, parent_keys, zstep)
-        print(len(weak_point_neighbors))
+        # if verbose:
+        #     print(len(weak_point_neighbors))
     else:
         weak_point_neighbors = list()
     return conn_comps, weak_points, weak_point_neighbors, parent_keys

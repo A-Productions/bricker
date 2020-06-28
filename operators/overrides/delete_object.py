@@ -147,16 +147,8 @@ class OBJECT_OT_delete_override(Operator):
                             # make adjustments to adjacent bricks
                             if prefs.auto_update_on_delete and last_split_model:
                                 self.update_adj_bricksdicts(bricksdict, zstep, cur_key, [x, y, z], keys_to_update)
-                            # reset bricksdict values
-                            cur_brick_d = bricksdict[cur_key]
-                            cur_brick_d["draw"] = False
-                            cur_brick_d["val"] = 0
-                            cur_brick_d["parent"] = None
-                            cur_brick_d["created_from"] = None
-                            cur_brick_d["flipped"] = False
-                            cur_brick_d["rotated"] = False
-                            cur_brick_d["top_exposed"] = False
-                            cur_brick_d["bot_exposed"] = False
+                            # reset bricksdict entries
+                            reset_bricksdict_entries(bricksdict, [cur_key])
             # dirty_build if it wasn't already
             last_build_is_dirty = cm.build_is_dirty
             if not last_build_is_dirty:

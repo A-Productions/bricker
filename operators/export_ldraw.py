@@ -123,12 +123,11 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
             offset.y = offset.z % 8
             offset.z = offset.y % 10
             # get dictionary of keys based on z value
-            p_keys_dict, sorted_keys = get_keys_dict(bricksdict, parents_only=True)
+            p_keys_dict = get_keys_dict(bricksdict, parents_only=True)
             starting_keys = dict()
             for z in p_keys_dict.keys():
                 starting_keys[z] = set()
             # get sorted keys for random merging
-            seed_keys = sorted_keys if self.material_type == "RANDOM" else None
             # initialize vars
             sorted_z_vals = sorted(p_keys_dict.keys())
             layer_num = 1
@@ -145,7 +144,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                 # if this is the top z value, add bricks in one step
                 if z == sorted_z_vals[-1]:
                     starting_keys[z] = p_keys_dict[z].copy()
-                    self.add_build_step(bricksdict, p_keys_dict, starting_keys[z], cm, seed_keys, offset)
+                    self.add_build_step(bricksdict, p_keys_dict, starting_keys[z], cm, offset)
                 # go up and down iteratively to find connected bricks
                 else:
                     # start looking for connected bricks starting on active layer that are a single layer tall, moving up/down/up/down/etc
@@ -165,37 +164,42 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                         starting_keys[z + 1] = set()
                         starting_keys[z + 2] = set()
                         # add first step with the starting keys
-                        self.add_build_step(bricksdict, p_keys_dict, starting_keys[z], cm, seed_keys, offset)
+                        self.add_build_step(bricksdict, p_keys_dict, starting_keys[z], cm, offset)
                         while True:
                             # move up to bricks connected to it
-                            conn_keys = self.iterate_connections(bricksdict, z, starting_keys, p_keys_dict, cm, seed_keys, offset, direction="UP")
+                            print(1)
+                            conn_keys = self.iterate_connections(bricksdict, z, starting_keys, p_keys_dict, cm, offset, direction="UP")
                             if not conn_keys:
                                 break
                             # if we can keep going up, do so one more time
                             if z + 2 <= sorted_z_vals[-1]:
                                 # move up to bricks connected to those
-                                self.iterate_connections(bricksdict, z + 1, starting_keys, p_keys_dict, cm, seed_keys, offset, direction="UP")
+                                print(2)
+                                self.iterate_connections(bricksdict, z + 1, starting_keys, p_keys_dict, cm, offset, direction="UP")
                                 # move down to bricks connected to those
-                                self.iterate_connections(bricksdict, z + 2, starting_keys, p_keys_dict, cm, seed_keys, offset, direction="DOWN")
+                                print(3)
+                                self.iterate_connections(bricksdict, z + 2, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
                             # move down to bricks connected to those
-                            self.iterate_connections(bricksdict, z + 1, starting_keys, p_keys_dict, cm, seed_keys, offset, direction="DOWN")
+                            print(4)
+                            self.iterate_connections(bricksdict, z + 1, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
                 # reset bottom starting keys to everything on this layer
                 starting_keys[z] = all_valid_keys_on_layer
                 # # get any unconnected bricks below active layer
-                self.add_steps_for_all_connected_below(bricksdict, starting_keys, z, p_keys_dict, cm, seed_keys, offset)
+                self.add_steps_for_all_connected_below(bricksdict, starting_keys, z, p_keys_dict, cm, offset)
                 # for 2 layers above active, add valid keys
                 for z1 in (z + 1, z + 2):
                     if z1 in p_keys_dict.keys():
                         unconnected_top_keys = self.get_valid_keys(bricksdict, p_keys_dict, z1, is_active_layer=False)
                         if unconnected_top_keys:
-                            self.add_build_step(bricksdict, p_keys_dict, unconnected_top_keys, cm, seed_keys, offset)
+                            self.add_build_step(bricksdict, p_keys_dict, unconnected_top_keys, cm, offset)
                         # move down to bricks connected to those
-                        self.iterate_connections(bricksdict, z1 - 1, starting_keys, p_keys_dict, cm, seed_keys, offset, direction="DOWN")
+                        if z1 - 1 in starting_keys:
+                            self.iterate_connections(bricksdict, z1 - 1, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
                 # add bricks above at least 3 layers tall that are not connected above
                 if z + 3 in p_keys_dict.keys():
                     unconnected_tall_keys = self.get_valid_keys(bricksdict, p_keys_dict, z + 3, is_active_layer=False)
                     if unconnected_tall_keys:
-                        self.add_build_step(bricksdict, p_keys_dict, unconnected_tall_keys, cm, seed_keys, offset)
+                        self.add_build_step(bricksdict, p_keys_dict, unconnected_tall_keys, cm, offset)
                         # keep moving up for bricks not connected to anything else but these below
                         j = z + 3
                         starting_keys[j] = unconnected_tall_keys
@@ -203,19 +207,20 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                             isolated_bricks_above = self.get_isolated_keys_above(bricksdict, starting_keys[j], p_keys_dict)
                             if not isolated_bricks_above:
                                 break
-                            self.add_build_step(bricksdict, p_keys_dict, isolated_bricks_above, cm, seed_keys, offset)
+                            self.add_build_step(bricksdict, p_keys_dict, isolated_bricks_above, cm, offset)
                             starting_keys[j + 1] = isolated_bricks_above
                             j += 1
                 # end submodel for this layer
                 self.end_submodel(submodel_start_lines, f"Layer {layer_num}")
                 layer_num += 1
             # select bricks not exported
-            deselect_all()
-            for z in sorted_z_vals:
-                if len(p_keys_dict[z]) > 0:
-                    print(z, p_keys_dict[z])
-                for k in p_keys_dict[z]:
-                    select(bpy.data.objects[bricksdict[k]["name"]])
+            if cm.last_split_model:
+                deselect_all()
+                for z in sorted_z_vals:
+                    if len(p_keys_dict[z]) > 0:
+                        print(z, p_keys_dict[z])
+                    for k in p_keys_dict[z]:
+                        select(bpy.data.objects[bricksdict[k]["name"]])
             # close the file
             self.file = open(self.filepath, "w")
             self.file.writelines(self.filelines)
@@ -240,7 +245,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                 num_substeps_exported = len(tuple(val for val in self.filelines if val.startswith("0 ROTSTEP")))
                 print(f"{num_substeps_exported} sub-steps exported")
 
-    def iterate_connections(self, bricksdict, z, starting_keys, p_keys_dict, cm, seed_keys, offset, direction):
+    def iterate_connections(self, bricksdict, z, starting_keys, p_keys_dict, cm, offset, direction):
         conn_keys = set()
         # get keys to move up/down from
         if direction == "UP":
@@ -260,7 +265,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         # if unchosen connections were found, update relative data structs
         if conn_keys:
             # add build step
-            self.add_build_step(bricksdict, p_keys_dict, conn_keys, cm, seed_keys, offset, direction=direction)
+            self.add_build_step(bricksdict, p_keys_dict, conn_keys, cm, offset, direction=direction)
             # add keys to starting_keys
             next_z = (z + 1) if direction == "UP" else (z - 1)
             starting_keys[next_z] |= conn_keys
@@ -276,12 +281,13 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         conn_keys.intersection_update(unchosen_keys)
         return conn_keys
 
-    def add_steps_for_all_connected_below(self, bricksdict, starting_keys, z0, p_keys_dict, cm, seed_keys, offset):
+    def add_steps_for_all_connected_below(self, bricksdict, starting_keys, z0, p_keys_dict, cm, offset):
         # iterate downwards from starting keys
         while starting_keys[z0] and z0 - 1 in p_keys_dict.keys():  # and p_keys_dict[z0 - 1]:
             # get keys below starting keys
             starting_keys[z0 - 1] = set()
-            self.iterate_connections(bricksdict, z0, starting_keys, p_keys_dict, cm, seed_keys, offset, direction="DOWN")
+            print(6)
+            self.iterate_connections(bricksdict, z0, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
             # get keys above those that aren't connected above
             conn_keys = set()
             for k0 in starting_keys[z0 - 1]:
@@ -294,7 +300,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                 if not conn_keys_2:
                     keys_above_last_iteration_to_build.add(k1)
             if keys_above_last_iteration_to_build:
-                self.add_build_step(bricksdict, p_keys_dict, keys_above_last_iteration_to_build, cm, seed_keys, offset, direction="UP")
+                self.add_build_step(bricksdict, p_keys_dict, keys_above_last_iteration_to_build, cm, offset, direction="UP")
             # decriment active layer in this context
             z0 -= 1
 
@@ -325,7 +331,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
             conn_keys = conn_keys0.difference(conn_keys)
         return neighboring_bricks
 
-    def recurse_connected(self, bricksdict, keys, p_keys_dict, cm, seed_keys, offset, direction="UP"):
+    def recurse_connected(self, bricksdict, keys, p_keys_dict, cm, offset, direction="UP"):
         conn_keys = set()
         for k0 in keys:
             conn_keys |= get_connected_keys(bricksdict, k0, self.zstep, check_below=direction == "DOWN", check_above=direction == "UP")
@@ -334,11 +340,11 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         if not conn_keys:
             return
         # add build step for the new connected bricks
-        self.add_build_step(bricksdict, p_keys_dict, conn_keys, cm, seed_keys, offset, direction="UP")
+        self.add_build_step(bricksdict, p_keys_dict, conn_keys, cm, offset, direction="UP")
         # move up
-        self.recurse_connected(bricksdict, conn_keys, p_keys_dict, cm, seed_keys, offset, direction="UP")
+        self.recurse_connected(bricksdict, conn_keys, p_keys_dict, cm, offset, direction="UP")
         # move down
-        self.recurse_connected(bricksdict, conn_keys, p_keys_dict, cm, seed_keys, offset, direction="DOWN")
+        self.recurse_connected(bricksdict, conn_keys, p_keys_dict, cm, offset, direction="DOWN")
 
 
     def get_valid_keys(self, bricksdict, p_keys_dict, z, is_active_layer=True):
@@ -372,7 +378,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         unchosen_keys_below = self.get_unchosen(bricksdict, conn_keys_below, p_keys_dict)
         return len(unchosen_keys_below) > 0
 
-    def add_build_step(self, bricksdict, p_keys_dict, keys, cm, seed_keys, offset, direction="UP"):
+    def add_build_step(self, bricksdict, p_keys_dict, keys, cm, offset, direction="UP"):
         # remove keys in this step from p_keys_dict
         z_vals = [get_dict_loc(bricksdict, k1)[2] for k1 in keys]
         for z in z_vals:
@@ -391,7 +397,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
             # get coordinate for brick in Ldraw units
             co = self.blend_to_ldraw_units(bricksdict, self.zstep, key, idx)
             # get color code of brick
-            mat = get_material(bricksdict, key, size, self.zstep, self.material_type, self.custom_mat, self.random_mat_seed, seed_keys, brick_mats=get_brick_mats(cm))
+            mat = get_material(bricksdict, key, size, self.zstep, self.material_type, self.custom_mat, self.random_mat_seed, brick_mats=get_brick_mats(cm))
             mat_name = "" if mat is None else mat.name
             rgba = brick_d["rgba"]
             if mat_name in get_abs_mat_names() and self.abs_mat_properties is not None:

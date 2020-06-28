@@ -289,7 +289,7 @@ def get_brick_data(brick_d, dimensions, brick_type, brick_size=(1, 1, 1), circle
     return m0
 
 
-def get_material(bricksdict, key, size, zstep, material_type, custom_mat, random_mat_seed, seed_keys, brick_mats=None):
+def get_material(bricksdict, key, size, zstep, material_type, custom_mat, random_mat_seed, brick_mats=None):
     mat = None
     highest_val = 0
     mats_L = []
@@ -315,8 +315,7 @@ def get_material(bricksdict, key, size, zstep, material_type, custom_mat, random
     elif material_type == "RANDOM" and brick_mats is not None and len(brick_mats) > 0:
         if len(brick_mats) > 1:
             rand_state = np.random.RandomState(0)
-            seed_inc = seed_keys.index(key)  # keeps materials consistent accross all calculations regardless of where material is set
-            rand_state.seed(random_mat_seed + seed_inc)
+            rand_state.seed(random_mat_seed + hash(key))
             rand_idx = rand_state.randint(0, len(brick_mats))
         else:
             rand_idx = 0
