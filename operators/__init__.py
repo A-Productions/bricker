@@ -38,6 +38,7 @@ __all__ = [
     "select_components",
     "post_hollowing_op",
     "post_merging_op",
+    "post_shrinking_op",
     "revert_settings",
     "test_brick_generators",
 ]

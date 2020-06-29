@@ -237,6 +237,104 @@ def attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, me
     return new_size != starting_size, engulfed_keys
 
 
+def attempt_post_shrink(bricksdict, key, zstep, brick_type, legal_bricks_only, loc=None):
+    """ attempt to shrink bricks where part of it isn't connected above or below and not on shell """
+    # get loc from key
+    starting_size = bricksdict[key]["size"].copy()
+    loc = loc or get_dict_loc(bricksdict, key)
+    target_type = "BRICK" if brick_type == "BRICKS_AND_PLATES" else brick_type
+    tall_type = get_tall_type(bricksdict[key], target_type)
+    short_type = get_short_type(bricksdict[key], target_type)
+    brick_sizes = [starting_size]
+
+
+    # move backwards from max x loc
+    for x in range(starting_size[0] - 1, -1, -1):
+        cur_x_locs_exposed = True
+        for y in range(starting_size[1]):
+            for z in range(starting_size[2] // zstep):
+                loc1 = [loc[0] + x, loc[1] + y, loc[2] + z]
+                k = list_to_str(loc1)
+                if not all(check_brickd_exposure(bricksdict, k, internal_obscures=False)) or bricksdict[k]["val"] == 1:
+                    cur_x_locs_exposed = False
+                # break out if it's not exposed at a point
+                if not cur_x_locs_exposed:
+                    break
+            if not cur_x_locs_exposed:
+                break
+        if not cur_x_locs_exposed:
+            break
+        # get the current size we just checked
+        cur_size = [x, starting_size[1], starting_size[2]]
+        # move along if not a legal brick size
+        if legal_bricks_only and not is_legal_brick_size(size=cur_size, type=tall_type if abs(cur_size[2]) == 3 else short_type):
+            continue
+        # otherwise, we can add a smaller size to the list!
+        brick_sizes.append(cur_size)
+
+    # get smallest brick size
+    new_size = sorted(brick_sizes, key=lambda v: (v[0] * v[1] * v[2]))[0]
+
+    # update bricksdict for keys of bricks removed
+    keys_in_orig_brick = get_keys_in_brick(bricksdict, starting_size, zstep, loc=loc)
+    keys_in_new_brick = get_keys_in_brick(bricksdict, new_size, zstep, loc=loc)
+    removed_keys = keys_in_orig_brick.difference(keys_in_new_brick)
+    reset_bricksdict_entries(bricksdict, removed_keys)
+    # update bricksdict for keys of new smaller brick
+    update_merged_keys_in_bricksdict(bricksdict, key, keys_in_new_brick, new_size, brick_type, short_type, tall_type)
+
+    # return whether successful and keys that were removed
+    return new_size != starting_size, removed_keys
+
+
+def reset_bricksdict_entries(bricksdict, keys):
+    for k in keys:
+        brick_d = bricksdict[k]
+        brick_d["draw"] = False
+        set_brick_val(bricksdict, get_dict_loc(bricksdict, k), k, action="REMOVE")
+        brick_d["size"] = None
+        brick_d["parent"] = None
+        brick_d["flipped"] = False
+        brick_d["rotated"] = False
+        brick_d["bot_exposed"] = None
+        brick_d["top_exposed"] = None
+        brick_d["created_from"] = None
+        brick_d["custom_mat_name"] = None
+
+
+def set_brick_val(bricksdict, loc=None, key=None, action="ADD"):
+    assert loc or key
+    loc = loc or get_dict_loc(bricksdict, key)
+    key = key or list_to_str(loc)
+    adj_keys = get_adj_keys(bricksdict, loc=loc)
+    adj_brick_vals = [bricksdict[k]["val"] for k in adj_keys]
+    if action == "ADD" and (0 in adj_brick_vals or len(adj_brick_vals) < 6 or min(adj_brick_vals) == 1):
+        new_val = 1
+    elif action == "REMOVE":
+        new_val = 0 if 0 in adj_brick_vals or len(adj_brick_vals) < 6 else (max(adj_brick_vals) - 0.01)
+    else:
+        new_val = max(adj_brick_vals) - 0.01
+    bricksdict[key]["val"] = new_val
+    return new_val
+
+
+def get_adj_keys(bricksdict, loc=None, key=None):
+    assert loc or key
+    x, y, z = loc or get_dict_loc(bricksdict, key)
+    adj_keys = set((
+        list_to_str((x+1, y, z)),
+        list_to_str((x-1, y, z)),
+        list_to_str((x, y+1, z)),
+        list_to_str((x, y-1, z)),
+        list_to_str((x, y, z+1)),
+        list_to_str((x, y, z-1)),
+    ))
+    for k in adj_keys.copy():
+        if bricksdict.get(k) is None:
+            adj_keys.remove(k)
+    return adj_keys
+
+
 def update_merged_keys_in_bricksdict(bricksdict, key, merged_keys, brick_size, brick_type, short_type, tall_type):
     # store the best brick size to origin brick
     brick_d = bricksdict[key]

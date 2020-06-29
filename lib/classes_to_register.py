@@ -57,6 +57,7 @@ classes = [
     select_components.BRICKER_OT_select_components,
     post_hollowing_op.BRICKER_OT_run_post_hollowing,
     post_merging_op.BRICKER_OT_run_post_merging,
+    post_shrinking_op.BRICKER_OT_run_post_shrinking,
     test_brick_generators.BRICKER_OT_test_brick_generators,
     initialize.BRICKER_OT_initialize,
     # bricker/operators/customization_tools

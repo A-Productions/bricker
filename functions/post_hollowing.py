@@ -25,7 +25,7 @@ import bpy
 # Module imports
 from .bricksdict import *
 from .brick import split_bricks
-from .customize_utils import merge_bricks, reset_bricksdict_entries
+from .customize_utils import merge_bricks
 from .improve_sturdiness import *
 from .make_bricks_utils import *
 
@@ -36,11 +36,12 @@ def run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, remove_object=Fa
     # NOTE: Subgraphs larger than default of 4 are slower and may produce similar (or even worse) results. Smaller than 4 is inaccurate.
     # get all parent keys of bricks exclusively inside the model
     internal_keys = get_parent_keys_internal(bricksdict, zstep, keys)
+    # initialize vars
+    removed_keys = set()
     num_removed_bricks = 0
     # initialize progress bar
     old_percent = update_progress_bars(0.0, -1, "Post-Hollowing")
     # iterate through internal keys and attempt to remove
-    removed_keys = set()
     for i, k in enumerate(internal_keys):
         # reset the key in bricksdict (and store vals before reset to popped_keys)
         keys_in_brick = get_keys_in_brick(bricksdict, bricksdict[k]["size"], zstep, key=k)

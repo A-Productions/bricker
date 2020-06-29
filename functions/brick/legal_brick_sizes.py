@@ -235,6 +235,7 @@ def get_obscuring_types(direction="BELOW"):
 
 def is_legal_brick_size(size, type):
     # access blender property for performance improvement over running 'get_legal_brick_sizes' every time
+    assert isinstance(size, list)
     return size[:2] in bpy.props.bricker_legal_brick_sizes[size[2]][type]
 
 def get_part(legal_bricks, size, typ):

@@ -136,21 +136,6 @@ def update_brick_size_and_dict(dimensions, source_name, bricksdict, brick_size, 
     return brick_size
 
 
-def reset_bricksdict_entries(bricksdict, keys):
-    for k in keys:
-        brick_d = bricksdict[k]
-        brick_d["draw"] = False
-        set_brick_val(bricksdict, get_dict_loc(bricksdict, k), k, action="REMOVE")
-        brick_d["size"] = None
-        brick_d["parent"] = None
-        brick_d["flipped"] = False
-        brick_d["rotated"] = False
-        brick_d["bot_exposed"] = None
-        brick_d["top_exposed"] = None
-        brick_d["created_from"] = None
-        brick_d["custom_mat_name"] = None
-
-
 def create_addl_bricksdict_entry(source_name, bricksdict, source_key, key, full_d, x, y, z):
     brick_d = bricksdict[source_key]
     new_name = "Bricker_%(source_name)s__%(key)s" % locals()
@@ -178,39 +163,6 @@ def get_bricksdicts_from_objs(obj_names):
         # add to bricksdicts
         bricksdicts[cm_id] = bricksdict
     return bricksdicts
-
-
-def set_brick_val(bricksdict, loc=None, key=None, action="ADD"):
-    assert loc or key
-    loc = loc or get_dict_loc(bricksdict, key)
-    key = key or list_to_str(loc)
-    adj_keys = get_adj_keys(bricksdict, loc=loc)
-    adj_brick_vals = [bricksdict[k]["val"] for k in adj_keys]
-    if action == "ADD" and (0 in adj_brick_vals or len(adj_brick_vals) < 6 or min(adj_brick_vals) == 1):
-        new_val = 1
-    elif action == "REMOVE":
-        new_val = 0 if 0 in adj_brick_vals or len(adj_brick_vals) < 6 else (max(adj_brick_vals) - 0.01)
-    else:
-        new_val = max(adj_brick_vals) - 0.01
-    bricksdict[key]["val"] = new_val
-    return new_val
-
-
-def get_adj_keys(bricksdict, loc=None, key=None):
-    assert loc or key
-    x, y, z = loc or get_dict_loc(bricksdict, key)
-    adj_keys = set((
-        list_to_str((x+1, y, z)),
-        list_to_str((x-1, y, z)),
-        list_to_str((x, y+1, z)),
-        list_to_str((x, y-1, z)),
-        list_to_str((x, y, z+1)),
-        list_to_str((x, y, z-1)),
-    ))
-    for k in adj_keys.copy():
-        if bricksdict.get(k) is None:
-            adj_keys.remove(k)
-    return adj_keys
 
 
 def update_vals_linear(bricksdict, keys):
