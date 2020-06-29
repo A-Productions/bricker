@@ -71,7 +71,7 @@ class BRICKER_OT_run_post_merging(Operator):
             # redraw merged bricks
             deselect_all()
             draw_updated_bricks(cm, bricksdict, updated_keys)
-            # remove engulfed bricks
+            # delete engulfed bricks
             for k in all_engulfed_keys:
                 delete(bpy.data.objects.get(bricksdict[k]["name"]))
             # report how many keys were merged

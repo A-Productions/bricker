@@ -162,11 +162,10 @@ def attempt_pre_merge(bricksdict, key, default_size, zstep, brick_type, max_widt
             update_brick_sizes(bricksdict, key, loc, brick_sizes, zstep, [max_width, max_depth][::i] + [3], height_3_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats, merge_vertical=merge_vertical, mult=direction_mult)
         # get largest (legal, if checked) brick size found
         brick_sizes.sort(key=lambda v: -abs(v[0] * v[1] * v[2]) if prefer_largest else (-abs(v[axis_sort_order[0]]), -abs(v[axis_sort_order[1]]), -abs(v[axis_sort_order[2]])))
-        target_brick_size = next((sz for sz in brick_sizes if not legal_bricks_only or is_legal_brick_size(size=[abs(v) for v in sz], type=tall_type if abs(sz[2]) == 3 else short_type)), None)
+        target_brick_size = next((sz for sz in brick_sizes if not (legal_bricks_only and not is_legal_brick_size(size=[abs(v) for v in sz], type=tall_type if abs(sz[2]) == 3 else short_type))), None)
         assert target_brick_size is not None
         # get new brick_size, loc, and key for largest brick size
-        key, brick_size = get_new_parent_key_and_size(target_brick_size, loc, zstep)
-        loc = get_dict_loc(bricksdict, key)
+        key, loc, brick_size = get_new_parent_key_loc_and_size_flipped(target_brick_size, loc, zstep)
 
     # update bricksdict for keys merged together
     keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc=loc)
@@ -247,44 +246,57 @@ def attempt_post_shrink(bricksdict, key, zstep, brick_type, legal_bricks_only, l
     short_type = get_short_type(bricksdict[key], target_type)
     brick_sizes = [starting_size]
 
-
-    # move backwards from max x loc
-    for x in range(starting_size[0] - 1, -1, -1):
-        cur_x_locs_exposed = True
-        for y in range(starting_size[1]):
-            for z in range(starting_size[2] // zstep):
-                loc1 = [loc[0] + x, loc[1] + y, loc[2] + z]
-                k = list_to_str(loc1)
-                if not all(check_brickd_exposure(bricksdict, k, internal_obscures=False)) or bricksdict[k]["val"] == 1:
-                    cur_x_locs_exposed = False
-                # break out if it's not exposed at a point
-                if not cur_x_locs_exposed:
+    # check both x and y as primary axes
+    for primary_axis, secondary_axis in ((0, 1), (1, 0)):
+        # move backwards and forwards
+        for direction in (1, -1):
+            # go in one direction on primary axes
+            for primary_axis_val in range(starting_size[primary_axis]):
+                # flip primary_axis_val if going backwards
+                if direction == -1:
+                    primary_axis_val = starting_size[primary_axis] - 1 - primary_axis_val
+                # check if loc can be safely removed
+                cur_locs_exposed = True
+                for secondary_axis_val in range(starting_size[secondary_axis]):
+                    # get new loc
+                    loc1 = loc.copy()
+                    loc1[primary_axis] += primary_axis_val
+                    loc1[secondary_axis] += secondary_axis_val
+                    # check if it's okay to remove
+                    k = list_to_str(loc1)
+                    if not all(check_brickd_exposure(bricksdict, k, internal_obscures=False, z_above_dist=starting_size[2])) or bricksdict[k]["val"] == 1:
+                        cur_locs_exposed = False
+                    # break out if it's not exposed at a point
+                    if not cur_locs_exposed:
+                        break
+                if not cur_locs_exposed:
                     break
-            if not cur_x_locs_exposed:
-                break
-        if not cur_x_locs_exposed:
-            break
-        # get the current size we just checked
-        cur_size = [x, starting_size[1], starting_size[2]]
-        # move along if not a legal brick size
-        if legal_bricks_only and not is_legal_brick_size(size=cur_size, type=tall_type if abs(cur_size[2]) == 3 else short_type):
-            continue
-        # otherwise, we can add a smaller size to the list!
-        brick_sizes.append(cur_size)
+                # get the current size we just checked
+                cur_size = starting_size.copy()
+                if direction == -1:
+                    cur_size[primary_axis] = primary_axis_val
+                else:
+                    cur_size[primary_axis] -= primary_axis_val + 1
+                    cur_size[primary_axis] *= -1
+                # otherwise, we can add a smaller size to the list!
+                brick_sizes.append(cur_size)
 
-    # get smallest brick size
-    new_size = sorted(brick_sizes, key=lambda v: (v[0] * v[1] * v[2]))[0]
+    # get smallest legal brick size
+    brick_sizes.sort(key=lambda v: abs(v[0] * v[1] * v[2]))
+    target_brick_size = next((sz for sz in brick_sizes if not (legal_bricks_only and not is_legal_brick_size(size=[abs(v) for v in sz], type=tall_type if abs(sz[2]) == 3 else short_type))), None)
+    # get new brick_size, loc, and key for smallest brick size
+    new_key, new_loc, new_size = get_new_parent_key_loc_and_size_added(starting_size, target_brick_size, loc, zstep)
 
     # update bricksdict for keys of bricks removed
     keys_in_orig_brick = get_keys_in_brick(bricksdict, starting_size, zstep, loc=loc)
-    keys_in_new_brick = get_keys_in_brick(bricksdict, new_size, zstep, loc=loc)
+    keys_in_new_brick = get_keys_in_brick(bricksdict, new_size, zstep, loc=new_loc)
     removed_keys = keys_in_orig_brick.difference(keys_in_new_brick)
     reset_bricksdict_entries(bricksdict, removed_keys)
     # update bricksdict for keys of new smaller brick
-    update_merged_keys_in_bricksdict(bricksdict, key, keys_in_new_brick, new_size, brick_type, short_type, tall_type)
+    update_merged_keys_in_bricksdict(bricksdict, new_key, keys_in_new_brick, new_size, brick_type, short_type, tall_type)
 
     # return whether successful and keys that were removed
-    return new_size != starting_size, removed_keys
+    return new_size != starting_size, new_key, removed_keys
 
 
 def reset_bricksdict_entries(bricksdict, keys):
@@ -355,21 +367,38 @@ def update_merged_keys_in_bricksdict(bricksdict, key, merged_keys, brick_size, b
             set_brick_type_for_slope(brick_d, bricksdict, keys_in_brick)
 
 
-def get_new_parent_key_and_size(size, loc, zstep):
+def get_new_parent_key_loc_and_size_flipped(size, loc, zstep):
     # switch to origin brick
-    loc = loc.copy()
+    new_loc = loc.copy()
     if size[0] < 0:
-        loc[0] -= abs(size[0]) - 1
+        new_loc[0] -= abs(size[0]) - 1
     if size[1] < 0:
-        loc[1] -= abs(size[1]) - 1
+        new_loc[1] -= abs(size[1]) - 1
     if size[2] < 0:
-        loc[2] -= abs(size[2] // zstep) - 1
-    new_key = list_to_str(loc)
+        new_loc[2] -= abs(size[2] // zstep) - 1
+    new_key = list_to_str(new_loc)
 
     # store the biggest brick size to origin brick
     new_size = [abs(v) for v in size]
 
-    return new_key, new_size
+    return new_key, new_loc, new_size
+
+
+def get_new_parent_key_loc_and_size_added(old_size, size, loc, zstep):
+    # switch to origin brick
+    new_loc = loc.copy()
+    if size[0] < 0:
+        new_loc[0] += (old_size[0] - abs(size[0]))
+    if size[1] < 0:
+        new_loc[1] += (old_size[1] - abs(size[1]))
+    if size[2] < 0:
+        new_loc[2] += (old_size[2] - abs(size[2]))
+    new_key = list_to_str(new_loc)
+
+    # store the biggest brick size to origin brick
+    new_size = [abs(v) for v in size]
+
+    return new_key, new_loc, new_size
 
 
 def get_num_aligned_edges(bricksdict, size, key, loc, bricks_and_plates=False):

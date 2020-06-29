@@ -36,6 +36,7 @@ def is_brick_exposed(bricksdict, zstep, key=None, loc=None, internal_obscures=Tr
     keys_in_brick = get_keys_in_brick(bricksdict, bricksdict[key]["size"], zstep, loc=loc)
     top_exposed, bot_exposed = False, False
     # set brick exposures
+    # TODO: this currently checks all keys at z level of 2 for bricks of z size 3, which is unnecessary because the top and bottom is obscured by itself in that case
     for k in keys_in_brick:
         cur_top_exposed, cur_bot_exposed = check_brickd_exposure(bricksdict, k, internal_obscures=internal_obscures)
         if cur_top_exposed: top_exposed = True
@@ -50,13 +51,13 @@ def set_brick_exposure(bricksdict, zstep, key=None, loc=None):
     return top_exposed, bot_exposed
 
 
-def check_brickd_exposure(bricksdict, key=None, loc=None, internal_obscures=True):
+def check_brickd_exposure(bricksdict, key=None, loc=None, internal_obscures=True, z_above_dist=1):
     """ check top and bottom exposure of single bricksdict loc/key """
     assert key is not None or loc is not None
     # initialize parameters unspecified
     loc = loc or get_dict_loc(bricksdict, key)
     key = key or list_to_str(loc)
-    # get size of brick and break conditions
+    # initialize brick_d
     try:
         brick_d = bricksdict[key]
     except KeyError:
@@ -66,7 +67,7 @@ def check_brickd_exposure(bricksdict, key=None, loc=None, internal_obscures=True
         return False, False
     # get keys above and below
     x, y, z = loc
-    key_above = list_to_str((x, y, z + 1))
+    key_above = list_to_str((x, y, z + z_above_dist))
     key_below = list_to_str((x, y, z - 1))
     # check if brickd top or bottom is exposed
     top_exposed = not brick_obscures(bricksdict, key_above, direction="BELOW", internal_obscures=internal_obscures)

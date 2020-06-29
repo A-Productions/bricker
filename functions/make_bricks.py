@@ -189,6 +189,9 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
                 for z in sorted(keys_dict.keys()):
                     keys_dict[z].difference_update(removed_keys)
                 print(f"Removed {num_removed_bricks} unnecessary bricks during post-hollowing step")
+                # shrink bricks where possible
+                updated_keys, _ = run_post_shrinking(bricksdict, target_keys, zstep, brick_type, legal_bricks_only)
+                print(f"Shrunk {updated_keys} bricks during post-shrinking step")
 
         # get all parent keys
         parent_keys = get_parent_keys(bricksdict, target_keys)

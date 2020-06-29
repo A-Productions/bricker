@@ -36,19 +36,20 @@ def run_post_shrinking(bricksdict, keys, zstep, brick_type, legal_bricks_only):
     parent_keys = get_parent_keys(bricksdict)
     # initialize vars
     updated_keys = set()
-    num_shrunk_bricks = 0
+    outdated_parent_keys = set()
     # initialize progress bar
     old_percent = update_progress_bars(0.0, -1, "Post-Shrinking")
     # iterate through parent keys and attempt to shrink
     for i, k in enumerate(parent_keys):
-        success, removed_keys = attempt_post_shrink(bricksdict, k, zstep, brick_type, legal_bricks_only)
+        success, new_key, removed_keys = attempt_post_shrink(bricksdict, k, zstep, brick_type, legal_bricks_only)
         if success:
-            updated_keys.add(k)
-            num_shrunk_bricks += 1
+            updated_keys.add(new_key)
+        if new_key != k:
+            outdated_parent_keys.add(k)
         # print status to terminal and cursor
         cur_percent = (i / len(parent_keys))
         old_percent = update_progress_bars(cur_percent, old_percent, "Post-Shrinking")
     # end progress bar
     update_progress_bars(1, 0, "Post-Shrinking", end=True)
     # return all removed keys (including all keys in brick) along with num shrunk bricks
-    return updated_keys, num_shrunk_bricks
+    return updated_keys, outdated_parent_keys

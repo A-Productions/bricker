@@ -60,14 +60,17 @@ class BRICKER_OT_run_post_shrinking(Operator):
             custom_mat = cm.custom_mat
             random_mat_seed = cm.random_mat_seed
             # run post merging
-            updated_keys, num_shrunk_bricks = run_post_shrinking(bricksdict, keys, zstep, brick_type, legal_bricks_only)
+            updated_keys, outdated_parent_keys = run_post_shrinking(bricksdict, keys, zstep, brick_type, legal_bricks_only)
             parent_keys = get_parent_keys(bricksdict, keys)
             update_bricksdict_after_updated_build(bricksdict, parent_keys, zstep, cm, material_type, custom_mat, random_mat_seed)
             # redraw merged bricks
             deselect_all()
             draw_updated_bricks(cm, bricksdict, updated_keys)
+            # delete removed bricks
+            for k in outdated_parent_keys:
+                delete(bpy.data.objects.get(bricksdict[k]["name"]))
             # report how many keys were merged
-            report_str = f"{num_shrunk_bricks} bricks shrunk"
+            report_str = f"{len(updated_keys)} bricks shrunk"
             self.report({"INFO"}, report_str)
             print(report_str)
         except:
@@ -81,7 +84,7 @@ class BRICKER_OT_run_post_shrinking(Operator):
         scn, cm, n = get_active_context_info()
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
-        self.cached_bfm = self.undo_stack.undo_push("post-hollowing", affected_ids=[cm.id])
+        self.cached_bfm = self.undo_stack.undo_push("post-shrinking", affected_ids=[cm.id])
 
     ################################################
     # class methods
