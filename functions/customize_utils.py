@@ -109,7 +109,7 @@ def update_brick_size_and_dict(dimensions, source_name, bricksdict, brick_size, 
                     new_brick_d = bricksdict[new_key]
                     new_brick_d["parent"] = None
                     new_brick_d["draw"] = False
-                    set_cur_brick_val(bricksdict, new_loc, new_key, action="REMOVE")
+                    set_brick_val(bricksdict, new_loc, new_key, action="REMOVE")
     # adjust brick size if changing type from 1 tall to 3 tall
     elif cur_height == 1 and target_height == 3:
         brick_size[2] = 3
@@ -132,7 +132,7 @@ def update_brick_size_and_dict(dimensions, source_name, bricksdict, brick_size, 
                     new_brick_d["near_face"] = new_brick_d["near_face"] or brick_d["near_face"]
                     new_brick_d["near_intersection"] = new_brick_d["near_intersection"] or tuple(brick_d["near_intersection"])
                     if new_brick_d["val"] == 0:
-                        set_cur_brick_val(bricksdict, new_loc, new_key)
+                        set_brick_val(bricksdict, new_loc, new_key)
     return brick_size
 
 
@@ -140,7 +140,7 @@ def reset_bricksdict_entries(bricksdict, keys):
     for k in keys:
         brick_d = bricksdict[k]
         brick_d["draw"] = False
-        set_cur_brick_val(bricksdict, get_dict_loc(bricksdict, k), k, action="REMOVE")
+        set_brick_val(bricksdict, get_dict_loc(bricksdict, k), k, action="REMOVE")
         brick_d["size"] = None
         brick_d["parent"] = None
         brick_d["flipped"] = False
@@ -180,9 +180,12 @@ def get_bricksdicts_from_objs(obj_names):
     return bricksdicts
 
 
-def set_cur_brick_val(bricksdict, loc, key=None, action="ADD"):
+def set_brick_val(bricksdict, loc=None, key=None, action="ADD"):
+    assert loc or key
+    loc = loc or get_dict_loc(bricksdict, key)
     key = key or list_to_str(loc)
-    adj_brick_vals = get_adj_keys_and_brick_vals(bricksdict, loc=loc)[1]
+    adj_keys = get_adj_keys(bricksdict, loc=loc)
+    adj_brick_vals = [bricksdict[k]["val"] for k in adj_keys]
     if action == "ADD" and (0 in adj_brick_vals or len(adj_brick_vals) < 6 or min(adj_brick_vals) == 1):
         new_val = 1
     elif action == "REMOVE":
@@ -190,24 +193,44 @@ def set_cur_brick_val(bricksdict, loc, key=None, action="ADD"):
     else:
         new_val = max(adj_brick_vals) - 0.01
     bricksdict[key]["val"] = new_val
+    return new_val
 
 
-def get_adj_keys_and_brick_vals(bricksdict, loc=None, key=None):
+def get_adj_keys(bricksdict, loc=None, key=None):
     assert loc or key
     x, y, z = loc or get_dict_loc(bricksdict, key)
-    adj_keys = [list_to_str((x+1, y, z)),
-               list_to_str((x-1, y, z)),
-               list_to_str((x, y+1, z)),
-               list_to_str((x, y-1, z)),
-               list_to_str((x, y, z+1)),
-               list_to_str((x, y, z-1))]
-    adj_brick_vals = []
+    adj_keys = set((
+        list_to_str((x+1, y, z)),
+        list_to_str((x-1, y, z)),
+        list_to_str((x, y+1, z)),
+        list_to_str((x, y-1, z)),
+        list_to_str((x, y, z+1)),
+        list_to_str((x, y, z-1)),
+    ))
     for k in adj_keys.copy():
-        try:
-            adj_brick_vals.append(bricksdict[k]["val"])
-        except KeyError:
-            remove_item(adj_keys, k)
-    return adj_keys, adj_brick_vals
+        if bricksdict.get(k) is None:
+            adj_keys.remove(k)
+    return adj_keys
+
+
+def update_vals_linear(bricksdict, keys):
+    checked_keys = set()
+    updated_keys = set()
+    next_keys = keys
+    while len(next_keys) > 0:
+        # initialize structs for this iteration
+        cur_keys = next_keys.difference(checked_keys)
+        next_keys = set()
+        # update vals for all cur_keys and get next_keys
+        for k in cur_keys:
+            old_val = bricksdict[k]["val"]
+            new_val = set_brick_val(bricksdict, key=k)
+            if old_val != new_val:
+                updated_keys.add(k)
+                next_keys |= set(k for k in get_adj_keys(bricksdict, key=k) if bricksdict[k]["val"] != 0)
+        # update checked keys
+        checked_keys |= cur_keys
+    return updated_keys
 
 
 def get_used_sizes():

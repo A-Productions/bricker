@@ -43,7 +43,7 @@ from ..lib.caches import bricker_mesh_cache
 
 
 @timed_call("Time Elapsed")
-def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions, action, bcoll, num_source_mats, split=False, brick_scale=None, merge_vertical=True, custom_data=None, clear_existing_collection=True, frame_num=None, cursor_status=False, print_status=True, temp_brick=False, run_pre_merge=True, run_pre_sturdy=True):
+def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions, action, bcoll, num_source_mats, split=False, brick_scale=None, merge_vertical=True, custom_data=None, clear_existing_collection=True, frame_num=None, cursor_status=False, print_status=True, placeholder_meshes=False, run_pre_merge=True, redrawing=False):
     # initialize cmlist attributes (prevents 'update' function for each property from running every time)
     n = cm.source_obj.name
     cm_id = cm.id
@@ -52,18 +52,18 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     brick_height = cm.brick_height
     brick_type = cm.brick_type
     bricks_and_plates = brick_type == "BRICKS_AND_PLATES"
-    circle_verts = min(16, cm.circle_verts) if temp_brick else cm.circle_verts
+    circle_verts = min(16, cm.circle_verts) if placeholder_meshes else cm.circle_verts
     custom_object1 = cm.custom_object1
     custom_object2 = cm.custom_object2
     custom_object3 = cm.custom_object3
     mat_dirty = cm.material_is_dirty or cm.matrix_is_dirty or cm.build_is_dirty
     custom_mat = cm.custom_mat
-    exposed_underside_detail = "FLAT" if temp_brick else cm.exposed_underside_detail
-    hidden_underside_detail = "FLAT" if temp_brick else cm.hidden_underside_detail
+    exposed_underside_detail = "FLAT" if placeholder_meshes else cm.exposed_underside_detail
+    hidden_underside_detail = "FLAT" if placeholder_meshes else cm.hidden_underside_detail
     instance_method = cm.instance_method
     last_split_model = cm.last_split_model
     legal_bricks_only = cm.legal_bricks_only
-    logo_type = "NONE" if temp_brick else cm.logo_type
+    logo_type = "NONE" if placeholder_meshes else cm.logo_type
     logo_scale = cm.logo_scale
     logo_inset = cm.logo_inset
     logo_resolution = cm.logo_resolution
@@ -78,14 +78,14 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     merge_seed = cm.merge_seed
     offset_brick_layers = cm.offset_brick_layers
     random_mat_seed = cm.random_mat_seed
-    random_rot = 0 if temp_brick else round(cm.random_rot, 6)
-    random_loc = 0 if temp_brick else round(cm.random_loc, 6)
-    stud_detail = "ALL" if temp_brick else cm.stud_detail
+    random_rot = 0 if placeholder_meshes else round(cm.random_rot, 6)
+    random_loc = 0 if placeholder_meshes else round(cm.random_loc, 6)
+    stud_detail = "ALL" if placeholder_meshes else cm.stud_detail
     zstep = cm.zstep
     # initialize random states
-    rand_s1 = None if temp_brick else np.random.RandomState(cm.merge_seed)  # for brick_size calc
-    rand_s2 = None if temp_brick else np.random.RandomState(cm.merge_seed + 1)
-    rand_s3 = None if temp_brick else np.random.RandomState(cm.merge_seed + 2)
+    rand_s1 = None if placeholder_meshes else np.random.RandomState(cm.merge_seed)  # for brick_size calc
+    rand_s2 = None if placeholder_meshes else np.random.RandomState(cm.merge_seed + 1)
+    rand_s3 = None if placeholder_meshes else np.random.RandomState(cm.merge_seed + 2)
     # initialize other variables
     lowest_z = -1
     connect_thresh = cm.connect_thresh if mergable_brick_type(brick_type) and merge_type == "RANDOM" else 0
@@ -162,7 +162,7 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
         update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
 
         # if there are internal bricks, improve the sturdiness and run post-merge/post-hollow
-        run_sturdiness_improvements = cm.shell_thickness > 1 and cm.calc_internals and run_pre_sturdy
+        run_sturdiness_improvements = cm.shell_thickness > 1 and cm.calc_internals and not redrawing
         if run_sturdiness_improvements:
             # improve sturdiness
             conn_comps, weak_points = improve_sturdiness(bricksdict, target_keys, cm, zstep, brick_type, merge_seed, iterations=connect_thresh)
@@ -226,7 +226,7 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     for z in sorted(keys_dict.keys()):
         for k2 in keys_dict[z]:
             i += 1
-            if bricksdict[k2]["parent"] != "self" or not bricksdict[k2]["draw"]:
+            if bricksdict[k2]["parent"] != "self":
                 continue
             loc = get_dict_loc(bricksdict, k2)
             # create brick based on the current brick info

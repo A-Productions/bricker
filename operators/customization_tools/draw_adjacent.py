@@ -110,7 +110,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             # recalculate val for each bricksdict key in original brick
             brick_locs = [[x, y, z] for z in range(z0, z0 + obj_size[2], cm.zstep) for y in range(y0, y0 + obj_size[1]) for x in range(x0, x0 + obj_size[0])]
             for loc0 in brick_locs:
-                set_cur_brick_val(self.bricksdict, loc0)
+                set_brick_val(self.bricksdict, loc=loc0)
 
             # attempt to merge created bricks
             keys_to_update = merge_bricks(self.bricksdict, keys_to_merge, cm, target_type=target_type)
@@ -308,7 +308,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             adj_brick_d["type"] = target_type
             adj_brick_d["flipped"] = cur_brick_d["flipped"]
             adj_brick_d["rotated"] = cur_brick_d["rotated"]
-            set_cur_brick_val(bricksdict, adjacent_loc, adjacent_key)
+            set_brick_val(bricksdict, loc=adjacent_loc, key=adjacent_key)
             adj_brick_d["size"] = [1, 1, new_brick_height if side in (4, 5) else cm.zstep]
             adj_brick_d["parent"] = "self"
             adj_brick_d["rgba"] = cur_brick_d["rgba"]

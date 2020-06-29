@@ -131,6 +131,7 @@ class OBJECT_OT_delete_override(Operator):
             # store cmlist props for quick calling
             last_split_model = cm.last_split_model
             zstep = cm.zstep
+            draw_threshold = get_threshold(cm)
 
             for obj_name in obj_names_dict[cm_id]:
                 # get dict key details of current obj
@@ -144,11 +145,11 @@ class OBJECT_OT_delete_override(Operator):
                     for y in range(y0, y0 + obj_size[1]):
                         for z in range(z0, z0 + (obj_size[2] // zstep)):
                             cur_key = list_to_str((x, y, z))
-                            # make adjustments to adjacent bricks
-                            if prefs.auto_update_on_delete and last_split_model:
-                                self.update_adj_bricksdicts(bricksdict, zstep, cur_key, [x, y, z], keys_to_update)
                             # reset bricksdict entries
                             reset_bricksdict_entries(bricksdict, [cur_key])
+                            # make adjustments to adjacent bricks
+                            if last_split_model:
+                                self.update_adj_bricksdicts(bricksdict, zstep, cur_key, [x, y, z], draw_threshold, keys_to_update)
             # dirty_build if it wasn't already
             last_build_is_dirty = cm.build_is_dirty
             if not last_build_is_dirty:
@@ -197,30 +198,32 @@ class OBJECT_OT_delete_override(Operator):
         return protected
 
     @staticmethod
-    def update_adj_bricksdicts(bricksdict, zstep, cur_key, cur_loc, keys_to_update=set()):
+    def update_adj_bricksdicts(bricksdict, zstep, cur_key, cur_loc, draw_threshold, keys_to_update=set()):
         x, y, z = cur_loc
         new_bricks = set()
         brick_d = bricksdict[cur_key]
-        adj_keys = get_adj_keys_and_brick_vals(bricksdict, key=cur_key)[0]
-        # set adjacent bricks to shell if deleted brick was on shell
-        for k0 in adj_keys:
+        # get all adjacent keys not on outside
+        adj_keys = get_adj_keys(bricksdict, key=cur_key)
+        adj_keys = set(k for k in adj_keys if bricksdict[k]["val"] != 0)
+        # update all vals for adj keys onward, recursively
+        updated_keys = update_vals_linear(bricksdict, adj_keys)
+        # draw new bricks that are now on the shell
+        for k0 in updated_keys:
             brick_d0 = bricksdict[k0]
-            if brick_d0["val"] != 0:  # if adjacent brick not outside
-                brick_d0["val"] = 1
-                if not brick_d0["draw"]:
-                    brick_d0["draw"] = True
-                    brick_d0["size"] = [1, 1, zstep]
-                    brick_d0["parent"] = "self"
-                    brick_d0["type"] = brick_d["type"]
-                    brick_d0["flipped"] = brick_d["flipped"]
-                    brick_d0["rotated"] = brick_d["rotated"]
-                    brick_d0["mat_name"] = brick_d["mat_name"]
-                    brick_d0["near_face"] = brick_d["near_face"]
-                    ni = brick_d["near_intersection"]
-                    brick_d0["near_intersection"] = tuple(ni) if type(ni) in [list, tuple] else ni
-                    # add key to list for drawing
-                    keys_to_update.add(k0)
-                    new_bricks.add(k0)
+            if not brick_d0["draw"] and brick_d0["val"] >= draw_threshold:
+                brick_d0["draw"] = True
+                brick_d0["size"] = [1, 1, zstep]
+                brick_d0["parent"] = "self"
+                brick_d0["type"] = brick_d["type"]
+                brick_d0["flipped"] = brick_d["flipped"]
+                brick_d0["rotated"] = brick_d["rotated"]
+                brick_d0["mat_name"] = brick_d["mat_name"]
+                brick_d0["near_face"] = brick_d["near_face"]
+                ni = brick_d["near_intersection"]
+                brick_d0["near_intersection"] = tuple(ni) if type(ni) in [list, tuple] else ni
+                # add key to list for drawing
+                keys_to_update.add(k0)
+                new_bricks.add(k0)
         # top of bricks below are now exposed
         k0 = list_to_str((x, y, z - 1))
         if k0 in bricksdict and bricksdict[k0]["draw"]:

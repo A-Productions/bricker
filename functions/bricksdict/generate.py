@@ -585,7 +585,7 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
     j = 1
     set_nf = True
     for i in range(50):
-        j = round(j-0.01, 2)
+        j = j - 0.01
         got_one = False
         new_shell_vals = []
         if set_nf:
@@ -613,7 +613,7 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
         shell_vals = new_shell_vals
 
 
-def getThreshold(cm):
+def get_threshold(cm):
     """ returns threshold (draw bricks if returned val >= threshold) """
     return 1.01 - (cm.shell_thickness / 100)
 
@@ -707,7 +707,7 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
 
     # create bricks dictionary with brick_freq_matrix values
     bricksdict = {}
-    threshold = getThreshold(cm)
+    threshold = get_threshold(cm)
     brick_type = cm.brick_type  # prevents cm.brick_type update function from running over and over in for loop
     uv_image = cm.uv_image
     build_is_dirty = cm.build_is_dirty
@@ -730,6 +730,7 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
                 nf = face_idx_matrix[x][y][z]["idx"] if type(face_idx_matrix[x][y][z]) == dict else None
                 ni = face_idx_matrix[x][y][z]["loc"].to_tuple() if type(face_idx_matrix[x][y][z]) == dict else None
                 nn = face_idx_matrix[x][y][z]["normal"] if type(face_idx_matrix[x][y][z]) == dict else None
+                val = round(brick_freq_matrix[x][y][z], 2)
                 norm_dir = get_normal_direction(nn, slopes=True)
                 b_type = get_brick_type(brick_type)
                 flipped, rotated = get_flip_rot("" if norm_dir is None else norm_dir[1:])
@@ -739,13 +740,12 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
                     rgba = get_uv_pixel_color(source, nf, ni if ni is None else Vector(ni), uv_image)
                 else:
                     rgba = (0, 0, 0, 1)
-                draw = brick_freq_matrix[x][y][z] >= threshold
                 # create bricksdict entry for current brick
                 bricksdict[b_key] = create_bricksdict_entry(
                     name= "Bricker_%(n)s__%(b_key)s" % locals(),
                     loc= [x, y, z],
-                    val= brick_freq_matrix[x][y][z],
-                    draw= draw,
+                    val= val,
+                    draw= val >= threshold,
                     co= co,
                     near_face= nf,
                     near_intersection= ni,
