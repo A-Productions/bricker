@@ -131,6 +131,7 @@ class OBJECT_OT_delete_override(Operator):
             last_split_model = cm.last_split_model
             zstep = cm.zstep
             draw_threshold = get_threshold(cm)
+            keys_to_update = set()
 
             for obj_name in obj_names_dict[cm_id]:
                 # get dict key details of current obj
@@ -145,7 +146,7 @@ class OBJECT_OT_delete_override(Operator):
                 reset_bricksdict_entries(bricksdict, keys_in_brick, force_outside=True)
                 # make adjustments to adjacent bricks
                 # if last_split_model:
-                self.update_adj_bricksdicts(bricksdict, zstep, dkey, dloc, draw_threshold, obj_size)
+                keys_to_update |= self.update_adj_bricksdicts(bricksdict, zstep, dkey, dloc, draw_threshold, obj_size)[0]
             # dirty_build if it wasn't already
             last_build_is_dirty = cm.build_is_dirty
             if not last_build_is_dirty:
