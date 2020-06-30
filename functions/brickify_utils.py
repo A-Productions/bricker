@@ -295,7 +295,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
     return bricksdict, brick_scale
 
 
-def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", select_created=True, placeholder_meshes=False):
+def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", select_created=True, run_pre_merge=True, placeholder_meshes=False):
     if len(keys_to_update) == 0: return []
     assert isinstance(keys_to_update, set)
     if action is not None:
@@ -308,7 +308,7 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     action = "UPDATE_MODEL"
     # actually draw the bricks
     keys = keys_to_update if cm.last_split_model else "ALL"
-    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, split=cm.last_split_model, cm=cm, bricksdict=bricksdict, keys=keys, clear_existing_collection=False, select_created=select_created, print_status=False, placeholder_meshes=placeholder_meshes, redrawing=True)
+    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, split=cm.last_split_model, cm=cm, bricksdict=bricksdict, keys=keys, clear_existing_collection=False, select_created=select_created, print_status=False, placeholder_meshes=placeholder_meshes, run_pre_merge=run_pre_merge, redrawing=True)
     # link new bricks to scene
     if not b280():
         for brick in bricks_created:

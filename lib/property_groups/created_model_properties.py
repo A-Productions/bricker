@@ -808,11 +808,17 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         precision=6,
         default=(0, 0, 0),
     )
-    sturdiness = FloatProperty(
-        name="Sturdiness",
-        description="Structural integrity of the brick model (perfect score is 1)",
+    disconnected_components = IntProperty(
+        name="Disconnected Components",
+        description="Disconnected components in the model (if 0, all bricks are connected)",
         subtype="FACTOR",
-        min=0, max=1,
+        min=0,
+        default=0,
+    )
+    weak_points = IntProperty(
+        name="Weak Points",
+        description="Weak points in the structural integrity of the brick model",
+        min=0,
         default=0,
     )
     # real_world_dimensions = FloatVectorProperty(unit="LENGTH", default=(-1, -1, -1))

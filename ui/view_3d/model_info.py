@@ -84,8 +84,15 @@ class VIEW3D_PT_bricker_model_info(BrickerPanel, Panel):
         col.prop(cm, "real_world_dimensions", text="")
 
         col = layout.column(align=True)
-        col.label(text="Sturdiness:")
+        col.label(text="Disconnected Components:")
         row = col.row(align=True)
         row.enabled = False
         col = row.column(align=True)
-        col.prop(cm, "sturdiness", text="")
+        col.prop(cm, "disconnected_components", text="")
+
+        col = layout.column(align=True)
+        col.label(text="Weak Points")
+        row = col.row(align=True)
+        row.enabled = False
+        col = row.column(align=True)
+        col.prop(cm, "weak_points", text="")

@@ -40,6 +40,10 @@ def run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, remove_object=Fa
     # initialize vars
     removed_keys = set()
     num_removed_bricks = 0
+    # DEBUG
+    parent_keys = get_parent_keys(bricksdict)
+    last_conn_comps_full = get_connected_components(bricksdict, zstep, parent_keys)
+    last_weak_points_full = get_bridges(last_conn_comps_full)
     # initialize progress bar
     old_percent = update_progress_bars(0.0, -1, "Post-Hollowing")
     # iterate through internal keys and attempt to remove
@@ -82,5 +86,11 @@ def run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, remove_object=Fa
         old_percent = update_progress_bars(cur_percent, old_percent, "Post-Hollowing")
     # end progress bar
     update_progress_bars(1, 0, "Post-Hollowing", end=True)
+    # DEBUG
+    parent_keys = get_parent_keys(bricksdict)
+    cur_conn_comps_full = get_connected_components(bricksdict, zstep, parent_keys)
+    cur_weak_points_full = get_bridges(cur_conn_comps_full)
+    print(len(last_conn_comps_full), len(cur_conn_comps_full))
+    print(len(last_weak_points_full), len(cur_weak_points_full))
     # return all removed keys (including all keys in brick) along with num removed bricks
     return removed_keys, num_removed_bricks
