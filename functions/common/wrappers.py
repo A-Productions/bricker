@@ -27,7 +27,7 @@ from .reporting import stopwatch
 
 
 # https://github.com/CGCookie/retopoflow
-def timed_call(label, precision=2):
+def timed_call(label="Time Elapsed", precision=2):
     def wrapper(fn):
         def wrapped(*args, **kwargs):
             time_beg = time.time()

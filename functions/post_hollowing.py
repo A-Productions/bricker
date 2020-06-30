@@ -31,9 +31,10 @@ from .make_bricks_utils import *
 
 
 # Reference: Section 3 of https://lgg.epfl.ch/publications/2013/lego/lego.pdf
-def run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, remove_object=False, subgraph_radius=4):
+@timed_call()
+def run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, remove_object=False, subgraph_radius=3):
     """ Iterate over keys to remove any keys that don't create new disconnected componenets or weak points in a subgraph """
-    # NOTE: Subgraphs larger than default of 4 are slower and may produce similar (or even worse) results. Smaller than 4 is inaccurate.
+    # NOTE: The larger the subgraph, the more bricks removed
     # get all parent keys of bricks exclusively inside the model
     internal_keys = get_parent_keys_internal(bricksdict, zstep, keys)
     # initialize vars
@@ -50,18 +51,23 @@ def run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, remove_object=Fa
             popped_keys[k0] = bricksdict[k0].copy()
         # find key connected to this brick to start subgraph from
         conn_keys = get_connected_keys(bricksdict, k, zstep)
-        if conn_keys:
-            k1 = conn_keys.pop()
+        if len(conn_keys) > 1:
             # get connectivity data starting at current key
-            last_conn_comp = iterative_get_connected(bricksdict, k1, zstep, max_dist=subgraph_radius)
-            last_weak_points = get_bridges([last_conn_comp])
-            # reset entries in bricksdict
+            bounds = get_subgraph_bounds(bricksdict, k, radius=subgraph_radius)
+            internal_keys_in_bounds = set(k2 for k2 in internal_keys if bricksdict[k2]["draw"] and key_in_bounds(bricksdict, k2, bounds))
+            last_conn_comps = get_connected_components(bricksdict, zstep, internal_keys_in_bounds, bounds)
+            last_weak_points = get_bridges(last_conn_comps)
+            # reset entries in bricksdict and remove key from evaluated keys
             reset_bricksdict_entries(bricksdict, keys_in_brick)
+            internal_keys_in_bounds.remove(k)
             # get connectivity data again starting at current key
-            conn_comp = iterative_get_connected(bricksdict, k1, zstep, max_dist=subgraph_radius)
-            weak_points = get_bridges([conn_comp])
-        # check if conn_comps or weak_points are the same (if so, the key can stay removed)
-        if conn_keys and (len(conn_comp) >= len(last_conn_comp) - 1 and len(weak_points) <= len(last_weak_points)):
+            conn_comps = get_connected_components(bricksdict, zstep, internal_keys_in_bounds, bounds)
+            weak_points = get_bridges(conn_comps)
+        else:
+            # reset entries in bricksdict without needing to analyze connectivity data
+            reset_bricksdict_entries(bricksdict, keys_in_brick)
+        # permanently remove brick if conn_comps or weak_points are the same, or only connected to 0-1 bricks
+        if len(conn_keys) <= 1 or (len(conn_comps) <= len(last_conn_comps) and len(weak_points) <= len(last_weak_points)):
             removed_keys |= popped_keys.keys()
             num_removed_bricks += 1
             if remove_object:

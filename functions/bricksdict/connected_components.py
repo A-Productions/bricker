@@ -30,8 +30,8 @@ from ..brick import *
 # For additional reference, see the following article: https://dl.acm.org/doi/pdf/10.1145/2739480.2754667
 
 
-# @timed_call("Time Elapsed")
-def get_connected_components(bricksdict:dict, zstep:int, parent_keys:list):
+# @timed_call()
+def get_connected_components(bricksdict:dict, zstep:int, parent_keys:list, subgraph_bounds=None):
     # initialize variables
     conn_comps = list()
     parent_keys = set(parent_keys)
@@ -40,7 +40,7 @@ def get_connected_components(bricksdict:dict, zstep:int, parent_keys:list):
         # get a starting key from the list
         starting_key = parent_keys.pop()
         # get connected components for that starting key
-        cur_conn_comp = iterative_get_connected(bricksdict, starting_key, zstep)
+        cur_conn_comp = iterative_get_connected(bricksdict, starting_key, zstep, subgraph_bounds)
         # remove keys in current conn_comp list from parent_keys
         parent_keys -= set(cur_conn_comp.keys())
         # add current conn_comp to list of conn_comps
@@ -48,16 +48,10 @@ def get_connected_components(bricksdict:dict, zstep:int, parent_keys:list):
     return conn_comps
 
 
-def iterative_get_connected(bricksdict, starting_key, zstep, max_dist=None):
+def iterative_get_connected(bricksdict, starting_key, zstep, subgraph_bounds=None):
     """ linear implementation of recursively getting bricks connected to a starting key """
     cur_conn_comp = dict()
     next_parent_keys = {starting_key}
-    if max_dist:
-        starting_loc = get_dict_loc(bricksdict, starting_key)
-        max_dist_vec = Vector((max_dist, max_dist, max_dist))
-        bounds = lambda: None
-        bounds.min = Vector(starting_loc) - max_dist_vec
-        bounds.max = Vector(starting_loc) + max_dist_vec
     while len(next_parent_keys) > 0:
         # initialize structs for this iteration
         connected_parent_keys = next_parent_keys
@@ -68,8 +62,8 @@ def iterative_get_connected(bricksdict, starting_key, zstep, max_dist=None):
                 continue
             keys_connected_to_k0 = get_connected_keys(bricksdict, k0, zstep)
             # remove connected keys that extend outside the max dist
-            if max_dist:
-                keys_connected_to_k0 = set(k1 for k1 in keys_connected_to_k0 if key_in_bounds(bricksdict, k1, bounds))
+            if subgraph_bounds:
+                keys_connected_to_k0 = set(k1 for k1 in keys_connected_to_k0 if key_in_bounds(bricksdict, k1, subgraph_bounds))
             # add the connected keys to the conn_comp and next parent keys
             cur_conn_comp[k0] = keys_connected_to_k0
             next_parent_keys |= keys_connected_to_k0
@@ -77,10 +71,21 @@ def iterative_get_connected(bricksdict, starting_key, zstep, max_dist=None):
     return cur_conn_comp
 
 
+def get_subgraph_bounds(bricksdict, starting_key, radius):
+    starting_loc = Vector(get_dict_loc(bricksdict, starting_key))
+    ending_loc = starting_loc + Vector(bricksdict[starting_key]["size"]) - Vector((1, 1, 1))
+    max_dist_vec = Vector((radius, radius, radius))
+    bounds = lambda: None
+    bounds.min = starting_loc - max_dist_vec
+    bounds.max = ending_loc + max_dist_vec
+    return bounds
+
+
 def key_in_bounds(bricksdict, key, bounds):
-    loc = get_dict_loc(bricksdict, key)
+    loc = Vector(get_dict_loc(bricksdict, key))
+    max_loc = loc + Vector(bricksdict[key]["size"]) - Vector((1, 1, 1))
     return (
-        loc[0] > bounds.min[0] and loc[1] > bounds.min[1] and loc[2] > bounds.min[2] and
+        max_loc[0] > bounds.min[0] and max_loc[1] > bounds.min[1] and max_loc[2] > bounds.min[2] and
         loc[0] < bounds.max[0] and loc[1] < bounds.max[1] and loc[2] < bounds.max[2]
     )
 

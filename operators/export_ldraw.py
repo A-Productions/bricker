@@ -99,7 +99,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
     #############################################
     # class methods
 
-    @timed_call("Time Elapsed")
+    @timed_call()
     def write_ldraw_file(self, context):
         """ create and write Ldraw file """
         # open file for read and write

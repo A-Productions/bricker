@@ -36,21 +36,22 @@ def get_blend_python_path():
     return join(python_dir, python_name)
 
 
-def install_package(package_name:str, ensure_pip:bool=False, version:str=None):
-    """ Install package via pip (use specific version number if passed) """
+def verify_package_installation(package_name:str, spec_name:str=None, version:str=None):
+    """ Install package via pip if necessary (use specific version number if passed) """
     python_path = get_blend_python_path()
-    if ensure_pip and b280():
+    # check if already installed
+    if getutil.find_spec(spec_name or package_name):
+        return
+    # ensure pip is installed
+    if not getutil.find_spec("pip"):
         subprocess.call([python_path, "-m", "ensurepip"])
-    try:
-        # target_folder = [p for p in sys.path if p.endswith("site-packages")][0]
-        target_folder = join(dirname(get_addon_directory()), "modules")
-        if not exists(target_folder):
-            os.makedirs(target_folder)
-        package_param = package_name + ("=={}".format(version) if version is not None else "")
-        subprocess.call([python_path, "-m", "pip", "install", "--disable-pip-version-check", "--target={}".format(target_folder), package_param, "--ignore-install"])
-    except:
-        if b280() and not ensure_pip:
-            install_package(package_name, ensure_pip=True)
+    # get target folder to install package to (avoids write permissions issues)
+    target_folder = join(dirname(get_addon_directory()), "modules")
+    if not exists(target_folder):
+        os.makedirs(target_folder)
+    # install package
+    package_param = package_name + ("=={}".format(version) if version is not None else "")
+    subprocess.call([python_path, "-m", "pip", "install", "--disable-pip-version-check", "--target={}".format(target_folder), package_param, "--ignore-install"])
 
 
 def uninstall_package(package_name):

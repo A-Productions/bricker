@@ -66,9 +66,11 @@ class VIEW3D_PT_bricker_merge_settings(BrickerPanel, Panel):
             if internals_exist:
                 row = col.row()
                 row.prop(cm, "connect_thresh")
-                col = layout.column(align=True)
+                col = layout.column(align=False)
                 col.prop(cm, "post_merging")
                 col.prop(cm, "post_hollowing")
+                if cm.post_hollowing:
+                    col.prop(cm, "post_hollow_subgraph_radius")
                 right_align(col)
         if cm.shell_thickness > 1:
             col = layout.column(align=True)

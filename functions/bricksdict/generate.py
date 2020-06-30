@@ -672,7 +672,7 @@ def create_bricksdict_entry(name:str, loc:list, val:float=0, draw:bool=False, co
         "created_from": created_from,
     }
 
-@timed_call("Time Elapsed")
+@timed_call()
 def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
     """ make dictionary with brick information at each coordinate of lattice surrounding source
     source         -- source object to construct lattice around
@@ -731,6 +731,7 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
                 ni = face_idx_matrix[x][y][z]["loc"].to_tuple() if type(face_idx_matrix[x][y][z]) == dict else None
                 nn = face_idx_matrix[x][y][z]["normal"] if type(face_idx_matrix[x][y][z]) == dict else None
                 val = round(brick_freq_matrix[x][y][z], 2)
+                draw = val >= threshold
                 norm_dir = get_normal_direction(nn, slopes=True)
                 b_type = get_brick_type(brick_type)
                 flipped, rotated = get_flip_rot("" if norm_dir is None else norm_dir[1:])
@@ -745,7 +746,7 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
                     name= "Bricker_%(n)s__%(b_key)s" % locals(),
                     loc= [x, y, z],
                     val= val,
-                    draw= val >= threshold,
+                    draw= draw,
                     co= co,
                     near_face= nf,
                     near_intersection= ni,

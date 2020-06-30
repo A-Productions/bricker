@@ -146,6 +146,12 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirty_build,
         default=False,
     )
+    post_hollow_subgraph_radius = IntProperty(
+        name="Subgraph Radius",
+        description="Distance over which to analyze connected components (higher values remove more bricks but are slower and may weaken model)",
+        update=dirty_build,
+        default=3,
+    )
     smoke_density = FloatProperty(
         name="Smoke Density",
         description="Density of brickified smoke (threshold for smoke: 1 - d)",

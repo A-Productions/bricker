@@ -39,10 +39,11 @@ from .mat_utils import *
 from .matlist_utils import *
 from .post_hollowing import *
 from .post_merging import *
+from .post_shrinking import *
 from ..lib.caches import bricker_mesh_cache
 
 
-@timed_call("Time Elapsed")
+@timed_call()
 def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions, action, bcoll, num_source_mats, split=False, brick_scale=None, merge_vertical=True, custom_data=None, clear_existing_collection=True, frame_num=None, cursor_status=False, print_status=True, placeholder_meshes=False, run_pre_merge=True, redrawing=False):
     # initialize cmlist attributes (prevents 'update' function for each property from running every time)
     n = cm.source_obj.name
@@ -183,15 +184,15 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
             # run post-hollow
             if cm.post_hollowing:
                 # remove unnecessary internal bricks
-                removed_keys, num_removed_bricks = run_post_hollowing(bricksdict, target_keys, cm, zstep, brick_type)
+                removed_keys, num_removed_bricks = run_post_hollowing(bricksdict, target_keys, cm, zstep, brick_type, subgraph_radius=cm.post_hollow_subgraph_radius)
                 # remove those keys from the target_keys and keys_dict
                 target_keys.difference_update(removed_keys)
                 for z in sorted(keys_dict.keys()):
                     keys_dict[z].difference_update(removed_keys)
                 print(f"Removed {num_removed_bricks} unnecessary bricks during post-hollowing step")
                 # shrink bricks where possible
-                updated_keys, _ = run_post_shrinking(bricksdict, target_keys, zstep, brick_type, legal_bricks_only)
-                print(f"Shrunk {updated_keys} bricks during post-shrinking step")
+                # updated_keys, _ = run_post_shrinking(bricksdict, target_keys, zstep, brick_type, legal_bricks_only)
+                # print(f"Shrunk {len(updated_keys)} bricks during post-shrinking step")
 
         # get all parent keys
         parent_keys = get_parent_keys(bricksdict, target_keys)
