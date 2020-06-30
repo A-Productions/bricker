@@ -79,6 +79,10 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
         print("\nResult:")
         conn_comps, weak_points, _, _ = get_connectivity_data(bricksdict, zstep, keys, get_neighbors=False, verbose=True)
 
+    # reset 'attempted_merge' for all items in bricksdict
+    for k in bricksdict:
+        bricksdict[k]["attempted_merge"] = False
+
     return conn_comps, weak_points
 
 

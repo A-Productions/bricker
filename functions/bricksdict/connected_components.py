@@ -90,7 +90,7 @@ def key_in_bounds(bricksdict, key, bounds):
     )
 
 
-def get_connected_keys(bricksdict:dict, key:str, zstep:int, require_merge_attempt:bool=False, check_above:bool=True, check_below:bool=True):
+def get_connected_keys(bricksdict:dict, key:str, zstep:int, check_above:bool=True, check_below:bool=True):
     # get locs in current brick
     brick_size = bricksdict[key]["size"]
     loc = get_dict_loc(bricksdict, key)
@@ -102,7 +102,7 @@ def get_connected_keys(bricksdict:dict, key:str, zstep:int, require_merge_attemp
         for loc0 in lowest_locs_in_brick:
             loc_neg = (loc0[0], loc0[1], loc0[2] - 1)
             parent_key_neg = get_parent_key(bricksdict, list_to_str(loc_neg))
-            if parent_key_neg is not None and bricksdict[parent_key_neg]["draw"] and (not require_merge_attempt or bricksdict[parent_key_neg]["attempted_merge"]):
+            if parent_key_neg is not None and bricksdict[parent_key_neg]["draw"]:
                 connected_brick_parent_keys.add(parent_key_neg)
             # make sure key doesn't reference itself as neighbor (for debugging purposes)
             # NOTE: if assertion hit, that probably means that the 'bricksdict[list_to_str(loc_neg)]["size"]' was set improperly before entering this function
@@ -112,7 +112,7 @@ def get_connected_keys(bricksdict:dict, key:str, zstep:int, require_merge_attemp
         for loc0 in lowest_locs_in_brick:
             loc_pos = (loc0[0], loc0[1], loc0[2] + brick_size[2] // zstep)
             parent_key_pos = get_parent_key(bricksdict, list_to_str(loc_pos))
-            if parent_key_pos is not None and bricksdict[parent_key_pos]["draw"] and (not require_merge_attempt or bricksdict[parent_key_pos]["attempted_merge"]):
+            if parent_key_pos is not None and bricksdict[parent_key_pos]["draw"]:
                 connected_brick_parent_keys.add(parent_key_pos)
             # make sure key doesn't reference itself as neighbor (for debugging purposes)
             # NOTE: if assertion hit, that probably means that the 'bricksdict[list_to_str(loc_pos)]["size"]' was set improperly before entering this function

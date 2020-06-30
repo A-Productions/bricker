@@ -83,6 +83,11 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     random_loc = 0 if placeholder_meshes else round(cm.random_loc, 6)
     stud_detail = "ALL" if placeholder_meshes else cm.stud_detail
     zstep = cm.zstep
+    brick_type_can_be_merged = mergable_brick_type(brick_type, up=cm.zstep == 1) and (max_depth != 1 or max_width != 1)
+    internals_exist = cm.shell_thickness > 1 and cm.calc_internals
+    run_post_sturdy = internals_exist and not redrawing and brick_type_can_be_merged
+    run_post_merge = cm.post_merging and brick_type_can_be_merged
+    run_post_hollow = internals_exist and cm.post_hollowing and not redrawing and brick_type_can_be_merged
     # initialize random states
     rand_s1 = None if placeholder_meshes else np.random.RandomState(cm.merge_seed)  # for brick_size calc
     rand_s2 = None if placeholder_meshes else np.random.RandomState(cm.merge_seed + 1)
@@ -101,18 +106,14 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     if not run_pre_merge:
         # update bricksdict info since build probably changed
         parent_keys = get_parent_keys(bricksdict, target_keys)
-        update_bricksdict_after_updated_build(bricksdict, parent_keys, zstep, cm, material_type, custom_mat, random_mat_seed)
     # if unable to merge brick type, simply update bricksdict values
-    elif not (mergable_brick_type(brick_type, up=cm.zstep == 1) and (max_depth != 1 or max_width != 1)):
+    elif not brick_type_can_be_merged:
         size = [1, 1, cm.zstep]
-        if len(target_keys) > 0:
-            update_brick_sizes_and_types_used(cm, list_to_str(size), bricksdict[next(iter(target_keys))]["type"])
         for key in target_keys:
             brick_d = bricksdict[key]
             brick_d["parent"] = "self"
             brick_d["size"] = size.copy()
             set_flipped_and_rotated(brick_d, bricksdict, [key])
-            set_brick_exposure(bricksdict, zstep, key)  # TODO: is this necessary? Just passing by and noticed it may not be...
             if brick_d["type"] == "SLOPE" and brick_type == "SLOPES":
                 set_brick_type_for_slope(brick_d, bricksdict, [key])
     else:
@@ -162,63 +163,57 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
         # end 'Merging' progress bar
         update_progress_bars(1, 0, "Merging", print_status, cursor_status, end=True)
 
-        # if there are internal bricks, improve the sturdiness
-        internals_exist = cm.shell_thickness > 1 and cm.calc_internals# and not redrawing
-        if internals_exist:# and not redrawing:
-            # improve sturdiness
-            improve_sturdiness(bricksdict, target_keys, cm, zstep, brick_type, merge_seed, iterations=connect_thresh)
+    # if there are internal bricks, improve the sturdiness
+    if run_post_sturdy:
+        # improve sturdiness
+        improve_sturdiness(bricksdict, target_keys, cm, zstep, brick_type, merge_seed, iterations=connect_thresh)
 
-        # run post-merge
-        if cm.post_merging:
-            # update mat names so inconsistent mats aren't merged together
-            parent_keys = get_parent_keys(bricksdict, target_keys)
-            update_mat_names_in_bricksdict(bricksdict, cm, zstep, parent_keys, material_type, custom_mat, random_mat_seed)
-            # iteratively merge bricks while maintaining structural integrity
-            total_merged = 0
-            updated_keys = True
-            while updated_keys:
-                updated_keys, engulfed_keys = run_post_merging(bricksdict, target_keys, zstep, brick_type, legal_bricks_only, merge_internals_h, merge_internals_v, max_width, max_depth)
-                total_merged += len(updated_keys) + len(engulfed_keys)
-            print(f"Merged {total_merged} bricks during post-merging step")
-
-        # run post-hollow
-        if internals_exist and cm.post_hollowing:# and not redrawing:
-            # iteratively remove internal bricks while maintaining structural integrity
-            total_removed_bricks = 0
-            all_removed_keys = set()
-            removed_keys = True
-            while removed_keys:
-                # remove unnecessary internal bricks
-                parent_keys = get_parent_keys(bricksdict, target_keys)
-                removed_keys, num_removed_bricks = run_post_hollowing(bricksdict, target_keys, parent_keys, cm, zstep, brick_type, subgraph_radius=cm.post_hollow_subgraph_radius)
-                all_removed_keys |= removed_keys
-                total_removed_bricks += num_removed_bricks
-                # remove those keys from the target_keys
-                target_keys.difference_update(removed_keys)
-            # remove those keys from the keys_dict
-            for z in sorted(keys_dict.keys()):
-                keys_dict[z].difference_update(all_removed_keys)
-            print(f"Removed {total_removed_bricks} unnecessary bricks during post-hollowing step")
-            # shrink bricks where possible
-            updated_keys, _ = run_post_shrinking(bricksdict, target_keys, zstep, brick_type, legal_bricks_only)
-            print(f"Shrunk {len(updated_keys)} bricks during post-shrinking step")
-
-        # get all parent keys
+    # run post-merge
+    if run_post_merge:
+        # update mat names so inconsistent mats aren't merged together
         parent_keys = get_parent_keys(bricksdict, target_keys)
+        update_mat_names_in_bricksdict(bricksdict, cm, zstep, parent_keys, material_type, custom_mat, random_mat_seed)
+        # iteratively merge bricks while maintaining structural integrity
+        total_merged = 0
+        updated_keys = True
+        while updated_keys:
+            updated_keys, engulfed_keys = run_post_merging(bricksdict, target_keys, zstep, brick_type, legal_bricks_only, merge_internals_h, merge_internals_v, max_width, max_depth)
+            total_merged += len(updated_keys) + len(engulfed_keys)
+        print(f"Merged {total_merged} bricks during post-merging step")
 
-        # set sturdiness of connected components
-        if internals_exist or cm.post_merging:# and len(parent_keys) not in (0, len(weak_points)) and len(conn_comps) != 0:
-            conn_comps = get_connected_components(bricksdict, zstep, parent_keys)
-            weak_points = get_bridges(conn_comps)
-            cm.disconnected_components = len(conn_comps) - 1
-            cm.weak_points = len(weak_points)
+    # run post-hollow
+    if run_post_hollow:
+        # iteratively remove internal bricks while maintaining structural integrity
+        total_removed_bricks = 0
+        all_removed_keys = set()
+        removed_keys = True
+        while removed_keys:
+            # remove unnecessary internal bricks
+            parent_keys = get_parent_keys(bricksdict, target_keys)
+            removed_keys, num_removed_bricks = run_post_hollowing(bricksdict, target_keys, parent_keys, cm, zstep, brick_type, subgraph_radius=cm.post_hollow_subgraph_radius)
+            all_removed_keys |= removed_keys
+            total_removed_bricks += num_removed_bricks
+            # remove those keys from the target_keys
+            target_keys.difference_update(removed_keys)
+        # remove those keys from the keys_dict
+        for z in sorted(keys_dict.keys()):
+            keys_dict[z].difference_update(all_removed_keys)
+        print(f"Removed {total_removed_bricks} unnecessary bricks during post-hollowing step")
+        # shrink bricks where possible
+        updated_keys, _ = run_post_shrinking(bricksdict, target_keys, zstep, brick_type, legal_bricks_only)
+        print(f"Shrunk {len(updated_keys)} bricks during post-shrinking step")
 
-        # reset 'attempted_merge' for all items in bricksdict
-        for key0 in bricksdict:
-            bricksdict[key0]["attempted_merge"] = False
+    # get all parent keys
+    parent_keys = get_parent_keys(bricksdict, target_keys)
+    # set sturdiness of connected components
+    if run_post_sturdy or run_post_merge or run_post_hollow:# and len(parent_keys) not in (0, len(weak_points)) and len(conn_comps) != 0:
+        conn_comps = get_connected_components(bricksdict, zstep, parent_keys)
+        weak_points = get_bridges(conn_comps)
+        cm.disconnected_components = len(conn_comps) - 1
+        cm.weak_points = len(weak_points)
 
-        # update bricksdict info after build changed
-        update_bricksdict_after_updated_build(bricksdict, parent_keys, zstep, cm, material_type, custom_mat, random_mat_seed)
+    # update bricksdict info after build changed
+    update_bricksdict_after_updated_build(bricksdict, parent_keys, zstep, cm, material_type, custom_mat, random_mat_seed)
 
     # begin 'Building' progress bar
     old_percent = update_progress_bars(0.0, -1, "Building", print_status, cursor_status)
