@@ -126,7 +126,6 @@ class OBJECT_OT_delete_override(Operator):
             if bricksdict is None:
                 self.report({"WARNING"}, "Adjacent bricks in model '" + cm.name + "' could not be updated (matrix not cached)")
                 continue
-            keys_to_update = set()
             cm.customized = True
             # store cmlist props for quick calling
             last_split_model = cm.last_split_model
@@ -136,20 +135,17 @@ class OBJECT_OT_delete_override(Operator):
             for obj_name in obj_names_dict[cm_id]:
                 # get dict key details of current obj
                 dkey = get_dict_key(obj_name)
-                x0, y0, z0 = get_dict_loc(bricksdict, dkey)
+                dloc = get_dict_loc(bricksdict, dkey)
                 # get size of current brick (e.g. [2, 4, 1])
                 obj_size = bricksdict[dkey]["size"]
 
                 # for all locations in bricksdict covered by current obj
-                for x in range(x0, x0 + obj_size[0]):
-                    for y in range(y0, y0 + obj_size[1]):
-                        for z in range(z0, z0 + (obj_size[2] // zstep)):
-                            cur_key = list_to_str((x, y, z))
-                            # reset bricksdict entries
-                            reset_bricksdict_entries(bricksdict, [cur_key])
-                            # make adjustments to adjacent bricks
-                            if last_split_model:
-                                self.update_adj_bricksdicts(bricksdict, zstep, cur_key, [x, y, z], draw_threshold, keys_to_update)
+                keys_in_brick = get_keys_in_brick(bricksdict, obj_size, zstep, key=dkey, loc=dloc)
+                # reset bricksdict entries
+                reset_bricksdict_entries(bricksdict, keys_in_brick, force_outside=True)
+                # make adjustments to adjacent bricks
+                # if last_split_model:
+                self.update_adj_bricksdicts(bricksdict, zstep, dkey, dloc, draw_threshold, obj_size)
             # dirty_build if it wasn't already
             last_build_is_dirty = cm.build_is_dirty
             if not last_build_is_dirty:
@@ -198,15 +194,17 @@ class OBJECT_OT_delete_override(Operator):
         return protected
 
     @staticmethod
-    def update_adj_bricksdicts(bricksdict, zstep, cur_key, cur_loc, draw_threshold, keys_to_update=set()):
-        x, y, z = cur_loc
+    def update_adj_bricksdicts(bricksdict, zstep, key, loc, draw_threshold, brick_size=[1, 1, 1]):
+        keys_to_update = set()
         new_bricks = set()
-        brick_d = bricksdict[cur_key]
+        brick_d = bricksdict[key]
         # get all adjacent keys not on outside
-        adj_keys = get_adj_keys(bricksdict, key=cur_key)
-        adj_keys = set(k for k in adj_keys if bricksdict[k]["val"] != 0)
+        neighbor_keys_v = get_keys_neighboring_brick(bricksdict, brick_size, zstep, loc, check_horizontally=False)
+        neighbor_keys_h = get_keys_neighboring_brick(bricksdict, brick_size, zstep, loc, check_vertically=False)
+        neighbor_keys = set(k for k in neighbor_keys_h.union(neighbor_keys_v) if bricksdict[k]["val"] != 0)
+        # adj_keys = get_adj_keys(bricksdict, key=key)
         # update all vals for adj keys onward, recursively
-        updated_keys = update_vals_linear(bricksdict, adj_keys)
+        updated_keys = update_vals_linear(bricksdict, neighbor_keys)
         # draw new bricks that are now on the shell
         for k0 in updated_keys:
             brick_d0 = bricksdict[k0]
@@ -224,22 +222,9 @@ class OBJECT_OT_delete_override(Operator):
                 # add key to list for drawing
                 keys_to_update.add(k0)
                 new_bricks.add(k0)
-        # top of bricks below are now exposed
-        k0 = list_to_str((x, y, z - 1))
-        if k0 in bricksdict and bricksdict[k0]["draw"]:
-            k1 = k0 if bricksdict[k0]["parent"] == "self" else bricksdict[k0]["parent"]
-            if not bricksdict[k1]["top_exposed"]:
-                bricksdict[k1]["top_exposed"] = True
-                # add key to list for drawing
-                keys_to_update.add(k1)
-        # bottom of bricks above are now exposed
-        k0 = list_to_str((x, y, z + 1))
-        if k0 in bricksdict and bricksdict[k0]["draw"]:
-            k1 = k0 if bricksdict[k0]["parent"] == "self" else bricksdict[k0]["parent"]
-            if not bricksdict[k1]["bot_exposed"]:
-                bricksdict[k1]["bot_exposed"] = True
-                # add key to list for drawing
-                keys_to_update.add(k1)
+        # add neighboring bricks to keys_to_update as their exposure must be re-evaluated
+        keys_to_update |= get_neighboring_bricks(bricksdict, brick_size, zstep, loc, check_horizontally=False)
+        # return keys updated and new_bricks
         return keys_to_update, new_bricks
 
     def delete_brick_object(self, context, obj, update_model=True, use_global=False):

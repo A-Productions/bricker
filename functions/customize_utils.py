@@ -31,25 +31,6 @@ from .logo_obj import get_logo
 from ..operators.bevel import BRICKER_OT_bevel
 
 
-def verify_all_brick_exposures(scn, zstep, orig_loc, bricksdict, decriment=0, z_neg=False, z_pos=False):
-    dlocs = []
-    if not z_neg:
-        dlocs.append((orig_loc[0], orig_loc[1], orig_loc[2] + decriment))
-    if not z_pos:
-        dlocs.append((orig_loc[0], orig_loc[1], orig_loc[2] - 1))
-    # double check exposure of bricks above/below new adjacent brick
-    for dloc in dlocs:
-        k = list_to_str(dloc)
-        try:
-            brick_d = bricksdict[k]
-        except KeyError:
-            continue
-        parent_key = k if brick_d["parent"] == "self" else brick_d["parent"]
-        if parent_key is not None:
-            set_brick_exposure(bricksdict, zstep, parent_key)
-    return bricksdict
-
-
 def get_available_types(by="SELECTION", include_sizes=[]):
     items = []
     legal_bs = bpy.props.bricker_legal_brick_sizes

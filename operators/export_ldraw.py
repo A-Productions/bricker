@@ -161,7 +161,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                         # start with all parent keys at and neighboring current brick
                         # NOTE: can't decide between the following two lines! They both have their issues... need to try both
                         starting_keys[z] = self.get_bricks_neighbored_by_above_connection(bricksdict, key, iters=3)
-                        # starting_keys[z] = get_neighboring_bricks(bricksdict, bricksdict[key]["size"], self.zstep, get_dict_loc(bricksdict, key))
+                        # starting_keys[z] = get_neighboring_bricks(bricksdict, bricksdict[key]["size"], self.zstep, get_dict_loc(bricksdict, key), check_vertically=False)
                         starting_keys[z].intersection_update(valid_p_keys)
                         starting_keys[z].add(key)
                         # reset starting keys for 2 layers above active layer

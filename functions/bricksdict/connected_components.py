@@ -242,7 +242,7 @@ def get_weak_point_neighbors(bricksdict:dict, weak_points:set, parent_keys:list,
     weak_point_neighbors = set()
     for k in weak_points:
         # get all bricks (parent keys) neighboring current brick (starting at parent key 'k')
-        neighboring_bricks = get_neighboring_bricks(bricksdict, bricksdict[k]["size"], zstep, get_dict_loc(bricksdict, k))
+        neighboring_bricks = get_neighboring_bricks(bricksdict, bricksdict[k]["size"], zstep, get_dict_loc(bricksdict, k), check_vertically=False)
         # add neighboring bricks (parent keys) to weak point neighbors
         weak_point_neighbors |= set(neighboring_bricks)
     weak_point_neighbors &= set(parent_keys)
@@ -265,14 +265,14 @@ def get_component_interfaces(bricksdict:dict, conn_comps:list, parent_keys:list,
             continue
 
         for k in conn_comp:
-            neighboring_bricks = get_neighboring_bricks(bricksdict, bricksdict[k]["size"], zstep, get_dict_loc(bricksdict, k))
+            neighboring_bricks = get_neighboring_bricks(bricksdict, bricksdict[k]["size"], zstep, get_dict_loc(bricksdict, k), check_vertically=False)
             for k0 in neighboring_bricks:
                 pkey = get_parent_key(bricksdict, k0)
                 if pkey not in conn_comp and pkey is not None:
                     component_interfaces.add(k)
                     component_interfaces.add(pkey)
                     # also add neighbors to this neighbor brick in another conn_comp
-                    neighboring_bricks_1 = get_neighboring_bricks(bricksdict, bricksdict[pkey]["size"], zstep, get_dict_loc(bricksdict, pkey))
+                    neighboring_bricks_1 = get_neighboring_bricks(bricksdict, bricksdict[pkey]["size"], zstep, get_dict_loc(bricksdict, pkey), check_vertically=False)
                     for k1 in neighboring_bricks_1:
                         component_interfaces.add(k1)
 

@@ -311,67 +311,104 @@ def get_highest_locs_in_brick(size, zstep, loc):
 #     return existing_neighbor_locs
 
 
-def get_keys_neighboring_brick(bricksdict, size, zstep, loc):
-    x0, y0, z0 = loc
-    neighbor_locs_x = [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1]) for x in set((-1, size[0]))]
-    neighbor_locs_y = [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in set((-1, size[1])) for x in range(size[0])]
-    all_neighbor_locs = neighbor_locs_x + neighbor_locs_y
-    existing_neighbor_keys = list()
-    for loc0 in all_neighbor_locs:
-        key0 = list_to_str(loc0)
-        if key0 in bricksdict:
-            existing_neighbor_keys.append(key0)
-    return existing_neighbor_keys
-
-
 def get_outer_locs(size, zstep, loc):
     x0, y0, z0 = loc
     outer_locs = [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in set((0, size[1] - 1)) for x in set((0, size[0] - 1))]
     return outer_locs
 
 
-def get_neighbored_keys(bricksdict, size, zstep, loc):
-    """ get (key, key) pairs where locs neighbor another for a given brick """
+def get_keys_neighboring_brick(bricksdict, size, zstep, loc, check_horizontally=True, check_vertically=True):
+    """ get keys where locs neighbor another for a given brick """
     x0, y0, z0 = loc
-    neighbored_keys = list()
-    # +x check
-    locs = [[x0 + size[0], y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1])]
-    for loc0 in locs:
-        key0 = str_to_list(loc0)
-        if key0 in bricksdict:
-            loc1 = [loc0[0] - 1, loc0[1], loc0[2]]
-            key1 = str_to_list(loc1)
-            neighbored_keys.append(key0, key1)
-    # -x check
-    locs = [[x0 - 1, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1])]
-    for loc0 in locs:
-        key0 = str_to_list(loc0)
-        if key0 in bricksdict:
-            loc1 = [loc0[0] + 1, loc0[1], loc0[2]]
-            key1 = str_to_list(loc1)
-            neighbored_keys.append(key0, key1)
-    # +y check
-    locs = [[x0 + x, y0 + size[1], z0 + z] for z in range(0, size[2], zstep) for x in range(size[0])]
-    for loc0 in locs:
-        key0 = str_to_list(loc0)
-        if key0 in bricksdict:
-            loc1 = [loc0[0], loc0[1] - 1, loc0[2]]
-            key1 = str_to_list(loc1)
-            neighbored_keys.append(key0, key1)
-    # -y check
-    locs = [[x0 + x, y0 - 1, z0 + z] for z in range(0, size[2], zstep) for x in range(size[0])]
-    for loc0 in locs:
-        key0 = str_to_list(loc0)
-        if key0 in bricksdict:
-            loc1 = [loc0[0], loc0[1] + 1, loc0[2]]
-            key1 = str_to_list(loc1)
-            neighbored_keys.append(key0, key1)
+    neighbored_keys = set()
+
+    # if we're checking for horizontal neighbors
+    if check_horizontally:
+        # +x check
+        neighbored_keys |= set(list_to_str([x0 + size[0], y0 + y, z0 + z]) for z in range(0, size[2], zstep) for y in range(size[1]))
+        # -x check
+        neighbored_keys |= set(list_to_str([x0 - 1, y0 + y, z0 + z]) for z in range(0, size[2], zstep) for y in range(size[1]))
+        # +y check
+        neighbored_keys |= set(list_to_str([x0 + x, y0 + size[1], z0 + z]) for z in range(0, size[2], zstep) for x in range(size[0]))
+        # -y check
+        neighbored_keys |= set(list_to_str([x0 + x, y0 - 1, z0 + z]) for z in range(0, size[2], zstep) for x in range(size[0]))
+
+    # if we're checking for vertical neighbors
+    if check_vertically:
+        # +z check
+        neighbored_keys |= set(list_to_str([x0 + x, y0 + y, z0 + size[1]]) for y in range(0, size[1], zstep) for x in range(size[0]))
+        # -z check
+        neighbored_keys |= set(list_to_str([x0 + x, y0 + y, z0 - 1]) for y in range(0, size[1], zstep) for x in range(size[0]))
+
+    # only return keys in bricksdict
+    neighbored_keys = set(k for k in neighbored_keys if k in bricksdict)
 
     return neighbored_keys
 
 
-def get_neighboring_bricks(bricksdict, size, zstep, loc):
-    neighboring_keys = get_keys_neighboring_brick(bricksdict, size, zstep, loc)
+# def get_neighbored_key_pairs(bricksdict, size, zstep, loc, check_vertically=False):
+#     """ get keys where locs neighbor another for a given brick """
+#     x0, y0, z0 = loc
+#     neighbored_keys = list()
+#     # +x check
+#     locs = [[x0 + size[0], y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1])]
+#     for loc0 in locs:
+#         key0 = list_to_str(loc0)
+#         if key0 in bricksdict:
+#             loc1 = [loc0[0] - 1, loc0[1], loc0[2]]
+#             key1 = list_to_str(loc1)
+#             neighbored_keys.append(key0, key1)
+#     # -x check
+#     locs = [[x0 - 1, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1])]
+#     for loc0 in locs:
+#         key0 = list_to_str(loc0)
+#         if key0 in bricksdict:
+#             loc1 = [loc0[0] + 1, loc0[1], loc0[2]]
+#             key1 = list_to_str(loc1)
+#             neighbored_keys.append(key0, key1)
+#     # +y check
+#     locs = [[x0 + x, y0 + size[1], z0 + z] for z in range(0, size[2], zstep) for x in range(size[0])]
+#     for loc0 in locs:
+#         key0 = list_to_str(loc0)
+#         if key0 in bricksdict:
+#             loc1 = [loc0[0], loc0[1] - 1, loc0[2]]
+#             key1 = list_to_str(loc1)
+#             neighbored_keys.append(key0, key1)
+#     # -y check
+#     locs = [[x0 + x, y0 - 1, z0 + z] for z in range(0, size[2], zstep) for x in range(size[0])]
+#     for loc0 in locs:
+#         key0 = list_to_str(loc0)
+#         if key0 in bricksdict:
+#             loc1 = [loc0[0], loc0[1] + 1, loc0[2]]
+#             key1 = list_to_str(loc1)
+#             neighbored_keys.append(key0, key1)
+#
+#     # if we're not checking for vertical neighbors, return early
+#     if not check_vertically:
+#         return neighbored_keys
+#
+#     # +z check
+#     locs = [[x0 + x, y0 + y, z0 + size[1]] for y in range(0, size[1], zstep) for x in range(size[0])]
+#     for loc0 in locs:
+#         key0 = list_to_str(loc0)
+#         if key0 in bricksdict:
+#             loc1 = [loc0[0], loc0[1], loc0[2] - 1]
+#             key1 = list_to_str(loc1)
+#             neighbored_keys.append(key0, key1)
+#     # -z check
+#     locs = [[x0 + x, y0 + y, z0 - 1] for y in range(0, size[1], zstep) for x in range(size[0])]
+#     for loc0 in locs:
+#         key0 = list_to_str(loc0)
+#         if key0 in bricksdict:
+#             loc1 = [loc0[0], loc0[1], loc0[2] + 1]
+#             key1 = list_to_str(loc1)
+#             neighbored_keys.append(key0, key1)
+#
+#     return neighbored_keys
+
+
+def get_neighboring_bricks(bricksdict, size, zstep, loc, check_horizontally=True, check_vertically=True):
+    neighboring_keys = get_keys_neighboring_brick(bricksdict, size, zstep, loc, check_horizontally, check_vertically)
     neighboring_bricks = set()
     for key in neighboring_keys:
         parent_key = bricksdict[key]["parent"]

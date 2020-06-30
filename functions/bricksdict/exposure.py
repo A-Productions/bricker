@@ -28,6 +28,26 @@ from ..general import *
 from ..brick import *
 
 
+def verify_all_brick_exposures(scn, zstep, orig_loc, bricksdict, decriment=0, z_neg=False, z_pos=False):
+    """ verify brick exposures for all bricks above/below added/removed brick """
+    dlocs = []
+    if not z_neg:
+        dlocs.append((orig_loc[0], orig_loc[1], orig_loc[2] + decriment))
+    if not z_pos:
+        dlocs.append((orig_loc[0], orig_loc[1], orig_loc[2] - 1))
+    # double check exposure of bricks above/below new adjacent brick
+    for dloc in dlocs:
+        k = list_to_str(dloc)
+        try:
+            brick_d = bricksdict[k]
+        except KeyError:
+            continue
+        parent_key = k if brick_d["parent"] == "self" else brick_d["parent"]
+        if parent_key is not None:
+            set_brick_exposure(bricksdict, zstep, parent_key)
+    return bricksdict
+
+
 def is_brick_exposed(bricksdict, zstep, key=None, loc=None, internal_obscures=True):
     assert key is not None or loc is not None
     # initialize vars

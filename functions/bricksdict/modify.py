@@ -299,11 +299,14 @@ def attempt_post_shrink(bricksdict, key, zstep, brick_type, legal_bricks_only, l
     return new_size != starting_size, new_key, removed_keys
 
 
-def reset_bricksdict_entries(bricksdict, keys):
+def reset_bricksdict_entries(bricksdict, keys, force_outside=False):
     for k in keys:
         brick_d = bricksdict[k]
         brick_d["draw"] = False
-        set_brick_val(bricksdict, get_dict_loc(bricksdict, k), k, action="REMOVE")
+        if force_outside:
+            brick_d["val"] = 0
+        else:
+            set_brick_val(bricksdict, get_dict_loc(bricksdict, k), k, action="REMOVE")
         brick_d["size"] = None
         brick_d["parent"] = None
         brick_d["flipped"] = False

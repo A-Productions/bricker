@@ -183,16 +183,24 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
 
             # run post-hollow
             if cm.post_hollowing:
-                # remove unnecessary internal bricks
-                removed_keys, num_removed_bricks = run_post_hollowing(bricksdict, target_keys, cm, zstep, brick_type, subgraph_radius=cm.post_hollow_subgraph_radius)
-                # remove those keys from the target_keys and keys_dict
-                target_keys.difference_update(removed_keys)
+                # iteratively remove internal bricks while maintaining structural integrity
+                total_removed_bricks = 0
+                all_removed_keys = set()
+                removed_keys = True
+                while removed_keys:
+                    # remove unnecessary internal bricks
+                    removed_keys, num_removed_bricks = run_post_hollowing(bricksdict, target_keys, cm, zstep, brick_type, subgraph_radius=cm.post_hollow_subgraph_radius)
+                    all_removed_keys |= removed_keys
+                    total_removed_bricks += num_removed_bricks
+                    # remove those keys from the target_keys
+                    target_keys.difference_update(removed_keys)
+                # remove those keys from the keys_dict
                 for z in sorted(keys_dict.keys()):
-                    keys_dict[z].difference_update(removed_keys)
-                print(f"Removed {num_removed_bricks} unnecessary bricks during post-hollowing step")
+                    keys_dict[z].difference_update(all_removed_keys)
+                print(f"Removed {total_removed_bricks} unnecessary bricks during post-hollowing step")
                 # shrink bricks where possible
-                # updated_keys, _ = run_post_shrinking(bricksdict, target_keys, zstep, brick_type, legal_bricks_only)
-                # print(f"Shrunk {len(updated_keys)} bricks during post-shrinking step")
+                updated_keys, _ = run_post_shrinking(bricksdict, target_keys, zstep, brick_type, legal_bricks_only)
+                print(f"Shrunk {len(updated_keys)} bricks during post-shrinking step")
 
         # get all parent keys
         parent_keys = get_parent_keys(bricksdict, target_keys)

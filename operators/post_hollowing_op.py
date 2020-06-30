@@ -59,7 +59,7 @@ class BRICKER_OT_run_post_hollowing(Operator):
             merge_seed = cm.merge_seed
             connect_thresh = cm.connect_thresh
             # run post hollowing
-            _, num_removed_bricks = run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, remove_object=True)
+            _, num_removed_bricks = run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, remove_object=True, subgraph_radius=cm.post_hollow_subgraph_radius)
             # report how many keys were removed
             report_str = f"{num_removed_bricks} unnecessary internal bricks removed"
             self.report({"INFO"}, report_str)
