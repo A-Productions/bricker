@@ -32,7 +32,7 @@ from .make_bricks_utils import *
 
 # Reference: Section 3 of https://lgg.epfl.ch/publications/2013/lego/lego.pdf
 @timed_call()
-def run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, remove_object=False, subgraph_radius=3):
+def run_post_hollowing(bricksdict, keys, parent_keys, cm, zstep, brick_type, remove_object=False, subgraph_radius=3):
     """ Iterate over keys to remove any keys that don't create new disconnected componenets or weak points in a subgraph """
     # NOTE: The larger the subgraph, the more bricks removed
     # get all parent keys of bricks exclusively inside the model
@@ -40,10 +40,9 @@ def run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, remove_object=Fa
     # initialize vars
     removed_keys = set()
     num_removed_bricks = 0
-    # DEBUG
-    parent_keys = get_parent_keys(bricksdict)
-    last_conn_comps_full = get_connected_components(bricksdict, zstep, parent_keys)
-    last_weak_points_full = get_bridges(last_conn_comps_full)
+    # # DEBUGGING LINES
+    # last_conn_comps_full = get_connected_components(bricksdict, zstep, parent_keys)
+    # last_weak_points_full = get_bridges(last_conn_comps_full)
     # initialize progress bar
     old_percent = update_progress_bars(0.0, -1, "Post-Hollowing")
     # iterate through internal keys and attempt to remove
@@ -58,7 +57,7 @@ def run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, remove_object=Fa
         if len(conn_keys) > 1:
             # get connectivity data starting at current key
             bounds = get_subgraph_bounds(bricksdict, k, radius=subgraph_radius)
-            internal_keys_in_bounds = set(k2 for k2 in internal_keys if bricksdict[k2]["draw"] and key_in_bounds(bricksdict, k2, bounds))
+            internal_keys_in_bounds = set(k2 for k2 in parent_keys if bricksdict[k2]["draw"] and key_in_bounds(bricksdict, k2, bounds))
             last_conn_comps = get_connected_components(bricksdict, zstep, internal_keys_in_bounds, bounds)
             last_weak_points = get_bridges(last_conn_comps)
             # reset entries in bricksdict and remove key from evaluated keys
@@ -86,11 +85,11 @@ def run_post_hollowing(bricksdict, keys, cm, zstep, brick_type, remove_object=Fa
         old_percent = update_progress_bars(cur_percent, old_percent, "Post-Hollowing")
     # end progress bar
     update_progress_bars(1, 0, "Post-Hollowing", end=True)
-    # DEBUG
-    parent_keys = get_parent_keys(bricksdict)
-    cur_conn_comps_full = get_connected_components(bricksdict, zstep, parent_keys)
-    cur_weak_points_full = get_bridges(cur_conn_comps_full)
-    print(len(last_conn_comps_full), len(cur_conn_comps_full))
-    print(len(last_weak_points_full), len(cur_weak_points_full))
+    # # DEBUGGING LINES
+    # parent_keys = get_parent_keys(bricksdict)
+    # cur_conn_comps_full = get_connected_components(bricksdict, zstep, parent_keys)
+    # cur_weak_points_full = get_bridges(cur_conn_comps_full)
+    # print(len(last_conn_comps_full), len(cur_conn_comps_full))
+    # print(len(last_weak_points_full), len(cur_weak_points_full))
     # return all removed keys (including all keys in brick) along with num removed bricks
     return removed_keys, num_removed_bricks

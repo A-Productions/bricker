@@ -189,7 +189,8 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
             removed_keys = True
             while removed_keys:
                 # remove unnecessary internal bricks
-                removed_keys, num_removed_bricks = run_post_hollowing(bricksdict, target_keys, cm, zstep, brick_type, subgraph_radius=cm.post_hollow_subgraph_radius)
+                parent_keys = get_parent_keys(bricksdict, target_keys)
+                removed_keys, num_removed_bricks = run_post_hollowing(bricksdict, target_keys, parent_keys, cm, zstep, brick_type, subgraph_radius=cm.post_hollow_subgraph_radius)
                 all_removed_keys |= removed_keys
                 total_removed_bricks += num_removed_bricks
                 # remove those keys from the target_keys
