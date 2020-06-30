@@ -556,9 +556,7 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
                     all_shell_vals.append((x, y, z))
 
     if not calc_internals:
-        print("HERE1")
         return
-    print("HERE2")
 
     # iterate through all shell values
     for x, y, z in all_shell_vals:

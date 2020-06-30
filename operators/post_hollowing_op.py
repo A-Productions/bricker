@@ -65,6 +65,8 @@ class BRICKER_OT_run_post_hollowing(Operator):
             report_str = f"{num_removed_bricks} unnecessary internal bricks removed"
             self.report({"INFO"}, report_str)
             print(report_str)
+            # set last_post_hollowing to True
+            cm.last_post_hollowing = True
         except:
             bricker_handle_exception()
         return{"FINISHED"}

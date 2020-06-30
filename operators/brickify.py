@@ -350,6 +350,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cm.last_material_type = cm.material_type
         cm.last_use_abs_template = cm.use_abs_template
         cm.last_shell_thickness = cm.shell_thickness
+        cm.last_post_hollowing = cm.post_hollowing
         cm.last_internal_supports = cm.internal_supports
         cm.last_instance_method = cm.instance_method
         cm.last_mat_shell_depth = cm.mat_shell_depth

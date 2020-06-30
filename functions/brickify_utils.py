@@ -273,7 +273,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
     # reset all values for certain keys in bricksdict dictionaries
     if cm.build_is_dirty and loaded_from_cache and not redrawing:
         threshold = get_threshold(cm)
-        shell_thickness_changed = cm.last_shell_thickness != cm.shell_thickness
+        update_internal_drawing = cm.last_shell_thickness != cm.shell_thickness or cm.last_post_hollowing
         for kk, brick_d in bricksdict.items():
             kk0 = next(iter(keys))
             if kk in keys:

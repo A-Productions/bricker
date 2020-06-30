@@ -853,6 +853,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     last_material_type = StringProperty(default="SOURCE")
     last_use_abs_template = BoolProperty(default=False)
     last_shell_thickness = IntProperty(default=1)
+    last_post_hollowing = BoolProperty(default=False)
     last_internal_supports = StringProperty(default="NONE")
     last_brick_type = StringProperty(default="BRICKS")
     last_instance_method = StringProperty(default="LINK_DATA")
