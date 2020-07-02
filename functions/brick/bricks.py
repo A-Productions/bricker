@@ -56,7 +56,7 @@ def new_brick_mesh(dimensions:list, brick_type:str, size:list=[1,1,3], type:str=
         raise ValueError("'new_mesh' function received unrecognized value for parameter 'type': '" + str(type) + "'")
 
     # send brick mesh to junk edit mesh
-    junk_m = junk_mesh()
+    junk_m = junk_mesh("Bricker_junk_mesh")
     brick_bm.to_mesh(junk_m)
 
     # set bevel weights
