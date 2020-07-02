@@ -237,12 +237,13 @@ def handle_upconversion(dummy):
             if created_with_unsupported_version(cm):
                 # normalize cm.version
                 cm.version = cm.version.replace(", ", ".")
+                version_tup = tuple(int(v) for v in cm.version.split("."))
                 # convert from v1_0 to v1_1
-                if int(cm.version[2]) < 1:
+                if version_tup[:2] < (1, 1):
                     cm.brickWidth = 2 if cm.maxBrickScale2 > 1 else 1
                     cm.brick_depth = cm.maxBrickScale2
                 # convert from v1_2 to v1_3
-                if int(cm.version[2]) < 3:
+                if version_tup[:2] < (1, 3):
                     if cm.color_snap_amount == 0:
                         cm.color_snap_amount = 0.001
                     for obj in bpy.data.objects:
@@ -255,7 +256,7 @@ def handle_upconversion(dummy):
                         if coll.name.startswith("Rebrickr"):
                             coll.name = coll.name.replace("Rebrickr", "Bricker")
                 # convert from v1_3 to v1_4
-                if int(cm.version[2]) < 4:
+                if version_tup[:2] < (1, 4):
                     # update "_frame_" to "_f_" in brick and group names
                     n = cm.source_name
                     bricker_bricks_cn = "Bricker_%(n)s_bricks" % locals()
@@ -292,7 +293,7 @@ def handle_upconversion(dummy):
                     if cm.distOffsetX != -1:
                         cm.dist_offset = (cm.distOffsetX, cm.distOffsetY, cm.distOffsetZ)
                 # convert from v1_4 to v1_5
-                if int(cm.version[2]) < 5:
+                if version_tup[:2] < (1, 5):
                     if cm.logoDetail != "":
                         cm.logo_type = cm.logoDetail
                     cm.matrix_is_dirty = True
@@ -304,7 +305,7 @@ def handle_upconversion(dummy):
                     for coll in remove_colls:
                         bpy_collections().remove(coll)
                 # convert from v1_5 to v1_6
-                if int(cm.version[2]) < 6:
+                if version_tup[:2] < (1, 6):
                     for cm in scn.cmlist:
                         cm.zstep = get_zstep(cm)
                     if cm.source_obj is None: cm.source_obj = bpy.data.objects.get(cm.source_name)
@@ -318,7 +319,7 @@ def handle_upconversion(dummy):
                     dup = bpy.data.objects.get(n + "_duplicate")
                     if dup is not None: dup.name = n + "__dup__"
                 # convert from v1_6 to v1_7
-                if int(cm.version[2]) < 7:
+                if version_tup[:2] < (1, 7):
                     cm.mat_obj_abs = bpy.data.objects.get("Bricker_{}_RANDOM_mats".format(cm.id))
                     cm.mat_obj_random = bpy.data.objects.get("Bricker_{}_ABS_mats".format(cm.id))
                     # transfer props from 1_6 to 1_7 (camel to snake case)
@@ -328,6 +329,11 @@ def handle_upconversion(dummy):
                         snake_prop = camel_to_snake_case(prop)
                         if hasattr(cm, snake_prop) and hasattr(cm, prop):
                             setattr(cm, snake_prop, getattr(cm, prop))
+                # convert from v1_6 to v1_7
+                if version_tup[:2] < (2, 1):
+                    bricksdict = get_bricksdict(cm)
+                    for k in bricksdict.keys():
+                        bricksdict[k]["attempted_merge"] = False
 
             # ensure parent object has no users
             if cm.parent_obj is not None:

@@ -18,7 +18,7 @@
 bl_info = {
     "name"        : "Bricker",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
-    "version"     : (2, 0, 1),
+    "version"     : (2, 1, 0),
     "blender"     : (2, 83, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",

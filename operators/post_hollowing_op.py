@@ -43,7 +43,7 @@ class BRICKER_OT_run_post_hollowing(Operator):
         if scn.cmlist_index == -1:
             return False
         cm = scn.cmlist[scn.cmlist_index]
-        if not cm.model_created or cm.animated:
+        if not cm.model_created:
             return False
         return True
 

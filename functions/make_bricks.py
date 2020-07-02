@@ -99,9 +99,6 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     # set number of times to run through all keys
     num_iters = 2 if brick_type == "BRICKS_AND_PLATES" else 1
     i = 0
-    # set all keys as available for merge
-    for key0 in target_keys:
-        bricksdict[key0]["available_for_merge"] = True
     # if merging unnecessary, skip entirely
     if not run_pre_merge:
         # update bricksdict info since build probably changed
@@ -119,6 +116,11 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     else:
         # initialize progress bar around cursor
         old_percent = update_progress_bars(0.0, -1, "Merging", print_status, cursor_status)
+        
+        # set all keys as available for merge
+        for key0 in target_keys:
+            bricksdict[key0]["available_for_merge"] = True
+
         # run merge operations (twice if flat brick type)
         for time_through in range(num_iters):
             # iterate through z locations in bricksdict (bottom to top)
@@ -217,7 +219,7 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
         weak_points = get_bridges(conn_comps)
         cm.disconnected_components = len(conn_comps) - 1
         cm.weak_points = len(weak_points)
-        
+
     # reset 'attempted_merge' for all items in bricksdict
     for key0 in bricksdict:
         bricksdict[key0]["attempted_merge"] = False
