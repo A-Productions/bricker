@@ -71,7 +71,6 @@ class BRICKER_OT_select_components(bpy.types.Operator):
             if len(objs_to_select) == 0:
                 self.report({"INFO"}, "No disconnected components to select!")
                 return {"FINISHED"}
-            self.report({"INFO"}, "Disconnected components selected!")
         elif self.type == "WEAK_POINTS":
             for k in weak_points:
                 brick_obj = bpy.data.objects.get(bricksdict[k]["name"])
@@ -79,7 +78,6 @@ class BRICKER_OT_select_components(bpy.types.Operator):
             if len(objs_to_select) == 0:
                 self.report({"INFO"}, "No weak pointsto select!")
                 return {"FINISHED"}
-            self.report({"INFO"}, "Weak Points selected!")
         # elif self.type == "COLUMNS":
         #     columns = get_columns(conn_comps, bricksdict)
         #     for k in columns:
@@ -88,7 +86,6 @@ class BRICKER_OT_select_components(bpy.types.Operator):
         #     if len(objs_to_select) == 0:
         #         self.report({"INFO"}, "No columns to select!")
         #         return {"FINISHED"}
-        #     self.report({"INFO"}, "Columns selected!")
         elif self.type == "COMPONENT_INTERFACES":
             component_interfaces = get_component_interfaces(bricksdict, conn_comps, parent_keys, zstep)
             for k in component_interfaces:
@@ -97,7 +94,6 @@ class BRICKER_OT_select_components(bpy.types.Operator):
             if len(objs_to_select) == 0:
                 self.report({"INFO"}, "No component interfaces to select!")
                 return {"FINISHED"}
-            self.report({"INFO"}, "Component interfaces selected!")
         elif self.type == "ALL_TO_BE_MODIFIED":
             component_interfaces = get_component_interfaces(bricksdict, conn_comps, parent_keys, zstep)
             for k in weak_points | weak_point_neighbors | component_interfaces:
@@ -111,7 +107,10 @@ class BRICKER_OT_select_components(bpy.types.Operator):
         return{"FINISHED"}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self)
+        if self.prompt_user_for_type:
+            return context.window_manager.invoke_props_dialog(self)
+        else:
+            return self.execute(context)
 
     ################################################
     # initialization method
@@ -133,6 +132,12 @@ class BRICKER_OT_select_components(bpy.types.Operator):
             ("ALL_TO_BE_MODIFIED", "All to be modified", "", 4),
         ],
         default="DISCONNECTED",
+    )
+    prompt_user_for_type = BoolProperty(
+        name="Prompt for Selection Type",
+        description="Invoke a props dialog box when calling the operator",
+        options={"HIDDEN"},
+        default=False,
     )
 
     #############################################

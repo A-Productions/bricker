@@ -86,13 +86,19 @@ class VIEW3D_PT_bricker_model_info(BrickerPanel, Panel):
         col = layout.column(align=True)
         col.label(text="Disconnected Components:")
         row = col.row(align=True)
-        row.enabled = False
         col = row.column(align=True)
+        col.enabled = False
         col.prop(cm, "disconnected_components", text="")
+        col = row.column(align=True)
+        col.active = cm.disconnected_components > 0
+        col.operator("bricker.select_components", icon="RESTRICT_SELECT_OFF", text="").type = "DISCONNECTED"
 
         col = layout.column(align=True)
         col.label(text="Weak Points")
         row = col.row(align=True)
-        row.enabled = False
         col = row.column(align=True)
+        col.enabled = False
         col.prop(cm, "weak_points", text="")
+        col = row.column(align=True)
+        col.active = cm.weak_points > 0
+        col.operator("bricker.select_components", icon="RESTRICT_SELECT_OFF", text="").type = "WEAK_POINTS"

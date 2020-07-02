@@ -84,7 +84,7 @@ class VIEW3D_PT_bricker_connectivity(BrickerPanel, Panel):
         scn, cm, _ = get_active_context_info()
 
         layout.operator("bricker.draw_connected_components", icon="PARTICLE_DATA")
-        layout.operator("bricker.select_components", icon="RESTRICT_SELECT_OFF", text="Select Components")
+        layout.operator("bricker.select_components", icon="RESTRICT_SELECT_OFF", text="Select Components").prompt_user_for_type = True
         layout.operator("bricker.run_post_merging", icon="DECORATE_DRIVER")
         layout.operator("bricker.run_post_hollowing", icon="DECORATE_DRIVER")
         layout.operator("bricker.run_post_shrinking", icon="DECORATE_DRIVER")

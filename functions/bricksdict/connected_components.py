@@ -172,7 +172,7 @@ def get_bridges(conn_comps:list):
                 if node_infos[node_current]["id"] < node_infos[node_next]["low_link"] and len(conn_comp[node_next]) > 1:
                     # found the bridge!
                     # bridges.append((node_current, node_next))  # changed to tuple
-                    weak_points.add(node_current)
+                    # weak_points.add(node_current)
                     weak_points.add(node_next)
             else:
                 # we visited node_next from some other node (not node_current)
