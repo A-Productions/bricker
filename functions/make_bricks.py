@@ -81,13 +81,13 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     random_mat_seed = cm.random_mat_seed
     random_rot = 0 if placeholder_meshes else round(cm.random_rot, 6)
     random_loc = 0 if placeholder_meshes else round(cm.random_loc, 6)
-    stud_detail = "ALL" if placeholder_meshes else cm.stud_detail
+    stud_detail = cm.stud_detail
     zstep = cm.zstep
     brick_type_can_be_merged = mergable_brick_type(brick_type, up=cm.zstep == 1) and (max_depth != 1 or max_width != 1)
     internals_exist = cm.shell_thickness > 1 and cm.calc_internals
-    run_post_sturdy = internals_exist and not redrawing and brick_type_can_be_merged
-    run_post_merge = cm.post_merging and brick_type_can_be_merged
-    run_post_hollow = internals_exist and cm.post_hollowing and not redrawing and brick_type_can_be_merged
+    run_post_sturdy = internals_exist and brick_type_can_be_merged and not redrawing
+    run_post_merge = cm.post_merging and brick_type_can_be_merged and not redrawing
+    run_post_hollow = internals_exist and cm.post_hollowing and brick_type_can_be_merged and not redrawing
     # initialize random states
     rand_s1 = None if placeholder_meshes else np.random.RandomState(cm.merge_seed)  # for brick_size calc
     rand_s2 = None if placeholder_meshes else np.random.RandomState(cm.merge_seed + 1)
@@ -175,10 +175,16 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
         update_mat_names_in_bricksdict(bricksdict, cm, zstep, parent_keys, material_type, custom_mat, random_mat_seed)
         # iteratively merge bricks while maintaining structural integrity
         total_merged = 0
+        # all_engulfed_keys = set()
         updated_keys = True
         while updated_keys:
             updated_keys, engulfed_keys = run_post_merging(bricksdict, target_keys, zstep, brick_type, legal_bricks_only, merge_internals_h, merge_internals_v, max_width, max_depth)
             total_merged += len(updated_keys) + len(engulfed_keys)
+            # all_engulfed_keys |= engulfed_keys
+        # # remove the engulfed keys if redrawing
+        # if redrawing:
+        #     for k in all_engulfed_keys:
+        #         delete(bpy.data.objects.get(bricksdict[k]["name"]))
         print(f"Merged {total_merged} bricks during post-merging step")
 
     # run post-hollow
