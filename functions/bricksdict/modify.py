@@ -169,7 +169,7 @@ def attempt_pre_merge(bricksdict, key, default_size, zstep, brick_type, max_widt
 
     # update bricksdict for keys merged together
     keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc=loc)
-    update_merged_keys_in_bricksdict(bricksdict, key, keys_in_brick, brick_size, brick_type, short_type, tall_type)
+    update_merged_keys_in_bricksdict(bricksdict, key, keys_in_brick, brick_size, brick_type, short_type, tall_type, set_attempted_merge=True)
 
     return brick_size, key, keys_in_brick
 
@@ -230,7 +230,7 @@ def attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, me
     # update bricksdict for keys of bricks merged together
     keys_in_brick = get_keys_in_brick(bricksdict, new_size, zstep, loc=loc)
     engulfed_keys = set(k for k in keys_in_brick if bricksdict[k]["parent"] == "self" and k != key)
-    update_merged_keys_in_bricksdict(bricksdict, key, keys_in_brick, new_size, brick_type, short_type, tall_type, set_attempted_merge=True)
+    update_merged_keys_in_bricksdict(bricksdict, key, keys_in_brick, new_size, brick_type, short_type, tall_type)
 
     # return whether successful and keys that were engulfed
     return new_size != starting_size, engulfed_keys
