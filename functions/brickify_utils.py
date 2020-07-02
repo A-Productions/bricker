@@ -281,7 +281,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
                 brick_d["parent"] = None
                 brick_d["top_exposed"] = None
                 brick_d["bot_exposed"] = None
-                if shell_thickness_changed:
+                if update_internal_drawing:
                     brick_d["draw"] = brick_d["val"] >= threshold
             else:
                 # don't merge bricks not in 'keys'
