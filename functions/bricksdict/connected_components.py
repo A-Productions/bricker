@@ -171,7 +171,6 @@ def get_bridges(conn_comps:list):
                 node_infos[node_current]["low_link"] = min(node_infos[node_current]["low_link"], node_infos[node_next]["low_link"])
                 if node_infos[node_current]["id"] < node_infos[node_next]["low_link"] and len(conn_comp[node_next]) > 1:
                     # found the bridge!
-                    # bridges.append((node_current, node_next))  # changed to tuple
                     # weak_points.add(node_current)
                     weak_points.add(node_next)
             else:
