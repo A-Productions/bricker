@@ -217,6 +217,10 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
         weak_points = get_bridges(conn_comps)
         cm.disconnected_components = len(conn_comps) - 1
         cm.weak_points = len(weak_points)
+        
+    # reset 'attempted_merge' for all items in bricksdict
+    for key0 in bricksdict:
+        bricksdict[key0]["attempted_merge"] = False
 
     # update bricksdict info after build changed
     update_bricksdict_after_updated_build(bricksdict, parent_keys, zstep, cm, material_type, custom_mat, random_mat_seed)
