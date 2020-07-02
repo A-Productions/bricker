@@ -438,6 +438,9 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         submodel_start_lines[submodel_name] = len(self.filelines)
 
     def end_submodel(self, submodel_start_lines, submodel_name):
+        # if no bricks were added to this submodel, do nothing
+        if submodel_start_lines[submodel_name] == len(self.filelines):
+            return
         # add submodule information to beginning of file
         initial_idx = self.filelines.index("0 NOFILE\n")  # get first end of file line
         init_string_lst = [

@@ -122,7 +122,7 @@ mat_properties = {
   'ABS Plastic Dark Grey':{
       'Diffuse Color':[0.07819, 0.0999, 0.09306, 1.0],
       # Other properties (not node inputs)
-      'LDR Code':8,
+      'LDR Code':72,  # 8 for classic (but expensive) Dark Grey
   },
   'ABS Plastic Dark Purple':{
       'Diffuse Color':[0.09306, 0.05127, 0.25818, 1.0],
