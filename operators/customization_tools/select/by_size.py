@@ -58,7 +58,7 @@ class BRICKER_OT_select_bricks_by_size(Operator):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
 
-        col = layout.column(align=True)
+        col = layout.column(align=False)
         right_align(col)
         col.prop(self, "brick_size")
         if len(context.selected_objects) > 0:

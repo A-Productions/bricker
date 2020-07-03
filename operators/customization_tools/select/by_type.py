@@ -58,7 +58,7 @@ class BRICKER_OT_select_bricks_by_type(Operator):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
 
-        col = layout.column(align=True)
+        col = layout.column(align=False)
         right_align(col)
         col.prop(self, "brick_type")
         if len(context.selected_objects) > 0:
@@ -92,20 +92,27 @@ class BRICKER_OT_select_bricks_by_type(Operator):
     brick_type = bpy.props.EnumProperty(
         name="Type",
         description="Select all bricks of specified type",
-        items=get_items)
+        items=get_items,
+    )
     only = bpy.props.BoolProperty(
         name="Only",
         description="Select only bricks of given type",
-        default=False)
+        default=False,
+    )
     all_models = bpy.props.BoolProperty(
         name="All Models",
         description="Select bricks of given type from all models in file",
-        default=False)
+        default=False,
+    )
     include = bpy.props.EnumProperty(
         name="Include",
         description="Include bricks on shell, inside shell, or both",
-        items = [("EXT", "Externals", ""),
-                 ("INT", "Internals", ""),
-                 ("BOTH", "Both", "")])
+        items = [
+            ("EXT", "Externals", ""),
+            ("INT", "Internals", ""),
+            ("BOTH", "Both", "")
+        ],
+        default="BOTH",
+    )
 
     ###################################################
