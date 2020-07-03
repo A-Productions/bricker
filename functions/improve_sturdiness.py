@@ -45,10 +45,10 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
         # get connectivity data
         conn_comps, weak_points, weak_point_neighbors, parent_keys = get_connectivity_data(bricksdict, zstep, keys, verbose=True)
         # check if this is the sturdiest model thusfar
-        if i > (iterations / 2) and len(conn_comps) < lowest_conn_data["conn_comps"] or (len(conn_comps) == lowest_conn_data["conn_comps"] and len(weak_points) < lowest_conn_data["weak_points"]):
+        if i > (iterations / 2) and (len(conn_comps) < lowest_conn_data["conn_comps"] or (len(conn_comps) == lowest_conn_data["conn_comps"] and len(weak_points) < lowest_conn_data["weak_points"])):
             print("cached...")
             lowest_conn_data["conn_comps"] = len(conn_comps)
-            lowest_conn_data["weak_points"] = len(conn_comps)
+            lowest_conn_data["weak_points"] = len(weak_points)
             sturdiest_bricksdict = deepcopy(bricksdict)
         # set last connectivity vals
         last_weak_points.append(len(weak_points))

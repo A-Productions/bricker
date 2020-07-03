@@ -21,6 +21,7 @@ import copy
 # Blender imports
 import bpy
 from bpy.types import Operator
+from bpy.props import *
 
 # Module imports
 from ...brickify import *
@@ -89,22 +90,22 @@ class BRICKER_OT_select_bricks_by_type(Operator):
         return items
 
     # define props for popup
-    brick_type = bpy.props.EnumProperty(
+    brick_type = EnumProperty(
         name="Type",
         description="Select all bricks of specified type",
         items=get_items,
     )
-    only = bpy.props.BoolProperty(
+    only = BoolProperty(
         name="Only",
         description="Select only bricks of given type",
         default=False,
     )
-    all_models = bpy.props.BoolProperty(
+    all_models = BoolProperty(
         name="All Models",
         description="Select bricks of given type from all models in file",
         default=False,
     )
-    include = bpy.props.EnumProperty(
+    include = EnumProperty(
         name="Include",
         description="Include bricks on shell, inside shell, or both",
         items = [
