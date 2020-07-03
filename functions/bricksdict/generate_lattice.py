@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -18,13 +18,14 @@
 # System imports
 import bmesh
 import math
+import numpy as np
 
 # Blender imports
 import bpy
 from mathutils import Vector
 
 # Module imports
-from .common import *
+from ..common import *
 
 
 def generate_lattice(vert_dist:Vector, scale:Vector, offset:Vector=Vector((0, 0, 0)), extra_res:int=0, visualize:bool=False):
@@ -54,7 +55,7 @@ def generate_lattice(vert_dist:Vector, scale:Vector, offset:Vector=Vector((0, 0,
     if visualize:
         # create bmesh
         bme = bmesh.new()
-        vert_matrix = np.zeros((len(coord_matrix), len(coord_matrix[0]), len(coord_matrix[0][0]))).tolist()
+        vert_matrix = np.zeros((nx, ny, nz)).tolist()
         # add vertex for each coordinate
         for x in range(len(coord_matrix)):
             for y in range(len(coord_matrix[0])):

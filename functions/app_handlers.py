@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -48,13 +48,12 @@ def handle_animation(scn, depsgraph=None):
         if not cm.animated:
             continue
         n = get_source_name(cm)
-        parent_coll = bpy_collections().get("Bricker_%(n)s_bricks" % locals())
-        for cur_bricks_coll in parent_coll.children:
+        for cur_bricks_coll in cm.collection.children:
             try:
                 cf = int(cur_bricks_coll.name[cur_bricks_coll.name.rfind("_") + 1:])
             except ValueError:
                 continue
-            adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
+            adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame, cm.last_step_frame)
             on_cur_f = adjusted_frame_current == cf
             # set active obj
             active_obj = bpy.context.active_object if hasattr(bpy.context, "active_object") else None
@@ -129,7 +128,7 @@ def reset_properties(dummy):
         if cm.brickifying_in_background and cm.source_obj is not None:
             cm.brickifying_in_background = False
             n = cm.source_obj.name
-            for cf in range(cm.last_start_frame, cm.last_stop_frame):
+            for cf in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
                 cur_bricks_coll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
                 if cur_bricks_coll is None:
                     cm.last_stop_frame = max(cm.last_start_frame, cf - 1)
@@ -171,23 +170,25 @@ def handle_storing_to_deep_cache(dummy):
 
 @persistent
 def show_all_anim_frames(dummy):
-    for cm in bpy.context.scene.cmlist:
+    scn = bpy.context.scene
+    for cm in scn.cmlist:
         if not cm.animated:
             continue
         for coll in cm.collection.children:
             unhide(coll)
 
 
-def set_anim_frames_visibility(dummy):
-    for cm in bpy.context.scene.cmlist:
+def set_anim_frames_visibility(scn):
+    scn = bpy.context.scene
+    for cm in scn.cmlist:
         if not cm.animated:
             continue
-        for frame in range(cm.last_start_frame, cm.last_stop_frame):
+        for frame in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
             set_frame_visibility(cm, frame)
 
 
 # @persistent
-# def undo_bricksdict_changes(scene):
+# def undo_bricksdict_changes(dummy):
 #     scn = bpy.context.scene
 #     if scn.cmlist_index == -1:
 #         return
@@ -205,7 +206,7 @@ def set_anim_frames_visibility(dummy):
 #
 #
 # @persistent
-# def redo_bricksdict_changes(scene):
+# def redo_bricksdict_changes(dummy):
 #     scn = bpy.context.scene
 #     if scn.cmlist_index == -1:
 #         return
@@ -236,12 +237,13 @@ def handle_upconversion(dummy):
             if created_with_unsupported_version(cm):
                 # normalize cm.version
                 cm.version = cm.version.replace(", ", ".")
+                version_tup = tuple(int(v) for v in cm.version.split("."))
                 # convert from v1_0 to v1_1
-                if int(cm.version[2]) < 1:
+                if version_tup[:2] < (1, 1):
                     cm.brickWidth = 2 if cm.maxBrickScale2 > 1 else 1
                     cm.brick_depth = cm.maxBrickScale2
                 # convert from v1_2 to v1_3
-                if int(cm.version[2]) < 3:
+                if version_tup[:2] < (1, 3):
                     if cm.color_snap_amount == 0:
                         cm.color_snap_amount = 0.001
                     for obj in bpy.data.objects:
@@ -254,12 +256,12 @@ def handle_upconversion(dummy):
                         if coll.name.startswith("Rebrickr"):
                             coll.name = coll.name.replace("Rebrickr", "Bricker")
                 # convert from v1_3 to v1_4
-                if int(cm.version[2]) < 4:
+                if version_tup[:2] < (1, 4):
                     # update "_frame_" to "_f_" in brick and group names
                     n = cm.source_name
                     bricker_bricks_cn = "Bricker_%(n)s_bricks" % locals()
                     if cm.animated:
-                        for i in range(cm.last_start_frame, cm.last_stop_frame + 1):
+                        for i in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
                             bricker_bricks_curf_cn = bricker_bricks_cn + "_frame_" + str(i)
                             bcoll = bpy_collections().get(bricker_bricks_curf_cn)
                             if bcoll is not None:
@@ -291,7 +293,7 @@ def handle_upconversion(dummy):
                     if cm.distOffsetX != -1:
                         cm.dist_offset = (cm.distOffsetX, cm.distOffsetY, cm.distOffsetZ)
                 # convert from v1_4 to v1_5
-                if int(cm.version[2]) < 5:
+                if version_tup[:2] < (1, 5):
                     if cm.logoDetail != "":
                         cm.logo_type = cm.logoDetail
                     cm.matrix_is_dirty = True
@@ -303,7 +305,7 @@ def handle_upconversion(dummy):
                     for coll in remove_colls:
                         bpy_collections().remove(coll)
                 # convert from v1_5 to v1_6
-                if int(cm.version[2]) < 6:
+                if version_tup[:2] < (1, 6):
                     for cm in scn.cmlist:
                         cm.zstep = get_zstep(cm)
                     if cm.source_obj is None: cm.source_obj = bpy.data.objects.get(cm.source_name)
@@ -317,7 +319,7 @@ def handle_upconversion(dummy):
                     dup = bpy.data.objects.get(n + "_duplicate")
                     if dup is not None: dup.name = n + "__dup__"
                 # convert from v1_6 to v1_7
-                if int(cm.version[2]) < 7:
+                if version_tup[:2] < (1, 7):
                     cm.mat_obj_abs = bpy.data.objects.get("Bricker_{}_RANDOM_mats".format(cm.id))
                     cm.mat_obj_random = bpy.data.objects.get("Bricker_{}_ABS_mats".format(cm.id))
                     # transfer props from 1_6 to 1_7 (camel to snake case)
@@ -327,6 +329,11 @@ def handle_upconversion(dummy):
                         snake_prop = camel_to_snake_case(prop)
                         if hasattr(cm, snake_prop) and hasattr(cm, prop):
                             setattr(cm, snake_prop, getattr(cm, prop))
+                # convert from v1_6 to v1_7
+                if version_tup[:2] < (2, 1):
+                    bricksdict = get_bricksdict(cm)
+                    for k in bricksdict.keys():
+                        bricksdict[k]["attempted_merge"] = False
 
             # ensure parent object has no users
             if cm.parent_obj is not None:

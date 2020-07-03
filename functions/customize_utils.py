@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -26,59 +26,9 @@ from bpy.types import Operator
 from .brick import *
 from .bricksdict import *
 from .common import *
-from .brickify_utils import create_new_bricks, get_duplicate_object
 from .general import *
 from .logo_obj import get_logo
 from ..operators.bevel import BRICKER_OT_bevel
-
-
-def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", select_created=True, temp_brick=False):
-    if len(keys_to_update) == 0: return []
-    if not is_unique(keys_to_update): raise ValueError("keys_to_update cannot contain duplicate values")
-    if action is not None:
-        print("[Bricker] %(action)s..." % locals())
-    # get arguments for create_new_bricks
-    source = cm.source_obj
-    source_dup = get_duplicate_object(cm, source.name, source)
-    source_details, dimensions = get_details_and_bounds(source_dup, cm)
-    parent = cm.parent_obj
-    action = "UPDATE_MODEL"
-    # actually draw the bricks
-    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, cm=cm, bricksdict=bricksdict, keys=keys_to_update, clear_existing_collection=False, select_created=select_created, print_status=False, temp_brick=temp_brick, redraw=True)
-    # link new bricks to scene
-    if not b280():
-        for brick in bricks_created:
-            safe_link(brick)
-    # unlink source_dup if linked
-    safe_unlink(source_dup)
-    # add bevel if it was previously added
-    if cm.bevel_added and not temp_brick:
-        bricks = get_bricks(cm)
-        BRICKER_OT_bevel.run_bevel_action(bricks, cm)
-    # refresh model info
-    prefs = get_addon_preferences()
-    if prefs.auto_refresh_model_info and not temp_brick:
-        bpy.ops.bricker.refresh_model_info()
-    return bricks_created
-
-
-def verify_all_brick_exposures(scn, zstep, orig_loc, bricksdict, decriment=0, z_neg=False, z_pos=False):
-    dlocs = []
-    if not z_neg:
-        dlocs.append((orig_loc[0], orig_loc[1], orig_loc[2] + decriment))
-    if not z_pos:
-        dlocs.append((orig_loc[0], orig_loc[1], orig_loc[2] - 1))
-    # double check exposure of bricks above/below new adjacent brick
-    for dloc in dlocs:
-        k = list_to_str(dloc)
-        try:
-            brick_d = bricksdict[k]
-        except KeyError:
-            continue
-        parent_key = k if brick_d["parent"] == "self" else brick_d["parent"]
-        if parent_key is not None:
-            set_all_brick_exposures(bricksdict, zstep, parent_key)
-    return bricksdict
 
 
 def get_available_types(by="SELECTION", include_sizes=[]):
@@ -140,7 +90,7 @@ def update_brick_size_and_dict(dimensions, source_name, bricksdict, brick_size, 
                     new_brick_d = bricksdict[new_key]
                     new_brick_d["parent"] = None
                     new_brick_d["draw"] = False
-                    set_cur_brick_val(bricksdict, new_loc, new_key, action="REMOVE")
+                    set_brick_val(bricksdict, new_loc, new_key, action="REMOVE")
     # adjust brick size if changing type from 1 tall to 3 tall
     elif cur_height == 1 and target_height == 3:
         brick_size[2] = 3
@@ -163,7 +113,7 @@ def update_brick_size_and_dict(dimensions, source_name, bricksdict, brick_size, 
                     new_brick_d["near_face"] = new_brick_d["near_face"] or brick_d["near_face"]
                     new_brick_d["near_intersection"] = new_brick_d["near_intersection"] or tuple(brick_d["near_intersection"])
                     if new_brick_d["val"] == 0:
-                        set_cur_brick_val(bricksdict, new_loc, new_key)
+                        set_brick_val(bricksdict, new_loc, new_key)
     return brick_size
 
 
@@ -196,34 +146,24 @@ def get_bricksdicts_from_objs(obj_names):
     return bricksdicts
 
 
-def set_cur_brick_val(bricksdict, loc, key=None, action="ADD"):
-    key = key or list_to_str(loc)
-    adj_brick_vals = get_adj_keys_and_brick_vals(bricksdict, loc=loc)[1]
-    if action == "ADD" and (0 in adj_brick_vals or len(adj_brick_vals) < 6 or min(adj_brick_vals) == 1):
-        new_val = 1
-    elif action == "REMOVE":
-        new_val = 0 if 0 in adj_brick_vals or len(adj_brick_vals) < 6 else max(adj_brick_vals)
-    else:
-        new_val = max(adj_brick_vals) - 0.01
-    bricksdict[key]["val"] = new_val
-
-
-def get_adj_keys_and_brick_vals(bricksdict, loc=None, key=None):
-    assert loc or key
-    x, y, z = loc or get_dict_loc(bricksdict, key)
-    adj_keys = [list_to_str((x+1, y, z)),
-               list_to_str((x-1, y, z)),
-               list_to_str((x, y+1, z)),
-               list_to_str((x, y-1, z)),
-               list_to_str((x, y, z+1)),
-               list_to_str((x, y, z-1))]
-    adj_brick_vals = []
-    for k in adj_keys.copy():
-        try:
-            adj_brick_vals.append(bricksdict[k]["val"])
-        except KeyError:
-            remove_item(adj_keys, k)
-    return adj_keys, adj_brick_vals
+def update_vals_linear(bricksdict, keys):
+    checked_keys = set()
+    updated_keys = set()
+    next_keys = keys
+    while len(next_keys) > 0:
+        # initialize structs for this iteration
+        cur_keys = next_keys.difference(checked_keys)
+        next_keys = set()
+        # update vals for all cur_keys and get next_keys
+        for k in cur_keys:
+            old_val = bricksdict[k]["val"]
+            new_val = set_brick_val(bricksdict, key=k)
+            if old_val != new_val:
+                updated_keys.add(k)
+                next_keys |= set(k for k in get_adj_keys(bricksdict, key=k) if bricksdict[k]["val"] != 0)
+        # update checked keys
+        checked_keys |= cur_keys
+    return updated_keys
 
 
 def get_used_sizes():
@@ -303,6 +243,50 @@ def select_bricks(obj_names_dict, bricksdicts, brick_size="NULL", brick_type="NU
 
         # if no brick_size bricks exist, remove from cm.brick_sizes_used or cm.brick_types_used
         remove_unused_from_list(cm, brick_type=brick_type, brick_size=brick_size, selected_something=selected_something)
+
+
+default_sort_fn = lambda k: (str_to_list(k)[0] * str_to_list(k)[1] * str_to_list(k)[2])
+def merge_bricks(bricksdict, keys, cm, target_type="BRICK", any_height=False, merge_seed=None, merge_inconsistent_mats=False, direction_mult=(1, 1, 1), sort_fn=default_sort_fn):
+    """ attempts to merge bricks in 'keys' parameter with all bricks in bricksdict not marked with 'attempted_merge' """
+    # initialize vars
+    updated_keys = set()
+    brick_type = cm.brick_type
+    max_width = cm.max_width
+    max_depth = cm.max_depth
+    legal_bricks_only = cm.legal_bricks_only
+    material_type = cm.material_type
+    merge_seed = merge_seed or cm.merge_seed
+    merge_internals = "NEITHER" if material_type == "NONE" else cm.merge_internals
+    merge_internals_h = merge_internals in ["BOTH", "HORIZONTAL"]
+    merge_internals_v = merge_internals in ["BOTH", "VERTICAL"]
+    rand_state = np.random.RandomState(merge_seed)
+    merge_vertical = target_type in get_brick_types(height=3) and "PLATES" in brick_type
+    height_3_only = merge_vertical and not any_height
+
+    # sort keys
+    if sort_fn is not None:
+        if isinstance(keys, set):
+            keys = list(keys)
+        keys.sort(key=sort_fn)
+
+    # set all keys as to be merged
+    for key in keys:
+        bricksdict[key]["available_for_merge"] = True
+
+    # attempt to merge all keys together
+    for key in keys:
+        # skip keys already merged to another brick
+        if bricksdict[key]["attempted_merge"]:
+            continue
+        # attempt to merge current brick with other bricks in keys, according to available brick types
+        _, new_key, _ = attempt_pre_merge(bricksdict, key, bricksdict[key]["size"], cm.zstep, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats=merge_inconsistent_mats, prefer_largest=True, direction_mult=direction_mult, merge_vertical=merge_vertical, target_type=target_type, height_3_only=height_3_only)
+        updated_keys.add(new_key)
+
+    # unset all keys as to be merged
+    for key in keys:
+        bricksdict[key]["available_for_merge"] = False
+
+    return updated_keys
 
 
 def remove_unused_from_list(cm, brick_type="NULL", brick_size="NULL", selected_something=True):

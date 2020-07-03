@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -91,7 +91,7 @@ class OBJECT_OT_move_to_layer_override(Operator):
     # class methods
 
     def run_move(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         for name in self.object_names:
             obj = scn.objects.get(name)
             obj.layers = self.layers
@@ -101,7 +101,7 @@ class OBJECT_OT_move_to_layer_override(Operator):
             if not cm.animated:
                 continue
             n = get_source_name(cm)
-            for f in range(cm.last_start_frame, cm.last_stop_frame + 1):
+            for f in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
                 bricks_cur_f = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(f)s" % locals())
                 if bricks_cur_f is not None and bricks_cur_f.name != obj.name:
                     bricks_cur_f.layers = self.layers

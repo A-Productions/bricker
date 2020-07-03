@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -53,16 +53,16 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         if scn.cmlist_index == -1:
             return False
         return True
 
     def execute(self, context):
-        wm = bpy.context.window_manager
+        wm = context.window_manager
         wm.bricker_running_blocking_operation = True
         try:
-            cm = get_active_context_info()[1]
+            cm = get_active_context_info(context)[1]
             self.undo_stack.iterate_states(cm)
             self.run_full_delete()
         except:
@@ -237,7 +237,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         scn = bpy.context.scene
         if model_type == "ANIMATION":
             dupe_name = "Bricker_%(n)s_f_" % locals()
-            d_objects = [bpy.data.objects.get(dupe_name + str(fn)) for fn in range(cm.last_start_frame, cm.last_stop_frame + 1)]
+            d_objects = [bpy.data.objects.get(dupe_name + str(fn)) for fn in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame)]
         else:
             d_objects = [bpy.data.objects.get("%(n)s__dup__" % locals())]
         # # if preserve frames, remove those objects from d_objects
@@ -323,7 +323,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             cm.model_created = False
         elif model_type == "ANIMATION":
             # clean up bricks collection
-            for i in range(cm.last_start_frame, cm.last_stop_frame + 1):
+            for i in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
                 if preserved_frames is not None and i >= preserved_frames[0] and i <= preserved_frames[1]:
                     continue
                 percent = (i - cm.last_start_frame + 1)/(cm.last_stop_frame - cm.last_start_frame + 1)
@@ -354,6 +354,12 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             "model_scale",
             "transform_scale",
             "model_created_on_frame",
+            "num_bricks_in_model",
+            "num_materials_in_model",
+            "model_weight",
+            "real_world_dimensions",
+            "disconnected_components",
+            "weak_points",
             "last_source_mid",
             "last_logo_type",
             "last_split_model",

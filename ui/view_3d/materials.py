@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -27,6 +27,7 @@ from bpy.props import *
 # Module imports
 from ..created_model_uilist import *
 from ..matslot_uilist import *
+from ..panel_info import *
 from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
@@ -34,14 +35,10 @@ from ...functions import *
 from ... import addon_updater_ops
 
 
-class VIEW3D_PT_bricker_materials(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_materials(BrickerPanel, Panel):
     bl_label       = "Materials"
     bl_idname      = "VIEW3D_PT_bricker_materials"
     bl_parent_id   = "VIEW3D_PT_bricker_model_settings"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -100,10 +97,14 @@ class VIEW3D_PT_bricker_materials(Panel):
             row.prop(cm, "color_snap", expand=True)
             if cm.color_snap == "RGB":
                row = col.row()
-               row.prop(cm, "color_depth")
-               row.enabled = False
-               row.label(text="Unavailable in Demo Version")
+               col = row.column()
+               col.prop(cm, "blur_radius")
+               col.prop(cm, "color_depth")
+               col.enabled = False
+               col.label(text="Unavailable in Demo Version")
             if cm.color_snap == "ABS":
+                # col.prop(cm, "blur_radius")
+                # col.prop(cm, "color_depth")
                 col.prop(cm, "transparent_weight", text="Transparent Weight")
 
             if not b280() and cm.color_snap != "NONE":
@@ -121,14 +122,10 @@ class VIEW3D_PT_bricker_materials(Panel):
                     col.label(text="(Vertex colors not supported)")
 
 
-class VIEW3D_PT_bricker_use_uv_map(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_use_uv_map(BrickerPanel, Panel):
     bl_label       = "Use UV Map"
     bl_parent_id   = "VIEW3D_PT_bricker_materials"
     bl_idname      = "VIEW3D_PT_bricker_use_uv_map"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -158,14 +155,10 @@ class VIEW3D_PT_bricker_use_uv_map(Panel):
         row.operator("image.open", icon="FILEBROWSER" if b280() else "FILESEL", text="")
 
 
-class VIEW3D_PT_bricker_included_materials(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_included_materials(BrickerPanel, Panel):
     bl_label       = "Included Materials"
     bl_parent_id   = "VIEW3D_PT_bricker_materials"
     bl_idname      = "VIEW3D_PT_bricker_included_materials"
-    bl_context     = "objectmode"
 
     @classmethod
     def poll(self, context):
@@ -223,17 +216,16 @@ class VIEW3D_PT_bricker_included_materials(Panel):
             col = split.column(align=True)
             col.label(text="Add:")
             col = split.column(align=True)
-            col.prop_search(cm, "target_material", bpy.data, "materials", text="")
+            col.prop(cm, "target_material", text="")
+            if cm.target_material_message != "" and time.time() - float(cm.target_material_time) < 4:
+                col = layout.column(align=True)
+                col.label(text=cm.target_material_message, icon="INFO" if cm.target_material_message.startswith("Added") else "ERROR")
 
 
-class VIEW3D_PT_bricker_material_properties(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_material_properties(BrickerPanel, Panel):
     bl_label       = "Material Properties"
     bl_idname      = "VIEW3D_PT_bricker_material_properties"
     bl_parent_id   = "VIEW3D_PT_bricker_materials"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod

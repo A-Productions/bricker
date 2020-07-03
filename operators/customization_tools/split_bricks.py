@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -41,8 +41,8 @@ class BRICKER_OT_split_bricks(Operator):
     def poll(self, context):
         if not bpy.props.bricker_initialized:
             return False
-        scn = bpy.context.scene
-        objs = bpy.context.selected_objects
+        scn = context.scene
+        objs = context.selected_objects
         # check that at least 1 selected object is a brick
         for obj in objs:
             if not obj.is_brick:
@@ -54,7 +54,7 @@ class BRICKER_OT_split_bricks(Operator):
         return False
 
     def execute(self, context):
-        self.split_bricks(deep_copy_matrix=True)
+        self.split_bricks(context, deep_copy_matrix=True)
         return{"FINISHED"}
 
     def invoke(self, context, event):
@@ -76,10 +76,10 @@ class BRICKER_OT_split_bricks(Operator):
                     return context.window_manager.invoke_props_dialog(self)
                 else:
                     self.vertical = True
-                    self.split_bricks()
+                    self.split_bricks(context)
                     return {"FINISHED"}
         self.horizontal = True
-        self.split_bricks()
+        self.split_bricks(context)
         return {"FINISHED"}
 
     ################################################
@@ -117,7 +117,7 @@ class BRICKER_OT_split_bricks(Operator):
     #############################################
     # class methods
 
-    def split_bricks(self, deep_copy_matrix=False):
+    def split_bricks(self, context, deep_copy_matrix=False):
         try:
             # revert to last bricksdict
             self.undo_stack.match_python_to_blender_state()
@@ -125,7 +125,7 @@ class BRICKER_OT_split_bricks(Operator):
             if self.orig_undo_stack_length == self.undo_stack.get_length():
                 self.cached_bfm = self.undo_stack.undo_push("split", affected_ids=list(self.obj_names_dict.keys()))
             # initialize vars
-            scn = bpy.context.scene
+            scn = context.scene
             objs_to_select = []
             # iterate through cm_ids of selected objects
             for cm_id in self.obj_names_dict.keys():
@@ -153,15 +153,15 @@ class BRICKER_OT_split_bricks(Operator):
                         # split the bricks in the matrix and set size of active brick's bricksdict entries to 1x1x[lastZSize]
                         split_keys = split_brick(bricksdict, dkey, cm.zstep, cm.brick_type, loc=dloc, v=self.vertical, h=self.horizontal)
                         # append new split_keys to keys_to_update
-                        keys_to_update |= set(split_keys)
+                        keys_to_update |= split_keys
                     else:
                         keys_to_update.add(dkey)
 
                 # draw modified bricks
-                draw_updated_bricks(cm, bricksdict, list(keys_to_update))
+                draw_updated_bricks(cm, bricksdict, keys_to_update)
 
                 # add selected objects to objects to select at the end
-                objs_to_select += bpy.context.selected_objects
+                objs_to_select += context.selected_objects
             # select the new objects created
             select(objs_to_select)
         except:

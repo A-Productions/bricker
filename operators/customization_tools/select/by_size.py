@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -38,7 +38,7 @@ class BRICKER_OT_select_bricks_by_size(Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         return bpy.props.bricker_initialized and scn.cmlist_index != -1
 
     def execute(self, context):
@@ -58,10 +58,10 @@ class BRICKER_OT_select_bricks_by_size(Operator):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
 
-        col = layout.column(align=True)
+        col = layout.column(align=False)
         right_align(col)
         col.prop(self, "brick_size")
-        if len(bpy.context.selected_objects) > 0:
+        if len(context.selected_objects) > 0:
             col.prop(self, "only")
         if len(scn.cmlist) > 1:
             col.prop(self, "all_models")

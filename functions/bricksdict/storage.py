@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -37,7 +37,7 @@ def get_bricksdict(cm, d_type="MODEL", cur_frame=None):
         bricksdict = bricker_bfm_cache.get(cm.id) or marshal.loads(bytes.fromhex(cm.bfm_cache))
         # if animated, index into that dict
         if "ANIM" in d_type and bricksdict is not None:
-            adjusted_frame_current = get_anim_adjusted_frame(cur_frame, cm.last_start_frame, cm.last_stop_frame)
+            adjusted_frame_current = get_anim_adjusted_frame(cur_frame, cm.last_start_frame, cm.last_stop_frame, cm.last_step_frame)
             try:
                 bricksdict = bricksdict[str(adjusted_frame_current)]
             except KeyError:

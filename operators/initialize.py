@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -49,7 +49,7 @@ class BRICKER_OT_initialize(Operator):
         return True
 
     def modal(self, context, event):
-        scn = bpy.context.scene
+        scn = context.scene
         if self.stop:
             self.cancel(context)
             return {"CANCELLED"}
@@ -71,7 +71,7 @@ class BRICKER_OT_initialize(Operator):
     def execute(self, context):
         # add new scn.cmlist item
         if self.action == "ADD":
-            CMLIST_OT_list_action.add_item(self.report)
+            CMLIST_OT_list_action.add_item(context, self.report)
         # run modal
         context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}

@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -27,6 +27,7 @@ from bpy.props import *
 # Module imports
 from ..created_model_uilist import *
 from ..matslot_uilist import *
+from ..panel_info import *
 from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
@@ -34,13 +35,9 @@ from ...functions import *
 from ... import addon_updater_ops
 
 
-class VIEW3D_PT_bricker_customize(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_customize(BrickerPanel, Panel):
     bl_label       = "Customize Model"
     bl_idname      = "VIEW3D_PT_bricker_customize"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -169,8 +166,8 @@ class VIEW3D_PT_bricker_legacy_customization_tools(Panel):
             return False
         if not cm.last_split_model:
             return False
-        if cm.build_is_dirty:
-            return False
+        # if cm.build_is_dirty:
+        #     return False
         if cm.brickifying_in_background:
             return False
         if not cache_exists(cm):
@@ -192,7 +189,7 @@ class VIEW3D_PT_bricker_legacy_customization_tools(Panel):
         split.operator("bricker.merge_bricks", text="Merge")
         col1.operator("bricker.draw_adjacent", text="Draw Adjacent Bricks")
         col1.operator("bricker.change_brick_type", text="Change Type")
-        # col1.operator("bricker.change_brick_material", text="Change Material")
+        col1.operator("bricker.change_brick_material", text="Change Material")
         # col1.operator("bricker.redraw_bricks")
 
         col1 = layout.column(align=True)

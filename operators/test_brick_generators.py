@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -33,7 +33,7 @@ class BRICKER_OT_test_brick_generators(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         return bpy.props.bricker_initialized and scn.cmlist_index != -1
 
     def execute(self, context):

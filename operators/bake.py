@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -39,7 +39,7 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
     @classmethod
     def poll(self, context):
         try:
-            scn, cm, n = get_active_context_info()
+            scn, cm, n = get_active_context_info(context)
         except IndexError:
             return False
         if (cm.model_created or cm.animated) and not cm.brickifying_in_background:

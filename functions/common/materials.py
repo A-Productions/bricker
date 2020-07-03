@@ -23,6 +23,7 @@ import bpy
 from mathutils import Matrix, Vector
 
 # Module imports
+from .blender import *
 from .maths import *
 from .reporting import *
 

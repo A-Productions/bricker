@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -27,6 +27,7 @@ from bpy.props import *
 # Module imports
 from ..created_model_uilist import *
 from ..matslot_uilist import *
+from ..panel_info import *
 from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
@@ -34,13 +35,9 @@ from ...functions import *
 
 
 
-class VIEW3D_PT_bricker_debugging_tools(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_debugging_tools(BrickerPanel, Panel):
     bl_label       = "Debugging Tools"
     bl_idname      = "VIEW3D_PT_bricker_debugging_tools"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -63,15 +60,43 @@ class VIEW3D_PT_bricker_debugging_tools(Panel):
         layout.operator("bricker.debug_toggle_view_source", icon="RESTRICT_VIEW_OFF" if source_name in scn.objects else "RESTRICT_VIEW_ON")
 
 
-class VIEW3D_PT_bricker_matrix_details(Panel):
+class VIEW3D_PT_bricker_connectivity(BrickerPanel, Panel):
+    """ Display debugging tools for connectivity algorithm """
+    bl_label       = "Connectivity"
+    bl_idname      = "VIEW3D_PT_bricker_connectivity"
+    bl_parent_id   = "VIEW3D_PT_bricker_debugging_tools"
+    bl_options     = {"DEFAULT_CLOSED"}
+
+
+    @classmethod
+    def poll(self, context):
+        if not settings_can_be_drawn():
+            return False
+        scn, cm, _ = get_active_context_info()
+        if created_with_unsupported_version(cm):
+            return False
+        if not (cm.model_created or cm.animated):
+            return False
+        if bpy.props.bricker_developer_mode == 0:
+            return False
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        scn, cm, _ = get_active_context_info()
+
+        layout.operator("bricker.draw_connected_components", icon="PARTICLE_DATA")
+        layout.operator("bricker.select_components", icon="RESTRICT_SELECT_OFF", text="Select Components").prompt_user_for_type = True
+        layout.operator("bricker.run_post_merging", icon="DECORATE_DRIVER")
+        layout.operator("bricker.run_post_hollowing", icon="DECORATE_DRIVER")
+        layout.operator("bricker.run_post_shrinking", icon="DECORATE_DRIVER")
+
+
+class VIEW3D_PT_bricker_matrix_details(BrickerPanel, Panel):
     """ Display Matrix details for specified brick location """
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
     bl_label       = "Brick Details"
     bl_idname      = "VIEW3D_PT_bricker_matrix_details"
     bl_parent_id   = "VIEW3D_PT_bricker_debugging_tools"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
 
@@ -102,7 +127,7 @@ class VIEW3D_PT_bricker_matrix_details(Panel):
         row.prop(cm, "active_key", text="")
 
         if cm.animated:
-            bricksdict = get_bricksdict(cm, d_type="ANIM", cur_frame=get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame))
+            bricksdict = get_bricksdict(cm, d_type="ANIM", cur_frame=get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame, cm.last_step_frame))
         elif cm.model_created:
             bricksdict = get_bricksdict(cm)
         if bricksdict is None:

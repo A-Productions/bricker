@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -38,7 +38,7 @@ class BRICKER_OT_redraw_custom_bricks(bpy.types.Operator):
     @classmethod
     def poll(self, context):
         try:
-            scn, cm, n = get_active_context_info()
+            scn, cm, n = get_active_context_info(context)
         except IndexError:
             return False
         if cm.matrix_is_dirty:
@@ -47,7 +47,7 @@ class BRICKER_OT_redraw_custom_bricks(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            self.redraw_custom_bricks()
+            self.redraw_custom_bricks(context)
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -57,12 +57,12 @@ class BRICKER_OT_redraw_custom_bricks(bpy.types.Operator):
     #############################################
     # class methods
 
-    def redraw_custom_bricks(self):
-        cm = get_active_context_info()[1]
+    def redraw_custom_bricks(self, context):
+        cm = get_active_context_info(context)[1]
         bricksdict = get_bricksdict(cm)
         if bricksdict is None:
             return
-        keys_to_update = [k for k in bricksdict if bricksdict[k]["type"] == "CUSTOM " + self.target_prop[-1]]
+        keys_to_update = set(k for k in bricksdict if bricksdict[k]["type"] == "CUSTOM " + self.target_prop[-1])
         if len(keys_to_update) != 0:
             draw_updated_bricks(cm, bricksdict, keys_to_update)
 

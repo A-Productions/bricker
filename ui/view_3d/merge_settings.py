@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -27,6 +27,7 @@ from bpy.props import *
 # Module imports
 from ..created_model_uilist import *
 from ..matslot_uilist import *
+from ..panel_info import *
 from ...lib.caches import cache_exists
 from ...operators.revert_settings import *
 from ...operators.brickify import *
@@ -34,14 +35,10 @@ from ...functions import *
 from ... import addon_updater_ops
 
 
-class VIEW3D_PT_bricker_merge_settings(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_merge_settings(BrickerPanel, Panel):
     bl_label       = "Merging"
     bl_idname      = "VIEW3D_PT_bricker_merge_settings"
     bl_parent_id   = "VIEW3D_PT_bricker_model_settings"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -67,21 +64,26 @@ class VIEW3D_PT_bricker_merge_settings(Panel):
         if cm.merge_type == "RANDOM":
             col = layout.column(align=True)
             col.prop(cm, "merge_seed")
-            col.prop(cm, "connect_thresh")
+            internals_exist = cm.shell_thickness > 1 and cm.calc_internals
+            row = col.row()
+            row.prop(cm, "connect_thresh")
+            if bpy.props.bricker_developer_mode > 0:
+                col = layout.column(align=False)
+                col.prop(cm, "post_merging")
+                col.prop(cm, "post_hollowing")
+                if cm.post_hollowing:
+                    col.prop(cm, "post_hollow_subgraph_radius")
+                right_align(col)
         if cm.shell_thickness > 1:
             col = layout.column(align=True)
             col.label(text="Merge Shell with Internals:")
             col.prop(cm, "merge_internals", text="")
 
 
-class VIEW3D_PT_bricker_merge_alignment(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI" if b280() else "TOOLS"
-    bl_category    = "Bricker"
+class VIEW3D_PT_bricker_merge_alignment(BrickerPanel, Panel):
     bl_label       = "Alignment"
     bl_idname      = "VIEW3D_PT_bricker_merge_alignment"
     bl_parent_id   = "VIEW3D_PT_bricker_merge_settings"
-    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod

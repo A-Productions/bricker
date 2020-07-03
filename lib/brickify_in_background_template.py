@@ -55,4 +55,6 @@ python_data = {
     "brick_sizes_used": cm.brick_sizes_used,
     "brick_types_used": cm.brick_types_used,
     "rgba_vals": cm.rgba_vals,
+    "disconnected_components": cm.disconnected_components,
+    "weak_points": cm.weak_points,
 }

@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -38,7 +38,7 @@ class BRICKER_OT_select_bricks_by_type(Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         return bpy.props.bricker_initialized and scn.cmlist_index != -1
 
     def execute(self, context):
@@ -58,10 +58,10 @@ class BRICKER_OT_select_bricks_by_type(Operator):
         layout = self.layout
         scn, cm, _ = get_active_context_info()
 
-        col = layout.column(align=True)
+        col = layout.column(align=False)
         right_align(col)
         col.prop(self, "brick_type")
-        if len(bpy.context.selected_objects) > 0:
+        if len(context.selected_objects) > 0:
             col.prop(self, "only")
         if len(scn.cmlist) > 1:
             col.prop(self, "all_models")
@@ -92,20 +92,27 @@ class BRICKER_OT_select_bricks_by_type(Operator):
     brick_type = bpy.props.EnumProperty(
         name="Type",
         description="Select all bricks of specified type",
-        items=get_items)
+        items=get_items,
+    )
     only = bpy.props.BoolProperty(
         name="Only",
         description="Select only bricks of given type",
-        default=False)
+        default=False,
+    )
     all_models = bpy.props.BoolProperty(
         name="All Models",
         description="Select bricks of given type from all models in file",
-        default=False)
+        default=False,
+    )
     include = bpy.props.EnumProperty(
         name="Include",
         description="Include bricks on shell, inside shell, or both",
-        items = [("EXT", "Externals", ""),
-                 ("INT", "Internals", ""),
-                 ("BOTH", "Both", "")])
+        items = [
+            ("EXT", "Externals", ""),
+            ("INT", "Internals", ""),
+            ("BOTH", "Both", "")
+        ],
+        default="BOTH",
+    )
 
     ###################################################

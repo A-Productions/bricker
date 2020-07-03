@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -18,8 +18,8 @@
 bl_info = {
     "name"        : "Bricker",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
-    "version"     : (2, 0, 1),
-    "blender"     : (2, 82, 0),
+    "version"     : (2, 1, 0),
+    "blender"     : (2, 83, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
     "warning"     : "Demo Version – Full version available at the Blender Market!",  # used for warning icon and text in addons panel

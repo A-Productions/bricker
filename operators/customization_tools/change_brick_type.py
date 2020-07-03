@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -41,8 +41,8 @@ class BRICKER_OT_change_brick_type(Operator):
     def poll(self, context):
         if not bpy.props.bricker_initialized:
             return False
-        scn = bpy.context.scene
-        objs = bpy.context.selected_objects
+        scn = context.scene
+        objs = context.selected_objects
         # check that at least 1 selected object is a brick
         for obj in objs:
             if not obj.is_brick:
@@ -53,10 +53,10 @@ class BRICKER_OT_change_brick_type(Operator):
         return False
 
     def execute(self, context):
-        wm = bpy.context.window_manager
+        wm = context.window_manager
         wm.bricker_running_blocking_operation = True
         try:
-            self.change_type()
+            self.change_type(context)
         except:
             bricker_handle_exception()
         wm.bricker_running_blocking_operation = False
@@ -140,18 +140,18 @@ class BRICKER_OT_change_brick_type(Operator):
     ###################################################
     # class methods
 
-    def change_type(self):
+    def change_type(self, context):
         # revert to last bricksdict
         self.undo_stack.match_python_to_blender_state()
         # push to undo stack
         if self.orig_undo_stack_length == self.undo_stack.get_length():
             self.undo_stack.undo_push("change_type", affected_ids=list(self.obj_names_dict.keys()))
-        scn = bpy.context.scene
+        scn = context.scene
         legal_brick_sizes = bpy.props.bricker_legal_brick_sizes
         # get original active and selected objects
-        active_obj = bpy.context.active_object
+        active_obj = context.active_object
         initial_active_obj_name = active_obj.name if active_obj else ""
-        selected_objects = bpy.context.selected_objects
+        selected_objects = context.selected_objects
         obj_names_to_select = []
         bricks_were_generated = False
         # only reference self.brick_type once (runs get_items)
@@ -217,15 +217,15 @@ class BRICKER_OT_change_brick_type(Operator):
                 b_and_p_brick = flat_brick_type(brick_type) and size[2] == 3
 
                 # verify exposure above and below
-                brick_locs = get_locs_in_brick(bricksdict, size, cm.zstep, dloc)
+                brick_locs = get_locs_in_brick(size, cm.zstep, dloc)
                 for cur_loc in brick_locs:
                     bricksdict = verify_all_brick_exposures(scn, cm.zstep, cur_loc, bricksdict, decriment=3 if b_and_p_brick else 1)
                     # add bricks to keys_to_update
-                    keys_to_update |= set([get_parent_key(bricksdict, list_to_str((x0 + x, y0 + y, z0 + z))) for z in (-1, 0, 3 if b_and_p_brick else 1) for y in range(size[1]) for x in range(size[0])])
+                    keys_to_update |= set(get_parent_key(bricksdict, list_to_str((x0 + x, y0 + y, z0 + z))) for z in (-1, 0, 3 if b_and_p_brick else 1) for y in range(size[1]) for x in range(size[0]))
                 obj_names_to_select += [bricksdict[list_to_str(loc)]["name"] for loc in brick_locs]
 
-            # remove null keys
-            keys_to_update = [x for x in keys_to_update if x != None]
+            # remove null key if present
+            keys_to_update.discard(None)
             # if something was updated, set bricks_were_generated
             bricks_were_generated = bricks_were_generated or len(keys_to_update) > 0
 

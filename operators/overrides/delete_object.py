@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -126,48 +126,36 @@ class OBJECT_OT_delete_override(Operator):
             if bricksdict is None:
                 self.report({"WARNING"}, "Adjacent bricks in model '" + cm.name + "' could not be updated (matrix not cached)")
                 continue
-            keys_to_update = []
             cm.customized = True
             # store cmlist props for quick calling
             last_split_model = cm.last_split_model
             zstep = cm.zstep
+            draw_threshold = get_threshold(cm)
+            keys_to_update = set()
 
             for obj_name in obj_names_dict[cm_id]:
                 # get dict key details of current obj
                 dkey = get_dict_key(obj_name)
-                x0, y0, z0 = get_dict_loc(bricksdict, dkey)
+                dloc = get_dict_loc(bricksdict, dkey)
                 # get size of current brick (e.g. [2, 4, 1])
                 obj_size = bricksdict[dkey]["size"]
 
                 # for all locations in bricksdict covered by current obj
-                for x in range(x0, x0 + obj_size[0]):
-                    for y in range(y0, y0 + obj_size[1]):
-                        for z in range(z0, z0 + (obj_size[2] // zstep)):
-                            cur_key = list_to_str((x, y, z))
-                            # make adjustments to adjacent bricks
-                            if prefs.auto_update_on_delete and last_split_model:
-                                self.update_adj_bricksdicts(bricksdict, zstep, cur_key, [x, y, z], keys_to_update)
-                            # reset bricksdict values
-                            cur_brick_d = bricksdict[cur_key]
-                            cur_brick_d["draw"] = False
-                            cur_brick_d["val"] = 0
-                            cur_brick_d["parent"] = None
-                            cur_brick_d["created_from"] = None
-                            cur_brick_d["flipped"] = False
-                            cur_brick_d["rotated"] = False
-                            cur_brick_d["top_exposed"] = False
-                            cur_brick_d["bot_exposed"] = False
+                keys_in_brick = get_keys_in_brick(bricksdict, obj_size, zstep, key=dkey, loc=dloc)
+                # reset bricksdict entries
+                reset_bricksdict_entries(bricksdict, keys_in_brick, force_outside=True)
+                # make adjustments to adjacent bricks
+                # if last_split_model:
+                keys_to_update |= self.update_adj_bricksdicts(bricksdict, zstep, dkey, dloc, draw_threshold, obj_size)[0]
             # dirty_build if it wasn't already
             last_build_is_dirty = cm.build_is_dirty
             if not last_build_is_dirty:
                 cm.build_is_dirty = True
             # merge and draw modified bricks
             if len(keys_to_update) > 0:
-                # split up bricks before draw_updated_bricks calls attempt_merge
-                keys_to_update = uniquify1(keys_to_update)
+                # split up bricks before draw_updated_bricks calls attempt_pre_merge
                 for k0 in keys_to_update.copy():
-                    keys_to_update += split_brick(bricksdict, k0, cm.zstep, cm.brick_type)
-                keys_to_update = uniquify1(keys_to_update)
+                    keys_to_update |= split_brick(bricksdict, k0, cm.zstep, cm.brick_type)
                 # remove duplicate keys from the list and delete those objects
                 for k2 in keys_to_update:
                     brick = bpy.data.objects.get(bricksdict[k2]["name"])
@@ -193,7 +181,7 @@ class OBJECT_OT_delete_override(Operator):
             if obj is None:
                 continue
             if obj.is_brickified_object or obj.is_brick:
-                self.delete_brick_object(obj, update_model, use_global)
+                self.delete_brick_object(context, obj, update_model, use_global)
             elif not obj.protected:
                 obj_users_scene = len(obj.users_scene)
                 if use_global or obj_users_scene == 1:
@@ -207,50 +195,41 @@ class OBJECT_OT_delete_override(Operator):
         return protected
 
     @staticmethod
-    def update_adj_bricksdicts(bricksdict, zstep, cur_key, cur_loc, keys_to_update):
-        x, y, z = cur_loc
-        new_bricks = []
-        brick_d = bricksdict[cur_key]
-        adj_keys = get_adj_keys_and_brick_vals(bricksdict, key=cur_key)[0]
-        # set adjacent bricks to shell if deleted brick was on shell
-        for k0 in adj_keys:
+    def update_adj_bricksdicts(bricksdict, zstep, key, loc, draw_threshold, brick_size=[1, 1, 1]):
+        keys_to_update = set()
+        new_bricks = set()
+        brick_d = bricksdict[key]
+        # get all adjacent keys not on outside
+        neighbor_keys_v = get_keys_neighboring_brick(bricksdict, brick_size, zstep, loc, check_horizontally=False)
+        neighbor_keys_h = get_keys_neighboring_brick(bricksdict, brick_size, zstep, loc, check_vertically=False)
+        neighbor_keys = set(k for k in neighbor_keys_h.union(neighbor_keys_v) if bricksdict[k]["val"] != 0)
+        # adj_keys = get_adj_keys(bricksdict, key=key)
+        # update all vals for adj keys onward, recursively
+        updated_keys = update_vals_linear(bricksdict, neighbor_keys)
+        # draw new bricks that are now on the shell
+        for k0 in updated_keys:
             brick_d0 = bricksdict[k0]
-            if brick_d0["val"] != 0:  # if adjacent brick not outside
-                brick_d0["val"] = 1
-                if not brick_d0["draw"]:
-                    brick_d0["draw"] = True
-                    brick_d0["size"] = [1, 1, zstep]
-                    brick_d0["parent"] = "self"
-                    brick_d0["type"] = brick_d["type"]
-                    brick_d0["flipped"] = brick_d["flipped"]
-                    brick_d0["rotated"] = brick_d["rotated"]
-                    brick_d0["mat_name"] = brick_d["mat_name"]
-                    brick_d0["near_face"] = brick_d["near_face"]
-                    ni = brick_d["near_intersection"]
-                    brick_d0["near_intersection"] = tuple(ni) if type(ni) in [list, tuple] else ni
-                    # add key to list for drawing
-                    keys_to_update.append(k0)
-                    new_bricks.append(k0)
-        # top of bricks below are now exposed
-        k0 = list_to_str((x, y, z - 1))
-        if k0 in bricksdict and bricksdict[k0]["draw"]:
-            k1 = k0 if bricksdict[k0]["parent"] == "self" else bricksdict[k0]["parent"]
-            if not bricksdict[k1]["top_exposed"]:
-                bricksdict[k1]["top_exposed"] = True
+            if not brick_d0["draw"] and brick_d0["val"] >= draw_threshold:
+                brick_d0["draw"] = True
+                brick_d0["size"] = [1, 1, zstep]
+                brick_d0["parent"] = "self"
+                brick_d0["type"] = brick_d["type"]
+                brick_d0["flipped"] = brick_d["flipped"]
+                brick_d0["rotated"] = brick_d["rotated"]
+                brick_d0["mat_name"] = brick_d["mat_name"]
+                brick_d0["near_face"] = brick_d["near_face"]
+                ni = brick_d["near_intersection"]
+                brick_d0["near_intersection"] = tuple(ni) if type(ni) in [list, tuple] else ni
                 # add key to list for drawing
-                keys_to_update.append(k1)
-        # bottom of bricks above are now exposed
-        k0 = list_to_str((x, y, z + 1))
-        if k0 in bricksdict and bricksdict[k0]["draw"]:
-            k1 = k0 if bricksdict[k0]["parent"] == "self" else bricksdict[k0]["parent"]
-            if not bricksdict[k1]["bot_exposed"]:
-                bricksdict[k1]["bot_exposed"] = True
-                # add key to list for drawing
-                keys_to_update.append(k1)
+                keys_to_update.add(k0)
+                new_bricks.add(k0)
+        # add neighboring bricks to keys_to_update as their exposure must be re-evaluated
+        keys_to_update |= get_neighboring_bricks(bricksdict, brick_size, zstep, loc, check_horizontally=False)
+        # return keys updated and new_bricks
         return keys_to_update, new_bricks
 
-    def delete_brick_object(self, obj, update_model=True, use_global=False):
-        scn = bpy.context.scene
+    def delete_brick_object(self, context, obj, update_model=True, use_global=False):
+        scn = context.scene
         cm = None
         for cm_cur in scn.cmlist:
             n = get_source_name(cm_cur)
@@ -266,7 +245,7 @@ class OBJECT_OT_delete_override(Operator):
                     break
         if cm and update_model:
             BRICKER_OT_delete_model.run_full_delete(cm=cm)
-            deselect(bpy.context.active_object)
+            deselect(context.active_object)
         else:
             obj_users_scene = len(obj.users_scene)
             if use_global or obj_users_scene == 1:

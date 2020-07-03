@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -90,6 +90,13 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         min=0, max=5,
         default=5,
     )
+    step_frame = IntProperty(
+        name="Step",
+        description="Number of frames to skip forward when generating the brick animation",
+        update=dirty_anim,
+        min=0, max=500000,
+        default=1,
+    )
 
     # BASIC MODEL SETTINGS
     brick_height = FloatProperty(
@@ -122,10 +129,28 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     )
     connect_thresh = IntProperty(
         name="Connectivity",
-        description="Quality of the model's brick connectivity (higher numbers are slower but bricks will be more interconnected)",
+        description="Max number of iterations to improve structural stability (higher numbers are slower but bricks will be more interconnected)",
         update=dirty_build,
         min=1, max=1,
         default=1,
+    )
+    post_merging = BoolProperty(
+        name="Post-Merging",
+        description="Merge bricks after initial merge attempt while maintaining structural integrity",
+        update=dirty_build,
+        default=False,
+    )
+    post_hollowing = BoolProperty(
+        name="Post-Hollowing",
+        description="Remove bricks from the interior after merging if they don't add structural integrity",
+        update=dirty_build,
+        default=False,
+    )
+    post_hollow_subgraph_radius = IntProperty(
+        name="Subgraph Radius",
+        description="Distance over which to analyze connected components (higher values remove more bricks but are slower and may weaken model)",
+        update=dirty_build,
+        default=3,
     )
     smoke_density = FloatProperty(
         name="Smoke Density",
@@ -391,6 +416,13 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirty_build,
         default=4,
     )
+    blur_radius = IntProperty(
+        name="Blur Radius",
+        description="Distance over which to blur the image before sampling",
+        min=0, max=10,
+        update=dirty_build,
+        default=0,  # 1
+    )
     color_snap_specular = FloatProperty(
         name="Specular",
         description="Specular value for the created materials",
@@ -473,11 +505,19 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirty_material,
         default=1,
     )
-    target_material = StringProperty(
+    target_material = PointerProperty(
         name="Target Material",
+        type=bpy.types.Material,
         description="Add material to materials list",
         update=add_material_to_list,
+    )
+    target_material_message = StringProperty(
+        description="Message from target material chosen (warning or success)",
         default="",
+    )
+    target_material_time = StringProperty(  # stored as string because float cuts off digits
+        description="'str(time.time())' from when the material message was created",
+        default="0",
     )
 
     # BRICK DETAIL SETTINGS
@@ -762,6 +802,19 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         precision=6,
         default=(0, 0, 0),
     )
+    disconnected_components = IntProperty(
+        name="Disconnected Components",
+        description="Disconnected components in the model (if 0, all bricks are connected)",
+        subtype="FACTOR",
+        min=0,
+        default=0,
+    )
+    weak_points = IntProperty(
+        name="Weak Points",
+        description="Weak points in the structural integrity of the brick model",
+        min=0,
+        default=0,
+    )
     # real_world_dimensions = FloatVectorProperty(unit="LENGTH", default=(-1, -1, -1))
 
     # Properties for checking of model needs updating
@@ -776,19 +829,25 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     last_logo_type = StringProperty(default="NONE")
     last_split_model = BoolProperty(default=False)
     last_start_frame = IntProperty(
-        name="S (cur)",
+        name="Last Start",
         description="Current start frame of brickified animation",
         default=-1,
     )
     last_stop_frame = IntProperty(
-        name="E (cur)",
+        name="Last End",
         description="Current end frame of brickified animation",
+        default=-1,
+    )
+    last_step_frame = IntProperty(
+        name="Last Step",
+        description="Current number of frames to skip forward when generating brickified animation",
         default=-1,
     )
     last_source_mid = StringProperty(default="-1,-1,-1")
     last_material_type = StringProperty(default="SOURCE")
     last_use_abs_template = BoolProperty(default=False)
     last_shell_thickness = IntProperty(default=1)
+    last_post_hollowing = BoolProperty(default=False)
     last_internal_supports = StringProperty(default="NONE")
     last_brick_type = StringProperty(default="BRICKS")
     last_instance_method = StringProperty(default="LINK_DATA")

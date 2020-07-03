@@ -21,7 +21,7 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 from os.path import join, dirname, basename
 import numpy as np
 import time
-import types
+import types as py_types
 
 # Blender imports
 import bpy
@@ -31,7 +31,7 @@ from mathutils import Vector, Color
 
 # Module imports
 from .blender import link_object
-from .color_effects import *
+from .images import *
 from .maths import *
 from .paths import *
 from .python_utils import *
@@ -41,7 +41,7 @@ from .reporting import stopwatch
 class Vector2:
     """ Implementation of the mathutils 'Vector' data type that supports double precision """
     def __init__(self, value=(0, 0, 0)):
-        assert type(value) in (tuple, list, Vector, Vector2, types.GeneratorType, bpy_prop_array)
+        assert type(value) in (tuple, list, Vector, Vector2, py_types.GeneratorType, bpy_prop_array)
         if type(value) in (Vector, Color, bpy_prop_array):
             self._seq = [round(i, 6) for i in value]
         else:
@@ -50,17 +50,26 @@ class Vector2:
     def __str__(self):
         return "<Vector2(" + str(tuple(self._seq)) + ")>"
 
+    def __neg__(self):
+        return Vector2([-i for i in self._seq])
+
+    def __pos__(self):
+        return self.copy()
+
+    def __abs__(self):
+        return Vector2([abs(i) for i in self._seq])
+
     def __add__(self, other):
         new_vec = Vector2(self.to_list())
         if type(other) in (Vector2, Vector):
             assert len(self) == len(other)
             for i in range(len(new_vec)):
                 new_vec[i] += other[i]
-        elif type(other) in (int, float):
+        elif type(other) in (float, int):
             for i in range(len(new_vec)):
                 new_vec[i] += other
         else:
-            raise Exception("Vector2 addition: (Vector2 and {}) invalid type for this operation")
+            raise Exception("Vector2 addition: (Vector2 and {}) invalid type for this operation").format(type(other))
         return new_vec
 
     def __sub__(self, other):
@@ -69,11 +78,11 @@ class Vector2:
             assert len(self) == len(other)
             for i in range(len(new_vec)):
                 new_vec[i] -= other[i]
-        elif type(other) in (int, float):
+        elif type(other) in (float, int):
             for i in range(len(new_vec)):
                 new_vec[i] -= other
         else:
-            raise Exception("Vector2 subtraction: (Vector2 and {}) invalid type for this operation")
+            raise Exception("Vector2 subtraction: (Vector2 and {}) invalid type for this operation").format(type(other))
         return new_vec
 
     def __mul__(self, other):
@@ -82,11 +91,11 @@ class Vector2:
             assert len(self) == len(other)
             for i in range(len(new_vec)):
                 new_vec[i] *= other[i]
-        elif type(other) in (int, float):
+        elif type(other) in (float, int):
             for i in range(len(new_vec)):
                 new_vec[i] *= other
         else:
-            raise Exception("Vector2 multiplication: (Vector2 and {}) invalid type for this operation")
+            raise Exception("Vector2 multiplication: (Vector2 and {}) invalid type for this operation").format(type(other))
         return new_vec
 
     def __div__(self, other):
@@ -134,14 +143,25 @@ class Vector2:
         else:
             raise StopIteration
 
-    def length(self):
-        return len(self._seq)
-
     def to_list(self):
         return self._seq.copy()
 
     def to_tuple(self):
         return tuple(self._seq)
+
+    def to_3d(self):
+        if self.length == 2:
+            return Vector2(self._seq + [0])
+        else:
+            return Vector2(self._seq[:3])
+
+    def dot(self, vec):
+        assert len(vec) == len(self._seq)
+        return sum(i[0] * i[1] for i in zip(self._seq, vec))
+
+    @property
+    def length(self):
+        return math.sqrt(sum([v**2 for v in self._seq]))
 
     @property
     def x(self):
@@ -165,7 +185,7 @@ class Vector2:
             raise AttributeErorr("unavailable on 2d vector")
         return self._seq[2]
 
-    @y.setter
+    @z.setter
     def z(self, value):
         self._seq[2] = value
 
@@ -177,6 +197,15 @@ class Vector2:
     def xy(self, value):
         self.x = value[0]
         self.y = value[1]
+
+    @property
+    def yx(self):
+        return Vector2(self._seq[1::-1])
+
+    @yx.setter
+    def yx(self, value):
+        self.y = value[0]
+        self.x = value[1]
 
 
 class Island:
@@ -212,7 +241,7 @@ class Island:
     def type(self):
         return self._type
 
-    def to_bmesh(self, face=True, bme=None):
+    def to_bmesh(self, bme=None, face=True):
         bme = bme or bmesh.new()
         verts = list()
         for coord in self._coords:
@@ -355,7 +384,6 @@ class ArchipelagoSequence:
 class MyImage:
     """ data type for storing and manipulating images with real-world dimensions """
     def __init__(self, pixels, size=(1, 1), name="Image", dimensions=None, channels=None, display_aspect=(1, 1), file_extension=".png"):
-        assert channels and type(channels) in (int, None) and channels in (None, 1, 3, 4)
         assert size and size[0] > 0 and size[1] > 0
         self._name = name
         self.pixels = pixels
@@ -363,6 +391,7 @@ class MyImage:
         self.dimensions = dimensions
         self._display_aspect = display_aspect
         self._channels = channels or len(self.pixels) // (size[0] * size[1])
+        assert self._channels and type(self._channels) in (int, None) and self._channels in (None, 1, 3, 4)
         self._file_extension = file_extension
 
     def __str__(self):
@@ -396,7 +425,7 @@ class MyImage:
 
     @pixels.setter
     def pixels(self, value):
-        if type(value) in (tuple, list, bpy.types.bpy_prop_array):
+        if type(value) in (tuple, list, Color, bpy.types.bpy_prop_array):
             self._pixels = np.array(value)
         elif isinstance(value, np.ndarray):
             self._pixels = value
@@ -453,15 +482,15 @@ class MyImage:
         if space == "RELATIVE":
             translate_x = round(translate_x * self.size[0])
             translate_y = round(translate_y * self.size[1])
-        elif space == "DIMENSIONS":
+        elif space == "METRIC":
             translate_x = round(translate_x * (self.size[0] / self.dimensions[0]))
-            translate_y = round(translate_y * (self.size[1] / self.dimensions[0]))
+            translate_y = round(translate_y * (self.size[1] / self.dimensions[1]))
         elif space == "PIXELS":
             translate_x = round(translate_x)
             translate_y = round(translate_y)
         # expand the canvas if necessary
         if expand_canvas:
-            self.pad_to_size(new_size=(self.size[0] + abs(translate_x) * 2, self.size[1] + abs(translate_y) * 2))
+            self.pad_to_size(width=self.size[0] + abs(translate_x) * 2, height=self.size[1] + abs(translate_y) * 2)
         # translate the pixels
         old_pixels = self._pixels
         pixels = translate_pixels(old_pixels, translate_x, translate_y, wrap_x, wrap_y, self.size[0], self.size[1], self.channels)
@@ -480,11 +509,12 @@ class MyImage:
         old_pixels = self._pixels
         old_size = np.array(self.size)
         if preserve_canvas:
-            pixels = resize_pixels_preserve_canvas(new_size, self._channels, old_pixels, old_size)
+            pixels = resize_pixels_preserve_borders(new_size, self._channels, old_pixels, old_size)
         else:
             pixels = resize_pixels(new_size, self._channels, old_pixels, old_size)
         self.pixels = pixels
         if not preserve_canvas:
+            self.dimensions = vec_mult(self.dimensions, new_size / self.size)
             self.size = new_size
 
     def crop(self, width=None, height=None):
@@ -499,7 +529,7 @@ class MyImage:
         self.pixels = pixels
         self.size = new_size
 
-    def pad_to_size(self, width=None, height=None, fill=0):
+    def pad_to_size(self, width=None, height=None):
         if width is None:
             width = self.size[0]
         if height is None:
@@ -509,10 +539,7 @@ class MyImage:
         new_size = np.array((width, height))
         old_pixels = self._pixels
         old_size = np.array(self.size)
-        self.pixels = pad_pixels(new_size, self._channels, old_pixels, old_size, fill)
-        # print(len(pixels))
-        # self.pixels = np.pad(old_pixels, new_size[0] * new_size[1])
-        # print(len(self.pixels))
+        self.pixels = pad_pixels(new_size, self._channels, old_pixels, old_size)
         self.dimensions = vec_mult(self.dimensions, new_size / self.size)
         self.size = new_size
 
@@ -655,6 +682,9 @@ class MyImage:
     def clamp(self, minimum=0, maximum=1):
         self.pixels = clamp_pixels(self._pixels, minimum, maximum)
 
+    def normalize(self):
+        self.pixels = normalize_pixels(self._pixels)
+
     def math_operation(self, operation, value, clamp=False):
         self.pixels = math_operation_on_pixels(self._pixels, operation, value, clamp)
 
@@ -670,6 +700,11 @@ class MyImage:
 
     def invert(self, factor=1):
         self.pixels = invert_pixels(self._pixels, factor, channels=self._channels)
+
+    def blur(self, radius, filter_type="FLAT", expand_canvas=False):
+        if expand_canvas:
+            self.pad_to_size(width=self.size[0] + radius[0] * 4, height=self.size[1] + radius[1] * 4)
+        self.pixels = blur_pixels(self._pixels, self.size[0], self.size[1], channels=self._channels, blur_radius=radius, filter_type=filter_type)
 
     def dilate(self, pixel_dist:tuple, threshold:float, mode:str="STEP"):  # method: STEP, DISTANCE
         self.set_channels(1)
@@ -838,6 +873,10 @@ class MyImageSequence:
         for im in self.images:
             im.clamp(im, minimum, maximum)
 
+    def normalize(self):
+        for im in self.images:
+            im.normalize(im)
+
     def math_operation(self, operation, value, clamp=False):
         for im in self.images:
             im.math_operation(im, operation, value, clamp)
@@ -853,6 +892,10 @@ class MyImageSequence:
     def invert(self, factor=1):
         for im in self.images:
             im.invert(factor)
+
+    def blur(self, radius, filter_type="FLAT", expand_canvas=False):
+        for im in self.images:
+            im.blur(radius, filter_type, expand_canvas)
 
     def dilate(self, pixel_dist:tuple, threshold:float, mode:str="STEP"):
         for im in self.images:

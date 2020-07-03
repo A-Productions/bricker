@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -27,11 +27,11 @@ from bpy.types import Object
 from mathutils import Matrix, Vector
 
 # Module imports
+from .generate_lattice import generate_lattice
 from ..common import *
 from ..general import *
 from ..colors import *
 from ..mat_utils import *
-from ..generate_lattice import generate_lattice
 from ..smoke_sim import *
 from ..brick import *
 
@@ -233,26 +233,21 @@ def add_lattice_supports(bricksdict, keys, step, height, alternate_xy):
         elif y % step == 0 and (not alternate_xy or z0 == 1):
             brick_d["draw"] = True
 
-def update_internal(bricksdict, cm, keys="ALL", clear_existing=False):
+def update_internal(bricksdict, cm, keys, clear_existing=False):
     """ update bricksdict internal entries
     cm            -- active cmlist object
     bricksdict    -- dictionary with brick information at each lattice coordinate
     keys          -- keys to test in bricksdict
     clear_existing -- set draw for all internal bricks to False before adding supports
     """
-    if keys == "ALL":
-        keys = bricksdict.keys()
-        brick_ds = bricksdict.values()
-    else:
-        brick_ds = [bricksdict[k] for k in keys]
     # clear extisting internal structure
     if clear_existing:
         # set all bricks as unmerged
         split_bricks(bricksdict, cm.zstep, keys)
         # clear internal
-        for brick_d in brick_ds:
-            if is_internal(brick_d):
-                brick_d["draw"] = False
+        for k in keys:
+            if is_internal(bricksdict[k]):
+                bricksdict[k]["draw"] = False
     # Draw column supports
     if cm.internal_supports == "COLUMNS":
         add_column_supports(bricksdict, keys, cm.col_thickness, cm.col_step)
@@ -581,6 +576,7 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
                 surrounded = False
             if surrounded:
                 brick_freq_matrix[x][y][z] = -1
+                face_idx_matrix[x][y][z] = 0
             else:
                 shell_vals.append((x, y, z))
 
@@ -589,7 +585,7 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
     j = 1
     set_nf = True
     for i in range(50):
-        j = round(j-0.01, 2)
+        j = j - 0.01
         got_one = False
         new_shell_vals = []
         if set_nf:
@@ -617,63 +613,66 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
         shell_vals = new_shell_vals
 
 
-def getThreshold(cm):
+def get_threshold(cm):
     """ returns threshold (draw bricks if returned val >= threshold) """
     return 1.01 - (cm.shell_thickness / 100)
 
 
-def create_bricksdict_entry(name:str, loc:list, val:float=0, draw:bool=False, co:tuple=(0, 0, 0), near_face:int=None, near_intersection:str=None, near_normal:tuple=None, rgba:tuple=None, mat_name:str="", custom_mat_name:bool=False, parent:str=None, size:list=None, attempted_merge:bool=False, top_exposed:bool=None, bot_exposed:bool=None, obscures:list=[False]*6, b_type:str=None, flipped:bool=False, rotated:bool=False, created_from:str=None):
+def create_bricksdict_entry(name:str, loc:list, val:float=0, draw:bool=False, co:tuple=(0, 0, 0), near_face:int=None, near_intersection:str=None, near_normal:tuple=None, rgba:tuple=None, mat_name:str="", custom_mat_name:bool=False, parent:str=None, size:list=None, attempted_merge:bool=False, available_for_merge:bool=False, top_exposed:bool=None, bot_exposed:bool=None, obscures:list=[False]*6, b_type:str=None, flipped:bool=False, rotated:bool=False, created_from:str=None):
     """
     create an entry in the dictionary of brick locations
 
     Keyword Arguments:
-    name              -- name of the brick object
-    loc               -- str_to_list(key)
-    val               -- location of brick in model (0: outside of model, 0.00-1.00: number of bricks away from shell / 100, 1: on shell)
-    draw              -- draw the brick in 3D space
-    co                -- 1x1 brick centered at this location
-    near_face         -- index of nearest face intersection with source mesh
-    near_intersection -- coordinate location of nearest intersection with source mesh
-    near_normal       -- normal of the nearest face intersection
-    rgba              -- [red, green, blue, alpha] values of brick color
-    mat_name          -- name of material attributed to bricks at this location
-    custom_mat_name   -- mat_name was set with 'Change Material' customization tool
-    parent            -- key into brick dictionary with information about the parent brick merged with this one
-    size              -- 3D size of brick (e.g. standard 2x4 brick -> [2, 4, 3])
-    attempted_merge   -- attempt has been made in make_bricks function to merge this brick with nearby bricks
-    top_exposed       -- top of brick is visible to camera
-    bot_exposed       -- bottom of brick is visible to camera
-    obscures          -- obscures neighboring locations [+z, -z, +x, -x, +y, -y]
-    type              -- type of brick
-    flipped           -- brick is flipped over non-mirrored axis
-    rotated           -- brick is rotated 90 degrees about the Z axis
-    created_from      -- key of brick this brick was created from in draw_adjacent
+    name                -- name of the brick object
+    loc                 -- str_to_list(key)
+    val                 -- location of brick in model (0: outside of model, 0.00-1.00: number of bricks away from shell / 100, 1: on shell)
+    draw                -- draw the brick in 3D space
+    co                  -- 1x1 brick centered at this location
+    near_face           -- index of nearest face intersection with source mesh
+    near_intersection   -- coordinate location of nearest intersection with source mesh
+    near_normal         -- normal of the nearest face intersection
+    rgba                -- [red, green, blue, alpha] values of brick color
+    mat_name            -- name of material attributed to bricks at this location
+    custom_mat_name     -- mat_name was set with 'Change Material' customization tool
+    parent              -- key into brick dictionary with information about the parent brick merged with this one
+    size                -- 3D size of FULL brick (e.g. standard 2x4 brick -> [2, 4, 3])
+    attempted_merge     -- successful attempt has been made in make_bricks function to merge this brick with nearby bricks
+    available_for_merge -- brick needs to be merged
+    top_exposed         -- top of FULL brick is visible to camera
+    bot_exposed         -- bottom of FULL brick is visible to camera
+    obscures            -- obscures neighboring locations [+z, -z, +x, -x, +y, -y]
+    type                -- type of brick
+    flipped             -- brick is flipped over non-mirrored axis
+    rotated             -- brick is rotated 90 degrees about the Z axis
+    created_from        -- key of brick this brick was created from in draw_adjacent
 
     """
-    return {"name": name,
-            "loc": loc,
-            "val": val,
-            "draw": draw,
-            "co": co,
-            "near_face": near_face,
-            "near_intersection": near_intersection,
-            "near_normal": near_normal,
-            "rgba": rgba,
-            "mat_name": mat_name,
-            "custom_mat_name": custom_mat_name,
-            "parent": parent,
-            "size": size,
-            "attempted_merge": attempted_merge,
-            "top_exposed": top_exposed,
-            "bot_exposed": bot_exposed,
-            "obscures": obscures,
-            "type": b_type,
-            "flipped": flipped,
-            "rotated": rotated,
-            "created_from": created_from,
-           }
+    return {
+        "name": name,
+        "loc": loc,
+        "val": val,
+        "draw": draw,
+        "co": co,
+        "near_face": near_face,
+        "near_intersection": near_intersection,
+        "near_normal": near_normal,
+        "rgba": rgba,
+        "mat_name": mat_name,
+        "custom_mat_name": custom_mat_name,
+        "parent": parent,
+        "size": size,
+        "attempted_merge": attempted_merge,
+        "available_for_merge": available_for_merge,
+        "top_exposed": top_exposed,
+        "bot_exposed": bot_exposed,
+        "obscures": obscures,
+        "type": b_type,
+        "flipped": flipped,
+        "rotated": rotated,
+        "created_from": created_from,
+    }
 
-@timed_call("Time Elapsed")
+@timed_call()
 def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
     """ make dictionary with brick information at each coordinate of lattice surrounding source
     source         -- source object to construct lattice around
@@ -708,7 +707,7 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
 
     # create bricks dictionary with brick_freq_matrix values
     bricksdict = {}
-    threshold = getThreshold(cm)
+    threshold = get_threshold(cm)
     brick_type = cm.brick_type  # prevents cm.brick_type update function from running over and over in for loop
     uv_image = cm.uv_image
     build_is_dirty = cm.build_is_dirty
@@ -731,6 +730,8 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
                 nf = face_idx_matrix[x][y][z]["idx"] if type(face_idx_matrix[x][y][z]) == dict else None
                 ni = face_idx_matrix[x][y][z]["loc"].to_tuple() if type(face_idx_matrix[x][y][z]) == dict else None
                 nn = face_idx_matrix[x][y][z]["normal"] if type(face_idx_matrix[x][y][z]) == dict else None
+                val = round(brick_freq_matrix[x][y][z], 2)
+                draw = val >= threshold
                 norm_dir = get_normal_direction(nn, slopes=True)
                 b_type = get_brick_type(brick_type)
                 flipped, rotated = get_flip_rot("" if norm_dir is None else norm_dir[1:])
@@ -740,12 +741,11 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
                     rgba = get_uv_pixel_color(source, nf, ni if ni is None else Vector(ni), uv_image)
                 else:
                     rgba = (0, 0, 0, 1)
-                draw = brick_freq_matrix[x][y][z] >= threshold
                 # create bricksdict entry for current brick
                 bricksdict[b_key] = create_bricksdict_entry(
                     name= "Bricker_%(n)s__%(b_key)s" % locals(),
                     loc= [x, y, z],
-                    val= brick_freq_matrix[x][y][z],
+                    val= val,
                     draw= draw,
                     co= co,
                     near_face= nf,
@@ -760,12 +760,6 @@ def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
                 )
                 if build_is_dirty and draw:
                     drawn_keys.append(b_key)
-
-    # if build_is_dirty, this is done in draw_brick
-    if not cm.build_is_dirty:
-        # set exposure of brick locs
-        for key in drawn_keys:
-            set_brick_exposure(bricksdict, key)
 
     # return list of created Brick objects
     return bricksdict

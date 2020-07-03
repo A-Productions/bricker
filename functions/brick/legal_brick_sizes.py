@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -47,23 +47,23 @@ legal_bricks = {
             {"s":[2, 12], "pt":"2455", "wt":3.5},
             {"s":[2, 14], "pt":"91988", "wt":3.89},
             {"s":[2, 16], "pt":"4282", "wt":4.5},
-            {"s":[3, 3], "pt":"11212", "wt":1.25},
+            # {"s":[3, 3], "pt":"11212", "wt":1.25},  # too expensive ($0.10)
             {"s":[4, 4], "pt":"3031", "wt":2.22},
             {"s":[4, 6], "pt":"3032", "wt":3.3},
             {"s":[4, 8], "pt":"3035", "wt":4.7},
             {"s":[4, 10], "pt":"3030", "wt":5.55},
-            {"s":[4, 12], "pt":"3029", "wt":6.76},
+            # {"s":[4, 12], "pt":"3029", "wt":6.76},  # too expensive ($0.09)
             {"s":[6, 6], "pt":"3958", "wt":4.71},
             {"s":[6, 8], "pt":"3036", "wt":6.4},
             {"s":[6, 10], "pt":"3033", "wt":7.95},
             {"s":[6, 12], "pt":"3028", "wt":9.47},
             {"s":[6, 14], "pt":"3456", "wt":11},
-            {"s":[6, 16], "pt":"3027", "wt":13.27},
-            {"s":[6, 24], "pt":"3026", "wt":19.43},
+            # {"s":[6, 16], "pt":"3027", "wt":13.27},  # too expensive ($0.32)
+            # {"s":[6, 24], "pt":"3026", "wt":19.43},  # too expensive ($2.28)
             {"s":[8, 8], "pt":"41539", "wt":9.4},
-            {"s":[8, 11], "pt":"728", "wt":12.5},
-            {"s":[8, 16], "pt":"92438", "wt":17},
-            {"s":[16, 16], "pt":"91405", "wt":35},
+            # {"s":[8, 11], "pt":"728", "wt":12.5},  # super rare
+            # {"s":[8, 16], "pt":"92438", "wt":17},  # too expensive ($0.30)
+            # {"s":[16, 16], "pt":"91405", "wt":35},  # too expensive ($0.95)
         ],
         "TILE": [
             {"s":[1, 1], "pt":"3070b", "wt":0.16},
@@ -74,9 +74,9 @@ legal_bricks = {
             {"s":[1, 8], "pt":"4162", "wt":1.06},
             {"s":[2, 2], "pt":"3068b", "wt":0.48},
             {"s":[2, 4], "pt":"87079", "wt":0.9},
-            {"s":[3, 6], "pt":"6934", "wt":1.73},
-            {"s":[6, 6], "pt":"10202", "wt":3.3},
-            {"s":[8, 16], "pt":"48288", "wt":14},
+            # {"s":[3, 6], "pt":"6934", "wt":1.73},  # too expensive ($11.24)
+            # {"s":[6, 6], "pt":"10202", "wt":3.3},  # too expensive ($0.71)
+            # {"s":[8, 16], "pt":"48288", "wt":14},  # too expensive ($0.66)
         ],
         "STUD": [
             {"s":[1, 1], "pt":"4073", "wt":0.12},
@@ -112,24 +112,24 @@ legal_bricks = {
             {"s":[1, 4], "pt":"3010", "wt":1.64},
             {"s":[1, 6], "pt":"3009", "wt":2.42},
             {"s":[1, 8], "pt":"3008", "wt":3.21},
-            {"s":[1, 10], "pt":"6111", "wt":3.8},
+            # {"s":[1, 10], "pt":"6111", "wt":3.8},  # too expensive ($0.10)
             {"s":[1, 12], "pt":"6112", "wt":4.8},
-            {"s":[1, 16], "pt":"2465", "wt":6.2},
+            # {"s":[1, 16], "pt":"2465", "wt":6.2},  # too expensive ($0.19)
             {"s":[2, 2], "pt":"3003", "wt":1.35},
             {"s":[2, 3], "pt":"3002", "wt":1.92},
             {"s":[2, 4], "pt":"3001", "wt":2.32},
             {"s":[2, 6], "pt":"2456", "wt":3.74},
             {"s":[2, 8], "pt":"3007", "wt":4.75},
             {"s":[2, 10], "pt":"3006", "wt":5.75},
-            {"s":[4, 6], "pt":"2356", "wt":6.3},
-            {"s":[4, 10], "pt":"6212", "wt":9.5},
+            # {"s":[4, 6], "pt":"2356", "wt":6.3},  # too expensive ($0.38)
+            # {"s":[4, 10], "pt":"6212", "wt":9.5},  # too expensive ($0.20)
             {"s":[4, 12], "pt":"4202", "wt":11.5},
-            {"s":[4, 18], "pt":"30400", "wt":17.7},
-            {"s":[8, 8], "pt":"4201", "wt":16.3},
-            {"s":[8, 16], "pt":"4204", "wt":30.66},
+            # {"s":[4, 18], "pt":"30400", "wt":17.7},  # too expensive ($6.95)
+            # {"s":[8, 8], "pt":"4201", "wt":16.3},  # too expensive ($0.39)
+            {"s":[8, 16], "pt":"4204", "wt":30.66},  # too expensive ($1.73)
             # {"s":[10, 10], "pt":"733", "wt":},
             # {"s":[10, 20], "pt":"700b", "wt":},
-            {"s":[12, 24], "pt":"30072", "wt":61},
+            {"s":[12, 24], "pt":"30072", "wt":61},  # too expensive ($3.89)
         ],
         "SLOPE": [
             {"s":[1, 1], "pt":"54200", "wt":0.21},
@@ -226,16 +226,16 @@ def get_legal_bricks():
     return legal_bricks
 
 
-def get_types_obscuring_above():
-    return ["BRICK", "PLATE", "TILE", "STUD", "SLOPE_INVERTED"]
-
-
-def get_types_obscuring_below():
-    return ["BRICK", "PLATE", "TILE", "STUD", "SLOPE"]
+def get_obscuring_types(direction="BELOW"):
+    if direction == "BELOW":
+        return ["BRICK", "PLATE", "TILE", "STUD", "SLOPE"]
+    elif direction == "ABOVE":
+        return ["BRICK", "PLATE", "TILE", "STUD", "SLOPE_INVERTED"]
 
 
 def is_legal_brick_size(size, type):
     # access blender property for performance improvement over running 'get_legal_brick_sizes' every time
+    assert isinstance(size, list)
     return size[:2] in bpy.props.bricker_legal_brick_sizes[size[2]][type]
 
 def get_part(legal_bricks, size, typ):

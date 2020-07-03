@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -16,11 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
+import bmesh
 import collections
 import json
 import math
 import numpy as np
-import bmesh
 
 # Blender imports
 import bpy
@@ -32,8 +32,9 @@ from bpy.types import Object
 from .common import *
 
 
-def get_active_context_info(cm=None, cm_id=None):
-    scn = bpy.context.scene
+def get_active_context_info(context=None, cm=None, cm_id=None):
+    context = context or bpy.context
+    scn = context.scene
     cm = cm or scn.cmlist[scn.cmlist_index]
     return scn, cm, get_source_name(cm)
 
@@ -65,8 +66,10 @@ def center_mesh_origin(m, dimensions, size):
     m.transform(Matrix.Translation(-Vector(center)))
 
 
-def get_anim_adjusted_frame(frame, start_frame, stop_frame):
-    return min(stop_frame, max(start_frame, frame))
+def get_anim_adjusted_frame(frame, start_frame, stop_frame, step_frame=1):
+    clamped_frame = min(stop_frame, max(start_frame, frame))
+    adjusted_frame = clamped_frame - ((clamped_frame - start_frame) % step_frame)
+    return adjusted_frame
 
 
 def get_bricks(cm=None, typ=None):
@@ -79,7 +82,7 @@ def get_bricks(cm=None, typ=None):
         if bcoll:
             bricks = [obj for obj in bcoll.objects if not (obj.name.endswith("_parent") or "_parent_f_" in obj.name)]
     elif typ == "ANIM":
-        for cf in range(cm.last_start_frame, cm.last_stop_frame+1):
+        for cf in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
             bcoll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
             if bcoll:
                 bricks += [obj for obj in bcoll.objects if not (obj.name.endswith("_parent") or "_parent_f_" in obj.name)]
@@ -95,7 +98,7 @@ def get_collections(cm=None, typ=None):
         bcolls = [bpy_collections()[cn]]
     if typ == "ANIM":
         bcolls = list()
-        for cf in range(cm.last_start_frame, cm.last_stop_frame+1):
+        for cf in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
             cn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
             bcoll = bpy_collections().get(cn)
             if bcoll:
@@ -135,7 +138,7 @@ def matrix_really_is_dirty(cm, include_lost_matrix=True):
 
 
 def vec_to_str(vec, separate_by=","):
-    return list_to_str(list(vec), separate_by=separate_by)
+    return str(list_to_str(list(vec), separate_by=separate_by))
 
 
 def compress_rgba_vals(lst):
@@ -151,7 +154,7 @@ def decompress_rgba_vals(string, channels=4):
 
 
 def list_to_str(lst, separate_by=","):
-    assert type(lst) in (list, tuple)
+    # assert type(lst) in (list, tuple)
     return separate_by.join(map(str, lst))
 
 
@@ -282,31 +285,161 @@ def update_can_run(typ):
 
 
 # loc param is more efficient than key, but one or the other must be passed
-def get_locs_in_brick(bricksdict, size, zstep, loc:list=None, key:str=None):
-    x0, y0, z0 = loc or get_dict_loc(bricksdict, key)
+def get_locs_in_brick(size, zstep, loc):
+    x0, y0, z0 = loc
     return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0])]
+
+
+def get_lowest_locs_in_brick(size, loc):
+    x0, y0, z0 = loc
+    return [[x0 + x, y0 + y, z0] for y in range(size[1]) for x in range(size[0])]
+
+
+def get_highest_locs_in_brick(size, zstep, loc):
+    x0, y0, z0 = loc
+    # add last item in iterator to z0
+    for i in range(0, size[2], zstep):
+        pass
+    z0 += i
+    return [[x0 + x, y0 + y, z0] for y in range(size[1]) for x in range(size[0])]
+#
+#
+# def get_locs_neighboring_brick(size, zstep, loc):
+#     x0, y0, z0 = loc
+#     all_neighbor_locs = [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in set((-1, size[1])) for x in set((-1, size[0]))]
+#     existing_neighbor_locs = [l for l in all_neighbor_locs if
+#     return existing_neighbor_locs
+
+
+def get_outer_locs(size, zstep, loc):
+    x0, y0, z0 = loc
+    outer_locs = [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in set((0, size[1] - 1)) for x in set((0, size[0] - 1))]
+    return outer_locs
+
+
+def get_keys_neighboring_brick(bricksdict, size, zstep, loc, check_horizontally=True, check_vertically=True):
+    """ get keys where locs neighbor another for a given brick """
+    x0, y0, z0 = loc
+    neighbored_keys = set()
+
+    # if we're checking for horizontal neighbors
+    if check_horizontally:
+        # +x check
+        neighbored_keys |= set(list_to_str([x0 + size[0], y0 + y, z0 + z]) for z in range(0, size[2], zstep) for y in range(size[1]))
+        # -x check
+        neighbored_keys |= set(list_to_str([x0 - 1, y0 + y, z0 + z]) for z in range(0, size[2], zstep) for y in range(size[1]))
+        # +y check
+        neighbored_keys |= set(list_to_str([x0 + x, y0 + size[1], z0 + z]) for z in range(0, size[2], zstep) for x in range(size[0]))
+        # -y check
+        neighbored_keys |= set(list_to_str([x0 + x, y0 - 1, z0 + z]) for z in range(0, size[2], zstep) for x in range(size[0]))
+
+    # if we're checking for vertical neighbors
+    if check_vertically:
+        # +z check
+        neighbored_keys |= set(list_to_str([x0 + x, y0 + y, z0 + size[1]]) for y in range(0, size[1], zstep) for x in range(size[0]))
+        # -z check
+        neighbored_keys |= set(list_to_str([x0 + x, y0 + y, z0 - 1]) for y in range(0, size[1], zstep) for x in range(size[0]))
+
+    # only return keys in bricksdict
+    neighbored_keys = set(k for k in neighbored_keys if k in bricksdict)
+
+    return neighbored_keys
+
+
+# def get_neighbored_key_pairs(bricksdict, size, zstep, loc, check_vertically=False):
+#     """ get keys where locs neighbor another for a given brick """
+#     x0, y0, z0 = loc
+#     neighbored_keys = list()
+#     # +x check
+#     locs = [[x0 + size[0], y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1])]
+#     for loc0 in locs:
+#         key0 = list_to_str(loc0)
+#         if key0 in bricksdict:
+#             loc1 = [loc0[0] - 1, loc0[1], loc0[2]]
+#             key1 = list_to_str(loc1)
+#             neighbored_keys.append(key0, key1)
+#     # -x check
+#     locs = [[x0 - 1, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1])]
+#     for loc0 in locs:
+#         key0 = list_to_str(loc0)
+#         if key0 in bricksdict:
+#             loc1 = [loc0[0] + 1, loc0[1], loc0[2]]
+#             key1 = list_to_str(loc1)
+#             neighbored_keys.append(key0, key1)
+#     # +y check
+#     locs = [[x0 + x, y0 + size[1], z0 + z] for z in range(0, size[2], zstep) for x in range(size[0])]
+#     for loc0 in locs:
+#         key0 = list_to_str(loc0)
+#         if key0 in bricksdict:
+#             loc1 = [loc0[0], loc0[1] - 1, loc0[2]]
+#             key1 = list_to_str(loc1)
+#             neighbored_keys.append(key0, key1)
+#     # -y check
+#     locs = [[x0 + x, y0 - 1, z0 + z] for z in range(0, size[2], zstep) for x in range(size[0])]
+#     for loc0 in locs:
+#         key0 = list_to_str(loc0)
+#         if key0 in bricksdict:
+#             loc1 = [loc0[0], loc0[1] + 1, loc0[2]]
+#             key1 = list_to_str(loc1)
+#             neighbored_keys.append(key0, key1)
+#
+#     # if we're not checking for vertical neighbors, return early
+#     if not check_vertically:
+#         return neighbored_keys
+#
+#     # +z check
+#     locs = [[x0 + x, y0 + y, z0 + size[1]] for y in range(0, size[1], zstep) for x in range(size[0])]
+#     for loc0 in locs:
+#         key0 = list_to_str(loc0)
+#         if key0 in bricksdict:
+#             loc1 = [loc0[0], loc0[1], loc0[2] - 1]
+#             key1 = list_to_str(loc1)
+#             neighbored_keys.append(key0, key1)
+#     # -z check
+#     locs = [[x0 + x, y0 + y, z0 - 1] for y in range(0, size[1], zstep) for x in range(size[0])]
+#     for loc0 in locs:
+#         key0 = list_to_str(loc0)
+#         if key0 in bricksdict:
+#             loc1 = [loc0[0], loc0[1], loc0[2] + 1]
+#             key1 = list_to_str(loc1)
+#             neighbored_keys.append(key0, key1)
+#
+#     return neighbored_keys
+
+
+def get_neighboring_bricks(bricksdict, size, zstep, loc, check_horizontally=True, check_vertically=True):
+    neighboring_keys = get_keys_neighboring_brick(bricksdict, size, zstep, loc, check_horizontally, check_vertically)
+    neighboring_bricks = set()
+    for key in neighboring_keys:
+        parent_key = bricksdict[key]["parent"]
+        if parent_key == "self":
+            neighboring_bricks.add(key)
+        elif parent_key is not None:
+            neighboring_bricks.add(parent_key)
+    return neighboring_bricks
 
 
 # loc param is more efficient than key, but one or the other must be passed
 def get_keys_in_brick(bricksdict, size, zstep:int, loc:list=None, key:str=None):
     x0, y0, z0 = loc or get_dict_loc(bricksdict, key)
-    return [list_to_str((x0 + x, y0 + y, z0 + z)) for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0])]
+    return set(list_to_str((x0 + x, y0 + y, z0 + z)) for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0]))
 
 
-def get_keys_dict(bricksdict, keys=None):
+def get_keys_dict(bricksdict, keys=None, parents_only=False):
     """ get dictionary of bricksdict keys based on z value """
-    keys = keys or list(bricksdict.keys())
-    if len(keys) > 1:
-        keys.sort(key=lambda x: (get_dict_loc(bricksdict, x)[0], get_dict_loc(bricksdict, x)[1]))
+    keys = keys or set(bricksdict.keys())
+    # if len(keys) > 1:
+    #     keys.sort(key=lambda x: (get_dict_loc(bricksdict, x)[0], get_dict_loc(bricksdict, x)[1]))
     keys_dict = {}
     for k0 in keys:
-        if bricksdict[k0]["draw"]:
-            z = get_dict_loc(bricksdict, k0)[2]
-            if z in keys_dict:
-                keys_dict[z].append(k0)
-            else:
-                keys_dict[z] = [k0]
-    return keys_dict, keys
+        if not bricksdict[k0]["draw"] or (parents_only and bricksdict[k0]["parent"] != "self"):
+            continue
+        z = get_dict_loc(bricksdict, k0)[2]
+        if z in keys_dict:
+            keys_dict[z].add(k0)
+        else:
+            keys_dict[z] = {k0}  # initialize set
+    return keys_dict
 
 
 def get_parent_key(bricksdict, key):
@@ -357,7 +490,7 @@ def set_frame_visibility(cm, frame):
     cur_bricks_coll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
     if cur_bricks_coll is None:
         return
-    adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
+    adjusted_frame_current = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame, cm.last_step_frame)
     if b280():
         cur_bricks_coll.hide_viewport = frame != adjusted_frame_current
         cur_bricks_coll.hide_render   = frame != adjusted_frame_current

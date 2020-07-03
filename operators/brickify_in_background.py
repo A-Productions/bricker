@@ -46,12 +46,12 @@ class BRICKER_OT_brickify_in_background(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         return bpy.props.bricker_initialized and scn.cmlist_index != -1
 
     def execute(self, context):
         # get active context info
-        scn, cm, n = get_active_context_info()
+        scn, cm, n = get_active_context_info(context)
         # run brickify for current frame
         if "ANIM" in self.action:
             BRICKER_OT_brickify.brickify_current_frame(self.frame, self.action, in_background=True)
@@ -87,18 +87,18 @@ class BRICKER_OT_stop_brickifying_in_background(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         return bpy.props.bricker_initialized and scn.cmlist_index != -1
 
     def execute(self, context):
-        scn, cm, n = get_active_context_info()
+        scn, cm, n = get_active_context_info(context)
         cm.stop_background_process = True
         job_manager = JobManager.get_instance(cm.id)
         if "ANIM" in self.action and job_manager.num_completed_jobs() > 0:
             updated_stop_frame = False
             completed_frames = str_to_list(cm.completed_frames)
             # set end frame to last consecutive completed frame and toss non-consecutive frames
-            for frame in range(cm.last_start_frame, cm.last_stop_frame + 1):
+            for frame in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
                 if frame not in completed_frames and not updated_stop_frame:
                     # set end frame to last consecutive completed frame
                     updated_stop_frame = True
@@ -113,7 +113,7 @@ class BRICKER_OT_stop_brickifying_in_background(bpy.types.Operator):
                     delete(bricker_bricks_coll.objects)
                     bpy_collections().remove(bricker_bricks_coll)
             # hide objs unless on scene current frame
-            for frame in range(cm.last_start_frame, cm.last_stop_frame + 1):
+            for frame in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame):
                 set_frame_visibility(cm, frame)
             # finish animation and kill running jobs
             finish_animation(cm)

@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -39,21 +39,14 @@ from .mat_utils import *
 from ..lib.caches import bricker_mesh_cache
 
 
-def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_collection, parent, dimensions, zstep, brick_size, brick_type, split, last_split_model, custom_object1, custom_object2, custom_object3, mat_dirty, custom_data, brick_scale, bricks_created, all_meshes, logo, mats, brick_mats, internal_mat, brick_height, logo_resolution, logo_decimate, build_is_dirty, material_type, custom_mat, random_mat_seed, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, logo_type, logo_scale, logo_inset, circle_verts, instance_method, rand_s1, rand_s2, rand_s3):
-    brick_d = bricksdict[key]
-    # check exposure of current [merged] brick
-    if brick_d["top_exposed"] is None or brick_d["bot_exposed"] is None or build_is_dirty:
-        top_exposed, bot_exposed = set_all_brick_exposures(bricksdict, zstep, key)
-    else:
-        top_exposed, bot_exposed = is_brick_exposed(bricksdict, zstep, key)
-
-    # get brick material
-    mat = get_material(bricksdict, key, brick_size, zstep, material_type, custom_mat, random_mat_seed, mat_dirty, seed_keys, brick_mats=brick_mats)
+def draw_brick(cm_id, bricksdict, key, loc, bcoll, clear_existing_collection, parent, dimensions, zstep, brick_size, brick_type, split, custom_data, bricks_created, all_meshes, mats, internal_mat, logo, logo_resolution, logo_decimate, logo_type, logo_scale, logo_inset, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, circle_verts, instance_method, rand_s2, rand_s3):
+    """ draws current brick in bricksdict """
 
     # set up arguments for brick mesh
-    use_stud = (top_exposed and stud_detail != "NONE") or stud_detail == "ALL"
+    brick_d = bricksdict[key]
+    use_stud = (brick_d["top_exposed"] and stud_detail != "NONE") or stud_detail == "ALL"
     logo_to_use = logo if use_stud else None
-    underside_detail = exposed_underside_detail if bot_exposed else hidden_underside_detail
+    underside_detail = exposed_underside_detail if brick_d["bot_exposed"] else hidden_underside_detail
 
     ### CREATE BRICK ###
 
@@ -70,6 +63,10 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
     # get brick location
     loc_offset = get_random_loc(random_loc, rand_s2, dimensions["half_width"], dimensions["half_height"])
     brick_loc = get_brick_center(bricksdict, key, zstep, loc) + loc_offset
+    # get brick material
+    mat = bpy.data.materials.get(brick_d["mat_name"])
+    if mat is None:
+        mat = internal_mat
 
     if split:
         brick = bpy.data.objects.get(brick_d["name"])
@@ -89,12 +86,7 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
         # set brick location
         brick.location = brick_loc
         # set brick material
-        mat = mat or internal_mat
         set_material(brick, mat)
-        if mat:
-            keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc)
-            for k in keys_in_brick:
-                bricksdict[k]["mat_name"] = mat.name
         # append to bricks_created
         bricks_created.append(brick)
         # set remaining brick info if brick object just created
@@ -114,12 +106,6 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
         # transform brick mesh to coordinate on matrix
         m.transform(Matrix.Translation(brick_loc))
 
-        # set to internal mat if material not set
-        internal = False
-        if mat is None:
-            mat = internal_mat
-            internal = True
-
         # keep track of mats already used
         if mat in mats:
             mat_idx = mats.index(mat)
@@ -129,9 +115,6 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
 
         # set material
         if mat is not None:
-            # set material name in dictionary
-            if not internal:
-                brick_d["mat_name"] = mat.name
             # point all polygons to target material (index will correspond in all_meshes object)
             for p in m.polygons:
                 p.material_index = mat_idx
@@ -158,12 +141,13 @@ def draw_brick(cm_id, bricksdict, key, loc, seed_keys, bcoll, clear_existing_col
     return bricksdict
 
 
-def merge_with_adjacent_bricks(brick_d, bricksdict, key, loc, keys_not_checked, default_size, zstep, rand_s1, build_is_dirty, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_vertical=True):
-    if brick_d["size"] is None or build_is_dirty:
+def merge_with_adjacent_bricks(brick_d, bricksdict, key, loc, default_size, zstep, rand_s1, build_is_dirty, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_vertical=True):
+    brick_size = brick_d["size"]
+    if brick_size is None or build_is_dirty:
         prefer_largest = 0 < brick_d["val"] < 1
-        brick_size, keys_in_brick = attempt_merge(bricksdict, key, keys_not_checked, default_size, zstep, rand_s1, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, loc=loc, prefer_largest=prefer_largest, merge_vertical=merge_vertical, height_3_only=brick_d["type"] in get_brick_types(height=3))
+        axis_sort_order = [2, 0, 1] if rand_s1.randint(0, 2) else [2, 1, 0]
+        brick_size, _, keys_in_brick = attempt_pre_merge(bricksdict, key, default_size, zstep, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, axis_sort_order=axis_sort_order, loc=loc, prefer_largest=prefer_largest, merge_vertical=merge_vertical, height_3_only=brick_d["type"] in get_brick_types(height=3))
     else:
-        brick_size = brick_d["size"]
         keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc=loc)
     return brick_size, keys_in_brick
 
@@ -305,7 +289,7 @@ def get_brick_data(brick_d, dimensions, brick_type, brick_size=(1, 1, 1), circle
     return m0
 
 
-def get_material(bricksdict, key, size, zstep, material_type, custom_mat, random_mat_seed, mat_dirty, seed_keys, brick_mats=None):
+def get_material(bricksdict, key, size, zstep, material_type, custom_mat, random_mat_seed, brick_mats=None):
     mat = None
     highest_val = 0
     mats_L = []
@@ -331,8 +315,7 @@ def get_material(bricksdict, key, size, zstep, material_type, custom_mat, random
     elif material_type == "RANDOM" and brick_mats is not None and len(brick_mats) > 0:
         if len(brick_mats) > 1:
             rand_state = np.random.RandomState(0)
-            seed_inc = seed_keys.index(key)  # keeps materials consistent accross all calculations regardless of where material is set
-            rand_state.seed(random_mat_seed + seed_inc)
+            rand_state.seed(random_mat_seed + int(str(hash(key))[-9:]))
             rand_idx = rand_state.randint(0, len(brick_mats))
         else:
             rand_idx = 0
@@ -345,3 +328,37 @@ def update_brick_sizes_and_types_used(cm, sz, typ):
     btu = cm.brick_types_used
     cm.brick_sizes_used += sz if bsu == "" else ("|%(sz)s" % locals() if sz not in bsu else "")
     cm.brick_types_used += typ if btu == "" else ("|%(typ)s" % locals() if typ not in btu else "")
+
+
+def get_parent_keys(bricksdict:dict, keys:list=None):
+    keys = keys or bricksdict.keys()
+    parent_keys = [k for k in keys if bricksdict[k]["parent"] == "self" and bricksdict[k]["draw"]]
+    return parent_keys
+
+
+def get_parent_keys_internal(bricksdict:dict, zstep:int, keys:list=None):
+    parent_keys = get_parent_keys(bricksdict, keys)
+    internal_keys = list()
+    for k in parent_keys:
+        keys_in_brick = get_keys_in_brick(bricksdict, bricksdict[k]["size"], zstep, key=k)
+        if not any(bricksdict[k0]["val"] == 1 for k0 in keys_in_brick):
+            internal_keys.append(k)
+    return internal_keys
+
+
+def generate_brick_object(brick_name="New Brick", brick_size=(1, 1, 1)):
+    scn, cm, n = get_active_context_info()
+    brick_d = create_bricksdict_entry(
+        name=brick_name,
+        loc=(1, 1, 1),
+        val=1,
+        draw=True,
+        b_type=get_brick_type(cm.brick_type),
+    )
+    rand = np.random.RandomState(cm.merge_seed)
+    dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
+    use_stud = cm.stud_detail != "NONE"
+    logo_to_use = get_logo(scn, cm, dimensions) if use_stud and cm.logo_type != "NONE" else None
+    m = get_brick_data(brick_d, dimensions, cm.brick_type, brick_size, cm.circle_verts, cm.exposed_underside_detail, use_stud, logo_to_use, cm.logo_type, cm.logo_inset, None, cm.logo_resolution, cm.logo_decimate, rand)
+    brick = bpy.data.objects.new(brick_name, m)
+    return brick

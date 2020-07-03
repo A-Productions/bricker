@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -44,10 +44,6 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         return False
 
     def execute(self, context):
-        try:
-            pass
-        except:
-            bricker_handle_exception()
         return{"FINISHED"}
 
     #############################################
@@ -60,6 +56,36 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
     )
     # path_mode = path_reference_mode
     check_extension = True
+    model_author = StringProperty(
+        name="Author",
+        description="Author name for the file's metadata",
+        default="",
+    )
+
+    ################################################
+    # initialization method
+
+    def __init__(self):
+        # get matrix for rotation of brick
+        self.matrices = [
+            " 0 0 -1 0 1 0  1 0  0",
+            " 1 0  0 0 1 0  0 0  1",
+            " 0 0  1 0 1 0 -1 0  0",
+            "-1 0  0 0 1 0  0 0 -1"
+        ]
+        # get other vars
+        self.legal_bricks = get_legal_bricks()
+        self.abs_mat_properties = bpy.props.abs_mat_properties if hasattr(bpy.props, "abs_mat_properties") else None
+        # initialize vars
+        scn, cm, _ = get_active_context_info()
+        self.trans_weight = cm.transparent_weight
+        self.material_type = cm.material_type
+        self.custom_mat = cm.custom_mat
+        self.random_mat_seed = cm.random_mat_seed
+        self.brick_height = cm.brick_height
+        self.offset_brick_layers = cm.offset_brick_layers
+        self.gap = cm.gap
+        self.zstep = get_zstep(cm)
 
     #############################################
     # class variables
@@ -69,11 +95,12 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
     #############################################
     # class methods
 
-    def write_ldraw_file(self):
+    @timed_call()
+    def write_ldraw_file(self, context):
         """ create and write Ldraw file """
         pass
 
-    def blend_to_ldraw_units(self, cm, bricksdict, zstep, key, idx):
+    def blend_to_ldraw_units(self, bricksdict, zstep, key, idx):
         """ convert location of brick from blender units to ldraw units """
         loc = Vector((1, 1, 1))
         return loc

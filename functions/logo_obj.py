@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -70,6 +70,7 @@ def get_lego_stud_font():
         font_path = "%(bricker_addon_path)s/lib/lego_font.ttf" % locals()
         lego_stud_font = bpy.data.fonts.load(font_path)
     return lego_stud_font
+
 
 def get_lego_logo_txt_obj(scn, res, name):
     # get logo_txt_ref from Bricker_storage scene

@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -22,6 +22,7 @@
 import bpy
 
 # Module imports
+from .connected_components import *
 from .exposure import *
 from ..mat_utils import *
 from ..matlist_utils import *
@@ -33,7 +34,6 @@ def update_materials(bricksdict, source_dup, keys, cur_frame=None, action="CREAT
     scn, cm, n = get_active_context_info()
     use_uv_map = cm.use_uv_map and (len(source_dup.data.uv_layers) > 0 or cm.uv_image is not None)
     # initialize variables
-    if keys == "ALL": keys = sorted(list(bricksdict.keys()))  # sort so materials are consistent for multiple frames of the same model
     is_smoke = cm.is_smoke
     material_type = cm.material_type
     color_snap = cm.color_snap
@@ -48,7 +48,8 @@ def update_materials(bricksdict, source_dup, keys, cur_frame=None, action="CREAT
     ior = cm.color_snap_ior
     transmission = cm.color_snap_transmission
     displacement = cm.color_snap_displacement
-    color_depth = cm.color_depth if color_snap == "RGB" else -1
+    color_depth = cm.color_depth if color_snap == "RGB" else 0
+    blur_radius = cm.blur_radius if color_snap == "RGB" else 0
     use_abs_template = cm.use_abs_template and brick_materials_installed()
     last_use_abs_template = cm.last_use_abs_template and brick_materials_installed()
     rgba_vals = []
@@ -65,7 +66,7 @@ def update_materials(bricksdict, source_dup, keys, cur_frame=None, action="CREAT
             mat_name = ""
         else:
             ni = Vector(brick_d["near_intersection"])
-            rgba, mat_name = get_brick_rgba(source_dup, nf, ni, uv_image, color_depth=color_depth)
+            rgba, mat_name = get_brick_rgba(source_dup, nf, ni, uv_image, color_depth=color_depth, blur_radius=blur_radius)
 
         if material_type == "SOURCE":
             # get material with snapped RGBA value
@@ -98,7 +99,7 @@ def update_materials(bricksdict, source_dup, keys, cur_frame=None, action="CREAT
     return bricksdict
 
 
-def update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep, max_L, height_3_only, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats=False, merge_vertical=False, tall_type="BRICK", short_type="PLATE"):
+def update_brick_sizes(bricksdict, key, loc, brick_sizes, zstep, max_L, height_3_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats=False, merge_vertical=False, mult=(1, 1, 1)):
     """ update 'brick_sizes' with available brick sizes surrounding bricksdict[key] """
     if not merge_vertical:
         max_L[2] = 1
@@ -106,6 +107,7 @@ def update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep,
     new_max2 = max_L[2]
     break_outer1 = False
     break_outer2 = False
+    brick_mat_name = bricksdict[key]["mat_name"]
     # iterate in x direction
     for i in range(max_L[0]):
         # iterate in y direction
@@ -113,8 +115,9 @@ def update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep,
             # break case 1
             if j >= new_max1: break
             # break case 2
-            key1 = list_to_str((loc[0] + i, loc[1] + j, loc[2]))
-            if not brick_avail(bricksdict, key, key1, merge_internals_h, material_type, merge_inconsistent_mats) or key1 not in available_keys:
+            key1 = list_to_str((loc[0] + (i * mult[0]), loc[1] + (j * mult[1]), loc[2]))
+            brick_available, brick_mat_name = brick_avail(bricksdict, key1, brick_mat_name, merge_internals_h, material_type, merge_inconsistent_mats)
+            if not brick_available:
                 if j == 0: break_outer2 = True
                 else:      new_max1 = j
                 break
@@ -123,8 +126,9 @@ def update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep,
                 # break case 1
                 if k >= new_max2: break
                 # break case 2
-                key2 = list_to_str((loc[0] + i, loc[1] + j, loc[2] + k))
-                if not brick_avail(bricksdict, key, key2, merge_internals_v, material_type, merge_inconsistent_mats) or key2 not in available_keys:
+                key2 = list_to_str((loc[0] + (i * mult[0]), loc[1] + (j * mult[1]), loc[2] + (k * mult[2])))
+                brick_available, brick_mat_name = brick_avail(bricksdict, key2, brick_mat_name, merge_internals_v, material_type, merge_inconsistent_mats)
+                if not brick_available:
                     if k == 0: break_outer1 = True
                     else:      new_max2 = k
                     break
@@ -132,58 +136,283 @@ def update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep,
                 elif k == 1: continue
                 # else, append current brick size to brick_sizes
                 else:
-                    new_size = [i+1, j+1, k+zstep]
+                    new_size = [(i+1) * mult[0], (j+1) * mult[1], (k+zstep) * mult[2]]
                     if new_size in brick_sizes:
                         continue
-                    if not (new_size[2] == 1 and height_3_only) and (not legal_bricks_only or is_legal_brick_size(size=new_size, type=tall_type if new_size[2] == 3 else short_type)):
+                    if not (abs(new_size[2]) == 1 and height_3_only):
                         brick_sizes.append(new_size)
             if break_outer1: break
         break_outer1 = False
         if break_outer2: break
 
 
-def attempt_merge(bricksdict, key, available_keys, default_size, zstep, rand_state, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, loc=None, merge_inconsistent_mats=False, prefer_largest=False, merge_vertical=True, target_type=None, height_3_only=False):
-    """ attempt to merge bricksdict[key] with adjacent bricks """
+def attempt_pre_merge(bricksdict, key, default_size, zstep, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, loc=None, axis_sort_order=(2, 0, 1), merge_inconsistent_mats=False, prefer_largest=False, direction_mult=(1, 1, 1), merge_vertical=True, target_type=None, height_3_only=False):
+    """ attempt to merge bricksdict[key] with adjacent bricks (assuming available keys are all 1x1s) """
     # get loc from key
     loc = loc or get_dict_loc(bricksdict, key)
     brick_sizes = [default_size]
-    brick_d = bricksdict[key]
-    tall_type = get_tall_type(brick_d, target_type)
-    short_type = get_short_type(brick_d, target_type)
+    brick_size = default_size
+    tall_type = get_tall_type(bricksdict[key], target_type)
+    short_type = get_short_type(bricksdict[key], target_type)
 
     if brick_type != "CUSTOM":
         # check width-depth and depth-width
         for i in (1, -1) if max_width != max_depth else [1]:
             # iterate through adjacent locs to find available brick sizes
-            update_brick_sizes(bricksdict, key, available_keys, loc, brick_sizes, zstep, [max_width, max_depth][::i] + [3], height_3_only, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats, merge_vertical=merge_vertical, tall_type=tall_type, short_type=short_type)
-        # sort brick types from smallest to largest
-        order = rand_state.randint(0,2)
-        brick_sizes.sort(key=lambda x: (x[0] * x[1] * x[2]) if prefer_largest else (x[2], x[order], x[(order+1)%2]))
+            update_brick_sizes(bricksdict, key, loc, brick_sizes, zstep, [max_width, max_depth][::i] + [3], height_3_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats, merge_vertical=merge_vertical, mult=direction_mult)
+        # get largest (legal, if checked) brick size found
+        brick_sizes.sort(key=lambda v: -abs(v[0] * v[1] * v[2]) if prefer_largest else (-abs(v[axis_sort_order[0]]), -abs(v[axis_sort_order[1]]), -abs(v[axis_sort_order[2]])))
+        target_brick_size = next((sz for sz in brick_sizes if not (legal_bricks_only and not is_legal_brick_size(size=[abs(v) for v in sz], type=tall_type if abs(sz[2]) == 3 else short_type))), None)
+        assert target_brick_size is not None
+        # get new brick_size, loc, and key for largest brick size
+        key, loc, brick_size = get_new_parent_key_loc_and_size_flipped(target_brick_size, loc, zstep)
 
-    # grab the biggest brick size and store to bricksdict
-    brick_size = brick_sizes[-1]
+    # update bricksdict for keys merged together
+    keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc=loc)
+    update_merged_keys_in_bricksdict(bricksdict, key, keys_in_brick, brick_size, brick_type, short_type, tall_type, set_attempted_merge=True)
+
+    return brick_size, key, keys_in_brick
+
+
+def attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, merge_internals_h, merge_internals_v, max_width, max_depth, loc=None):
+    """ attempt to merge bricksdict[key] with adjacent bricks (engulfs bricks without compromizing connectivity) """
+    # get loc from key
+    starting_size = bricksdict[key]["size"].copy()
+    loc = loc or get_dict_loc(bricksdict, key)
+    target_type = "BRICK" if brick_type == "BRICKS_AND_PLATES" else brick_type
+    tall_type = get_tall_type(bricksdict[key], target_type)
+    short_type = get_short_type(bricksdict[key], target_type)
+    brick_sizes = [starting_size]
+
+    # go in the x direction
+    for axis in range(3 if brick_type == "BRICKS_AND_PLATES" else 2):
+        cur_size = starting_size.copy()
+        brick_mat_name = bricksdict[key]["mat_name"]
+        while True:
+            loc1 = loc.copy()
+            loc1[axis] += cur_size[axis]
+            key0 = list_to_str(loc1)
+            # check key is not parent key
+            brick_d = bricksdict.get(key0)
+            if brick_d is None or brick_d["parent"] != "self":
+                break
+            next_size = brick_d["size"]
+            # ensure next brick's size on other 2 axes line up with current brick
+            other_axes = ((axis + 1) % 3, (axis + 2) % 3)
+            if next_size[other_axes[0]] != starting_size[other_axes[0]] or next_size[other_axes[1]] != starting_size[other_axes[1]]:
+                break
+            # create new cur_size
+            cur_size[axis] += next_size[axis]
+            other_h_axis = (axis + 1) % 2
+            # enforce max width/depth cap, and for Z axis enforce max height of 3
+            if axis == 2 and cur_size[axis] > 3:
+                break
+            elif (not (cur_size[axis] <= max(max_width, max_depth) and cur_size[other_h_axis] >= min(max_width, max_depth)) and
+                  not (cur_size[axis] >= min(max_width, max_depth) and cur_size[other_h_axis] <= max(max_width, max_depth))
+                 ):
+                break
+            # make sure materials can be merged
+            merge_internals = merge_internals_v if axis == 2 else merge_internals_h
+            if not mats_are_mergable(brick_d, brick_mat_name, merge_internals):
+                break
+            brick_mat_name = brick_mat_name or brick_d["mat_name"]
+            # skip height of 2 for Z axis
+            if axis == 2 and cur_size[2] == 2:
+                continue
+            # ensure new size is legal brick size
+            if legal_bricks_only and not is_legal_brick_size(size=cur_size, type=tall_type if abs(cur_size[2]) == 3 else short_type):
+                continue
+            # if successful, add this to the possible brick sizes
+            brick_sizes.append(cur_size.copy())
+
+    # get target brick size (weight X/Y a bit more heavily as this increases stability)
+    new_size = sorted(brick_sizes, key=lambda v: ((v[0] * v[1] * 1.5) * v[2]))[-1]
+
+    # update bricksdict for keys of bricks merged together
+    keys_in_brick = get_keys_in_brick(bricksdict, new_size, zstep, loc=loc)
+    engulfed_keys = set(k for k in keys_in_brick if bricksdict[k]["parent"] == "self" and k != key)
+    update_merged_keys_in_bricksdict(bricksdict, key, keys_in_brick, new_size, brick_type, short_type, tall_type)
+
+    # return whether successful and keys that were engulfed
+    return new_size != starting_size, engulfed_keys
+
+
+def attempt_post_shrink(bricksdict, key, zstep, brick_type, legal_bricks_only, loc=None):
+    """ attempt to shrink bricks where part of it isn't connected above or below and not on shell """
+    # get loc from key
+    starting_size = bricksdict[key]["size"].copy()
+    loc = loc or get_dict_loc(bricksdict, key)
+    target_type = "BRICK" if brick_type == "BRICKS_AND_PLATES" else brick_type
+    tall_type = get_tall_type(bricksdict[key], target_type)
+    short_type = get_short_type(bricksdict[key], target_type)
+    brick_sizes = [starting_size]
+
+    # check both x and y as primary axes
+    for primary_axis, secondary_axis in ((0, 1), (1, 0)):
+        # move backwards and forwards
+        for direction in (1, -1):
+            # go in one direction on primary axes
+            for primary_axis_val in range(starting_size[primary_axis]):
+                # flip primary_axis_val if going backwards
+                if direction == -1:
+                    primary_axis_val = starting_size[primary_axis] - 1 - primary_axis_val
+                # check if loc can be safely removed
+                cur_locs_exposed = True
+                for secondary_axis_val in range(starting_size[secondary_axis]):
+                    # get new loc
+                    loc1 = loc.copy()
+                    loc1[primary_axis] += primary_axis_val
+                    loc1[secondary_axis] += secondary_axis_val
+                    # check if it's okay to remove
+                    k = list_to_str(loc1)
+                    if not all(check_brickd_exposure(bricksdict, k, internal_obscures=False, z_above_dist=starting_size[2])) or bricksdict[k]["val"] == 1:
+                        cur_locs_exposed = False
+                    # break out if it's not exposed at a point
+                    if not cur_locs_exposed:
+                        break
+                if not cur_locs_exposed:
+                    break
+                # get the current size we just checked
+                cur_size = starting_size.copy()
+                if direction == -1:
+                    cur_size[primary_axis] = primary_axis_val
+                else:
+                    cur_size[primary_axis] -= primary_axis_val + 1
+                    cur_size[primary_axis] *= -1
+                # otherwise, we can add a smaller size to the list!
+                brick_sizes.append(cur_size)
+
+    # get smallest legal brick size
+    brick_sizes.sort(key=lambda v: abs(v[0] * v[1] * v[2]))
+    target_brick_size = next((sz for sz in brick_sizes if not (legal_bricks_only and not is_legal_brick_size(size=[abs(v) for v in sz], type=tall_type if abs(sz[2]) == 3 else short_type))), None)
+    # get new brick_size, loc, and key for smallest brick size
+    new_key, new_loc, new_size = get_new_parent_key_loc_and_size_added(starting_size, target_brick_size, loc, zstep)
+
+    # update bricksdict for keys of bricks removed
+    keys_in_orig_brick = get_keys_in_brick(bricksdict, starting_size, zstep, loc=loc)
+    keys_in_new_brick = get_keys_in_brick(bricksdict, new_size, zstep, loc=new_loc)
+    removed_keys = keys_in_orig_brick.difference(keys_in_new_brick)
+    reset_bricksdict_entries(bricksdict, removed_keys)
+    # update bricksdict for keys of new smaller brick
+    update_merged_keys_in_bricksdict(bricksdict, new_key, keys_in_new_brick, new_size, brick_type, short_type, tall_type)
+
+    # return whether successful and keys that were removed
+    return new_size != starting_size, new_key, removed_keys
+
+
+def reset_bricksdict_entries(bricksdict, keys, force_outside=False):
+    for k in keys:
+        brick_d = bricksdict[k]
+        brick_d["draw"] = False
+        if force_outside:
+            brick_d["val"] = 0
+        else:
+            set_brick_val(bricksdict, get_dict_loc(bricksdict, k), k, action="REMOVE")
+        brick_d["size"] = None
+        brick_d["parent"] = None
+        brick_d["flipped"] = False
+        brick_d["rotated"] = False
+        brick_d["bot_exposed"] = None
+        brick_d["top_exposed"] = None
+        brick_d["created_from"] = None
+        brick_d["custom_mat_name"] = None
+
+
+def set_brick_val(bricksdict, loc=None, key=None, action="ADD"):
+    assert loc or key
+    loc = loc or get_dict_loc(bricksdict, key)
+    key = key or list_to_str(loc)
+    adj_keys = get_adj_keys(bricksdict, loc=loc)
+    adj_brick_vals = [bricksdict[k]["val"] for k in adj_keys]
+    if action == "ADD" and (0 in adj_brick_vals or len(adj_brick_vals) < 6 or min(adj_brick_vals) == 1):
+        new_val = 1
+    elif action == "REMOVE":
+        new_val = 0 if 0 in adj_brick_vals or len(adj_brick_vals) < 6 else (max(adj_brick_vals) - 0.01)
+    else:
+        new_val = max(adj_brick_vals) - 0.01
+    bricksdict[key]["val"] = new_val
+    return new_val
+
+
+def get_adj_keys(bricksdict, loc=None, key=None):
+    assert loc or key
+    x, y, z = loc or get_dict_loc(bricksdict, key)
+    adj_keys = set((
+        list_to_str((x+1, y, z)),
+        list_to_str((x-1, y, z)),
+        list_to_str((x, y+1, z)),
+        list_to_str((x, y-1, z)),
+        list_to_str((x, y, z+1)),
+        list_to_str((x, y, z-1)),
+    ))
+    for k in adj_keys.copy():
+        if bricksdict.get(k) is None:
+            adj_keys.remove(k)
+    return adj_keys
+
+
+def update_merged_keys_in_bricksdict(bricksdict, key, merged_keys, brick_size, brick_type, short_type, tall_type, set_attempted_merge=False):
+    # store the best brick size to origin brick
+    brick_d = bricksdict[key]
     brick_d["size"] = brick_size
 
     # set attributes for merged brick keys
-    keys_in_brick = get_keys_in_brick(bricksdict, brick_size, zstep, loc=loc)
-    for k in keys_in_brick:
+    for k in merged_keys:
         brick_d0 = bricksdict[k]
-        brick_d0["attempted_merge"] = True
-        brick_d0["parent"] = "self" if k == key else key
+        if set_attempted_merge:
+            brick_d0["attempted_merge"] = True
+        if k == key:
+            brick_d0["parent"] = "self" if k == key else key
+        else:
+            brick_d0["parent"] = key
+            brick_d0["size"] = None
         # set brick type if necessary
         if flat_brick_type(brick_type):
             brick_d0["type"] = short_type if brick_size[2] == 1 else tall_type
     # set flipped and rotated
-    set_flipped_and_rotated(brick_d, bricksdict, keys_in_brick)
-    if brick_d["type"] == "SLOPE" and brick_type == "SLOPES":
-        set_brick_type_for_slope(brick_d, bricksdict, keys_in_brick)
+    if brick_d["type"] == "SLOPE":
+        set_flipped_and_rotated(brick_d, bricksdict, keys_in_brick)
+        if brick_type == "SLOPES":
+            set_brick_type_for_slope(brick_d, bricksdict, keys_in_brick)
 
-    return brick_size, keys_in_brick
+
+def get_new_parent_key_loc_and_size_flipped(size, loc, zstep):
+    # switch to origin brick
+    new_loc = loc.copy()
+    if size[0] < 0:
+        new_loc[0] -= abs(size[0]) - 1
+    if size[1] < 0:
+        new_loc[1] -= abs(size[1]) - 1
+    if size[2] < 0:
+        new_loc[2] -= abs(size[2] // zstep) - 1
+    new_key = list_to_str(new_loc)
+
+    # store the biggest brick size to origin brick
+    new_size = [abs(v) for v in size]
+
+    return new_key, new_loc, new_size
+
+
+def get_new_parent_key_loc_and_size_added(old_size, size, loc, zstep):
+    # switch to origin brick
+    new_loc = loc.copy()
+    if size[0] < 0:
+        new_loc[0] += (old_size[0] - abs(size[0]))
+    if size[1] < 0:
+        new_loc[1] += (old_size[1] - abs(size[1]))
+    if size[2] < 0:
+        new_loc[2] += (old_size[2] - abs(size[2]))
+    new_key = list_to_str(new_loc)
+
+    # store the biggest brick size to origin brick
+    new_size = [abs(v) for v in size]
+
+    return new_key, new_loc, new_size
 
 
 def get_num_aligned_edges(bricksdict, size, key, loc, bricks_and_plates=False):
     num_aligned_edges = 0
-    locs = get_locs_in_brick(bricksdict, size, 1, loc)
+    locs = get_locs_in_brick(size, 1, loc)
     got_one = False
 
     for l in locs:
@@ -233,16 +462,31 @@ def get_num_aligned_edges(bricksdict, size, key, loc, bricks_and_plates=False):
     return num_aligned_edges
 
 
-def brick_avail(bricksdict, source_key, target_key, merge_with_internals, material_type, merge_inconsistent_mats):
+def brick_avail(bricksdict, target_key, brick_mat_name, merge_with_internals, material_type, merge_inconsistent_mats):
     """ check brick is available to merge """
-    brick = bricksdict.get(target_key)
-    if brick is None:
-        return False
-    source_brick = bricksdict[source_key]
-    # checks if brick materials can be merged (same material or one of the mats is "" (internal)
-    mats_mergable = source_brick["mat_name"] == brick["mat_name"] or (merge_with_internals and "" in (source_brick["mat_name"], brick["mat_name"])) or merge_inconsistent_mats
-    # returns True if brick is present, brick isn't drawn already, and brick materials can be merged
-    return brick["draw"] and not brick["attempted_merge"] and mats_mergable and mergable_brick_type(brick["type"], up=False)
+    brick_d = bricksdict.get(target_key)
+    # ensure brick exists and should be drawn
+    if brick_d is None or not brick_d["draw"]:
+        return False, brick_mat_name
+    # ensure brick hasn't already been merged and is available for merging
+    if brick_d["attempted_merge"] or not brick_d["available_for_merge"]:
+        return False, brick_mat_name
+    # ensure brick materials can be merged (same material or one of the mats is "" (internal)
+    mats_mergable = mats_are_mergable(brick_d, brick_mat_name, merge_with_internals, merge_inconsistent_mats)
+    if not mats_mergable:
+        return False, brick_mat_name
+    # set brick material name if it wasn't already set
+    elif brick_mat_name == "":
+        brick_mat_name = brick_d["mat_name"]
+    # ensure brick type is mergable
+    if not mergable_brick_type(brick_d["type"], up=False):
+        return False, brick_mat_name
+    # passed all the checks; brick is available!
+    return True, brick_mat_name
+
+
+def mats_are_mergable(brick_d, brick_mat_name, merge_with_internals, merge_inconsistent_mats=False):
+    return brick_mat_name == brick_d["mat_name"] or (merge_with_internals and "" in (brick_mat_name, brick_d["mat_name"])) or merge_inconsistent_mats
 
 
 def get_most_common_dir(i_s, i_e, norms):

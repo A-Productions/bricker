@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -107,6 +107,11 @@ class JobManager():
         self.uses_blend_file[job] = use_blend_file
         self.job_timeouts[job] = timeout
         self.job_statuses[job] = {"started":False, "returncode":None, "stdout":None, "stderr":None, "start_time":time.time(), "end_time":None, "attempts":0, "progress":0.0, "timed_out":False}
+        # make image paths absolute
+        old_filepaths = dict()
+        for im in bpy.data.images:
+            old_filepaths[im.name] = im.filepath
+            im.filepath = bpy.path.abspath(im.filepath)
         # send passed_data_blocks to library file
         sent_data_blocks_path = os.path.join(self.temp_path, job + "_sent_data.blend")
         if len(passed_data_blocks) > 0:
@@ -114,10 +119,14 @@ class JobManager():
         # save the active blend file to be used in Blender instance
         if use_blend_file and (not os.path.exists(self.blendfile_paths[job]) or overwrite_blend):
             try:
-                bpy.ops.wm.save_as_mainfile(filepath=self.blendfile_paths[job], compress=False, copy=True)
+                # save the file to new location
+                bpy.ops.wm.save_as_mainfile(filepath=self.blendfile_paths[job], relative_remap=False, compress=False, copy=True)
             except RuntimeError as e:
                 if not str(e).startswith("Error: Unable to pack file"):
                     return False, e
+        # reset image paths
+        for im in bpy.data.images:
+            im.filepath = old_filepaths[im.name]
         # insert final blend file name to top of files
         target_path_base = os.path.join(self.temp_path, job)
         # clear old files if they exist

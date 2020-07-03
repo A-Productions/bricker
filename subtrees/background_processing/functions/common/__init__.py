@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -15,16 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from .images import *
 from .blender import *
 from .bmesh_generators import *
 from .bmesh_utils import *
-# try:
-#     from .color_effects import *
-#     from .data_types import *
-# except ModuleNotFoundError:
-#     print("'numba' python module not installed")
+from .data_types import *
 from .colors import *
-from .images import *
 from .materials import *
 from .maths import *
 from .nodes import *

@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -155,6 +155,34 @@ def increase_vert_selection(bme:BMesh, selected_verts, iterations:int=1):
             sel_verts |= new_verts
 
     return sel_verts
+
+
+def add_faces_to_islands(bme:BMesh, ignore_selected:bool=True, max_iters=500):
+    """ adds faces to islands, ignoring selected islands """
+    for island in bmesh_loose_parts(bme, item_type="verts", max_iters=max_iters):
+        if len(island) < 3:
+            continue
+        starting_vert = island.pop()
+        if ignore_selected and starting_vert.select:
+            continue
+        verts = list()
+        cur_vert = starting_vert
+        next_vert = vert_neighbors(starting_vert)[-1]
+        verts.append(cur_vert)
+        for i in range(max_iters):
+            last_vert = cur_vert
+            cur_vert = next_vert
+            next_vert = next(v for v in vert_neighbors(cur_vert) if v != last_vert)
+            verts.append(cur_vert)
+            if next_vert == starting_vert:
+                break
+        if len(set(verts)) < len(verts):
+            continue
+        f = bme.faces.new(verts)
+        bme.normal_update()
+        # flip normal if necessary
+        if f.normal.z < 0:
+            f.normal_flip()
 
 
 # COMPLETE

@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -40,8 +40,8 @@ class BRICKER_OT_merge_bricks(Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
-        objs = bpy.context.selected_objects
+        scn = context.scene
+        objs = context.selected_objects
         i = 0
         # check that at least 2 objects are selected and are bricks
         for obj in objs:
@@ -58,7 +58,7 @@ class BRICKER_OT_merge_bricks(Operator):
 
     def execute(self, context):
         try:
-            scn = bpy.context.scene
+            scn = context.scene
             objs_to_select = []
             # iterate through cm_ids of selected objects
             for cm_id in self.obj_names_dict.keys():
@@ -66,7 +66,7 @@ class BRICKER_OT_merge_bricks(Operator):
                 self.undo_stack.iterate_states(cm)
                 # initialize vars
                 bricksdict = self.bricksdicts[cm_id]
-                all_split_keys = list()
+                all_split_keys = set()
                 cm.customized = True
                 brick_type = cm.brick_type
 
@@ -77,21 +77,21 @@ class BRICKER_OT_merge_bricks(Operator):
 
                     # split brick in matrix
                     split_keys = split_brick(bricksdict, dkey, cm.zstep, brick_type)
-                    all_split_keys += split_keys
+                    all_split_keys |= split_keys
                     # delete the object that was split
                     delete(bpy.data.objects.get(obj_name))
 
                 # run self.merge_bricks
-                keys_to_update = BRICKER_OT_merge_bricks.merge_bricks(bricksdict, all_split_keys, cm, any_height=True, merge_inconsistent_mats=self.merge_inconsistent_mats)
+                keys_to_update = merge_bricks(bricksdict, all_split_keys, cm, any_height=True, merge_inconsistent_mats=self.merge_inconsistent_mats)
 
                 # draw modified bricks
                 draw_updated_bricks(cm, bricksdict, keys_to_update)
 
                 # add selected objects to objects to select at the end
-                objs_to_select += bpy.context.selected_objects
+                objs_to_select += context.selected_objects
             # select the new objects created
             select(objs_to_select)
-            bpy.props.bricker_last_selected = [obj.name for obj in bpy.context.selected_objects]
+            bpy.props.bricker_last_selected = [obj.name for obj in context.selected_objects]
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -121,32 +121,6 @@ class BRICKER_OT_merge_bricks(Operator):
     #############################################
     # class methods
 
-    @staticmethod
-    def merge_bricks(bricksdict, keys, cm, target_type="BRICK", any_height=False, merge_inconsistent_mats=False):
-        # initialize vars
-        updated_keys = []
-        brick_type = cm.brick_type
-        max_width = cm.max_width
-        max_depth = cm.max_depth
-        legal_bricks_only = cm.legal_bricks_only
-        material_type = cm.material_type
-        merge_internals = "NEITHER" if material_type == "NONE" else cm.merge_internals
-        merge_internals_h = merge_internals in ["BOTH", "HORIZONTAL"]
-        merge_internals_v = merge_internals in ["BOTH", "VERTICAL"]
-        rand_state = np.random.RandomState(cm.merge_seed)
-        merge_vertical = target_type in get_brick_types(height=3) and "PLATES" in brick_type
-        height_3_only = merge_vertical and not any_height
-
-        # sort keys
-        keys.sort(key=lambda k: (str_to_list(k)[0] * str_to_list(k)[1] * str_to_list(k)[2]))
-
-        for key in keys:
-            # skip keys already merged to another brick
-            if bricksdict[key]["parent"] not in (None, "self"):
-                continue
-            # attempt to merge current brick with other bricks in keys, according to available brick types
-            brick_size,_ = attempt_merge(bricksdict, key, keys, bricksdict[key]["size"], cm.zstep, rand_state, brick_type, max_width, max_depth, legal_bricks_only, merge_internals_h, merge_internals_v, material_type, merge_inconsistent_mats=merge_inconsistent_mats, prefer_largest=True, merge_vertical=merge_vertical, target_type=target_type, height_3_only=height_3_only)
-            updated_keys.append(key)
-        return updated_keys
+    # NONE!
 
     #############################################

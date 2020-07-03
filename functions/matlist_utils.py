@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -36,7 +36,7 @@ def get_brick_mats(cm):
 def create_mat_objs(cm):
     """ create new mat_objs for current cmlist id """
     mat_obj_names = ["Bricker_{}_RANDOM_mats".format(cm.id), "Bricker_{}_ABS_mats".format(cm.id)]
-    junk_m = junk_mesh()
+    junk_m = junk_mesh("Bricker_junk_mesh")
     for obj_n in mat_obj_names:
         mat_obj = bpy.data.objects.get(obj_n)
         if mat_obj is None:

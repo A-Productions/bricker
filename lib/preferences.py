@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -74,11 +74,6 @@ class BRICKER_AP_preferences(AddonPreferences):
         description="Reveal the old brick customization tools in the Bricker UI",
         default=False,
     )
-    auto_update_on_delete = BoolProperty(
-        name="Auto Update Model on Delete",
-        description="Draw newly exposed bricks when existing bricks are deleted",
-        default=True,
-    )
     # Other
     show_debugging_tools = BoolProperty(
         name="Show Debugging Tools",
@@ -153,7 +148,6 @@ class BRICKER_AP_preferences(AddonPreferences):
         row = col1.row(align=True)
         right_align(row)
         col = row.column()
-        col.prop(self, "auto_update_on_delete")
         # col.prop(self, "auto_refresh_model_info")
         col.prop(self, "show_legacy_customization_tools")
         col.prop(self, "show_debugging_tools")

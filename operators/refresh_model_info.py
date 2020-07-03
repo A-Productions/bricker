@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -49,7 +49,9 @@ class BRICKER_OT_refresh_model_info(Operator):
             if self.bricksdict is None:
                 self.report({"WARNING"}, "Could not refresh model info - model is not cached")
                 return {"CANCELLED"}
-            self.set_model_info()
+            scn, cm, _ = get_active_context_info(context)
+            bricksdict = get_bricksdict(cm, d_type="MODEL" if cm.model_created else "ANIM", cur_frame=scn.frame_current)
+            set_model_info(bricksdict, cm)
             return{"FINISHED"}
         except:
             bricker_handle_exception()
@@ -59,8 +61,7 @@ class BRICKER_OT_refresh_model_info(Operator):
     # initialization method
 
     def __init__(self):
-        scn, cm, _ = get_active_context_info()
-        self.bricksdict = get_bricksdict(cm, d_type="MODEL" if cm.model_created else "ANIM", cur_frame=scn.frame_current)
+        pass
 
     ###################################################
     # class variables
@@ -70,37 +71,6 @@ class BRICKER_OT_refresh_model_info(Operator):
     ################################################
     # class methods
 
-    def set_model_info(self, cm=None):
-        scn, cm = get_active_context_info(cm)[:2]
-        legal_bricks = get_legal_bricks()
-        num_bricks_in_model = 0
-        model_weight = 0
-        mats_in_model = list()
-        max_vals = (0, 0, 0)
-        z_max = 0
-        for k, brick_d in self.bricksdict.items():
-            if not brick_d["draw"]:
-                continue
-            if brick_d["parent"] == "self":
-                dict_loc = get_dict_loc(self.bricksdict, k)
-                max_vals = (max(max_vals[0], dict_loc[0] + brick_d["size"][0] - 1), max(max_vals[1], dict_loc[1] + brick_d["size"][1] - 1), max(max_vals[2], dict_loc[2] + brick_d["size"][2] - 1))
-                num_bricks_in_model += 1
-                if brick_d["mat_name"] not in mats_in_model:
-                    mats_in_model.append(brick_d["mat_name"])
-                model_weight += get_part(legal_bricks, brick_d["size"], brick_d["type"])["wt"]
-        if "" in mats_in_model:
-            mats_in_model.remove("")
-
-        dimensions = get_brick_dimensions(0.000096, cm.zstep, cm.gap)
-        model_dims = (
-            max_vals[0] * dimensions["width"],
-            max_vals[1] * dimensions["width"],
-            max_vals[2] * dimensions["height"],
-        )
-
-        cm.num_bricks_in_model = num_bricks_in_model
-        cm.num_materials_in_model = len(mats_in_model)
-        cm.real_world_dimensions = model_dims
-        cm.model_weight = model_weight
+    # NONE!
 
     ################################################

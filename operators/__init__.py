@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -27,6 +27,7 @@ __all__ = [
     "cmlist_actions",
     "debug_toggle_view_source",
     "delete_model",
+    "draw_conn_comps",
     "export_ldraw",
     "generate_brick",
     "initialize",
@@ -34,6 +35,10 @@ __all__ = [
     "populate_mat_obj",
     "redraw_custom_bricks",
     "refresh_model_info",
+    "select_components",
+    "post_hollowing_op",
+    "post_merging_op",
+    "post_shrinking_op",
     "revert_settings",
     "test_brick_generators",
 ]

@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -24,11 +24,11 @@ from bpy.props import *
 
 # Module imports
 from .brick.types import *
+from .bevel_bricks import *
 from .general import *
 from .transform_data import *
 from .mat_utils import *
 from .matlist_utils import *
-from ..operators.bevel import BRICKER_OT_bevel
 from ..subtrees.background_processing.classes.job_manager import JobManager
 
 
@@ -67,7 +67,7 @@ def update_bevel(self, context):
         scn, cm, n = get_active_context_info()
         if cm.last_bevel_width != cm.bevel_width or cm.last_bevel_segments != cm.bevel_segments or cm.last_bevel_profile != cm.bevel_profile:
             bricks = get_bricks()
-            BRICKER_OT_bevel.create_bevel_mods(cm, bricks)
+            create_bevel_mods(cm, bricks)
             cm.last_bevel_width = cm.bevel_width
             cm.last_bevel_segments = cm.bevel_segments
             cm.last_bevel_profile = cm.bevel_profile
@@ -196,17 +196,20 @@ def add_material_to_list(self, context):
     if mat_obj is None:
         return
     num_mats = len(mat_obj.data.materials)
-    mat = bpy.data.materials.get(cm.target_material)
+    mat = cm.target_material
     typ = "RANDOM" if cm.material_type == "RANDOM" else "ABS"
     if mat is None:
+        cm.target_material_message = ""
         return
     elif mat.name in mat_obj.data.materials.keys():
-        cm.target_material = "Already in list!"
+        cm.target_material_message = "Already in list!"
     elif typ == "ABS" and mat.name not in get_abs_mat_names():
-        cm.target_material = "Not ABS Plastic material"
+        cm.target_material_message = "Not ABS Plastic Material!"
     elif mat_obj is not None:
         mat_obj.data.materials.append(mat)
-        cm.target_material = ""
+        cm.target_material = None
+        cm.target_material_message = "Added '{}' to the list!".format(mat.name.replace("ABS Plastic ", ""))
+    cm.target_material_time = str(time.time())
     if num_mats < len(mat_obj.data.materials) and not cm.last_split_model:
         cm.material_is_dirty = True
 
@@ -257,7 +260,7 @@ def select_source_model(self, context):
                     select(bricks, active=True, only=True)
                     scn.bricker_last_active_object_name = obj.name if obj is not None else ""
             elif cm.animated:
-                cf = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame)
+                cf = get_anim_adjusted_frame(scn.frame_current, cm.last_start_frame, cm.last_stop_frame, cm.last_step_frame)
                 brick_coll = bpy_collections().get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
                 if brick_coll is not None and len(brick_coll.objects) > 0 and brick_coll.objects[0] is not None:
                     select(brick_coll.objects[0], active=True, only=True)

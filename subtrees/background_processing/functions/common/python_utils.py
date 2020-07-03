@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -16,18 +16,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-import marshal
-import itertools
-import operator
+import binascii
 import hashlib
-import re
+from io import StringIO
+import importlib.util as getutil
+import itertools
+import marshal
+import operator
 import os
+import re
 import subprocess
 import sys
 import zlib
-import binascii
-from io import StringIO
-import re
 
 # Blender imports
 # NONE!
@@ -209,9 +209,18 @@ def get_blend_python_path():
     return join(python_dir, python_name)
 
 
-def install_package(package_name):
+def install_package(package_name, ensure_pip=False):
     python_path = get_blend_python_path()
-    subprocess.call([python_path, "-m", "pip", "install", "--user", package_name])
+    if ensure_pip:
+        subprocess.call([python_path, "-m", "ensurepip"])
+    try:
+        subprocess.call([python_path, "-m", "pip", "--disable-pip-version-check", "install", package_name])
+        if getutil.find_spec(package_name) is None:
+            uninstall_package(package_name)
+            subprocess.call([python_path, "-m", "pip", "--disable-pip-version-check", "install", package_name])
+    except:
+        if b280() and not ensure_pip:
+            install_package(package_name, ensure_pip=True)
 
 
 def uninstall_package(package_name):

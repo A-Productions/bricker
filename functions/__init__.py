@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -19,18 +19,21 @@ from .brick import *
 from .bricksdict import *
 from .common import *
 from .app_handlers import *
+from .bevel_bricks import *
 from .brickify_utils import *
 from .clear_cache import *
 from .cmlist_utils import *
 from .colors import *
 from .customize_utils import *
 from .general import *
-from .generate_lattice import *
 from .hash_object import *
 from .logo_obj import *
-from .make_bricks import *
 from .mat_utils import *
 from .matlist_utils import *
-from .point_cache import *
+from .model_info import *
+from .post_hollowing import *
+from .post_merging import *
+from .post_shrinking import *
+from .smoke_cache import *
 from .transform_data import *
 from .timers import *

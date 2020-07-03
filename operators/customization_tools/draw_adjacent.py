@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -24,7 +24,7 @@ from bpy.types import Operator
 from bpy.props import *
 
 # Module imports
-from .merge_bricks import *
+# from .merge_bricks import *
 from ..brickify import *
 from ...lib.undo_stack import *
 from ...functions import *
@@ -41,8 +41,8 @@ class BRICKER_OT_draw_adjacent(Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
-        active_obj = bpy.context.active_object
+        scn = context.scene
+        active_obj = context.active_object
         # check active object is not None
         if active_obj is None:
             return False
@@ -71,10 +71,10 @@ class BRICKER_OT_draw_adjacent(Operator):
             # get fresh copy of self.bricksdict
             self.bricksdict = get_bricksdict(cm)
             # initialize vars
-            obj = bpy.context.active_object
+            obj = context.active_object
             initial_active_obj_name = obj.name
             cm.customized = True
-            keys_to_merge = []
+            keys_to_merge = set()
             update_has_custom_objs(cm, target_type)
 
             # get dict key details of current obj
@@ -110,15 +110,15 @@ class BRICKER_OT_draw_adjacent(Operator):
             # recalculate val for each bricksdict key in original brick
             brick_locs = [[x, y, z] for z in range(z0, z0 + obj_size[2], cm.zstep) for y in range(y0, y0 + obj_size[1]) for x in range(x0, x0 + obj_size[0])]
             for loc0 in brick_locs:
-                set_cur_brick_val(self.bricksdict, loc0)
+                set_brick_val(self.bricksdict, loc=loc0)
 
             # attempt to merge created bricks
-            keys_to_update = BRICKER_OT_merge_bricks.merge_bricks(self.bricksdict, keys_to_merge, cm, target_type=target_type)
+            keys_to_update = merge_bricks(self.bricksdict, keys_to_merge, cm, target_type=target_type)
 
             # if bricks created on top or bottom, set exposure of original brick
             if self.z_pos or self.z_neg:
-                set_all_brick_exposures(self.bricksdict, cm.zstep, cur_key)
-                keys_to_update.append(cur_key)
+                set_brick_exposure(self.bricksdict, cm.zstep, cur_key)
+                keys_to_update.add(cur_key)
 
             # draw created bricks
             draw_updated_bricks(cm, self.bricksdict, keys_to_update, select_created=False)
@@ -271,18 +271,10 @@ class BRICKER_OT_draw_adjacent(Operator):
                 return {"val":False, "dir_bool":dir_bool, "report_type":"INFO", "msg":"Brick already exists in the following location: %(adjacent_key)s" % locals()}
             # if attempting to remove brick
             elif adj_brick_d["created_from"] == cur_key:
-                # update bricksdict values for brick being removed
+                # update bricksdict entries for brick being removed
                 x0, y0, z0 = adjacent_loc
                 brick_keys = [list_to_str((x0, y0, z0 + z)) for z in range((cm.zstep + 2) % 4 if side in (4, 5) else 1)]
-                for k in brick_keys:
-                    brick_d0 = bricksdict[k]
-                    brick_d0["draw"] = False
-                    set_cur_brick_val(bricksdict, get_dict_loc(bricksdict, k), k, action="REMOVE")
-                    brick_d0["size"] = None
-                    brick_d0["parent"] = None
-                    brick_d0["bot_exposed"] = None
-                    brick_d0["top_exposed"] = None
-                    brick_d0["created_from"] = None
+                reset_bricksdict_entries(bricksdict, brick_keys)
                 adj_bricks_created[side][brick_num] = False
                 return {"val":True, "dir_bool":dir_bool, "report_type":None, "msg":None}
         # if brick doesn't exist there
@@ -307,7 +299,7 @@ class BRICKER_OT_draw_adjacent(Operator):
                         dir_bool = [side, False]
                         return {"val":False, "dir_bool":dir_bool, "report_type":"INFO", "msg":"Brick already exists in the following location: %(new_key)s" % locals()}
                     elif side in (4, 5):
-                        keys_to_merge.append(new_key)
+                        keys_to_merge.add(new_key)
             # update dictionary of locations above brick
             if flat_brick_type(cm.brick_type) and side in (4, 5):
                 update_brick_size_and_dict(dimensions, n, bricksdict, [1, 1, new_brick_height], adjacent_key, adjacent_loc, dec=2 if side == 5 else 0, cur_type=cur_type, target_type=target_type, created_from=cur_key)
@@ -316,7 +308,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             adj_brick_d["type"] = target_type
             adj_brick_d["flipped"] = cur_brick_d["flipped"]
             adj_brick_d["rotated"] = cur_brick_d["rotated"]
-            set_cur_brick_val(bricksdict, adjacent_loc, adjacent_key)
+            set_brick_val(bricksdict, loc=adjacent_loc, key=adjacent_key)
             adj_brick_d["size"] = [1, 1, new_brick_height if side in (4, 5) else cm.zstep]
             adj_brick_d["parent"] = "self"
             adj_brick_d["rgba"] = cur_brick_d["rgba"]
@@ -328,9 +320,9 @@ class BRICKER_OT_draw_adjacent(Operator):
                 adj_brick_d["top_exposed"] = True
                 adj_brick_d["bot_exposed"] = False
             else:
-                set_all_brick_exposures(bricksdict, cm.zstep, adjacent_key)
+                set_brick_exposure(bricksdict, cm.zstep, adjacent_key)
             adj_brick_d["created_from"] = cur_key
-            keys_to_merge.append(adjacent_key)
+            keys_to_merge.add(adjacent_key)
             # set adj_bricks_created to target brick type for current side
             adj_bricks_created[side][brick_num] = target_type
 

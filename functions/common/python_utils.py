@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -16,18 +16,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-import marshal
-import itertools
-import operator
+import binascii
 import hashlib
-import re
+from io import StringIO
+import importlib.util as getutil
+import itertools
+import marshal
+import operator
 import os
+import re
 import subprocess
 import sys
 import zlib
-import binascii
-from io import StringIO
-import re
 
 # Blender imports
 # NONE!
@@ -120,6 +120,11 @@ def is_unique(lst:list):
         return len(lst) == len(set(lst))
 
 
+def nth_index(iterable, value, n:int):
+    matches = (idx for idx, val in enumerate(iterable) if val == value)
+    return next(islice(matches, n-1, n), None)
+
+
 #################### STRINGS ####################
 
 
@@ -199,24 +204,6 @@ def safe_execute(default, exception, function, *args):
         return function(*args)
     except exception:
         return default
-
-
-def get_blend_python_path():
-    from os.path import join
-    python_dir = join(os.__file__.split("lib" + os.sep)[0], "bin")
-    python_name = next((f for f in os.listdir(python_dir) if f.startswith("python")), None)
-    assert python_name is not None
-    return join(python_dir, python_name)
-
-
-def install_package(package_name):
-    python_path = get_blend_python_path()
-    subprocess.call([python_path, "-m", "pip", "install", "--user", package_name])
-
-
-def uninstall_package(package_name):
-    python_path = get_blend_python_path()
-    subprocess.call([python_path, "-m", "pip", "uninstall", "-y", package_name])
 
 
 class Suppressor(object):

@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -35,10 +35,10 @@ def apply_transform(obj:Object, location:bool=True, rotation:bool=True, scale:bo
     loc, rot, scl = obj.matrix_world.decompose()
     obj.matrix_world = Matrix.Identity(4)
     m = obj.data
-    s_mat_x = Matrix.Scale(scl.x, 4, Vector((1, 0, 0)))
-    s_mat_y = Matrix.Scale(scl.y, 4, Vector((0, 1, 0)))
-    s_mat_z = Matrix.Scale(scl.z, 4, Vector((0, 0, 1)))
     if scale:
+        s_mat_x = Matrix.Scale(scl.x, 4, Vector((1, 0, 0)))
+        s_mat_y = Matrix.Scale(scl.y, 4, Vector((0, 1, 0)))
+        s_mat_z = Matrix.Scale(scl.z, 4, Vector((0, 0, 1)))
         m.transform(mathutils_mult(s_mat_x, s_mat_y, s_mat_z))
     else:
         obj.scale = scl
@@ -71,6 +71,19 @@ def children_clear(parent:Object, apply_transform:bool=True):
     """clear all children of an object"""
     for obj in parent.children:
         parent_clear(obj, apply_transform=apply_transform)
+
+
+def parent_set(objs:list, parent:Object, keep_transform:bool=False):
+    """ efficiently set parent for obj(s) """
+    objs = confirm_iter(objs)
+    if keep_transform:
+        for obj in objs:
+            last_mx = obj.matrix_world.copy()
+            obj.parent = parent
+            obj.matrix_world = last_mx
+    else:
+        for obj in objs:
+            obj.parent = parent
 
 
 def get_bounds(obj:Object):

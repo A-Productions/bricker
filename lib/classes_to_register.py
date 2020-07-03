@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -39,6 +39,7 @@ classes = [
     brickify_in_background.BRICKER_OT_stop_brickifying_in_background,
     cache.BRICKER_OT_clear_cache,
     delete_model.BRICKER_OT_delete_model,
+    draw_conn_comps.BRICKER_OT_draw_connected_components,
     debug_toggle_view_source.BRICKER_OT_debug_toggle_view_source,
     export_ldraw.BRICKER_OT_export_ldraw,
     apply_material.BRICKER_OT_apply_material,
@@ -53,6 +54,10 @@ classes = [
     cmlist_actions.CMLIST_OT_link_animated_model,
     cmlist_actions.CMLIST_OT_link_frames,
     matlist_actions.BRICKER_OT_matlist_actions,
+    select_components.BRICKER_OT_select_components,
+    post_hollowing_op.BRICKER_OT_run_post_hollowing,
+    post_merging_op.BRICKER_OT_run_post_merging,
+    post_shrinking_op.BRICKER_OT_run_post_shrinking,
     test_brick_generators.BRICKER_OT_test_brick_generators,
     initialize.BRICKER_OT_initialize,
     # bricker/operators/customization_tools
@@ -104,5 +109,6 @@ classes = [
     CMLIST_UL_items,
     MATERIAL_UL_matslots,
     VIEW3D_PT_bricker_debugging_tools,
+    VIEW3D_PT_bricker_connectivity,
     VIEW3D_PT_bricker_matrix_details,
 ]

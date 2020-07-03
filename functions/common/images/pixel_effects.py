@@ -1,25 +1,39 @@
 # Author: Christopher Gearhart
 
 # System imports
-from numba import cuda, jit, prange
 import numpy as np
 from colorsys import rgb_to_hsv, hsv_to_rgb
+# from scipy import signal
+# from scipy import ndimage
 
 # Blender imports
 # NONE!
 
 # Module imports
-# from .color_effects_cuda import *
-from .images import *
+from .pixel_effects_reshape import *
+from .pixel_effects_median_cut import *
+from ..reporting import b280
+from ..maths import *
+# try:
+#     from .pixel_effects_numba import *
+# except ModuleNotFoundError if b280() else ImportError:
+#     print("'numba' python module not installed")
 
 
-def initialize_gradient_texture(width, height, quadratic=False):
+def initialize_gradient_texture(width, height, quadratic=False, orientation="VERTICAL"):
     pixels = np.empty((height, width))
-    for row in prange(height):
-        val = 1 - (height - 1 - row) / (height - 1)
-        if quadratic:
-            val = val ** 0.5
-        pixels[row, :] = val
+    if orientation == "VERTICAL":
+        for row in range(height):
+            val = 1 - (height - 1 - row) / (height - 1)
+            if quadratic:
+                val = val ** 0.5
+            pixels[row, :] = val
+    else:
+        for col in range(width):
+            val = 1 - (width - 1 - col) / (width - 1)
+            if quadratic:
+                val = val ** 0.5
+            pixels[:, col] = val
     pixels = get_1d_pixel_array(pixels)
     return pixels
 
@@ -55,42 +69,8 @@ def set_alpha_channel(num_pix, old_pixels, old_channels, value):
     return new_pixels
 
 
-@jit(nopython=True, parallel=True)
-def resize_pixels(size, channels, old_pixels, old_size):
-    new_pixels = np.empty(size[0] * size[1] * channels)
-    for col in prange(size[0]):
-        col1 = int((col / size[0]) * old_size[0])
-        for row in range(size[1]):
-            row1 = int((row / size[1]) * old_size[1])
-            pixel_number = (size[0] * row + col) * channels
-            pixel_number_ref = (old_size[0] * row1 + col1) * channels
-            for ch in range(channels):
-                new_pixels[pixel_number + ch] = old_pixels[pixel_number_ref + ch]
-    return new_pixels
-
-
-@jit(nopython=True, parallel=True)
-def resize_pixels_preserve_borders(size, channels, old_pixels, old_size):
-    new_pixels = np.empty(len(old_pixels))
-    offset_col = int((old_size[0] - size[0]) / 2)
-    offset_row = int((old_size[1] - size[1]) / 2)
-    for col in prange(old_size[0]):
-        col1 = int(((col - offset_col) / size[0]) * old_size[0])
-        for row in range(old_size[1]):
-            row1 = int(((row - offset_row) / size[1]) * old_size[1])
-            pixel_number = (old_size[0] * row + col) * channels
-            if 0 <= col1 < old_size[0] and 0 <= row1 < old_size[1]:
-                pixel_number_ref = (old_size[0] * row1 + col1) * channels
-                for ch in range(channels):
-                    new_pixels[pixel_number + ch] = old_pixels[pixel_number_ref + ch]
-            else:
-                for ch in range(channels):
-                    new_pixels[pixel_number + ch] = 0
-    return new_pixels
-
-
 def crop_pixels(size, channels, old_pixels, old_size):
-    old_pixels = get_3d_pixel_array(old_pixels, old_size[0], old_size[1], channels)
+    old_pixels = get_3d_pixel_array(old_pixels, old_size[1], old_size[0], channels)
     offset_col = (old_size[0] - size[0]) // 2
     offset_row = (old_size[1] - size[1]) // 2
     new_pixels = old_pixels[offset_row:offset_row + size[1], offset_col:offset_col + size[0]]
@@ -107,7 +87,7 @@ def pad_pixels(size, channels, old_pixels, old_size):
     return new_pixels
 
 
-def blend_pixels(im1_pixels, im2_pixels, width, height, channels, operation, use_clamp, factor_pixels):
+def blend_pixels(im1_pixels, im2_pixels, width, height, channels, operation, use_clamp, factor):
     new_pixels = np.empty((width * height, channels))
     im1_pixels = get_2d_pixel_array(im1_pixels, channels)
     im2_pixels = get_2d_pixel_array(im2_pixels, channels)
@@ -173,7 +153,7 @@ def math_operation_on_pixels(pixels, operation, value, clamp=False):
     elif operation == "POWER":
         new_pixels = pixels ** value
     # elif operation == "LOGARITHM":
-    #     for i in prange(new_pixels.size):
+    #     for i in range(new_pixels.size):
     #         new_pixels = math.log(pixels, value)
     elif operation == "SQUARE ROOT":
         new_pixels = np.sqrt(pixels)
@@ -222,6 +202,13 @@ def clamp_pixels(pixels, minimum, maximum):
     return np.clip(pixels, minimum, maximum)
 
 
+def normalize_pixels(pixels, to_sum=False):
+    new_pixels = np.copy(pixels)
+    new_pixels -= np.min(new_pixels, axis=0)
+    new_pixels /= (np.sum(new_pixels, axis=0) if to_sum else np.ptp(new_pixels, axis=0))
+    return new_pixels
+
+
 def adjust_bright_contrast(pixels, bright, contrast):
     return contrast * (pixels - 0.5) + 0.5 + bright
 
@@ -247,76 +234,34 @@ def invert_pixels(pixels, factor, channels):
     return pixels
 
 
-@jit(nopython=True, parallel=True)
-def dilate_pixels_dist(old_pixels, pixel_dist, width, height):
-    mult = 1 if pixel_dist[0] > 0 else -1
-    new_pixels = np.empty(len(old_pixels))
-    # for i in prange(width * height):
-    #     x = i / height
-    #     row = round((x % 1) * height)
-    #     col = round(x - (x % 1))
-    for col in prange(width):
-        for row in prange(height):
-            pixel_number = width * row + col
-            max_val = old_pixels[pixel_number]
-            for c in range(-pixel_dist[0], pixel_dist[0] + 1):
-                for r in range(-pixel_dist[1], pixel_dist[1] + 1):
-                    if not (0 < col + c < width and 0 < row + r < height):
-                        continue
-                    width_amt = abs(c) / pixel_dist[0]
-                    height_amt = abs(r) / pixel_dist[1]
-                    ratio = (width_amt - height_amt) / 2 + 0.5
-                    weighted_dist = pixel_dist[0] * ratio + ((1 - ratio) * pixel_dist[1])
-                    dist = ((abs(c)**2 + abs(r)**2) ** 0.5)
-                    if dist > weighted_dist + 0.5:
-                        continue
-                    pixel_number1 = width * (row + r) + (col + c)
-                    cur_val = old_pixels[pixel_number1]
-                    if cur_val * mult > max_val * mult:
-                        max_val = cur_val
-            new_pixels[pixel_number] = max_val
-    return new_pixels
-
-
-@jit(nopython=True, parallel=True)
-def dilate_pixels_step(old_pixels, pixel_dist, width, height):
-    mult = 1 if pixel_dist[0] > 0 else -1
-    new_pixels = np.empty(len(old_pixels))
-    # for i in prange(width * height):
-    #     x = i / height
-    #     row = round((x % 1) * height)
-    #     col = round(x - (x % 1))
-    for col in prange(width):
-        for row in range(height):
-            pixel_number = width * row + col
-            max_val = old_pixels[pixel_number]
-            for c in range(-pixel_dist[0], pixel_dist[0] + 1):
-                if not 0 < col + c < width:
-                    continue
-                pixel_number1 = width * row + (col + c)
-                cur_val = old_pixels[pixel_number1]
-                if cur_val * mult > max_val * mult:
-                    max_val = cur_val
-            new_pixels[pixel_number] = max_val
-    old_pixels = new_pixels
-    new_pixels = np.empty(len(old_pixels))
-    for col in prange(width):
-        for row in range(height):
-            pixel_number = width * row + col
-            max_val = old_pixels[pixel_number]
-            for r in range(-pixel_dist[1], pixel_dist[1] + 1):
-                if not 0 < row + r < height:
-                    continue
-                pixel_number1 = width * (row + r) + col
-                cur_val = old_pixels[pixel_number1]
-                if cur_val * mult > max_val * mult:
-                    max_val = cur_val
-            new_pixels[pixel_number] = max_val
+def blur_pixels(old_pixels, width, height, channels, blur_radius=1, filter_type="FLAT"):
+    old_pixels = get_3d_pixel_array(old_pixels, height, width, channels)
+    new_pixels = old_pixels.copy()
+    # get 2d blur radius
+    assert type(blur_radius) in (int, tuple, list)
+    blur_radius_2d = (blur_radius, blur_radius) if isinstance(blur_radius, int) else blur_radius
+    # apply blur filter
+    if filter_type == "FLAT":
+        # get kernel
+        kernel_size = (1 + (blur_radius_2d[1] * 2), 1 + (blur_radius_2d[0] * 2))
+        kernel = np.ones(kernel_size)
+        # run convolve2d to blur pixels
+        for i in range(channels):
+            neighbor_sum = signal.convolve2d(old_pixels[:, :, i], kernel, mode="same", boundary="fill", fillvalue=0)
+            num_neighbor = signal.convolve2d(np.ones((height, width)), kernel, mode="same", boundary="fill", fillvalue=0)
+            new_pixels[:, :, i] = neighbor_sum / num_neighbor
+    elif filter_type == "GAUSS":
+        sigma_2d = (blur_radius_2d[1] / 2, blur_radius_2d[0] / 2)
+        for i in range(channels):
+            result = ndimage.filters.gaussian_filter(old_pixels[:, :, i], sigma=sigma_2d)
+            new_pixels[:, :, i] = result
+    # reshape back to 1d aray and return
+    new_pixels = get_1d_pixel_array(new_pixels)
     return new_pixels
 
 
 def flip_pixels(old_pixels, flip_x, flip_y, width, height, channels):
-    old_pixels = get_3d_pixel_array(old_pixels, width, height, channels)
+    old_pixels = get_3d_pixel_array(old_pixels, height, width, channels)
     if flix_x and not flip_y:
         new_pixels = old_pixels[:, ::-1]
     elif not flix_x and flip_y:

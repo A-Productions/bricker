@@ -1,4 +1,4 @@
-# Copyright (C) 2019 Christopher Gearhart
+# Copyright (C) 2020 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -38,7 +38,7 @@ class BRICKER_OT_revert_settings(Operator):
 
     @classmethod
     def poll(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
         if scn.cmlist_index == -1:
             return False
         cm = scn.cmlist[scn.cmlist_index]
@@ -57,7 +57,7 @@ class BRICKER_OT_revert_settings(Operator):
     # class methods
 
     def revert_matrix_settings(self, cm=None):
-        cm = get_active_context_info(cm)[1]
+        cm = get_active_context_info(context, cm)[1]
         settings = json.loads(cm.last_matrix_settings)
         cm.brick_height = settings["brick_height"]
         cm.gap = settings["gap"]
