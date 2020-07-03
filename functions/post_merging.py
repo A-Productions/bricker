@@ -30,11 +30,9 @@ from .improve_sturdiness import *
 from .make_bricks_utils import *
 
 
-def run_post_merging(bricksdict, keys, zstep, brick_type, legal_bricks_only, merge_internals_h, merge_internals_v, max_width, max_depth, length_cap=8):
+def run_post_merging(bricksdict, keys, zstep, brick_type, legal_bricks_only, merge_internals_h, merge_internals_v, max_width, max_depth):
     """ attempt to merge bricks further that have already been merged, preserving structural integrity """
     # initialize vars
-    max_width = min(length_cap, max_width)
-    max_depth = min(length_cap, max_depth)
     updated_keys = set()
     all_engulfed_keys = set()
     # attempt post-merge for keys passed to this function

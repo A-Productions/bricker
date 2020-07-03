@@ -33,21 +33,33 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
     iters_before_consistent = 3
     last_weak_points = [-1, -1]
     last_conn_comps = [-1, -1]
+    # initialize minimum sturdiness
+    lowest_conn_data = {"conn_comps": inf, "weak_points": inf}
+    sturdiest_bricksdict = None
     print()
     # run sturdiness improvement iteratively
-    for i in range(iterations):
+    for i in range(iterations + 1):
         # reset 'attempted_merge' for all items in bricksdict
         for key0 in bricksdict:
             bricksdict[key0]["attempted_merge"] = False
         # get connectivity data
         conn_comps, weak_points, weak_point_neighbors, parent_keys = get_connectivity_data(bricksdict, zstep, keys, verbose=True)
+        # check if this is the sturdiest model thusfar
+        if i > (iterations / 2) and len(conn_comps) < lowest_conn_data["conn_comps"] or (len(conn_comps) == lowest_conn_data["conn_comps"] and len(weak_points) < lowest_conn_data["weak_points"]):
+            print("cached...")
+            lowest_conn_data["conn_comps"] = len(conn_comps)
+            lowest_conn_data["weak_points"] = len(conn_comps)
+            sturdiest_bricksdict = deepcopy(bricksdict)
         # set last connectivity vals
         last_weak_points.append(len(weak_points))
         last_conn_comps.append(len(conn_comps))
         # break if sturdy, or consistent for 3 iterations
         is_sturdy = len(conn_comps) == 1 and len(weak_points) == 0
         consistent_sturdiness = len(set(last_weak_points[-iters_before_consistent:])) <= 1 and len(set(last_conn_comps[-iters_before_consistent:])) <= 1
-        if is_sturdy or consistent_sturdiness:
+        if is_sturdy or (consistent_sturdiness and i > (iterations / 2 + iters_before_consistent)):
+            break
+        # break if we're at the last iteration (we don't want to do yet another merge if we're not going to check the connectivity data)
+        if i == iterations:
             break
         # get component interfaces
         # print("getting component interfaces...", end="")
@@ -71,6 +83,12 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
         # merge split bricks
         merged_keys = merge_bricks(bricksdict, split_keys, cm, merge_seed=new_merge_seed, target_type="BRICK" if brick_type == "BRICKS_AND_PLATES" else brick_type, any_height=brick_type == "BRICKS_AND_PLATES", direction_mult=direction_mult, sort_fn=sort_fn)
 
+    # replace bricksdict with the sturdiest one found
+    if sturdiest_bricksdict is not None:
+        # modify bricksdict in place so the pointer remains the same
+        bricksdict.clear()
+        bricksdict.update(sturdiest_bricksdict)
+
     # print the result
     if iterations > 0 and len(conn_comps) == 1 and len(weak_points) == 0:
         print("\nModel is fully stable!")
@@ -78,7 +96,7 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
         # get the final components data
         print("\nResult:")
         conn_comps, weak_points, _, _ = get_connectivity_data(bricksdict, zstep, keys, get_neighbors=False, verbose=True)
-        
+
     return conn_comps, weak_points
 
 

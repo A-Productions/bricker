@@ -207,16 +207,8 @@ def attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, me
             # enforce max width/depth cap, and for Z axis enforce max height of 3
             if axis == 2 and cur_size[axis] > 3:
                 break
-            # elif cur_size[axis] > max(max_width, max_depth):
-            #     break
-            # elif cur_size[other_h_axis] > min(max_width, max_depth):
-            #     break
-            # elif cur_size[axis] > max(max_width, max_depth) and not cur_size[other_h_axis] < max(max_width, max_depth):
-            #     break
-            # elif cur_size[other_h_axis] > min(max_width, max_depth) and not cur_size[axis] < min(max_width, max_depth):
-            #     break
-            elif (not (cur_size[axis] < max(max_width, max_depth) and cur_size[other_h_axis] > min(max_width, max_depth)) and
-                  not (cur_size[axis] > min(max_width, max_depth) and cur_size[other_h_axis] < max(max_width, max_depth))
+            elif (not (cur_size[axis] <= max(max_width, max_depth) and cur_size[other_h_axis] >= min(max_width, max_depth)) and
+                  not (cur_size[axis] >= min(max_width, max_depth) and cur_size[other_h_axis] <= max(max_width, max_depth))
                  ):
                 break
             # make sure materials can be merged
