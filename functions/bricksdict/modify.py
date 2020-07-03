@@ -360,7 +360,11 @@ def update_merged_keys_in_bricksdict(bricksdict, key, merged_keys, brick_size, b
         brick_d0 = bricksdict[k]
         if set_attempted_merge:
             brick_d0["attempted_merge"] = True
-        brick_d0["parent"] = "self" if k == key else key
+        if k == key:
+            brick_d0["parent"] = "self" if k == key else key
+        else:
+            brick_d0["parent"] = key
+            brick_d0["size"] = None
         # set brick type if necessary
         if flat_brick_type(brick_type):
             brick_d0["type"] = short_type if brick_size[2] == 1 else tall_type
