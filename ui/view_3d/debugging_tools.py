@@ -77,6 +77,8 @@ class VIEW3D_PT_bricker_connectivity(BrickerPanel, Panel):
             return False
         if not (cm.model_created or cm.animated):
             return False
+        if bpy.props.bricker_developer_mode == 0:
+            return False
         return True
 
     def draw(self, context):
