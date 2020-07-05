@@ -101,14 +101,15 @@ def update_brick_size_and_dict(dimensions, source_name, bricksdict, brick_size, 
                 for z in range(1, target_height):
                     new_loc = [loc[0] + x, loc[1] + y, loc[2] + z]
                     new_key = list_to_str(new_loc)
-                    new_brick_d = bricksdict[new_key]
                     # create new bricksdict entry if it doesn't exist
                     if new_key not in bricksdict:
                         bricksdict = create_addl_bricksdict_entry(source_name, bricksdict, key, new_key, full_d, x, y, z)
                     # update bricksdict entry to point to new brick
+                    new_brick_d = bricksdict[new_key]
                     new_brick_d["parent"] = key
                     new_brick_d["created_from"] = created_from
                     new_brick_d["draw"] = True
+                    new_brick_d["type"] = brick_d["type"]
                     new_brick_d["mat_name"] = brick_d["mat_name"] if new_brick_d["mat_name"] == "" else new_brick_d["mat_name"]
                     new_brick_d["near_face"] = new_brick_d["near_face"] or brick_d["near_face"]
                     new_brick_d["near_intersection"] = new_brick_d["near_intersection"] or tuple(brick_d["near_intersection"])
