@@ -44,7 +44,7 @@ from ..lib.caches import bricker_mesh_cache
 
 
 @timed_call()
-def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions, action, bcoll, num_source_mats, split=False, brick_scale=None, merge_vertical=True, custom_data=None, clear_existing_collection=True, frame_num=None, cursor_status=False, print_status=True, placeholder_meshes=False, run_pre_merge=True, force_post_merge=False, redrawing=False):
+def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions, action, bcoll, num_source_mats, split=False, brick_scale=None, merge_vertical=True, clear_existing_collection=True, frame_num=None, cursor_status=False, print_status=True, placeholder_meshes=False, run_pre_merge=True, force_post_merge=False, redrawing=False):
     # initialize cmlist attributes (prevents 'update' function for each property from running every time)
     n = cm.source_obj.name
     cm_id = cm.id
@@ -54,9 +54,7 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     brick_type = cm.brick_type
     bricks_and_plates = brick_type == "BRICKS_AND_PLATES"
     circle_verts = min(16, cm.circle_verts) if placeholder_meshes else cm.circle_verts
-    custom_object1 = cm.custom_object1
-    custom_object2 = cm.custom_object2
-    custom_object3 = cm.custom_object3
+    custom_meshes = (cm.custom_mesh1, cm.custom_mesh2, cm.custom_mesh3)
     mat_dirty = cm.material_is_dirty or cm.matrix_is_dirty or cm.build_is_dirty
     custom_mat = cm.custom_mat
     exposed_underside_detail = "FLAT" if placeholder_meshes else cm.exposed_underside_detail
@@ -253,7 +251,7 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
                 continue
             loc = get_dict_loc(bricksdict, k2)
             # create brick based on the current brick info
-            draw_brick(cm_id, bricksdict, k2, loc, bcoll, clear_existing_collection, parent, dimensions, zstep, bricksdict[k2]["size"], brick_type, split, custom_data, bricks_created, all_meshes, mats, internal_mat, logo, logo_resolution, logo_decimate, logo_type, logo_scale, logo_inset, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, circle_verts, instance_method, rand_s2, rand_s3)
+            draw_brick(cm_id, bricksdict, k2, loc, bcoll, clear_existing_collection, parent, dimensions, zstep, bricksdict[k2]["size"], brick_type, split, custom_meshes, bricks_created, all_meshes, mats, internal_mat, logo, logo_resolution, logo_decimate, logo_type, logo_scale, logo_inset, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, circle_verts, instance_method, rand_s2, rand_s3)
             # print status to terminal and cursor
             old_percent = update_progress_bars(i / denom, old_percent, "Building", print_status, cursor_status)
 

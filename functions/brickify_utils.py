@@ -330,7 +330,7 @@ def create_new_bricks(source_dup, parent, source_details, dimensions, action, sp
     """ gets/creates bricksdict, runs make_bricks, and caches the final bricksdict """
     # initialization for getting bricksdict
     scn, cm, n = get_active_context_info(cm=cm)
-    brick_scale, custom_data = get_arguments_for_bricksdict(cm, source=source_dup, dimensions=dimensions)
+    brick_scale = get_arguments_for_bricksdict(cm, source=source_dup, dimensions=dimensions)
     update_cursor = action in ("CREATE", "UPDATE_MODEL")
     # get bricksdict
     bricksdict, brick_scale = get_bricksdict_for_model(cm, source_dup, source_details, action, cur_frame, brick_scale, bricksdict, keys, redrawing, update_cursor)
@@ -359,7 +359,7 @@ def create_new_bricks(source_dup, parent, source_details, dimensions, action, sp
     if cm.instance_method == "POINT_CLOUD":
         bricks_created = make_bricks_point_cloud(cm, bricksdict, keys_dict, parent, source_details, dimensions, bcoll, frame_num=cur_frame)
     else:
-        bricks_created = make_bricks(cm, bricksdict, keys_dict, keys, parent, ref_logo, dimensions, action, bcoll, num_source_mats=len(source_dup.data.materials), split=split, brick_scale=brick_scale, merge_vertical=merge_vertical, custom_data=custom_data, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, print_status=print_status, placeholder_meshes=placeholder_meshes, run_pre_merge=run_pre_merge, force_post_merge=force_post_merge, redrawing=redrawing)
+        bricks_created = make_bricks(cm, bricksdict, keys_dict, keys, parent, ref_logo, dimensions, action, bcoll, num_source_mats=len(source_dup.data.materials), split=split, brick_scale=brick_scale, merge_vertical=merge_vertical, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, print_status=print_status, placeholder_meshes=placeholder_meshes, run_pre_merge=run_pre_merge, force_post_merge=force_post_merge, redrawing=redrawing)
     # select bricks
     if select_created and len(bricks_created) > 0:
         select(bricks_created)
@@ -380,12 +380,10 @@ def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1
     """ returns arguments for make_bricksdict function """
     source = source or cm.source_obj
     split_model = cm.split_model
-    custom_data = [None] * 3
     if dimensions is None:
         dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
-    for i, custom_info in enumerate([[cm.has_custom_obj1, cm.custom_object1], [cm.has_custom_obj2, cm.custom_object2], [cm.has_custom_obj3, cm.custom_object3]]):
-        has_custom_obj, custom_obj = custom_info
-        if (i == 0 and cm.brick_type == "CUSTOM") or has_custom_obj:
+    for has_custom_obj, custom_obj, data_attr in ((cm.has_custom_obj1, cm.custom_object1, "custom_mesh1"), (cm.has_custom_obj2, cm.custom_object2, "custom_mesh2"), (cm.has_custom_obj3, cm.custom_object3, "custom_mesh3")):
+        if (data_attr == "custom_mesh1" and cm.brick_type == "CUSTOM") or has_custom_obj:
             scn = bpy.context.scene
             # duplicate custom object
             # TODO: remove this object on delete action
@@ -408,7 +406,7 @@ def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1
             # get custom object details
             cur_custom_obj_details = bounds(custom_obj0)
             # set brick scale
-            scale = cm.brick_height/cur_custom_obj_details.dist.z
+            scale = cm.brick_height / cur_custom_obj_details.dist.z
             brick_scale = cur_custom_obj_details.dist * scale + Vector([dimensions["gap"]] * 3)
             # get transformation matrices
             t_mat = Matrix.Translation(-cur_custom_obj_details.mid)
@@ -421,15 +419,15 @@ def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1
             custom_obj0.data.transform(mathutils_mult(s_mat_x, s_mat_y, s_mat_z))
             # center mesh origin
             center_mesh_origin(custom_obj0.data, dimensions, brick_size)
-            # store fresh data to custom_data variable
-            custom_data[i] = custom_obj0.data
+            # store fresh data to custom_mesh1/2/3 variable
+            setattr(cm, data_attr, custom_obj0.data)
     if cm.brick_type != "CUSTOM":
         brick_scale = Vector((
             dimensions["width"] + dimensions["gap"],
             dimensions["width"] + dimensions["gap"],
             dimensions["height"]+ dimensions["gap"],
         ))
-    return brick_scale, custom_data
+    return brick_scale
 
 
 def transform_bricks(bcoll, cm, parent, source, source_dup_details, action):

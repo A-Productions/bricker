@@ -309,20 +309,35 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     custom_object1 = PointerProperty(
         type=bpy.types.Object,
         poll=lambda self, object: object.type == "MESH" and object != self.source_obj and not object.name.startswith("Bricker_{}".format(self.source_obj.name)),
-        name="Custom Object Name 1",
+        name="Custom Object 1",
         description="Custom object to use as brick type",
+    )
+    custom_mesh1 = PointerProperty(
+        type=bpy.types.Mesh,
+        name="Custom Mesh 1",
+        description="Cached mesh from Custom Object 1 with materials applied/transform removed",
     )
     custom_object2 = PointerProperty(
         type=bpy.types.Object,
         poll=lambda self, object: object.type == "MESH" and object != self.source_obj and not object.name.startswith("Bricker_{}".format(self.source_obj.name)),
-        name="Custom Object Name 2",
+        name="Custom Object 2",
         description="Custom object to use as brick type",
+    )
+    custom_mesh2 = PointerProperty(
+        type=bpy.types.Mesh,
+        name="Custom Mesh 2",
+        description="Cached mesh from Custom Object 2 with materials applied/transform removed",
     )
     custom_object3 = PointerProperty(
         type=bpy.types.Object,
         poll=lambda self, object: object.type == "MESH" and object != self.source_obj and not object.name.startswith("Bricker_{}".format(self.source_obj.name)),
-        name="Custom Object Name 3",
+        name="Custom Object 3",
         description="Custom object to use as brick type",
+    )
+    custom_mesh3 = PointerProperty(
+        type=bpy.types.Mesh,
+        name="Custom Mesh 3",
+        description="Cached mesh from Custom Object 3 with materials applied/transform removed",
     )
     dist_offset = FloatVectorProperty(
         name="Offset Distance",
