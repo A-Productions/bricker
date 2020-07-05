@@ -17,6 +17,8 @@
 
 # System imports
 import math
+from operator import mul
+from functools import reduce
 
 # Blender imports
 from mathutils import Matrix, Vector
@@ -111,6 +113,11 @@ def vec_interp(v1:Vector, v2:Vector, fac:float, outer_type:type=Vector):
 # def mean(lst:list):
 #     """ mean of a list """
 #     return sum(lst)/len(lst)
+
+
+def prod(lst:list):
+    """ product of a list """
+    return reduce(mul, lst)
 
 
 def round_nearest(num:float, divisor:int, round_type:str="ROUND"):

@@ -130,6 +130,13 @@ class OBJECT_OT_delete_override(Operator):
             # store cmlist props for quick calling
             last_split_model = cm.last_split_model
             zstep = cm.zstep
+            brick_type = cm.brick_type
+            legal_bricks_only = cm.legal_bricks_only
+            merge_internals = "NEITHER" if cm.material_type == "NONE" else cm.merge_internals
+            merge_internals_h = merge_internals in ["BOTH", "HORIZONTAL"]
+            merge_internals_v = merge_internals in ["BOTH", "VERTICAL"]
+            max_width = cm.max_width
+            max_depth = cm.max_depth
             draw_threshold = get_threshold(cm)
             keys_to_update = set()
 
@@ -145,7 +152,6 @@ class OBJECT_OT_delete_override(Operator):
                 # reset bricksdict entries
                 reset_bricksdict_entries(bricksdict, keys_in_brick, force_outside=True)
                 # make adjustments to adjacent bricks
-                # if last_split_model:
                 keys_to_update |= self.update_adj_bricksdicts(bricksdict, zstep, dkey, dloc, draw_threshold, obj_size)[0]
             # dirty_build if it wasn't already
             last_build_is_dirty = cm.build_is_dirty
@@ -153,15 +159,15 @@ class OBJECT_OT_delete_override(Operator):
                 cm.build_is_dirty = True
             # merge and draw modified bricks
             if len(keys_to_update) > 0:
-                # split up bricks before draw_updated_bricks calls attempt_pre_merge
-                for k0 in keys_to_update.copy():
-                    keys_to_update |= split_brick(bricksdict, k0, cm.zstep, cm.brick_type)
                 # delete those objects
-                for k2 in keys_to_update:
-                    brick = bpy.data.objects.get(bricksdict[k2]["name"])
+                for k0 in keys_to_update:
+                    brick = bpy.data.objects.get(bricksdict[k0]["name"])
                     delete(brick)
-                # create new bricks at all keys_to_update locations (attempts merge as well)
-                draw_updated_bricks(cm, bricksdict, keys_to_update, select_created=False)
+                # split up bricks before draw_updated_bricks calls attempt_pre_merge
+                for k1 in keys_to_update.copy():
+                    keys_to_update |= split_brick(bricksdict, k1, cm.zstep, cm.brick_type)
+                # create new bricks at all keys_to_update locations (attempts both pre- and post-merge)
+                draw_updated_bricks(cm, bricksdict, keys_to_update, run_post_merge=True, select_created=False)
             if not last_build_is_dirty:
                 cm.build_is_dirty = False
             # if undo states not iterated above
@@ -213,7 +219,7 @@ class OBJECT_OT_delete_override(Operator):
                 brick_d0["draw"] = True
                 brick_d0["size"] = [1, 1, zstep]
                 brick_d0["parent"] = "self"
-                brick_d0["type"] = brick_d["type"]
+                brick_d0["type"] = get_short_type(brick_d)
                 brick_d0["flipped"] = brick_d["flipped"]
                 brick_d0["rotated"] = brick_d["rotated"]
                 brick_d0["mat_name"] = brick_d["mat_name"]

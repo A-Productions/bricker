@@ -44,7 +44,7 @@ from ..lib.caches import bricker_mesh_cache
 
 
 @timed_call()
-def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions, action, bcoll, num_source_mats, split=False, brick_scale=None, merge_vertical=True, custom_data=None, clear_existing_collection=True, frame_num=None, cursor_status=False, print_status=True, placeholder_meshes=False, run_pre_merge=True, redrawing=False):
+def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions, action, bcoll, num_source_mats, split=False, brick_scale=None, merge_vertical=True, custom_data=None, clear_existing_collection=True, frame_num=None, cursor_status=False, print_status=True, placeholder_meshes=False, run_pre_merge=True, force_post_merge=False, redrawing=False):
     # initialize cmlist attributes (prevents 'update' function for each property from running every time)
     n = cm.source_obj.name
     cm_id = cm.id
@@ -86,7 +86,7 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     brick_type_can_be_merged = mergable_brick_type(brick_type, up=cm.zstep == 1) and (max_depth != 1 or max_width != 1)
     internals_exist = cm.shell_thickness > 1 and cm.calc_internals
     run_post_sturdy = internals_exist and brick_type_can_be_merged and not redrawing
-    run_post_merge = cm.post_merging and brick_type_can_be_merged and not redrawing
+    run_post_merge = cm.post_merging and brick_type_can_be_merged and (not redrawing or force_post_merge)
     run_post_hollow = internals_exist and cm.post_hollowing and brick_type_can_be_merged and not redrawing
     # initialize random states
     rand_s1 = None if placeholder_meshes else np.random.RandomState(cm.merge_seed)  # for brick_size calc
