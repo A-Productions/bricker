@@ -26,5 +26,3 @@ def add_keymaps(km):
     # km.keymap_items.new("bricker.draw_adjacent", "N", "PRESS", shift=True, alt=True)
     # km.keymap_items.new("bricker.change_brick_type", "T", "PRESS", shift=True, alt=True)
     # km.keymap_items.new("bricker.change_brick_material", "M", "PRESS", shift=True, alt=True)
-    # km.keymap_items.new("bricker.set_exposure", "UP_ARROW", "PRESS", shift=True, alt=True).properties.side = "TOP"
-    # km.keymap_items.new("bricker.set_exposure", "DOWN_ARROW", "PRESS", shift=True, alt=True).properties.side = "BOTTOM"

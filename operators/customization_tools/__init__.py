@@ -21,6 +21,5 @@ from .change_brick_material import *
 from .draw_adjacent import *
 from .merge_bricks import *
 from .redraw_bricks import *
-from .set_exposure import *
 from .split_bricks import *
 from .select import *
