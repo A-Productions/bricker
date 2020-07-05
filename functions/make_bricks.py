@@ -116,7 +116,7 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     else:
         # initialize progress bar around cursor
         old_percent = update_progress_bars(0.0, -1, "Merging", print_status, cursor_status)
-        
+
         # set all keys as available for merge
         for key0 in target_keys:
             bricksdict[key0]["available_for_merge"] = True
