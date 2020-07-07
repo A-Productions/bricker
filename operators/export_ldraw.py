@@ -28,6 +28,7 @@ from bpy.props import *
 
 # Module imports
 from ..functions import *
+from ..functions.property_callbacks import get_build_order_items
 
 
 class BRICKER_OT_export_ldraw(Operator, ExportHelper):
@@ -45,7 +46,10 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
 
     def execute(self, context):
         try:
-            self.write_ldraw_file(context)
+            if self.build_order == "LAYERS":
+                self.write_ldraw_file_layers(context)
+            elif self.build_order == "CONN_COMPS":
+                self.write_ldraw_file_conn_comps(context)
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -64,6 +68,12 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         name="Author",
         description="Author name for the file's metadata",
         default="",
+    )
+    build_order = EnumProperty(
+        name="Build Order",
+        description="Build order for the model steps",
+        # options={"HIDDEN"},
+        items=get_build_order_items,
     )
 
     ################################################
@@ -90,6 +100,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         self.offset_brick_layers = cm.offset_brick_layers
         self.gap = cm.gap
         self.zstep = get_zstep(cm)
+        self.brick_materials_installed = brick_materials_installed()
 
     #############################################
     # class variables
@@ -100,7 +111,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
     # class methods
 
     @timed_call()
-    def write_ldraw_file(self, context):
+    def write_ldraw_file_conn_comps(self, context):
         """ create and write Ldraw file """
         # open file for read and write
         self.filelines = list()
@@ -225,25 +236,99 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
             self.file = open(self.filepath, "w")
             self.file.writelines(self.filelines)
             self.file.close()
-            # report the status of the export
-            if not cm.last_legal_bricks_only:
-                self.report({"WARNING"}, "Model may contain non-standard brick sizes. Enable 'Brick Types > Legal Bricks Only' to make bricks LDraw-compatible.")
-            elif self.abs_mat_properties is None and brick_materials_installed:
-                self.report({"WARNING"}, "Materials may not have transferred successfully – please update to the latest version of 'ABS Plastic Materials'")
-            else:
-                self.report({"INFO"}, f"Ldraw file saved to '{self.filepath}'")
-                # print num bricks exported
-                initial_idx = self.filelines.index("0 NOFILE\n")  # get first end of file line
-                num_bricks_exported = len(tuple(val for val in self.filelines[initial_idx:] if val.startswith("1")))
-                total_bricks = len(get_parent_keys(bricksdict))
-                print()
-                print(f"{num_bricks_exported} / {total_bricks} bricks exported")
-                # print num layers exported
-                num_layers_exported = len(tuple(val for val in self.filelines if val.startswith("0 FILE Layer"))) - 1
-                print(f"{num_layers_exported} layers exported")
-                # print num sub-steps exported
-                num_substeps_exported = len(tuple(val for val in self.filelines if val.startswith("0 ROTSTEP")))
-                print(f"{num_substeps_exported} sub-steps exported")
+            self.report_export_status(cm, bricksdict)
+
+    def write_ldraw_file_layers(self, context):
+        """ create and write Ldraw file """
+        scn, cm, n = get_active_context_info(context)
+        for frame in range(cm.last_start_frame, cm.last_stop_frame + 1, cm.last_step_frame) if cm.animated else [-1]:
+            path = self.filepath
+            f = open(path, "w")
+            # write META commands
+            f.write("0 %(n)s\n" % locals())
+            f.write("0 Name:\n" % locals())
+            f.write("0 Unofficial model\n" % locals())
+            # f.write("0 Author: Unknown\n" % locals())
+            bricksdict = get_bricksdict(cm, d_type="ANIM" if cm.animated else "MODEL", cur_frame=frame)
+            if bricksdict is None:
+                self.report({"ERROR"}, "The model's data is not cached – please update the model")
+                return
+            # get small offset for model to get close to Ldraw units
+            offset = vec_conv(bricksdict[list(bricksdict.keys())[0]]["co"], int)
+            offset.x = offset.x % 10
+            offset.y = offset.z % 8
+            offset.z = offset.y % 10
+            # get dictionary of keys based on z value
+            keys_dict, sorted_keys = get_keys_dict(bricksdict)
+            # get sorted keys for random merging
+            seed_keys = sorted_keys if self.material_type == "RANDOM" else None
+            # iterate through z locations in bricksdict (bottom to top)
+            for z in sorted(keys_dict.keys()):
+                for key in keys_dict[z]:
+                    # skip bricks that aren't displayed
+                    brick_d = bricksdict[key]
+                    if not brick_d["draw"] or brick_d["parent"] != "self":
+                        continue
+                    # initialize brick size and typ
+                    size = brick_d["size"]
+                    typ = brick_d["type"]
+                    if typ == "SLOPE":
+                        idx = 0
+                        idx -= 2 if brick_d["flipped"] else 0
+                        idx -= 1 if brick_d["rotated"] else 0
+                        idx += 2 if (size[:2] in ([1, 2], [1, 3], [1, 4], [2, 3]) and not brick_d["rotated"]) or size[:2] == [2, 4] else 0
+                    else:
+                        idx = 1
+                    idx += 1 if size[1] > size[0] else 0
+                    matrix = self.matrices[idx]
+                    # get coordinate for brick in Ldraw units
+                    co = self.blend_to_ldraw_units(cm, bricksdict, cm.zstep, key, idx)
+                    # get color code of brick
+                    mat = get_material(bricksdict, key, size, cm.zstep, self.material_type, cm.custom_mat, cm.random_mat_seed, seed_keys, brick_mats=get_brick_mats(cm))
+                    mat_name = "" if mat is None else mat.name
+                    rgba = brick_d["rgba"]
+                    if mat_name in get_abs_mat_names() and self.abs_mat_properties is not None:
+                        abs_mat_name = mat_name
+                    elif rgba not in (None, "") and self.material_type != "NONE":
+                        abs_mat_name = find_nearest_color_name(rgba, trans_weight=self.trans_weight)
+                    elif bpy.data.materials.get(mat_name) is not None:
+                        rgba = get_material_color(mat_name)
+                        abs_mat_name = find_nearest_color_name(rgba, trans_weight=self.trans_weight)
+                    else:
+                        abs_mat_name = ""
+                    color = self.abs_mat_properties[abs_mat_name]["LDR Code"] if abs_mat_name else 0
+                    # get part number and ldraw file name for brick
+                    part = get_part(self.legal_bricks, size, typ)["pt2" if typ == "SLOPE" and size[:2] in ([4, 2], [2, 4], [3, 2], [2, 3]) and brick_d["rotated"] else "pt"]
+                    brick_file = "%(part)s.dat" % locals()
+                    # offset the coordinate and round to ensure appropriate Ldraw location
+                    co += offset
+                    co = Vector((round_nearest(co.x, 10), round_nearest(co.y, 8), round_nearest(co.z, 10)))
+                    # write line to file for brick
+                    f.write("1 {color} {x} {y} {z} {matrix} {brick_file}\n".format(color=color, x=co.x, y=co.y, z=co.z, matrix=matrix, brick_file=brick_file))
+                f.write("0 STEP\n")
+            f.close()
+            self.report_export_status(cm, bricksdict)
+
+    def report_export_status(self, cm, bricksdict):
+        # report the status of the export
+        if not cm.last_legal_bricks_only:
+            self.report({"WARNING"}, "Model may contain non-standard brick sizes. Enable 'Brick Types > Legal Bricks Only' to make bricks LDraw-compatible.")
+        elif self.abs_mat_properties is None and self.brick_materials_installed:
+            self.report({"WARNING"}, "Materials may not have transferred successfully – please update to the latest version of 'ABS Plastic Materials'")
+        else:
+            self.report({"INFO"}, f"Ldraw file saved to '{self.filepath}'")
+            # print num bricks exported
+            initial_idx = self.filelines.index("0 NOFILE\n")  # get first end of file line
+            num_bricks_exported = len(tuple(val for val in self.filelines[initial_idx:] if val.startswith("1")))
+            total_bricks = len(get_parent_keys(bricksdict))
+            print()
+            print(f"{num_bricks_exported} / {total_bricks} bricks exported")
+            # print num layers exported
+            num_layers_exported = len(tuple(val for val in self.filelines if val.startswith("0 FILE Layer"))) - 1
+            print(f"{num_layers_exported} layers exported")
+            # print num sub-steps exported
+            num_substeps_exported = len(tuple(val for val in self.filelines if val.startswith("0 ROTSTEP")))
+            print(f"{num_substeps_exported} sub-steps exported")
 
     def iterate_connections(self, bricksdict, z, starting_keys, p_keys_dict, cm, offset, direction):
         conn_keys = set()

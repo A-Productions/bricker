@@ -277,3 +277,16 @@ def select_source_model(self, context):
                 if get_source_name(cm0) == scn.bricker_active_object_name:
                     deselect_all()
                     break
+
+def get_build_order_items(self, context):
+    """ Set default to 'LAYERS' for release, and 'CONN_COMPS' for myself """
+    if bpy.props.bricker_developer_mode == 0:
+        return [
+            ("LAYERS", "Layer by Layer", "", 0),
+            ("CONN_COMPS", "Connected Components", "", 1),
+        ]
+    else:
+        return [
+            ("CONN_COMPS", "Connected Components", "", 0),
+            ("LAYERS", "Layer by Layer", "", 1),
+        ]

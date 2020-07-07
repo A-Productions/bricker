@@ -22,7 +22,7 @@ bl_info = {
     "blender"     : (2, 83, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
-    "warning"     : "Untested Beta release – update to official release when available",  # used for warning icon and text in addons panel
+    "warning"     : "Unstable Beta release – update to official release when available",  # used for warning icon and text in addons panel
     "wiki_url"    : "https://www.blendermarket.com/products/bricker/",
     "doc_url"     : "https://www.blendermarket.com/products/bricker/",  # 2.83+
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
@@ -210,8 +210,8 @@ def unregister():
     del Object.is_brick
     del Object.is_brickified_object
     del Object.protected
-    if hasattr(bpy.props, "abs_mat_properties"):
-        del bpy.props.abs_mat_properties
+    # if hasattr(bpy.props, "abs_mat_properties"):
+    #     del bpy.props.abs_mat_properties  # don't unregister this cause ABS still may need it
     del bpy.props.bfm_cache_bytes_hex
     del bpy.props.manual_cmlist_update
     del bpy.props.bricker_trans_and_anim_data
