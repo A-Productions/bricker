@@ -576,7 +576,8 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
                 surrounded = False
             if surrounded:
                 brick_freq_matrix[x][y][z] = -1
-                face_idx_matrix[x][y][z] = 0
+                if face_idx_matrix:
+                    face_idx_matrix[x][y][z] = 0
             else:
                 shell_vals.append((x, y, z))
 
