@@ -46,11 +46,11 @@ class BRICKER_AP_preferences(AddonPreferences):
         default=20,
     )
     absolute_brick_height = bpy.props.FloatProperty(
-        name="Brick Height (dm)",
-        description="Default brick height in decimeters",
-        min=0.00001,
+        name="Brick Height (mm)",
+        description="Default brick height in millimeters",
+        min=0.001,
         precision=3,
-        default=0.096,
+        default=9.6,
     )
     brickify_in_background = EnumProperty(
         name="Brickify in Background",

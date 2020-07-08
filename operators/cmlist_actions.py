@@ -113,7 +113,7 @@ class CMLIST_OT_list_action(Operator):
         prefs = get_addon_preferences()
         if prefs.brick_height_default == "ABSOLUTE":
             # set absolute brick height
-            item.brick_height = prefs.absolute_brick_height
+            item.brick_height = prefs.absolute_brick_height / 1e3
         else:
             # set brick height based on model height
             source = item.source_obj
