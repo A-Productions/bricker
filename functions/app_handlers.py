@@ -332,8 +332,9 @@ def handle_upconversion(dummy):
                 # convert from v1_6 to v1_7
                 if version_tup[:2] < (2, 1):
                     bricksdict = get_bricksdict(cm)
-                    for k in bricksdict.keys():
-                        bricksdict[k]["attempted_merge"] = False
+                    if bricksdict is not None:
+                        for k in bricksdict.keys():
+                            bricksdict[k]["attempted_merge"] = False
 
             # ensure parent object has no users
             if cm.parent_obj is not None:
