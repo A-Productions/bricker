@@ -203,15 +203,15 @@ class OBJECT_OT_delete_override(Operator):
     @staticmethod
     def update_adj_bricksdicts(bricksdict, zstep, key, loc, draw_threshold, brick_size=[1, 1, 1]):
         keys_to_update = set()
-        new_bricks = set()
+        new_keys = set()
         brick_d = bricksdict[key]
         # get all adjacent keys not on outside
         neighbor_keys_v = get_keys_neighboring_brick(bricksdict, brick_size, zstep, loc, check_horizontally=False)
         neighbor_keys_h = get_keys_neighboring_brick(bricksdict, brick_size, zstep, loc, check_vertically=False)
         neighbor_keys = set(k for k in neighbor_keys_h.union(neighbor_keys_v) if bricksdict[k]["val"] != 0)
-        # adj_keys = get_adj_keys(bricksdict, key=key)
         # update all vals for adj keys onward, recursively
         updated_keys = update_vals_linear(bricksdict, neighbor_keys)
+        newly_exposed_keys = set(k for k in updated_keys if bricksdict[k]["val"] == 1)
         # draw new bricks that are now on the shell
         for k0 in updated_keys:
             brick_d0 = bricksdict[k0]
@@ -228,11 +228,12 @@ class OBJECT_OT_delete_override(Operator):
                 brick_d0["near_intersection"] = tuple(ni) if type(ni) in [list, tuple] else ni
                 # add key to list for drawing
                 keys_to_update.add(k0)
-                new_bricks.add(k0)
+                new_keys.add(k0)
+        newly_exposed_keys |= new_keys
         # add neighboring bricks to keys_to_update as their exposure must be re-evaluated
         keys_to_update |= get_neighboring_bricks(bricksdict, brick_size, zstep, loc, check_horizontally=False)
-        # return keys updated and new_bricks
-        return keys_to_update, new_bricks
+        # return keys updated and new_keys/newly_exposed_keys (for BrickSculpt)
+        return keys_to_update, new_keys, newly_exposed_keys
 
     def delete_brick_object(self, context, obj, update_model=True, use_global=False):
         scn = context.scene
