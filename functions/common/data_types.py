@@ -262,11 +262,12 @@ class Island:
     def from_bmesh(self, bme):
         self._coords = [Vector2(v.co) for v in bme.verts]
 
-    def draw_mesh(self, face=True):
+    def draw(self, face=True):
         m = bpy.data.meshes.new(str(self))
         self.to_mesh(m, face=face)
         obj = bpy.data.objects.new(str(self), m)
         link_object(obj)
+        return obj
 
     def append(self, coord):
         assert type(coord) in (tuple, list, Vector, Vector2)
@@ -326,7 +327,7 @@ class Archipelago:
                 island.to_bmesh(bme, face=face)
         return bme.to_mesh(mesh)
 
-    def draw_mesh(self, face=True, island_types=None):
+    def draw(self, face=True, island_types=None):
         m = bpy.data.meshes.new(str(self))
         self.to_mesh(m, face, island_types)
         obj = bpy.data.objects.new(str(self), m)

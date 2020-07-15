@@ -106,15 +106,16 @@ def get_bounds(obj:Object):
         elif v.co.z < min.z:
             min.z = v.co.z
     # set up bounding box list of coord lists
-    bound_box = [list(min),
-                 [min.x, min.y, min.z],
-                 [min.x, min.y, max.z],
-                 [min.x, max.y, max.z],
-                 [min.x, max.y, min.z],
-                 [max.x, min.y, min.z],
-                 [max.y, min.y, max.z],
-                 list(max),
-                 [max.x, max.y, min.z]]
+    bound_box = [
+        list(min),
+        [min.x, min.y, max.z],
+        [min.x, max.y, max.z],
+        [min.x, max.y, min.z],
+        [max.x, min.y, min.z],
+        [max.y, min.y, max.z],
+        list(max),
+        [max.x, max.y, min.z],
+    ]
     return bound_box
 
 
