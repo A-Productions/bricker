@@ -85,6 +85,12 @@ class VIEW3D_PT_bricker_advanced(BrickerPanel, Panel):
             right_align(col)
             col.prop(cm, "use_local_orient", text="Use Local Orientation")
 
+        # grid properties
+        col = layout.column(align=True)
+        col.label(text="Grid Offset:")
+        row = col.row(align=True)
+        row.prop(cm, "grid_offset", text="")
+
 
 class VIEW3D_PT_bricker_ray_casting(BrickerPanel, Panel):
     bl_label       = "Ray Casting"

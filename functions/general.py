@@ -119,6 +119,7 @@ def get_matrix_settings_str(cm=None):
         "custom_object2_name": cm.custom_object2.name if cm.custom_object2 is not None else "",
         "custom_object3_name": cm.custom_object3.name if cm.custom_object3 is not None else "",
         "use_normals": cm.use_normals,
+        "grid_offset": list(cm.grid_offset),
         "insideness_ray_cast_dir": cm.insideness_ray_cast_dir,
         "brick_shell": cm.brick_shell,
         "calc_internals": cm.calc_internals,
@@ -512,3 +513,7 @@ def get_brick_collection(model_name, clear_existing_collection=True):
             bcoll.objects.unlink(obj0)
     cm = get_active_context_info()[1]
     return bcoll
+
+
+def check_if_internals_exist(cm):
+    return cm.calc_internals and (cm.shell_thickness > 1 or cm.internal_supports != "NONE")

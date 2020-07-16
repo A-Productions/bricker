@@ -82,7 +82,7 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     stud_detail = cm.stud_detail
     zstep = cm.zstep
     brick_type_can_be_merged = mergable_brick_type(brick_type, up=cm.zstep == 1) and (max_depth != 1 or max_width != 1)
-    internals_exist = cm.shell_thickness > 1 and cm.calc_internals
+    internals_exist = check_if_internals_exist(cm)
     run_post_sturdy = internals_exist and brick_type_can_be_merged and not redrawing
     run_post_merge = cm.post_merging and brick_type_can_be_merged and (not redrawing or force_post_merge)
     run_post_hollow = internals_exist and cm.post_hollowing and brick_type_can_be_merged and not redrawing

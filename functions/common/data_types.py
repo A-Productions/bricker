@@ -241,6 +241,38 @@ class Island:
     def type(self):
         return self._type
 
+    def append(self, coord):
+        assert type(coord) in (tuple, list, Vector, Vector2)
+        return self._coords.append(coord)
+
+    def invert_distribution(self):
+        self._distribution = [[not val for val in col] for col in self._distribution]
+
+    def print_distribution(self):
+        print()
+        distribution = self._distribution
+        for y in range(len(distribution[0]) - 1, -1, -1):
+            for x in range(len(distribution)):
+                print("X " if distribution[x][y] else "_ ", end="")
+            print()
+        print()
+
+    def dilate_erode(self, dist):
+        if self.type == "OUTLINE":
+            return
+        if self._inverted:
+            dist *= -1
+        bme = self.to_bmesh()
+        mesh_offset(bme, dist)
+        self.from_bmesh(bme)
+
+    def transform(self, mx):
+        bme = self.to_bmesh(face=False)
+        if len(mx[0]) == 3:
+            mx = mx_2d_to_3d(mx)
+        bmesh.ops.transform(bme, matrix=mx, verts=bme.verts)
+        self.from_bmesh(bme)
+
     def to_bmesh(self, bme=None, face=True):
         bme = bme or bmesh.new()
         verts = list()
@@ -268,10 +300,6 @@ class Island:
         obj = bpy.data.objects.new(str(self), m)
         link_object(obj)
         return obj
-
-    def append(self, coord):
-        assert type(coord) in (tuple, list, Vector, Vector2)
-        return self._coords.append(coord)
 
 
 class Archipelago:
@@ -320,6 +348,21 @@ class Archipelago:
             all_coords += island.coords
         return all_coords
 
+    def append(self, island):
+        assert type(island) in (tuple, list, Island)
+        return self._islands.append(island if isinstance(island, Island) else Island(island))
+
+    def dilate_erode(self, dist):
+        for island in self._islands:
+            island.dilate_erode(dist)
+
+    def invert(self):
+        self._inverted = not self._inverted
+
+    def transform(self, mx):
+        for island in self._islands:
+            island.transform(mx)
+
     def to_mesh(self, mesh, face=True, island_types=None):
         bme = bmesh.new()
         for island in self._islands:
@@ -333,10 +376,6 @@ class Archipelago:
         obj = bpy.data.objects.new(str(self), m)
         link_object(obj)
         return obj
-
-    def append(self, island):
-        assert type(island) in (tuple, list, Island)
-        return self._islands.append(island if isinstance(island, Island) else Island(island))
 
 
 class ArchipelagoSequence:
@@ -380,6 +419,18 @@ class ArchipelagoSequence:
     def append(self, arch):
         assert isinstance(arch, Archipelago)
         return self._archipelagos.append(arch)
+
+    def dilate_erode(self, dist):
+        for archipelago in self._archipelagos:
+            archipelago.dilate_erode(dist)
+
+    def invert(self):
+        for archipelago in self._archipelagos:
+            archipelago.invert()
+
+    def transform(self, mx):
+        for archipelago in self._archipelagos:
+            archipelago.transform(mx)
 
 
 class MyImage:

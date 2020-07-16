@@ -69,6 +69,7 @@ class BRICKER_OT_revert_settings(Operator):
         cm.custom_object3 = bpy.data.objects.get(settings["custom_object3_name"])
         cm.insideness_ray_cast_dir = settings["insideness_ray_cast_dir"]
         cm.use_normals = settings["use_normals"]
+        cm.grid_offset = settings["grid_offset"]
         cm.calc_internals = settings["calc_internals"]
         cm.brick_shell = settings["brick_shell"]
         cm.calculation_axes = settings["calculation_axes"]

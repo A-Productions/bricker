@@ -266,7 +266,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
             # multiply brick_scale by offset distance
             brick_scale2 = brick_scale if cm.brick_type != "CUSTOM" else vec_mult(brick_scale, Vector(cm.dist_offset))
             # create new bricksdict
-            bricksdict = make_bricksdict(source, source_details, brick_scale2, cursor_status=update_cursor)
+            bricksdict = make_bricksdict(source, source_details, brick_scale2, cm.grid_offset, cursor_status=update_cursor)
     else:
         loaded_from_cache = True
     if keys == "ALL": keys = set(bricksdict.keys())
@@ -286,7 +286,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
             else:
                 # don't merge bricks not in 'keys'
                 brick_d["attempted_merge"] = True
-    if (not loaded_from_cache or cm.internal_is_dirty) and cm.calc_internals:
+    if (not loaded_from_cache or cm.internal_is_dirty) and check_if_internals_exist(cm):
         update_internal(bricksdict, cm, keys, clear_existing=loaded_from_cache)
         cm.build_is_dirty = True
     # update materials in bricksdict

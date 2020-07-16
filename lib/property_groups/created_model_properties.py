@@ -746,6 +746,14 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirty_matrix,
         default=False,
     )
+    grid_offset = FloatVectorProperty(
+        name="Grid Offset",
+        description="Offset the brick grid along the volume of the source mesh",
+        subtype="XYZ",
+        min=-1, max=1,
+        update=dirty_matrix,
+        default=(0, 0, 0),
+    )
     calc_internals = BoolProperty(
         name="Calculate Internals",
         description="Calculate values for bricks inside shell (disable for faster calculation at the loss of the 'Shell Thickness' and 'Supports' features)",

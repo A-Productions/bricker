@@ -95,15 +95,15 @@ def get_bounds(obj:Object):
     for v in obj.data.vertices:
         if v.co.x > max.x:
             max.x = v.co.x
-        elif v.co.x < min.x:
+        if v.co.x < min.x:
             min.x = v.co.x
         if v.co.y > max.y:
             max.y = v.co.y
-        elif v.co.y < min.y:
+        if v.co.y < min.y:
             min.y = v.co.y
         if v.co.z > max.z:
             max.z = v.co.z
-        elif v.co.z < min.z:
+        if v.co.z < min.z:
             min.z = v.co.z
     # set up bounding box list of coord lists
     bound_box = [

@@ -109,6 +109,16 @@ def vec_interp(v1:Vector, v2:Vector, fac:float, outer_type:type=Vector):
     return outer_type([(e1 * (1 - fac)) + (e2 * fac) for e1, e2 in zip(v1, v2)])
 
 
+def mx_2d_to_3d(mx_3x3:Matrix):
+    mx_4x4 = Matrix.Identity(4)
+    mx_4x4[0][:2] = mx_3x3[0][:2]
+    mx_4x4[1][:2] = mx_3x3[1][:2]
+    mx_4x4[0][3] = mx_3x3[0][2]
+    mx_4x4[1][3] = mx_3x3[1][2]
+    mx_4x4[3][:2] = mx_3x3[2][:2]
+    return mx_4x4
+
+
 # available at: `from statistics import mean`
 # def mean(lst:list):
 #     """ mean of a list """
