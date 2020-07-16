@@ -686,7 +686,9 @@ def make_bricksdict(source, source_details, brick_scale, grid_offset=0, cursor_s
     # get lattice bmesh
     print("\ngenerating blueprint...")
     l_scale = source_details.dist
-    grid_offset = ((grid_offset + 0.5) % 1) - 0.5  # modulo -1 to 1 range to -0.5 to 0.5
+    vec_half = Vector((0.5, 0.5, 0.5))
+    vec_ones = Vector((1, 1, 1))
+    grid_offset = vec_mod(grid_offset + vec_half, vec_ones) - vec_half  # modulo -1 to 1 range to -0.5 to 0.5
     offset = source_details.mid + vec_mult(brick_scale, grid_offset)
     if source.parent:
         offset -= source.parent.location

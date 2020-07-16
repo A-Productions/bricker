@@ -66,30 +66,31 @@ class VIEW3D_PT_bricker_advanced(BrickerPanel, Panel):
             col = layout.column(align=True)
             col.operator("bricker.test_brick_generators", text="Test Brick Generators", icon="OUTLINER_OB_MESH")
 
+        # shell property
         col = layout.column(align=True)
         col.label(text="Shell:")
         col.prop(cm, "brick_shell", text="")
         if cm.brick_shell == "OUTSIDE":
             col.prop(cm, "calculation_axes", text="Axes")
 
+        # grid property
+        col = layout.column(align=True)
+        col.label(text="Grid Offset:")
+        row = col.row(align=True)
+        row.prop(cm, "grid_offset", text="")
+
         # if not cm.animated:
         col = layout.column(align=True)
         col.label(text="Instance Method:")
         col.prop(cm, "instance_method", text="")
 
-        # model orientation preferences
+        # model orientation property
         if not cm.use_animation and not (cm.model_created or cm.animated):
             # if not b280():
             col = layout.column(align=True)
             col.separator()
             right_align(col)
             col.prop(cm, "use_local_orient", text="Use Local Orientation")
-
-        # grid properties
-        col = layout.column(align=True)
-        col.label(text="Grid Offset:")
-        row = col.row(align=True)
-        row.prop(cm, "grid_offset", text="")
 
 
 class VIEW3D_PT_bricker_ray_casting(BrickerPanel, Panel):
