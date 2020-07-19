@@ -326,6 +326,21 @@ mat_properties = {
       # Other properties (not node inputs)
       'LDR Code':47,
   },
+  'ABS Plastic Trans-Fluorescent Green':{
+      'Color':[0.8, 1.0, 0.0, 0.65],
+      'Rough 1': 0.001,
+      'Fluorescence':0.35,
+      'Fluorescent Color':[0.1, 1.0, 0.05, 1.0],
+      # Other properties (not node inputs)
+      'LDR Code':42,
+  },
+  'ABS Plastic Trans-Fluorescent Reddish-Orange':{
+      'Color':[1.0, 0.42, 0.033, 0.65],
+      'Fluorescence':0.8,
+      'Fluorescent Color':[1.0, 0.047, 0.0, 1.0],
+      # Other properties (not node inputs)
+      'LDR Code':38,
+  },
   'ABS Plastic Trans-Green':{
       'Color':[0.0, 0.53328, 0.08438, 0.75],
       # Other properties (not node inputs)

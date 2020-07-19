@@ -443,7 +443,7 @@ class MyImage:
         self.dimensions = dimensions
         self._display_aspect = display_aspect
         self._channels = channels or len(self.pixels) // (size[0] * size[1])
-        assert self._channels and type(self._channels) in (int, None) and self._channels in (None, 1, 3, 4)
+        assert self._channels and isinstance(self._channels, int) and self._channels in (1, 3, 4)
         self._file_extension = file_extension
 
     def __str__(self):
@@ -791,7 +791,7 @@ class MyImage:
 
 class MyImageSequence:
     """ data type for storing and manipulating sequences of MyImages """
-    def __init__(self, images, offset, name="Image Sequence"):
+    def __init__(self, images, offset=0, name="Image Sequence"):
         assert type(images) in (list, tuple)
         self._name = name
         self.images = images
@@ -879,9 +879,10 @@ class MyImageSequence:
             image_filepaths.append(image_fp)
         return image_filepaths
 
-    def make_blend_image(self, name=None, overwrite=True):
+    def make_blend_image(self, name=None, directory=None, overwrite=True):
         assert len(self.images) > 0
-        image_fps = self.write_to_disk(directory=temp_path())
+        directory = directory or temp_path()
+        image_fps = self.write_to_disk(directory=directory)
         im_seq = bpy.data.images.load(image_fps[0])
         im_seq.source = "SEQUENCE"
         return im_seq

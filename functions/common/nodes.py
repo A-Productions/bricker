@@ -20,6 +20,7 @@ def get_socket_index(socket):
         for i, s in enumerate(sockets):
             if s == socket:
                 return i
+    return -1
 
 
 def get_other_socket(socket):

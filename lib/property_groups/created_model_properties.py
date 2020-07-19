@@ -748,7 +748,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
     )
     grid_offset = FloatVectorProperty(
         name="Grid Offset",
-        description="Offset the brick grid along the volume of the source mesh",
+        description="Offset the brick grid along the volume of the source mesh (factor of brick dimensions)",
         subtype="XYZ",
         min=-1, max=1,
         update=dirty_matrix,
