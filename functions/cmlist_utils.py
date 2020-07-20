@@ -69,6 +69,20 @@ def load_cm_props(cm, prop_dict, pointer_dict):
 def match_properties(cm_to, cm_from):
     scn = bpy.context.scene
     cm_from_props = get_collection_props(cm_from)
+    # remove properties that should not be copied
+    props_to_remove = (
+        "name",
+        "id",
+        "idx",
+        "source_obj",
+        "bevel_added",
+        "model_loc",
+        "model_rot",
+        "model_scale",
+        "parent_obj",
+        "expose_parent",
+        "apply_to_source_object",
+    )
     # remove properties that should not be matched
     if not cm_from.bevel_added or not cm_to.bevel_added:
         cm_from_props.pop("bevel_width")

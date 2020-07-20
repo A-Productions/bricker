@@ -38,6 +38,7 @@ def get_collection_props(object):
             props_dict[attr_name] = get_collection_props(attr)
         else:
             props_dict[attr_name] = attr
+    return props_dict
 
 
 def set_collection_props(object, props_dict):
