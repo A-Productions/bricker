@@ -191,7 +191,7 @@ class CMLIST_OT_copy_settings_to_others(Operator):
             scn, cm0, _ = get_active_context_info(context)
             for cm1 in scn.cmlist:
                 if cm0 != cm1:
-                    match_properties(cm1, cm0, override_idx=cm1.idx)
+                    match_properties(cm1, cm0)
         except:
             bricker_handle_exception()
         return{"FINISHED"}
