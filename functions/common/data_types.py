@@ -260,8 +260,6 @@ class Island:
     def dilate_erode(self, dist):
         if self.type == "OUTLINE":
             return
-        if self._inverted:
-            dist *= -1
         bme = self.to_bmesh()
         mesh_offset(bme, dist)
         self.from_bmesh(bme)
@@ -272,6 +270,18 @@ class Island:
             mx = mx_2d_to_3d(mx)
         bmesh.ops.transform(bme, matrix=mx, verts=bme.verts)
         self.from_bmesh(bme)
+
+    def get_insideness_depth(self, archipelago):
+        assert self in archipelago.islands
+        insideness_depth = 0
+        for isl in archipelago.islands:
+            if isl == self:
+                continue
+            if isl.type == "OUTLINE" and not archipelago.inverted:
+                continue
+            if polynpoly(self.coords, isl.coords):
+                insideness_depth += 1
+        return insideness_depth
 
     def to_bmesh(self, bme=None, face=True):
         bme = bme or bmesh.new()
@@ -353,8 +363,13 @@ class Archipelago:
         return self._islands.append(island if isinstance(island, Island) else Island(island))
 
     def dilate_erode(self, dist):
+        if self._inverted:
+            dist *= -1
         for island in self._islands:
-            island.dilate_erode(dist)
+            cur_dist = dist
+            if island.get_insideness_depth(self) % 2 == 1:
+                cur_dist *= -1
+            island.dilate_erode(cur_dist)
 
     def invert(self):
         self._inverted = not self._inverted

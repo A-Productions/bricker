@@ -19,6 +19,7 @@ from .images import *
 from .blender import *
 from .bmesh_generators import *
 from .bmesh_utils import *
+from .collection_props import *
 from .data_types import *
 from .colors import *
 from .materials import *
