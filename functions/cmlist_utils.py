@@ -82,6 +82,14 @@ def match_properties(cm_to, cm_from):
         "parent_obj",
         "expose_parent",
         "apply_to_source_object",
+        "anim_is_dirty",
+        "material_is_dirty",
+        "model_is_dirty",
+        "build_is_dirty",
+        "bricks_are_dirty",
+        "matrix_is_dirty",
+        "matrix_lost",
+        "internal_is_dirty",
     )
     # remove properties that should not be matched
     if not cm_from.bevel_added or not cm_to.bevel_added:
