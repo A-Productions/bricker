@@ -86,25 +86,25 @@ def parent_set(objs:list, parent:Object, keep_transform:bool=False):
             obj.parent = parent
 
 
-def get_bounds(obj:Object):
-    """ brute force method for obtaining object bounding box """
+def get_bounds(coords:list):
+    """ brute force method for obtaining bounding box from list of coords """
     # initialize min and max
     min = Vector((math.inf, math.inf, math.inf))
     max = Vector((-math.inf, -math.inf, -math.inf))
     # calculate min and max verts
-    for v in obj.data.vertices:
-        if v.co.x > max.x:
-            max.x = v.co.x
-        if v.co.x < min.x:
-            min.x = v.co.x
-        if v.co.y > max.y:
-            max.y = v.co.y
-        if v.co.y < min.y:
-            min.y = v.co.y
-        if v.co.z > max.z:
-            max.z = v.co.z
-        if v.co.z < min.z:
-            min.z = v.co.z
+    for co in coords:
+        if co.x > max.x:
+            max.x = co.x
+        if co.x < min.x:
+            min.x = co.x
+        if co.y > max.y:
+            max.y = co.y
+        if co.y < min.y:
+            min.y = co.y
+        if co.z > max.z:
+            max.z = co.z
+        if co.z < min.z:
+            min.z = co.z
     # set up bounding box list of coord lists
     bound_box = [
         list(min),
@@ -130,7 +130,7 @@ def bounds(obj:Object, local:bool=False, use_adaptive_domain:bool=True):
 
     """
 
-    local_coords = get_bounds(obj) if is_smoke(obj) and is_adaptive(obj) and not use_adaptive_domain else obj.bound_box[:]
+    local_coords = get_bounds([v.co for v in obj.data.vertices]) if is_smoke(obj) and is_adaptive(obj) and not use_adaptive_domain else obj.bound_box[:]
     om = obj.matrix_world
 
     if not local:

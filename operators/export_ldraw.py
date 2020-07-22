@@ -292,7 +292,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         else:
             self.report({"INFO"}, f"Ldraw file saved to '{self.filepath}'")
             # print num bricks exported
-            initial_idx = self.filelines.index("0 NOFILE\n") if self.build_order == "CONN_COMPS" else 0  # get first end of file line if exporting using 'CONN_COMPS' build method
+            initial_idx = self.filelines.index("0 NOFILE\n")  # get first end of file line
             num_bricks_exported = len(tuple(val for val in self.filelines[initial_idx:] if val.startswith("1")))
             total_bricks = len(get_parent_keys(bricksdict))
             print()

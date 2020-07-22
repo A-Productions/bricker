@@ -30,7 +30,7 @@ from .make_bricks_utils import get_parent_keys
 
 def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iterations):
     # initialize last connectivity data
-    iters_before_consistent = 3
+    iters_before_consistent = 4
     last_weak_points = [-1, -1]
     last_conn_comps = [-1, -1]
     # initialize minimum sturdiness
@@ -56,7 +56,7 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
         # break if sturdy, or consistent for 3 iterations
         is_sturdy = len(conn_comps) == 1 and len(weak_points) == 0
         consistent_sturdiness = len(set(last_weak_points[-iters_before_consistent:])) <= 1 and len(set(last_conn_comps[-iters_before_consistent:])) <= 1
-        if is_sturdy or (consistent_sturdiness and i > (iterations / 2 + iters_before_consistent)):
+        if is_sturdy or consistent_sturdiness:  # (consistent_sturdiness and i > (iterations / 2 + iters_before_consistent)):
             break
         # break if we're at the last iteration (we don't want to do yet another merge if we're not going to check the connectivity data)
         if i == iterations:

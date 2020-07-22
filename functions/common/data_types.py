@@ -36,6 +36,8 @@ from .maths import *
 from .paths import *
 from .python_utils import *
 from .reporting import stopwatch
+from .shapes import polynpoly
+from .transform import get_bounds
 
 
 class Vector2:
@@ -277,11 +279,23 @@ class Island:
         for isl in archipelago.islands:
             if isl == self:
                 continue
-            if isl.type == "OUTLINE" and not archipelago.inverted:
-                continue
-            if polynpoly(self.coords, isl.coords):
+            is_inside_isl = polynpoly(self.coords, isl.coords)
+            if isl.type == "OUTLINE":
+                inside_outline = is_inside_isl
+                if not archipelago.inverted:
+                    continue
+            if is_inside_isl:
                 insideness_depth += 1
-        return insideness_depth
+        return insideness_depth, inside_outline
+
+    def get_bounds(self):
+        return get_bounds(self._coords)
+
+    def get_dimensions(self):
+        bounds = self.get_bounds()
+        bounds_max = bounds[-2]
+        bounds_min = bounds[0]
+        return Vector2((bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]))
 
     def to_bmesh(self, bme=None, face=True):
         bme = bme or bmesh.new()
@@ -362,12 +376,15 @@ class Archipelago:
         assert type(island) in (tuple, list, Island)
         return self._islands.append(island if isinstance(island, Island) else Island(island))
 
+    def get_outline_island(self):
+        return next(isl for isl in self._islands if isl.type == "OUTLINE")
+
     def dilate_erode(self, dist):
         if self._inverted:
             dist *= -1
         for island in self._islands:
             cur_dist = dist
-            if island.get_insideness_depth(self) % 2 == 1:
+            if island.get_insideness_depth(self)[0] % 2 == 1:
                 cur_dist *= -1
             island.dilate_erode(cur_dist)
 
