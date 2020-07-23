@@ -68,34 +68,105 @@ def load_cm_props(cm, prop_dict, pointer_dict):
 
 def match_properties(cm_to, cm_from):
     scn = bpy.context.scene
-    cm_from_props = get_collection_props(cm_from)
-    # remove properties that should not be copied
-    props_to_remove = (
-        "name",
-        "id",
-        "idx",
-        "source_obj",
-        "bevel_added",
-        "model_loc",
-        "model_rot",
-        "model_scale",
-        "parent_obj",
-        "expose_parent",
-        "apply_to_source_object",
-        "anim_is_dirty",
-        "material_is_dirty",
-        "model_is_dirty",
-        "build_is_dirty",
-        "bricks_are_dirty",
-        "matrix_is_dirty",
-        "matrix_lost",
-        "internal_is_dirty",
-    )
-    # remove properties that should not be matched
+    # get list of properties that should not be matched
+    props_to_match = [
+        # ANIMATION SETTINGS
+        "use_animation",
+        "start_frame",
+        "stop_frame",
+        "step_frame",
+        # BASIC MODEL SETTINGS
+        "brick_height",
+        "gap",
+        "split_model",
+        "random_loc",
+        "random_rot",
+        "shell_thickness",
+        # MERGE SETTINGS
+        "merge_type",
+        "legal_bricks_only",
+        "merge_seed",
+        "connect_thresh",
+        "post_merging",
+        "post_hollowing",
+        "post_hollow_subgraph_radius",
+        "align_bricks",
+        "offset_brick_layers",
+        # SMOKE SETTINGS
+        "smoke_density",
+        "smoke_quality",
+        "smoke_brightness",
+        "smoke_saturation",
+        "flame_color",
+        "flame_intensity",
+        # BRICK TYPE SETTINGS
+        "brick_type",
+        "max_width",
+        "max_depth",
+        "custom_object1",
+        "custom_object2",
+        "custom_object3",
+        "dist_offset",
+        # MATERIAL & COLOR SETTINGS
+        "material_type",
+        "custom_mat",
+        "internal_mat",
+        "mat_shell_depth",
+        "merge_internals",
+        "random_mat_seed",
+        "use_uv_map",
+        "uv_image",
+        "color_snap",
+        "color_depth",
+        "blur_radius",
+        "color_snap_specular",
+        "color_snap_roughness",
+        "color_snap_sss",
+        "color_snap_sss_saturation",
+        "color_snap_ior",
+        "color_snap_transmission",
+        "color_snap_displacement",
+        "use_abs_template",
+        "include_transparency",
+        "transparent_weight",
+        # BRICK DETAIL SETTINGS
+        "stud_detail",
+        "logo_type",
+        "logo_resolution",
+        "logo_decimate",
+        "logo_object",
+        "logo_scale",
+        "logo_inset",
+        "hidden_underside_detail",
+        "exposed_underside_detail",
+        "circle_verts",
+        # INTERNAL SUPPORTS SETTINGS
+        "internal_supports",
+        "lattice_step",
+        "lattice_height",
+        "alternate_xy",
+        "col_thickness",
+        "col_step",
+        # ADVANCED SETTINGS
+        "insideness_ray_cast_dir",
+        "brick_shell",
+        "calculation_axes",
+        "use_normals",
+        "grid_offset",
+        "calc_internals",
+        "use_local_orient",
+        "instance_method",
+    ]
     if not cm_from.bevel_added or not cm_to.bevel_added:
-        cm_from_props.pop("bevel_width")
-        cm_from_props.pop("bevel_segments")
-        cm_from_props.pop("bevel_profile")
+        props_to_match.append("bevel_width")
+        props_to_match.append("bevel_segments")
+        props_to_match.append("bevel_profile")
+    # get all properties from cm_from
+    cm_from_props = get_collection_props(cm_from)
+    # remove properties that shouldn't be matched
+    for k in list(cm_from_props.keys()):
+        if k not in props_to_match:
+            cm_from_props.pop(k)
     # match material properties for Random/ABS Plastic Snapping
     mat_obj_names_from = ["Bricker_{}_RANDOM_mats".format(cm_from.id), "Bricker_{}_ABS_mats".format(cm_from.id)]
     mat_obj_names_to   = ["Bricker_{}_RANDOM_mats".format(cm_to.id), "Bricker_{}_ABS_mats".format(cm_to.id)]

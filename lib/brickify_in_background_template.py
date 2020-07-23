@@ -57,4 +57,5 @@ python_data = {
     "rgba_vals": cm.rgba_vals,
     "disconnected_components": cm.disconnected_components,
     "weak_points": cm.weak_points,
+    "active_key": tuple(cm.active_key),
 }

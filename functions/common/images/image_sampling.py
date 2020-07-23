@@ -166,7 +166,7 @@ def get_pixel(image:Image, uv_coord:Vector, premult:bool=False, pixels:list=None
     pixels = pixels or get_pixels_cache(image, frame=image_frame, color_depth=color_depth, blur_radius=blur_radius)
     pixel_number = (image.size[0] * round(uv_coord.y) + round(uv_coord.x)) * image.channels
     assert 0 <= pixel_number < len(pixels)
-    rgba = tuple(float(v) for v in pixels[pixel_number:pixel_number + image.channels])
+    rgba = list(float(v) for v in pixels[pixel_number:pixel_number + image.channels])
     # premultiply
     if premult and image.alpha_mode != "PREMUL":
         rgba = [v * rgba[3] for v in rgba[:3]] + [rgba[3]]

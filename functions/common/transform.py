@@ -112,7 +112,7 @@ def get_bounds(coords:list):
         [min.x, max.y, max.z],
         [min.x, max.y, min.z],
         [max.x, min.y, min.z],
-        [max.y, min.y, max.z],
+        [max.x, min.y, max.z],
         list(max),
         [max.x, max.y, min.z],
     ]

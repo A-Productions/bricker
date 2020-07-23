@@ -744,6 +744,8 @@ def make_bricksdict(source, source_details, brick_scale, grid_offset=0, cursor_s
                     rgba = smoke_colors[x][y][z]
                 elif source_mats:
                     rgba = get_uv_pixel_color(source, nf, ni if ni is None else Vector(ni), uv_image)
+                    if rgba is not None:
+                        print(type(rgba[0]))
                 else:
                     rgba = (0, 0, 0, 1)
                 # create bricksdict entry for current brick

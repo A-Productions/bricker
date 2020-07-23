@@ -36,7 +36,7 @@ from .maths import *
 from .paths import *
 from .python_utils import *
 from .reporting import stopwatch
-from .shapes import polynpoly
+# from .shapes import polynpoly
 from .transform import get_bounds
 
 
@@ -276,20 +276,41 @@ class Island:
     def get_insideness_depth(self, archipelago):
         assert self in archipelago.islands
         insideness_depth = 0
+        inside_outline = False
+        centerpoint = self.get_bounds_info().mid
         for isl in archipelago.islands:
+            # don't check against itself
             if isl == self:
                 continue
+            # do simple point in poly check to rule out most cases
+            isl_bounds = get_bounds(isl.coords)
+            isl_bounds_2d = [isl_bounds[0], isl_bounds[3], isl_bounds[7], isl_bounds[4]]
+            if not pointnpoly(centerpoint, isl_bounds_2d):
+                continue
+            # do full poly in poly check
             is_inside_isl = polynpoly(self.coords, isl.coords)
+            # handle outline as special case
             if isl.type == "OUTLINE":
                 inside_outline = is_inside_isl
                 if not archipelago.inverted:
                     continue
+            # increase island depth
             if is_inside_isl:
                 insideness_depth += 1
         return insideness_depth, inside_outline
 
-    def get_bounds(self):
-        return get_bounds(self._coords)
+    def get_bounds_info(self):
+        bound_coords = get_bounds(self._coords)
+
+        get_max = lambda i: max([co[i] for co in bound_coords])
+        get_min = lambda i: min([co[i] for co in bound_coords])
+
+        info = lambda: None
+        info.max = Vector2((get_max(0), get_max(1), get_max(2)))
+        info.min = Vector2((get_min(0), get_min(1), get_min(2)))
+        info.mid = (info.min + info.max) / 2
+        info.dist = info.max - info.min
+        return info
 
     def get_dimensions(self):
         bounds = self.get_bounds()

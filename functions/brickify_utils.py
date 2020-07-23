@@ -240,10 +240,11 @@ def should_brickify_in_background(cm, r, action):
 def get_args_for_background_processor(cm, bricker_addon_path, source_dup=None, skip_bfm_cache=False):
     script = os.path.join(bricker_addon_path, "lib", "brickify_in_background_template.py")
 
-    skip_keys = ["active_key"]
-    if skip_bfm_cache:
-        skip_keys.append("bfm_cache")
-    cmlist_props, cmlist_pointer_props = dump_cm_props(cm, skip_keys=["active_key"])
+    skip_keys = list()
+    skip_keys.append("active_key")
+    # if skip_bfm_cache:
+    #     skip_keys.append("bfm_cache")
+    cmlist_props, cmlist_pointer_props = dump_cm_props(cm, skip_keys=skip_keys)
 
     data_blocks_to_send = set()
     for item in cmlist_pointer_props:
@@ -352,9 +353,11 @@ def create_new_bricks(source_dup, parent, source_details, dimensions, action, sp
     bcoll = get_brick_collection(model_name, clear_existing_collection)
     merge_vertical = (redrawing and "PLATES" in cm.brick_type) or cm.brick_type == "BRICKS_AND_PLATES"
     # store some key as active key
+    print(1)
     if cm.active_key[0] == -1 and len(keys) > 0:
-        loc = get_dict_loc(bricksdict, keys.pop())
+        loc = get_dict_loc(bricksdict, next(iter(keys)))
         cm.active_key = loc
+        print(loc)
     # make bricks
     if cm.instance_method == "POINT_CLOUD":
         bricks_created = make_bricks_point_cloud(cm, bricksdict, keys_dict, parent, source_details, dimensions, bcoll, frame_num=cur_frame)
