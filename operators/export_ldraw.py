@@ -195,28 +195,16 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                             self.iterate_connections(bricksdict, z + 1, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
                         # get any unconnected bricks below these
                         self.add_steps_for_all_connected_below(bricksdict, starting_keys, z, p_keys_dict, cm, offset)
-                        # # add bricks above at least 3 layers tall that are not connected above
-                        # if z + 3 in p_keys_dict.keys():
-                        #     # self.iterate_connections(bricksdict, z + 2, starting_keys, p_keys_dict, cm, offset, direction="UP")
-                        #     unconnected_tall_keys = set()
-                        #     # go up or down to connected keys
-                        #     for k0 in starting_keys[z + 2]:
-                        #         unconnected_tall_keys |= get_connected_keys(bricksdict, k0, self.zstep, check_below=direction == "DOWN", check_above=direction == "UP")
-                        #     # unconnected_tall_keys = self.get_valid_keys(bricksdict, p_keys_dict, z + 3, is_active_layer=False)
-                        #     if unconnected_tall_keys:
-                        #         self.add_build_step(bricksdict, p_keys_dict, unconnected_tall_keys, cm, offset)
-                        #         # keep moving up for bricks not connected to anything else but these below
-                        #         j = z + 3
-                        #         starting_keys[j] = unconnected_tall_keys
-                        #         while True:
-                        #             isolated_bricks_above = self.get_isolated_keys_above(bricksdict, starting_keys[j], p_keys_dict)
-                        #             if not isolated_bricks_above:
-                        #                 break
-                        #             self.add_build_step(bricksdict, p_keys_dict, isolated_bricks_above, cm, offset)
-                        #             starting_keys[j + 1] = isolated_bricks_above
-                        #             j += 1
-                # reset bottom starting keys to everything on this layer
-                starting_keys[z] = all_valid_keys_on_layer
+                        # add bricks above the top layer that are not connected to anything else but these below
+                        if z + 3 in p_keys_dict.keys():
+                            j = z + 2
+                            while True:
+                                isolated_bricks_above = self.get_isolated_keys_above(bricksdict, starting_keys[j], p_keys_dict)
+                                if not isolated_bricks_above:
+                                    break
+                                self.add_build_step(bricksdict, p_keys_dict, isolated_bricks_above, cm, offset)
+                                starting_keys[j + 1] = isolated_bricks_above
+                                j += 1
                 # for 2 layers above active, add valid keys
                 for z1 in (z + 1, z + 2):
                     if z1 in p_keys_dict.keys():
@@ -226,21 +214,6 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                         # move down to bricks connected to those
                         if z1 - 1 in starting_keys:
                             self.iterate_connections(bricksdict, z1 - 1, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
-                # add bricks above at least 3 layers tall that are not connected above
-                if z + 3 in p_keys_dict.keys():
-                    unconnected_tall_keys = self.get_valid_keys(bricksdict, p_keys_dict, z + 3, is_active_layer=False)
-                    if unconnected_tall_keys:
-                        self.add_build_step(bricksdict, p_keys_dict, unconnected_tall_keys, cm, offset)
-                        # keep moving up for bricks not connected to anything else but these below
-                        j = z + 3
-                        starting_keys[j] = unconnected_tall_keys
-                        while True:
-                            isolated_bricks_above = self.get_isolated_keys_above(bricksdict, starting_keys[j], p_keys_dict)
-                            if not isolated_bricks_above:
-                                break
-                            self.add_build_step(bricksdict, p_keys_dict, isolated_bricks_above, cm, offset)
-                            starting_keys[j + 1] = isolated_bricks_above
-                            j += 1
                 # end submodel for this layer
                 self.end_submodel(submodel_start_lines, f"Layer {layer_num}")
                 layer_num += 1
