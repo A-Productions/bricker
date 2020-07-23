@@ -283,7 +283,6 @@ def get_component_interfaces(bricksdict:dict, conn_comps:list, parent_keys:list,
 
 def draw_connected_components(bricksdict:dict, cm, conn_comps:list, weak_points:set, component_interfaces:set=set(), name:str="connected components"):
     """ draw connected component grid for model in 3D space """
-    print(type(cm))
     bme = bmesh.new()
     # get bmesh vertices
     verts = dict()
