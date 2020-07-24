@@ -115,6 +115,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         """ create and write Ldraw file """
         # open file for read and write
         self.filelines = list()
+        self.submodel_count = 1
         # initialize vars
         scn, cm, n = get_active_context_info(context)
         blendfile_name = bpy.path.basename(context.blend_data.filepath)
@@ -152,20 +153,27 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                 # skip 2 out of every 3 layers, intentionally out of sync with brick_layer offset
                 if (z + self.offset_brick_layers) % 3 != 2:
                     continue
-                # store all keys on this layer for later
-                all_valid_keys_on_layer = self.get_valid_keys(bricksdict, p_keys_dict, z)
-                # start a submodel for this layer
-                self.start_submodel(submodel_start_lines, f"Layer {layer_num}")
+                print(z)
                 # if this is the top z value, add bricks in one step
                 if z == sorted_z_vals[-1]:
+                    # start a submodel
+                    submodel_name = f"Submodel {self.submodel_count}"
+                    self.start_submodel(submodel_start_lines, submodel_name)
+                    # add all bricks on this top layer
                     starting_keys[z] = p_keys_dict[z].copy()
                     self.add_build_step(bricksdict, p_keys_dict, starting_keys[z], cm, offset)
+                    # end submodel
+                    self.end_submodel(submodel_start_lines, submodel_name)
                 # go up and down iteratively to find connected bricks
                 else:
                     # start looking for connected bricks starting on active layer that are a single layer tall, moving up/down/up/down/etc
+                    starter_keys_to_skip = set()
                     while True:
+                        # start a submodel
+                        submodel_name = f"Submodel {self.submodel_count}"
+                        self.start_submodel(submodel_start_lines, submodel_name)
                         # choose a new brick on the active layer
-                        valid_p_keys = (k for k in p_keys_dict[z] if bricksdict[k]["size"][2] // self.zstep < 3)
+                        valid_p_keys = (k for k in p_keys_dict[z] if bricksdict[k]["size"][2] // self.zstep < 3 and k not in starter_keys_to_skip)
                         key = next(valid_p_keys, None)
                         if key is None:
                             break
@@ -175,6 +183,12 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                         # starting_keys[z] = get_neighboring_bricks(bricksdict, bricksdict[key]["size"], self.zstep, get_dict_loc(bricksdict, key), check_vertically=False)
                         starting_keys[z].intersection_update(valid_p_keys)
                         starting_keys[z].add(key)
+                        starter_conn_keys = set()
+                        for k0 in starting_keys[z]:
+                            starter_conn_keys |= get_connected_keys(bricksdict, k0, self.zstep, check_above=False)
+                        if len(starter_conn_keys) == 0:
+                            starter_keys_to_skip.add(key)
+                            continue
                         # reset starting keys for 2 layers above active layer
                         starting_keys[z + 1] = set()
                         starting_keys[z + 2] = set()
@@ -205,18 +219,10 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                                 self.add_build_step(bricksdict, p_keys_dict, isolated_bricks_above, cm, offset)
                                 starting_keys[j + 1] = isolated_bricks_above
                                 j += 1
-                # for 2 layers above active, add valid keys
-                for z1 in (z + 1, z + 2):
-                    if z1 in p_keys_dict.keys():
-                        unconnected_top_keys = self.get_valid_keys(bricksdict, p_keys_dict, z1, is_active_layer=False)
-                        if unconnected_top_keys:
-                            self.add_build_step(bricksdict, p_keys_dict, unconnected_top_keys, cm, offset)
-                        # move down to bricks connected to those
-                        if z1 - 1 in starting_keys:
-                            self.iterate_connections(bricksdict, z1 - 1, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
-                # end submodel for this layer
-                self.end_submodel(submodel_start_lines, f"Layer {layer_num}")
-                layer_num += 1
+                        # end submodel
+                        submodel_created = self.end_submodel(submodel_start_lines, submodel_name)
+                        if submodel_created:
+                            self.submodel_count += 1
             # select bricks not exported
             if cm.last_split_model:
                 deselect_all()
@@ -290,28 +296,25 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
             total_bricks = len(get_parent_keys(bricksdict))
             print()
             print(f"{num_bricks_exported} / {total_bricks} bricks exported")
-            # print num layers exported
-            num_layers_exported = len(tuple(val for val in self.filelines if val.startswith("0 FILE Layer")))
-            print(f"{num_layers_exported} layers exported")
+            # print num submodels exported
+            num_submodels_exported = len(tuple(val for val in self.filelines if val.startswith("0 FILE"))) - 1
+            print(f"{num_submodels_exported} submodels exported")
             # print num sub-steps exported
-            num_substeps_exported = len(tuple(val for val in self.filelines if val.startswith("0 ROTSTEP")))
-            print(f"{num_substeps_exported} sub-steps exported")
+            num_steps_exported = len(tuple(val for val in self.filelines if val.startswith("0 ROTSTEP")))
+            print(f"{num_steps_exported} steps exported")
 
     def iterate_connections(self, bricksdict, z, starting_keys, p_keys_dict, cm, offset, direction):
         conn_keys = set()
         # get keys to move up/down from
-        if direction == "UP":
-            cur_starting_keys = set(k for k in starting_keys[z] if bricksdict[k]["size"][2] // self.zstep < 3)
-        else:
-            cur_starting_keys = starting_keys[z]
+        cur_starting_keys = starting_keys[z]
         # go up or down to connected keys
         for k0 in cur_starting_keys:
             conn_keys |= get_connected_keys(bricksdict, k0, self.zstep, check_below=direction == "DOWN", check_above=direction == "UP")
-            # # if going up, remove bricks above taller than 3 layers that have unchosen bricks below them
-            # if direction == "UP" and bricksdict[k0]["size"][2] // self.zstep >= 3:
-            #     for k1 in conn_keys.copy():
-            #         if self.only_chosen_bricks_below(bricksdict, k1, p_keys_dict):
-            #             conn_keys.remove(k1)
+            # if going up, remove bricks above taller than 3 layers that have unchosen bricks below them
+            if direction == "UP" and bricksdict[k0]["size"][2] // self.zstep >= 3:
+                for k1 in conn_keys.copy():
+                    if not self.only_chosen_bricks_below(bricksdict, k1, p_keys_dict):
+                        conn_keys.remove(k1)
         # get only keys that haven't already been chosen
         conn_keys = self.get_unchosen(bricksdict, conn_keys, p_keys_dict)
         # if unchosen connections were found, update relative data structs
@@ -406,7 +409,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                 # get all short bricks if on active layer
                 is_active_layer and bricksdict[k]["size"][2] // self.zstep < 3 or
                 # get any brick where all bricks under it accounted for
-                not self.only_chosen_bricks_below(bricksdict, k, p_keys_dict)
+                self.only_chosen_bricks_below(bricksdict, k, p_keys_dict)
                ):
                 valid_keys.add(k)
         return valid_keys
@@ -417,7 +420,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
             conn_keys_above |= get_connected_keys(bricksdict, k0, self.zstep, check_below=False)
         isolated_bricks_above = set()
         for k1 in conn_keys_above:
-            if not self.only_chosen_bricks_below(bricksdict, k1, p_keys_dict):
+            if self.only_chosen_bricks_below(bricksdict, k1, p_keys_dict):
                 isolated_bricks_above.add(k1)
         return isolated_bricks_above
 
@@ -427,7 +430,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         if not conn_keys_below:
             return True
         unchosen_keys_below = self.get_unchosen(bricksdict, conn_keys_below, p_keys_dict)
-        return len(unchosen_keys_below) > 0
+        return len(unchosen_keys_below) == 0
 
     def add_build_step(self, bricksdict, p_keys_dict, keys, cm, offset, run_diff_update=True, direction="UP"):
         # remove keys in this step from p_keys_dict
@@ -493,7 +496,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
     def end_submodel(self, submodel_start_lines, submodel_name):
         # if no bricks were added to this submodel, do nothing
         if submodel_start_lines[submodel_name] == len(self.filelines):
-            return
+            return False
         # add submodule information to beginning of file
         initial_idx = self.filelines.index("0 NOFILE\n")  # get first end of file line
         init_string_lst = [
@@ -529,6 +532,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                 submodel_start_lines[s_name] += len(new_string_lst)
         # write end of submodel
         self.filelines.append("0 NOFILE\n")
+        return True
 
     def blend_to_ldraw_units(self, bricksdict, zstep, key, idx):
         """ convert location of brick from blender units to ldraw units """
