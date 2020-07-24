@@ -179,7 +179,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                             break
                         # start with all parent keys at and neighboring current brick
                         # NOTE: can't decide between the following two lines! They both have their issues... need to try both
-                        starting_keys[z] = self.get_bricks_neighbored_by_above_connection(bricksdict, key, iters=3)
+                        starting_keys[z] = self.get_bricks_neighbored_by_above_connection(bricksdict, key, iters=3, min_studs=2)
                         # starting_keys[z] = get_neighboring_bricks(bricksdict, bricksdict[key]["size"], self.zstep, get_dict_loc(bricksdict, key), check_vertically=False)
                         starting_keys[z].intersection_update(valid_p_keys)
                         starting_keys[z].add(key)
@@ -196,19 +196,18 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                         self.add_build_step(bricksdict, p_keys_dict, starting_keys[z], cm, offset)
                         while True:
                             # move up to bricks connected to it
-                            conn_keys = self.iterate_connections(bricksdict, z, starting_keys, p_keys_dict, cm, offset, direction="UP")
-                            if not conn_keys:
-                                break
+                            new_bricks = self.iterate_connections(bricksdict, z, starting_keys, p_keys_dict, cm, offset, direction="UP")
                             # if we can keep going up, do so one more time
                             if z + 2 <= sorted_z_vals[-1]:
                                 # move up to bricks connected to those
-                                self.iterate_connections(bricksdict, z + 1, starting_keys, p_keys_dict, cm, offset, direction="UP")
+                                new_bricks |= self.iterate_connections(bricksdict, z + 1, starting_keys, p_keys_dict, cm, offset, direction="UP")
                                 # move down to bricks connected to those
-                                self.iterate_connections(bricksdict, z + 2, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
+                                new_bricks |= self.iterate_connections(bricksdict, z + 2, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
                             # move down to bricks connected to those
-                            self.iterate_connections(bricksdict, z + 1, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
-                        # get any unconnected bricks below these
-                        self.add_steps_for_all_connected_below(bricksdict, starting_keys, z, p_keys_dict, cm, offset)
+                            new_bricks |= self.iterate_connections(bricksdict, z + 1, starting_keys, p_keys_dict, cm, offset, direction="DOWN")
+                            # break loop if no new bricks found
+                            if len(new_bricks) == 0:
+                                break
                         # add bricks above the top layer that are not connected to anything else but these below
                         if z + 3 in p_keys_dict.keys():
                             j = z + 2
@@ -219,6 +218,8 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                                 self.add_build_step(bricksdict, p_keys_dict, isolated_bricks_above, cm, offset)
                                 starting_keys[j + 1] = isolated_bricks_above
                                 j += 1
+                        # get any unconnected bricks below these
+                        self.add_steps_for_all_connected_below(bricksdict, starting_keys, z, p_keys_dict, cm, offset)
                         # end submodel
                         submodel_created = self.end_submodel(submodel_start_lines, submodel_name)
                         if submodel_created:
@@ -358,7 +359,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
             # decriment active layer in this context
             z0 -= 1
 
-    def get_bricks_neighbored_by_above_connection(self, bricksdict, key, iters=3):
+    def get_bricks_neighbored_by_above_connection(self, bricksdict, key, iters=3, min_studs=1):
         # initialize neighboring bricks set
         neighboring_bricks = set()
         # get keys above passed brick
@@ -367,13 +368,13 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
             # no need to iterate if no keys above
             if not conn_keys:
                 return neighboring_bricks
-            # get keys above those
-            conn_keys1 = set()
-            for k0 in conn_keys:
-                conn_keys1 |= get_connected_keys(bricksdict, k0, self.zstep, check_below=False)
-            # get keys below those
-            for k0 in conn_keys1:
-                conn_keys |= get_connected_keys(bricksdict, k0, self.zstep, check_above=False)
+            # # get keys above those
+            # conn_keys1 = set()
+            # for k0 in conn_keys:
+            #     conn_keys1 |= get_connected_keys(bricksdict, k0, self.zstep, check_below=False)
+            # # get keys below those
+            # for k0 in conn_keys1:
+            #     conn_keys |= get_connected_keys(bricksdict, k0, self.zstep, check_above=False)
             # get keys below those
             for k0 in conn_keys:
                 neighboring_bricks |= get_connected_keys(bricksdict, k0, self.zstep, check_above=False)
@@ -383,7 +384,11 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                 conn_keys0 |= get_connected_keys(bricksdict, k0, self.zstep, check_below=False)
             # set conn_keys to new keys above
             conn_keys = conn_keys0.difference(conn_keys)
+        neighboring_bricks = set(k for k in neighboring_bricks if self.num_studs(bricksdict, k) >= min_studs)
         return neighboring_bricks
+
+    def num_studs(self, bricksdict, k):
+        return bricksdict[k]["size"][0] * bricksdict[k]["size"][1]
 
     def recurse_connected(self, bricksdict, keys, p_keys_dict, cm, offset, direction="UP"):
         conn_keys = set()
