@@ -87,12 +87,12 @@ def split_bricks(bricksdict, zstep, keys):
             brick_d["size"] = [1, 1, zstep]
 
 
-def split_brick(bricksdict, key, zstep, brick_type, loc=None, v=True, h=True):
+def split_brick(bricksdict, parent_key, zstep, brick_type, loc=None, v=True, h=True):
     """split brick vertically and/or horizontally
 
     Keyword Arguments:
     bricksdict -- Matrix of bricks in model
-    key        -- key for brick in matrix
+    parent_key -- parent key for brick in matrix
     zstep      -- passing cm.zstep through
     brick_type -- passing cm.brick_type through
     loc        -- xyz location of brick in matrix
@@ -100,9 +100,10 @@ def split_brick(bricksdict, key, zstep, brick_type, loc=None, v=True, h=True):
     h          -- split brick horizontally
     """
     # set up unspecified paramaters
-    loc = loc or get_dict_loc(bricksdict, key)
+    loc = loc or get_dict_loc(bricksdict, parent_key)
     # initialize vars
-    parent_brick_d = bricksdict[key]
+    parent_brick_d = bricksdict[parent_key]
+    assert parent_brick_d["parent"] == "self"
     target_type = get_brick_type(brick_type)
     size = parent_brick_d["size"]
     new_size = [1, 1, size[2]]

@@ -151,6 +151,7 @@ class OBJECT_OT_delete_override(Operator):
                 keys_in_brick = get_keys_in_brick(bricksdict, obj_size, zstep, key=dkey, loc=dloc)
                 # reset bricksdict entries
                 reset_bricksdict_entries(bricksdict, keys_in_brick, force_outside=True)
+                keys_to_update.discard(dkey)  # don't update adj bricks that are also being removed
                 # make adjustments to adjacent bricks
                 keys_to_update |= self.update_adj_bricksdicts(bricksdict, zstep, dkey, dloc, draw_threshold, obj_size)[0]
             # dirty_build if it wasn't already
