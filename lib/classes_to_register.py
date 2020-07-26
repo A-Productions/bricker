@@ -68,7 +68,6 @@ classes = [
     BRICKER_OT_redraw_bricks,
     BRICKER_OT_select_bricks_by_size,
     BRICKER_OT_select_bricks_by_type,
-    BRICKER_OT_set_exposure,
     BRICKER_OT_split_bricks,
     BRICKER_OT_bricksculpt_null,
     # bricker/operators/overrides

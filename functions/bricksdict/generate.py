@@ -576,7 +576,8 @@ def adjust_bfm(brick_freq_matrix, mat_shell_depth, calc_internals, face_idx_matr
                 surrounded = False
             if surrounded:
                 brick_freq_matrix[x][y][z] = -1
-                face_idx_matrix[x][y][z] = 0
+                if face_idx_matrix:
+                    face_idx_matrix[x][y][z] = 0
             else:
                 shell_vals.append((x, y, z))
 
@@ -673,18 +674,22 @@ def create_bricksdict_entry(name:str, loc:list, val:float=0, draw:bool=False, co
     }
 
 @timed_call()
-def make_bricksdict(source, source_details, brick_scale, cursor_status=False):
+def make_bricksdict(source, source_details, brick_scale, grid_offset=0, cursor_status=False):
     """ make dictionary with brick information at each coordinate of lattice surrounding source
     source         -- source object to construct lattice around
     source_details -- object details with subattributes for distance and midpoint of x, y, z axes
-    brick_scale     -- scale of bricks
-    cursor_status   -- update mouse cursor with status of matrix creation
+    brick_scale    -- scale of bricks
+    grid_offset    -- offset of lattice grid for brick generation (0.5 = half the brick scale)
+    cursor_status  -- update mouse cursor with status of matrix creation
     """
     scn, cm, n = get_active_context_info()
     # get lattice bmesh
     print("\ngenerating blueprint...")
     l_scale = source_details.dist
-    offset = source_details.mid
+    vec_half = Vector((0.5, 0.5, 0.5))
+    vec_ones = Vector((1, 1, 1))
+    grid_offset = vec_mod(grid_offset + vec_half, vec_ones) - vec_half  # modulo -1 to 1 range to -0.5 to 0.5
+    offset = source_details.mid + vec_mult(brick_scale, grid_offset)
     if source.parent:
         offset -= source.parent.location
         # shift offset to ensure lattice surrounds object

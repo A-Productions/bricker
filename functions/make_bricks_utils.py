@@ -39,7 +39,7 @@ from .mat_utils import *
 from ..lib.caches import bricker_mesh_cache
 
 
-def draw_brick(cm_id, bricksdict, key, loc, bcoll, clear_existing_collection, parent, dimensions, zstep, brick_size, brick_type, split, custom_data, bricks_created, all_meshes, mats, internal_mat, logo, logo_resolution, logo_decimate, logo_type, logo_scale, logo_inset, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, circle_verts, instance_method, rand_s2, rand_s3):
+def draw_brick(cm_id, bricksdict, key, loc, bcoll, clear_existing_collection, parent, dimensions, zstep, brick_size, brick_type, split, custom_meshes, bricks_created, all_meshes, mats, internal_mat, logo, logo_resolution, logo_decimate, logo_type, logo_scale, logo_inset, stud_detail, exposed_underside_detail, hidden_underside_detail, random_rot, random_loc, circle_verts, instance_method, rand_s2, rand_s3):
     """ draws current brick in bricksdict """
 
     # set up arguments for brick mesh
@@ -52,7 +52,7 @@ def draw_brick(cm_id, bricksdict, key, loc, bcoll, clear_existing_collection, pa
 
     # add brick with new mesh data at original location
     if brick_d["type"].startswith("CUSTOM"):
-        m = custom_data[int(brick_d["type"][-1]) - 1]
+        m = custom_meshes[int(brick_d["type"][-1]) - 1]
     else:
         # get brick mesh
         m = get_brick_data(brick_d, dimensions, brick_type, brick_size, circle_verts, underside_detail, use_stud, logo_to_use, logo_type, logo_inset, logo_scale, logo_resolution, logo_decimate, rand_s3)
@@ -293,7 +293,7 @@ def get_material(bricksdict, key, size, zstep, material_type, custom_mat, random
     mat = None
     highest_val = 0
     mats_L = []
-    if bricksdict[key]["custom_mat_name"]:
+    if bricksdict[key]["custom_mat_name"] and bricksdict[key]["val"] == 1:
         mat = bpy.data.materials.get(bricksdict[key]["mat_name"])
     elif material_type == "CUSTOM":
         mat = custom_mat

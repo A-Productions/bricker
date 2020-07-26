@@ -1,4 +1,4 @@
-# Copyright (C) 2020 Christopher Gearhart
+# Copyright (C) 2019 Christopher Gearhart
 # chris@bblanimation.com
 # http://bblanimation.com/
 #
@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# NOTE: Duplicate of same file in ABS Plastic Materials project
 # LDR code reference: https://www.ldraw.org/article/547.html
 
 """
@@ -191,7 +190,7 @@ mat_properties = {
       'SSS Amount':0.01,
       'SSS Default':0.01,
       # Other properties (not node inputs)
-      'LDR Code':503,
+      'LDR Code':71,
   },
   'ABS Plastic Light Pink':{
       'Diffuse Color':[0.92158, 0.40724, 0.7011, 1.0],
@@ -226,6 +225,12 @@ mat_properties = {
       # TODO: UPDATE SUBSURFACE SCATTERING COLOR
       # Other properties (not node inputs)
       'LDR Code':30,
+  },
+  'ABS Plastic Medium Nougat':{
+      'Diffuse Color':[0.401978, 0.205079, 0.090842, 1.0],
+      # TODO: UPDATE SUBSURFACE SCATTERING COLOR
+      # Other properties (not node inputs)
+      'LDR Code':84,
   },
   'ABS Plastic Olive Green':{
       'Diffuse Color':[0.181164, 0.184475, 0.076185, 1.0],
@@ -320,6 +325,21 @@ mat_properties = {
       'Color':[1.0, 0.98225, 0.94731, 0.65],
       # Other properties (not node inputs)
       'LDR Code':47,
+  },
+  'ABS Plastic Trans-Fluorescent Green':{
+      'Color':[0.858457, 1.0, 0.0, 0.65],
+      'Rough 1': 0.001,
+      'Fluorescence':0.8,
+      'Fluorescent Color':[0.230947, 1.0, 0.045182, 1.0],
+      # Other properties (not node inputs)
+      'LDR Code':42,
+  },
+  'ABS Plastic Trans-Fluorescent Reddish-Orange':{
+      'Color':[1.0, 0.42, 0.033, 0.65],
+      'Fluorescence':0.8,
+      'Fluorescent Color':[1.0, 0.047, 0.0, 1.0],
+      # Other properties (not node inputs)
+      'LDR Code':38,
   },
   'ABS Plastic Trans-Green':{
       'Color':[0.0, 0.53328, 0.08438, 0.75],

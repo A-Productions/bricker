@@ -35,9 +35,9 @@ def store_smoke_data(from_obj, to_obj):
     adapt = domain_settings.use_adaptive_domain
     obj_details_adapt = bounds(from_obj) if adapt else None
     smoke_data = {
-        "density_grid": tuple(foreach_get(domain_settings.density_grid)),
-        "flame_grid": tuple(foreach_get(domain_settings.flame_grid)),
-        "color_grid": tuple(foreach_get(domain_settings.color_grid)),
+        "density_grid": tuple(float(v) for v in foreach_get(domain_settings.density_grid)),
+        "flame_grid": tuple(float(v) for v in foreach_get(domain_settings.flame_grid)),
+        "color_grid": tuple(float(v) for v in foreach_get(domain_settings.color_grid)),
         "domain_resolution": tuple(domain_settings.domain_resolution),
         "use_adaptive_domain": adapt,
         "adapt_min": tuple(obj_details_adapt.min) if adapt else None,

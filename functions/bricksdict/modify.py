@@ -58,7 +58,7 @@ def update_materials(bricksdict, source_dup, keys, cur_frame=None, action="CREAT
         brick_d = bricksdict[key]
         # skip irrelevant bricks
         nf = brick_d["near_face"]
-        if not brick_d["draw"] or (nf is None and not is_smoke) or brick_d["custom_mat_name"]:
+        if not brick_d["draw"] or (nf is None and not is_smoke) or (brick_d["custom_mat_name"] and brick_d["val"] == 1):
             continue
         # get RGBA value at nearest face intersection
         if is_smoke:

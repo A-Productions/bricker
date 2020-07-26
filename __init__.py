@@ -203,8 +203,8 @@ def unregister():
     del Object.is_brick
     del Object.is_brickified_object
     del Object.protected
-    if hasattr(bpy.props, "abs_mat_properties"):
-        del bpy.props.abs_mat_properties
+    # if hasattr(bpy.props, "abs_mat_properties"):
+    #     del bpy.props.abs_mat_properties  # don't unregister this cause ABS still may need it
     del bpy.props.bfm_cache_bytes_hex
     del bpy.props.manual_cmlist_update
     del bpy.props.bricker_trans_and_anim_data

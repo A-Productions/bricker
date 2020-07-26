@@ -230,7 +230,7 @@ class BRICKER_OT_change_brick_type(Operator):
             bricks_were_generated = bricks_were_generated or len(keys_to_update) > 0
 
             # draw updated brick
-            draw_updated_bricks(cm, bricksdict, keys_to_update, select_created=False)
+            draw_updated_bricks(cm, bricksdict, keys_to_update, run_pre_merge=False, select_created=False)
         # select original bricks
         orig_obj = bpy.data.objects.get(initial_active_obj_name)
         if orig_obj is not None: set_active_obj(orig_obj)

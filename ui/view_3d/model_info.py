@@ -59,7 +59,7 @@ class VIEW3D_PT_bricker_model_info(BrickerPanel, Panel):
             layout.operator("bricker.refresh_model_info", icon="FILE_REFRESH")
 
         col = layout.column(align=True)
-        col.label(text="Brick count:")
+        col.label(text="Piece count:")
         row = col.row(align=True)
         row.enabled = False
         row.prop(cm, "num_bricks_in_model", text="")

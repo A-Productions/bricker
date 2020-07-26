@@ -119,6 +119,7 @@ def get_matrix_settings_str(cm=None):
         "custom_object2_name": cm.custom_object2.name if cm.custom_object2 is not None else "",
         "custom_object3_name": cm.custom_object3.name if cm.custom_object3 is not None else "",
         "use_normals": cm.use_normals,
+        "grid_offset": list(cm.grid_offset),
         "insideness_ray_cast_dir": cm.insideness_ray_cast_dir,
         "brick_shell": cm.brick_shell,
         "calc_internals": cm.calc_internals,
@@ -284,7 +285,6 @@ def update_can_run(typ):
             return common_needs_update or (cm.collection is not None and len(cm.collection.objects) == 0) or (cm.material_type != "CUSTOM" and (cm.material_type != "RANDOM" or cm.split_model or cm.last_material_type != cm.material_type or cm.material_is_dirty) and cm.material_is_dirty) or cm.has_custom_obj1 or cm.has_custom_obj2 or cm.has_custom_obj3
 
 
-# loc param is more efficient than key, but one or the other must be passed
 def get_locs_in_brick(size, zstep, loc):
     x0, y0, z0 = loc
     return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zstep) for y in range(size[1]) for x in range(size[0])]
@@ -512,3 +512,7 @@ def get_brick_collection(model_name, clear_existing_collection=True):
             bcoll.objects.unlink(obj0)
     cm = get_active_context_info()[1]
     return bcoll
+
+
+def check_if_internals_exist(cm):
+    return cm.calc_internals and (cm.shell_thickness > 1 or cm.internal_supports != "NONE")

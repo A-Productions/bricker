@@ -21,6 +21,7 @@ import copy
 # Blender imports
 import bpy
 from bpy.types import Operator
+from bpy.props import *
 
 # Module imports
 from ...brickify import *
@@ -89,23 +90,27 @@ class BRICKER_OT_select_bricks_by_size(Operator):
         return items
 
     # define props for popup
-    brick_size = bpy.props.EnumProperty(
+    brick_size = EnumProperty(
         name="Size",
         description="Select all bricks of specified size (X, Y, Z)",
         items=get_items)
-    only = bpy.props.BoolProperty(
+    only = BoolProperty(
         name="Only",
         description="Select only bricks of given size",
         default=False)
-    all_models = bpy.props.BoolProperty(
+    all_models = BoolProperty(
         name="All Models",
         description="Select bricks of given size from all models in file",
         default=False)
-    include = bpy.props.EnumProperty(
+    include = EnumProperty(
         name="Include",
         description="Include bricks on shell, inside shell, or both",
-        items = [("EXT", "Externals", ""),
-                 ("INT", "Internals", ""),
-                 ("BOTH", "Both", "")])
+        items = [
+            ("EXT", "Externals", ""),
+            ("INT", "Internals", ""),
+            ("BOTH", "Both", ""),
+        ],
+        default="BOTH",
+    )
 
     ###################################################

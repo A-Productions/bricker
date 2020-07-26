@@ -51,7 +51,7 @@ def set_model_info(bricksdict, cm=None):
     if "" in mats_in_model:
         mats_in_model.remove("")
 
-    dimensions = get_brick_dimensions(0.000096, cm.zstep, cm.gap)
+    dimensions = get_brick_dimensions(0.0096, cm.zstep, cm.gap)
     model_dims = (
         max_vals[0] * dimensions["width"],
         max_vals[1] * dimensions["width"],

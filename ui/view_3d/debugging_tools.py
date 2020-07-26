@@ -73,8 +73,8 @@ class VIEW3D_PT_bricker_connectivity(BrickerPanel, Panel):
         if not settings_can_be_drawn():
             return False
         scn, cm, _ = get_active_context_info()
-        if created_with_unsupported_version(cm):
-            return False
+        # if created_with_unsupported_version(cm):
+        #     return False
         if not (cm.model_created or cm.animated):
             return False
         if bpy.props.bricker_developer_mode == 0:
@@ -105,8 +105,8 @@ class VIEW3D_PT_bricker_matrix_details(BrickerPanel, Panel):
         if not settings_can_be_drawn():
             return False
         scn, cm, _ = get_active_context_info()
-        if created_with_unsupported_version(cm):
-            return False
+        # if created_with_unsupported_version(cm):
+        #     return False
         if not (cm.model_created or cm.animated):
             return False
         return True

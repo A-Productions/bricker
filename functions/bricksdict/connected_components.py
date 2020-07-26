@@ -90,7 +90,9 @@ def key_in_bounds(bricksdict, key, bounds):
     )
 
 
-def get_connected_keys(bricksdict:dict, key:str, zstep:int, check_above:bool=True, check_below:bool=True):
+def get_connected_keys(bricksdict:dict, key:str, zstep:int, direction:str="BOTH"):
+    check_above = direction in ("UP", "BOTH")
+    check_below = direction in ("DOWN", "BOTH")
     # get locs in current brick
     brick_size = bricksdict[key]["size"]
     loc = get_dict_loc(bricksdict, key)
@@ -283,7 +285,6 @@ def get_component_interfaces(bricksdict:dict, conn_comps:list, parent_keys:list,
 
 def draw_connected_components(bricksdict:dict, cm, conn_comps:list, weak_points:set, component_interfaces:set=set(), name:str="connected components"):
     """ draw connected component grid for model in 3D space """
-    print(type(cm))
     bme = bmesh.new()
     # get bmesh vertices
     verts = dict()

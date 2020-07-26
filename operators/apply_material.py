@@ -105,9 +105,10 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
 
                 for brick in bricks:
                     # update bricksdict mat_name values for split models
-                    if last_split_model and bricksdict is not None:
-                        brick_d = bricksdict[get_dict_key(brick.name)]
-                        if brick_d["custom_mat_name"]:
+                    if last_split_model and bricksdict is not None and self.action == "CUSTOM":
+                        cur_key = get_dict_key(brick.name)
+                        brick_d = bricksdict[cur_key]
+                        if brick_d["custom_mat_name"] and brick_d["val"] == 1:
                             continue
                         brick_d["mat_name"] = mat.name
                     # update the material slots
@@ -148,7 +149,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
             for brick in bricks:
                 cur_key = get_dict_key(brick.name)
                 brick_d = bricksdict[cur_key]
-                if brick_d["custom_mat_name"]:
+                if brick_d["custom_mat_name"] and brick_d["val"] == 1:
                     continue
                 # iterate seed and set random index
                 rand_s0.seed(random_mat_seed + dkeys.index(cur_key))

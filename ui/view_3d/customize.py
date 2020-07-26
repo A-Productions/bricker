@@ -191,13 +191,3 @@ class VIEW3D_PT_bricker_legacy_customization_tools(Panel):
         col1.operator("bricker.change_brick_type", text="Change Type")
         col1.operator("bricker.change_brick_material", text="Change Material")
         # col1.operator("bricker.redraw_bricks")
-
-        col1 = layout.column(align=True)
-        col1.label(text="Toggle Exposure:")
-        split = layout_split(col1, factor=0.5)
-        # set top exposed
-        col = split.column(align=True)
-        col.operator("bricker.set_exposure", text="Top").side = "TOP"
-        # set bottom exposed
-        col = split.column(align=True)
-        col.operator("bricker.set_exposure", text="Bottom").side = "BOTTOM"

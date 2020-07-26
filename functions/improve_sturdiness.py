@@ -30,11 +30,11 @@ from .make_bricks_utils import get_parent_keys
 
 def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iterations):
     # initialize last connectivity data
-    iters_before_consistent = 3
+    iters_before_consistent = 4
     last_weak_points = [-1, -1]
     last_conn_comps = [-1, -1]
     # initialize minimum sturdiness
-    lowest_conn_data = {"conn_comps": inf, "weak_points": inf}
+    lowest_conn_data = {"disconnected_parts": inf, "weak_points": inf}
     sturdiest_bricksdict = None
     print()
     # run sturdiness improvement iteratively
@@ -45,10 +45,11 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
         # get connectivity data
         conn_comps, weak_points, weak_point_neighbors, parent_keys = get_connectivity_data(bricksdict, zstep, keys, verbose=True)
         # check if this is the sturdiest model thusfar
-        if i > (iterations / 2) and len(conn_comps) < lowest_conn_data["conn_comps"] or (len(conn_comps) == lowest_conn_data["conn_comps"] and len(weak_points) < lowest_conn_data["weak_points"]):
+        num_disconnected_parts = get_num_disconnected_parts(conn_comps)
+        if i > min(100, iterations / 2) and (num_disconnected_parts < lowest_conn_data["disconnected_parts"] or (num_disconnected_parts == lowest_conn_data["disconnected_parts"] and len(weak_points) < lowest_conn_data["weak_points"])):
             print("cached...")
-            lowest_conn_data["conn_comps"] = len(conn_comps)
-            lowest_conn_data["weak_points"] = len(conn_comps)
+            lowest_conn_data["disconnected_parts"] = num_disconnected_parts
+            lowest_conn_data["weak_points"] = len(weak_points)
             sturdiest_bricksdict = deepcopy(bricksdict)
         # set last connectivity vals
         last_weak_points.append(len(weak_points))
@@ -56,7 +57,7 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
         # break if sturdy, or consistent for 3 iterations
         is_sturdy = len(conn_comps) == 1 and len(weak_points) == 0
         consistent_sturdiness = len(set(last_weak_points[-iters_before_consistent:])) <= 1 and len(set(last_conn_comps[-iters_before_consistent:])) <= 1
-        if is_sturdy or (consistent_sturdiness and i > (iterations / 2 + iters_before_consistent)):
+        if is_sturdy or consistent_sturdiness:  # (consistent_sturdiness and i > (iterations / 2 + iters_before_consistent)):
             break
         # break if we're at the last iteration (we don't want to do yet another merge if we're not going to check the connectivity data)
         if i == iterations:
@@ -98,6 +99,11 @@ def improve_sturdiness(bricksdict, keys, cm, zstep, brick_type, merge_seed, iter
         conn_comps, weak_points, _, _ = get_connectivity_data(bricksdict, zstep, keys, get_neighbors=False, verbose=True)
 
     return conn_comps, weak_points
+
+
+def get_num_disconnected_parts(conn_comps):
+    return sum(len(cc) for cc in conn_comps) - max(len(cc) for cc in conn_comps)
+
 
 
 def get_connectivity_data(bricksdict, zstep, keys=None, get_neighbors=True, verbose=False):

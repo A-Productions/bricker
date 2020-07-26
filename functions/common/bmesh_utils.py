@@ -28,6 +28,7 @@ from mathutils.bvhtree import BVHTree
 
 # Module imports
 from .python_utils import *
+from .maths import mathutils_mult
 
 
 def smooth_bm_faces(faces:iter):
@@ -1051,12 +1052,12 @@ def join_bmesh(source, target, src_trg_map, src_mx=None, trg_mx=None):
     for v in source.verts:
         if v.index not in src_trg_map:
             new_ind = len(target.verts)
-            new_bv = target.verts.new(i_trg_mx * src_mx * v.co)
+            new_bv = target.verts.new(mathutils_mult(i_trg_mx, src_mx, v.co))
             new_bmverts.append(new_bv)
             # new_bv.index = new_ind
             src_trg_map[v.index] = new_ind
 
-    # new_bmverts = [target.verts.new(i_trg_mx * src_mx * v.co) for v in source.verts]# if v.index not in src_trg_map]
+    # new_bmverts = [target.verts.new(mathutils_mult(i_trg_mx, src_mx, v.co)) for v in source.verts]# if v.index not in src_trg_map]
 
     # def src_to_trg_ind(v):
     #    subbed = False
@@ -1133,7 +1134,7 @@ def join_bmesh2(source, target, src_mx=None, trg_mx=None):
     for v in source.verts:
         if v.index not in src_trg_map:
             new_ind = len(target.verts)
-            new_bv = target.verts.new(i_trg_mx * src_mx * v.co)
+            new_bv = target.verts.new(mathutils_mult(i_trg_mx, src_mx, v.co))
             new_bmverts.append(new_bv)
             src_trg_map[v.index] = new_ind
 
@@ -1242,7 +1243,7 @@ def join_objects(obs, name:str=""):
         else:
             src_bme = bmesh.new()
             if ob.type == "MESH":
-                src_bme.from_object(ob, bpy.context.scene)
+                src_bme.from_object(ob, bpy.context.evaluated_depsgraph_get())
             else:
                 me = ob.to_mesh(bpy.context.scene, apply_modifiers=True, settings="PREVIEW")
                 src_bme.from_mesh(me)
@@ -1296,7 +1297,7 @@ def join_bmesh_map(source:BMesh, target:BMesh, src_trg_map:set=None, src_mx:Matr
     for v in source.verts:
         if v.index not in src_trg_map:
             new_ind = len(target.verts)
-            new_bv = target.verts.new(i_trg_mx * src_mx * v.co)
+            new_bv = target.verts.new(mathutils_mult(i_trg_mx, src_mx, v.co))
             new_bmverts.append(new_bv)  #gross...append
             src_trg_map[v.index] = new_ind
 

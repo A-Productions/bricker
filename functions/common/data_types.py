@@ -36,6 +36,8 @@ from .maths import *
 from .paths import *
 from .python_utils import *
 from .reporting import stopwatch
+# from .shapes import polynpoly
+from .transform import get_bounds
 
 
 class Vector2:
@@ -241,6 +243,81 @@ class Island:
     def type(self):
         return self._type
 
+    def append(self, coord):
+        assert type(coord) in (tuple, list, Vector, Vector2)
+        return self._coords.append(coord)
+
+    def invert_distribution(self):
+        self._distribution = [[not val for val in col] for col in self._distribution]
+
+    def print_distribution(self):
+        print()
+        distribution = self._distribution
+        for y in range(len(distribution[0]) - 1, -1, -1):
+            for x in range(len(distribution)):
+                print("X " if distribution[x][y] else "_ ", end="")
+            print()
+        print()
+
+    def dilate_erode(self, dist):
+        if self.type == "OUTLINE":
+            return
+        bme = self.to_bmesh()
+        mesh_offset(bme, dist)
+        self.from_bmesh(bme)
+
+    def transform(self, mx):
+        bme = self.to_bmesh(face=False)
+        if len(mx[0]) == 3:
+            mx = mx_2d_to_3d(mx)
+        bmesh.ops.transform(bme, matrix=mx, verts=bme.verts)
+        self.from_bmesh(bme)
+
+    def get_insideness_depth(self, archipelago):
+        assert self in archipelago.islands
+        insideness_depth = 0
+        inside_outline = False
+        centerpoint = self.get_bounds_info().mid
+        for isl in archipelago.islands:
+            # don't check against itself
+            if isl == self:
+                continue
+            # do simple point in poly check to rule out most cases
+            isl_bounds = get_bounds(isl.coords)
+            isl_bounds_2d = [isl_bounds[0], isl_bounds[3], isl_bounds[7], isl_bounds[4]]
+            if not pointnpoly(centerpoint, isl_bounds_2d):
+                continue
+            # do full poly in poly check
+            is_inside_isl = polynpoly(self.coords, isl.coords)
+            # handle outline as special case
+            if isl.type == "OUTLINE":
+                inside_outline = is_inside_isl
+                if not archipelago.inverted:
+                    continue
+            # increase island depth
+            if is_inside_isl:
+                insideness_depth += 1
+        return insideness_depth, inside_outline
+
+    def get_bounds_info(self):
+        bound_coords = get_bounds(self._coords)
+
+        get_max = lambda i: max([co[i] for co in bound_coords])
+        get_min = lambda i: min([co[i] for co in bound_coords])
+
+        info = lambda: None
+        info.max = Vector2((get_max(0), get_max(1), get_max(2)))
+        info.min = Vector2((get_min(0), get_min(1), get_min(2)))
+        info.mid = (info.min + info.max) / 2
+        info.dist = info.max - info.min
+        return info
+
+    def get_dimensions(self):
+        bounds = self.get_bounds()
+        bounds_max = bounds[-2]
+        bounds_min = bounds[0]
+        return Vector2((bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]))
+
     def to_bmesh(self, bme=None, face=True):
         bme = bme or bmesh.new()
         verts = list()
@@ -262,15 +339,12 @@ class Island:
     def from_bmesh(self, bme):
         self._coords = [Vector2(v.co) for v in bme.verts]
 
-    def draw_mesh(self, face=True):
+    def draw(self, face=True):
         m = bpy.data.meshes.new(str(self))
         self.to_mesh(m, face=face)
         obj = bpy.data.objects.new(str(self), m)
         link_object(obj)
-
-    def append(self, coord):
-        assert type(coord) in (tuple, list, Vector, Vector2)
-        return self._coords.append(coord)
+        return obj
 
 
 class Archipelago:
@@ -319,6 +393,29 @@ class Archipelago:
             all_coords += island.coords
         return all_coords
 
+    def append(self, island):
+        assert type(island) in (tuple, list, Island)
+        return self._islands.append(island if isinstance(island, Island) else Island(island))
+
+    def get_outline_island(self):
+        return next(isl for isl in self._islands if isl.type == "OUTLINE")
+
+    def dilate_erode(self, dist):
+        if self._inverted:
+            dist *= -1
+        for island in self._islands:
+            cur_dist = dist
+            if island.get_insideness_depth(self)[0] % 2 == 1:
+                cur_dist *= -1
+            island.dilate_erode(cur_dist)
+
+    def invert(self):
+        self._inverted = not self._inverted
+
+    def transform(self, mx):
+        for island in self._islands:
+            island.transform(mx)
+
     def to_mesh(self, mesh, face=True, island_types=None):
         bme = bmesh.new()
         for island in self._islands:
@@ -326,16 +423,12 @@ class Archipelago:
                 island.to_bmesh(bme, face=face)
         return bme.to_mesh(mesh)
 
-    def draw_mesh(self, face=True, island_types=None):
+    def draw(self, face=True, island_types=None):
         m = bpy.data.meshes.new(str(self))
         self.to_mesh(m, face, island_types)
         obj = bpy.data.objects.new(str(self), m)
         link_object(obj)
         return obj
-
-    def append(self, island):
-        assert type(island) in (tuple, list, Island)
-        return self._islands.append(island if isinstance(island, Island) else Island(island))
 
 
 class ArchipelagoSequence:
@@ -380,6 +473,18 @@ class ArchipelagoSequence:
         assert isinstance(arch, Archipelago)
         return self._archipelagos.append(arch)
 
+    def dilate_erode(self, dist):
+        for archipelago in self._archipelagos:
+            archipelago.dilate_erode(dist)
+
+    def invert(self):
+        for archipelago in self._archipelagos:
+            archipelago.invert()
+
+    def transform(self, mx):
+        for archipelago in self._archipelagos:
+            archipelago.transform(mx)
+
 
 class MyImage:
     """ data type for storing and manipulating images with real-world dimensions """
@@ -391,7 +496,7 @@ class MyImage:
         self.dimensions = dimensions
         self._display_aspect = display_aspect
         self._channels = channels or len(self.pixels) // (size[0] * size[1])
-        assert self._channels and type(self._channels) in (int, None) and self._channels in (None, 1, 3, 4)
+        assert self._channels and isinstance(self._channels, int) and self._channels in (1, 3, 4)
         self._file_extension = file_extension
 
     def __str__(self):
@@ -739,7 +844,7 @@ class MyImage:
 
 class MyImageSequence:
     """ data type for storing and manipulating sequences of MyImages """
-    def __init__(self, images, offset, name="Image Sequence"):
+    def __init__(self, images, offset=0, name="Image Sequence"):
         assert type(images) in (list, tuple)
         self._name = name
         self.images = images
@@ -827,9 +932,10 @@ class MyImageSequence:
             image_filepaths.append(image_fp)
         return image_filepaths
 
-    def make_blend_image(self, name=None, overwrite=True):
+    def make_blend_image(self, name=None, directory=None, overwrite=True):
         assert len(self.images) > 0
-        image_fps = self.write_to_disk(directory=temp_path())
+        directory = directory or temp_path()
+        image_fps = self.write_to_disk(directory=directory)
         im_seq = bpy.data.images.load(image_fps[0])
         im_seq.source = "SEQUENCE"
         return im_seq

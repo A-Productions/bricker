@@ -56,6 +56,35 @@ def get_pixels(image:Image, color_depth=0, blur_radius=0):
     return pixels
 
 
+def get_pixels_from_render(scene:Scene):
+    """ get image pixels from a rendered image not yet saved to disk """
+    # ensure nodes are on
+    scene.use_nodes = True
+    tree = scene.node_tree
+    links = tree.links
+
+    # create render layer and viewer nodes
+    rl = tree.nodes.new("CompositorNodeRLayers")
+    v = tree.nodes.new("CompositorNodeViewer")
+    v.use_alpha = False
+
+    # link Image output to Viewer input
+    links.new(rl.outputs[0], v.inputs[0])
+
+    # render
+    bpy.ops.render.render()
+
+    # get viewer pixels
+    pixels = get_pixels(bpy.data.images["Viewer Node"])
+
+    # remove created nodes
+    tree.nodes.remove(rl)
+    tree.nodes.remove(v)
+
+    # return pixels
+    return pixels
+
+
 @blender_version_wrapper("<=","2.82")
 def set_pixels(image:Image, pix:list):
     image.pixels = pix
@@ -137,7 +166,7 @@ def get_pixel(image:Image, uv_coord:Vector, premult:bool=False, pixels:list=None
     pixels = pixels or get_pixels_cache(image, frame=image_frame, color_depth=color_depth, blur_radius=blur_radius)
     pixel_number = (image.size[0] * round(uv_coord.y) + round(uv_coord.x)) * image.channels
     assert 0 <= pixel_number < len(pixels)
-    rgba = tuple(float(v) for v in pixels[pixel_number:pixel_number + image.channels])
+    rgba = list(float(v) for v in pixels[pixel_number:pixel_number + image.channels])
     # premultiply
     if premult and image.alpha_mode != "PREMUL":
         rgba = [v * rgba[3] for v in rgba[:3]] + [rgba[3]]

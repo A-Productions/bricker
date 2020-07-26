@@ -130,6 +130,13 @@ class OBJECT_OT_delete_override(Operator):
             # store cmlist props for quick calling
             last_split_model = cm.last_split_model
             zstep = cm.zstep
+            brick_type = cm.brick_type
+            legal_bricks_only = cm.legal_bricks_only
+            merge_internals = "NEITHER" if cm.material_type == "NONE" else cm.merge_internals
+            merge_internals_h = merge_internals in ["BOTH", "HORIZONTAL"]
+            merge_internals_v = merge_internals in ["BOTH", "VERTICAL"]
+            max_width = cm.max_width
+            max_depth = cm.max_depth
             draw_threshold = get_threshold(cm)
             keys_to_update = set()
 
@@ -144,8 +151,8 @@ class OBJECT_OT_delete_override(Operator):
                 keys_in_brick = get_keys_in_brick(bricksdict, obj_size, zstep, key=dkey, loc=dloc)
                 # reset bricksdict entries
                 reset_bricksdict_entries(bricksdict, keys_in_brick, force_outside=True)
+                keys_to_update.discard(dkey)  # don't update adj bricks that are also being removed
                 # make adjustments to adjacent bricks
-                # if last_split_model:
                 keys_to_update |= self.update_adj_bricksdicts(bricksdict, zstep, dkey, dloc, draw_threshold, obj_size)[0]
             # dirty_build if it wasn't already
             last_build_is_dirty = cm.build_is_dirty
@@ -153,15 +160,15 @@ class OBJECT_OT_delete_override(Operator):
                 cm.build_is_dirty = True
             # merge and draw modified bricks
             if len(keys_to_update) > 0:
-                # split up bricks before draw_updated_bricks calls attempt_pre_merge
-                for k0 in keys_to_update.copy():
-                    keys_to_update |= split_brick(bricksdict, k0, cm.zstep, cm.brick_type)
-                # remove duplicate keys from the list and delete those objects
-                for k2 in keys_to_update:
-                    brick = bpy.data.objects.get(bricksdict[k2]["name"])
+                # delete those objects
+                for k0 in keys_to_update:
+                    brick = bpy.data.objects.get(bricksdict[k0]["name"])
                     delete(brick)
-                # create new bricks at all keys_to_update locations (attempts merge as well)
-                draw_updated_bricks(cm, bricksdict, keys_to_update, select_created=False)
+                # split up bricks before draw_updated_bricks calls attempt_pre_merge
+                for k1 in keys_to_update.copy():
+                    keys_to_update |= split_brick(bricksdict, k1, cm.zstep, cm.brick_type)
+                # create new bricks at all keys_to_update locations (attempts both pre- and post-merge)
+                draw_updated_bricks(cm, bricksdict, keys_to_update, run_post_merge=True, select_created=False)
             if not last_build_is_dirty:
                 cm.build_is_dirty = False
             # if undo states not iterated above
@@ -197,15 +204,15 @@ class OBJECT_OT_delete_override(Operator):
     @staticmethod
     def update_adj_bricksdicts(bricksdict, zstep, key, loc, draw_threshold, brick_size=[1, 1, 1]):
         keys_to_update = set()
-        new_bricks = set()
+        new_keys = set()
         brick_d = bricksdict[key]
         # get all adjacent keys not on outside
         neighbor_keys_v = get_keys_neighboring_brick(bricksdict, brick_size, zstep, loc, check_horizontally=False)
         neighbor_keys_h = get_keys_neighboring_brick(bricksdict, brick_size, zstep, loc, check_vertically=False)
         neighbor_keys = set(k for k in neighbor_keys_h.union(neighbor_keys_v) if bricksdict[k]["val"] != 0)
-        # adj_keys = get_adj_keys(bricksdict, key=key)
         # update all vals for adj keys onward, recursively
         updated_keys = update_vals_linear(bricksdict, neighbor_keys)
+        newly_exposed_keys = set(k for k in updated_keys if bricksdict[k]["val"] == 1)
         # draw new bricks that are now on the shell
         for k0 in updated_keys:
             brick_d0 = bricksdict[k0]
@@ -213,7 +220,7 @@ class OBJECT_OT_delete_override(Operator):
                 brick_d0["draw"] = True
                 brick_d0["size"] = [1, 1, zstep]
                 brick_d0["parent"] = "self"
-                brick_d0["type"] = brick_d["type"]
+                brick_d0["type"] = get_short_type(brick_d)
                 brick_d0["flipped"] = brick_d["flipped"]
                 brick_d0["rotated"] = brick_d["rotated"]
                 brick_d0["mat_name"] = brick_d["mat_name"]
@@ -222,11 +229,12 @@ class OBJECT_OT_delete_override(Operator):
                 brick_d0["near_intersection"] = tuple(ni) if type(ni) in [list, tuple] else ni
                 # add key to list for drawing
                 keys_to_update.add(k0)
-                new_bricks.add(k0)
+                new_keys.add(k0)
+        newly_exposed_keys |= new_keys
         # add neighboring bricks to keys_to_update as their exposure must be re-evaluated
         keys_to_update |= get_neighboring_bricks(bricksdict, brick_size, zstep, loc, check_horizontally=False)
-        # return keys updated and new_bricks
-        return keys_to_update, new_bricks
+        # return keys updated and new_keys/newly_exposed_keys (for BrickSculpt)
+        return keys_to_update, new_keys, newly_exposed_keys
 
     def delete_brick_object(self, context, obj, update_model=True, use_global=False):
         scn = context.scene

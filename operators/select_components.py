@@ -57,6 +57,8 @@ class BRICKER_OT_select_components(bpy.types.Operator):
 
         # get connected components & weak points
         conn_comps, weak_points, weak_point_neighbors, parent_keys = get_connectivity_data(bricksdict, zstep)
+        cm.disconnected_components = len(conn_comps) - 1
+        cm.weak_points = len(weak_points)
 
         # select specified components
         objs_to_select = []
@@ -70,13 +72,15 @@ class BRICKER_OT_select_components(bpy.types.Operator):
                     objs_to_select.append(brick_obj)
             if len(objs_to_select) == 0:
                 self.report({"INFO"}, "No disconnected components to select!")
+                deselect_all()
                 return {"FINISHED"}
         elif self.type == "WEAK_POINTS":
             for k in weak_points:
                 brick_obj = bpy.data.objects.get(bricksdict[k]["name"])
                 objs_to_select.append(brick_obj)
             if len(objs_to_select) == 0:
-                self.report({"INFO"}, "No weak pointsto select!")
+                self.report({"INFO"}, "No weak points to select!")
+                deselect_all()
                 return {"FINISHED"}
         # elif self.type == "COLUMNS":
         #     columns = get_columns(conn_comps, bricksdict)
@@ -93,6 +97,7 @@ class BRICKER_OT_select_components(bpy.types.Operator):
                 objs_to_select.append(brick_obj)
             if len(objs_to_select) == 0:
                 self.report({"INFO"}, "No component interfaces to select!")
+                deselect_all()
                 return {"FINISHED"}
         elif self.type == "ALL_TO_BE_MODIFIED":
             component_interfaces = get_component_interfaces(bricksdict, conn_comps, parent_keys, zstep)

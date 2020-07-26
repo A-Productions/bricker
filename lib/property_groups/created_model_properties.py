@@ -120,6 +120,56 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         min=0.0, max=100.0,
         default=0.5,
     )
+    split_model = BoolProperty(
+        name="Split Model",
+        description="Split model into separate objects (slower)",
+        update=dirty_model,
+        default=False,
+    )
+    random_loc = FloatProperty(
+        name="Random Location",
+        description="Max random location applied to each brick",
+        update=dirty_model,
+        step=1,
+        precision=3,
+        min=0, soft_max=1,
+        default=0.01,
+    )
+    random_rot = FloatProperty(
+        name="Random Rotation",
+        description="Max random rotation applied to each brick",
+        update=dirty_model,
+        step=1,
+        precision=3,
+        min=0, soft_max=1,
+        default=0.025,
+    )
+    shell_thickness = IntProperty(
+        name="Shell Thickness",
+        description="Thickness of the outer shell of bricks",
+        update=dirty_build,
+        min=1, max=50,
+        default=1,
+    )
+
+    # MERGE SETTINGS
+    merge_type = EnumProperty(
+        name="Merge Type",
+        description="Type of algorithm used for merging bricks together",
+        items=[
+            # ("NONE", "None (fast)", "Bricks are not merged"),
+            ("GREEDY", "Greedy", "Creates fewest amount of bricks possible"),
+            ("RANDOM", "Random", "Merges randomly for realistic build"),
+        ],
+        update=dirty_build,
+        default="RANDOM",
+    )
+    legal_bricks_only = BoolProperty(
+        name="Legal Bricks Only",
+        description="Construct model using only legal brick sizes",
+        update=dirty_build,
+        default=True,
+    )
     merge_seed = IntProperty(
         name="Seed",
         description="Random seed for brick merging calculations",
@@ -152,6 +202,22 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirty_build,
         default=3,
     )
+    align_bricks = BoolProperty(
+        name="Align Bricks Horizontally",
+        description="Keep bricks aligned horizontally, and fill the gaps with plates",
+        update=dirty_build,
+        default=True,
+    )
+    offset_brick_layers = IntProperty(
+        name="Offset Brick Layers",
+        description="Offset the layers that will be merged into bricks if possible",
+        update=dirty_build,
+        step=1,
+        min=0, max=2,
+        default=0,
+    )
+
+    # SMOKE SETTINGS
     smoke_density = FloatProperty(
         name="Smoke Density",
         description="Density of brickified smoke (threshold for smoke: 1 - d)",
@@ -193,63 +259,6 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         min=1, soft_max=50,
         default=4,
     )
-    split_model = BoolProperty(
-        name="Split Model",
-        description="Split model into separate objects (slower)",
-        update=dirty_model,
-        default=False,
-    )
-    random_loc = FloatProperty(
-        name="Random Location",
-        description="Max random location applied to each brick",
-        update=dirty_model,
-        step=1,
-        precision=3,
-        min=0, soft_max=1,
-        default=0.01,
-    )
-    random_rot = FloatProperty(
-        name="Random Rotation",
-        description="Max random rotation applied to each brick",
-        update=dirty_model,
-        step=1,
-        precision=3,
-        min=0, soft_max=1,
-        default=0.025,
-    )
-    brick_shell = EnumProperty(
-        name="Brick Shell",
-        description="Choose whether the outer shell of bricks will be inside or outside the source mesh",
-        items=[
-            ("INSIDE", "Inside Mesh", "Draw brick shell inside source mesh (recommended)"),
-            ("OUTSIDE", "Outside Mesh", "Draw brick shell outside source mesh"),
-            ("CONSISTENT", "Consistent", "Draw brick shell on a consistent side of the source mesh topology (may fix noisy model if source mesh is not water-tight)"),
-        ],
-        update=update_brick_shell,
-        default="INSIDE",
-    )
-    calculation_axes = EnumProperty(
-        name="Expanded Axes",
-        description="The brick shell will be drawn on the outside in these directions",
-        items=[
-            ("XYZ", "XYZ", "XYZ"),
-            ("XY", "XY", "XY"),
-            ("YZ", "YZ", "YZ"),
-            ("XZ", "XZ", "XZ"),
-            ("X", "X", "X"),
-            ("Y", "Y", "Y"),
-            ("Z", "Z", "Z"),
-        ],
-        update=dirty_matrix,
-        default="XY",
-    )
-    shell_thickness = IntProperty(
-        name="Shell Thickness",
-        description="Thickness of the outer shell of bricks",
-        update=dirty_build,
-        min=1, max=1,
-        default=1,
-    )
 
     # BRICK TYPE SETTINGS
     brick_type = EnumProperty(
@@ -258,20 +267,6 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         items=get_brick_type_items,
         update=update_brick_type,
         # default="BRICKS",
-    )
-    align_bricks = BoolProperty(
-        name="Align Bricks Horizontally",
-        description="Keep bricks aligned horizontally, and fill the gaps with plates",
-        update=dirty_build,
-        default=True,
-    )
-    offset_brick_layers = IntProperty(
-        name="Offset Brick Layers",
-        description="Offset the layers that will be merged into bricks if possible",
-        update=dirty_build,
-        step=1,
-        min=0, max=2,
-        default=0,
     )
     max_width = IntProperty(
         name="Max Width",
@@ -289,40 +284,38 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         min=1, soft_max=100,
         default=10,
     )
-    merge_type = EnumProperty(
-        name="Merge Type",
-        description="Type of algorithm used for merging bricks together",
-        items=[
-            # ("NONE", "None (fast)", "Bricks are not merged"),
-            # ("GREEDY", "Greedy", "Creates fewest amount of bricks possible"),
-            ("RANDOM", "Random", "Merges randomly for realistic build"),
-        ],
-        update=dirty_build,
-        default="RANDOM",
-    )
-    legal_bricks_only = BoolProperty(
-        name="Legal Bricks Only",
-        description="Construct model using only legal brick sizes",
-        update=dirty_build,
-        default=True,
-    )
     custom_object1 = PointerProperty(
         type=bpy.types.Object,
         poll=lambda self, object: object.type == "MESH" and object != self.source_obj and not object.name.startswith("Bricker_{}".format(self.source_obj.name)),
-        name="Custom Object Name 1",
+        name="Custom Object 1",
         description="Custom object to use as brick type",
+    )
+    custom_mesh1 = PointerProperty(
+        type=bpy.types.Mesh,
+        name="Custom Mesh 1",
+        description="Cached mesh from Custom Object 1 with materials applied/transform removed",
     )
     custom_object2 = PointerProperty(
         type=bpy.types.Object,
         poll=lambda self, object: object.type == "MESH" and object != self.source_obj and not object.name.startswith("Bricker_{}".format(self.source_obj.name)),
-        name="Custom Object Name 2",
+        name="Custom Object 2",
         description="Custom object to use as brick type",
+    )
+    custom_mesh2 = PointerProperty(
+        type=bpy.types.Mesh,
+        name="Custom Mesh 2",
+        description="Cached mesh from Custom Object 2 with materials applied/transform removed",
     )
     custom_object3 = PointerProperty(
         type=bpy.types.Object,
         poll=lambda self, object: object.type == "MESH" and object != self.source_obj and not object.name.startswith("Bricker_{}".format(self.source_obj.name)),
-        name="Custom Object Name 3",
+        name="Custom Object 3",
         description="Custom object to use as brick type",
+    )
+    custom_mesh3 = PointerProperty(
+        type=bpy.types.Mesh,
+        name="Custom Mesh 3",
+        description="Cached mesh from Custom Object 3 with materials applied/transform removed",
     )
     dist_offset = FloatVectorProperty(
         name="Offset Distance",
@@ -719,11 +712,45 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirty_matrix,
         default="HIGH_EFFICIENCY",
     )
+    brick_shell = EnumProperty(
+        name="Brick Shell",
+        description="Choose whether the outer shell of bricks will be inside or outside the source mesh",
+        items=[
+            ("INSIDE", "Inside Mesh", "Draw brick shell inside source mesh (recommended)"),
+            ("OUTSIDE", "Outside Mesh", "Draw brick shell outside source mesh"),
+            ("CONSISTENT", "Consistent", "Draw brick shell on a consistent side of the source mesh topology (may fix noisy model if source mesh is not water-tight)"),
+        ],
+        update=update_brick_shell,
+        default="INSIDE",
+    )
+    calculation_axes = EnumProperty(
+        name="Expanded Axes",
+        description="The brick shell will be drawn on the outside in these directions",
+        items=[
+            ("XYZ", "XYZ", "XYZ"),
+            ("XY", "XY", "XY"),
+            ("YZ", "YZ", "YZ"),
+            ("XZ", "XZ", "XZ"),
+            ("X", "X", "X"),
+            ("Y", "Y", "Y"),
+            ("Z", "Z", "Z"),
+        ],
+        update=dirty_matrix,
+        default="XY",
+    )
     use_normals = BoolProperty(
         name="Use Normals",
         description="Use normals to calculate insideness of bricks (may improve the result if normals on source mesh are oriented correctly)",
         update=dirty_matrix,
         default=False,
+    )
+    grid_offset = FloatVectorProperty(
+        name="Grid Offset",
+        description="Offset the brick grid along the volume of the source mesh (factor of brick dimensions)",
+        subtype="XYZ",
+        min=-1, max=1,
+        update=dirty_matrix,
+        default=(0, 0, 0),
     )
     calc_internals = BoolProperty(
         name="Calculate Internals",

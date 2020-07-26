@@ -240,10 +240,11 @@ def should_brickify_in_background(cm, r, action):
 def get_args_for_background_processor(cm, bricker_addon_path, source_dup=None, skip_bfm_cache=False):
     script = os.path.join(bricker_addon_path, "lib", "brickify_in_background_template.py")
 
-    skip_keys = ["active_key"]
-    if skip_bfm_cache:
-        skip_keys.append("bfm_cache")
-    cmlist_props, cmlist_pointer_props = dump_cm_props(cm, skip_keys=["active_key"])
+    skip_keys = list()
+    skip_keys.append("active_key")
+    # if skip_bfm_cache:
+    #     skip_keys.append("bfm_cache")
+    cmlist_props, cmlist_pointer_props = dump_cm_props(cm, skip_keys=skip_keys)
 
     data_blocks_to_send = set()
     for item in cmlist_pointer_props:
@@ -266,7 +267,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
             # multiply brick_scale by offset distance
             brick_scale2 = brick_scale if cm.brick_type != "CUSTOM" else vec_mult(brick_scale, Vector(cm.dist_offset))
             # create new bricksdict
-            bricksdict = make_bricksdict(source, source_details, brick_scale2, cursor_status=update_cursor)
+            bricksdict = make_bricksdict(source, source_details, brick_scale2, cm.grid_offset, cursor_status=update_cursor)
     else:
         loaded_from_cache = True
     if keys == "ALL": keys = set(bricksdict.keys())
@@ -286,7 +287,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
             else:
                 # don't merge bricks not in 'keys'
                 brick_d["attempted_merge"] = True
-    if (not loaded_from_cache or cm.internal_is_dirty) and cm.calc_internals:
+    if (not loaded_from_cache or cm.internal_is_dirty) and check_if_internals_exist(cm):
         update_internal(bricksdict, cm, keys, clear_existing=loaded_from_cache)
         cm.build_is_dirty = True
     # update materials in bricksdict
@@ -295,7 +296,7 @@ def get_bricksdict_for_model(cm, source, source_details, action, cur_frame, bric
     return bricksdict, brick_scale
 
 
-def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", select_created=True, run_pre_merge=True, placeholder_meshes=False):
+def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", select_created=True, run_pre_merge=True, run_post_merge=False, placeholder_meshes=False):
     if len(keys_to_update) == 0: return []
     assert isinstance(keys_to_update, set)
     if action is not None:
@@ -308,7 +309,7 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     action = "UPDATE_MODEL"
     # actually draw the bricks
     keys = keys_to_update if cm.last_split_model else "ALL"
-    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, split=cm.last_split_model, cm=cm, bricksdict=bricksdict, keys=keys, clear_existing_collection=False, select_created=select_created, print_status=False, placeholder_meshes=placeholder_meshes, run_pre_merge=run_pre_merge, redrawing=True)
+    _, bricks_created = create_new_bricks(source_dup, parent, source_details, dimensions, action, split=cm.last_split_model, cm=cm, bricksdict=bricksdict, keys=keys, clear_existing_collection=False, select_created=select_created, print_status=False, placeholder_meshes=placeholder_meshes, run_pre_merge=run_pre_merge, force_post_merge=run_post_merge, redrawing=True)
     # link new bricks to scene
     if not b280():
         for brick in bricks_created:
@@ -326,11 +327,11 @@ def draw_updated_bricks(cm, bricksdict, keys_to_update, action="redrawing", sele
     return bricks_created
 
 
-def create_new_bricks(source_dup, parent, source_details, dimensions, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, placeholder_meshes=False, run_pre_merge=True, orig_source=None, redrawing=False):
+def create_new_bricks(source_dup, parent, source_details, dimensions, action, split=True, cm=None, cur_frame=None, bricksdict=None, keys="ALL", clear_existing_collection=True, select_created=False, print_status=True, placeholder_meshes=False, run_pre_merge=True, force_post_merge=False, orig_source=None, redrawing=False):
     """ gets/creates bricksdict, runs make_bricks, and caches the final bricksdict """
     # initialization for getting bricksdict
     scn, cm, n = get_active_context_info(cm=cm)
-    brick_scale, custom_data = get_arguments_for_bricksdict(cm, source=source_dup, dimensions=dimensions)
+    brick_scale = get_arguments_for_bricksdict(cm, source=source_dup, dimensions=dimensions)
     update_cursor = action in ("CREATE", "UPDATE_MODEL")
     # get bricksdict
     bricksdict, brick_scale = get_bricksdict_for_model(cm, source_dup, source_details, action, cur_frame, brick_scale, bricksdict, keys, redrawing, update_cursor)
@@ -353,13 +354,14 @@ def create_new_bricks(source_dup, parent, source_details, dimensions, action, sp
     merge_vertical = (redrawing and "PLATES" in cm.brick_type) or cm.brick_type == "BRICKS_AND_PLATES"
     # store some key as active key
     if cm.active_key[0] == -1 and len(keys) > 0:
-        loc = get_dict_loc(bricksdict, keys.pop())
+        loc = get_dict_loc(bricksdict, next(iter(keys)))
         cm.active_key = loc
+        print(loc)
     # make bricks
     if cm.instance_method == "POINT_CLOUD":
         bricks_created = make_bricks_point_cloud(cm, bricksdict, keys_dict, parent, source_details, dimensions, bcoll, frame_num=cur_frame)
     else:
-        bricks_created = make_bricks(cm, bricksdict, keys_dict, keys, parent, ref_logo, dimensions, action, bcoll, num_source_mats=len(source_dup.data.materials), split=split, brick_scale=brick_scale, merge_vertical=merge_vertical, custom_data=custom_data, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, print_status=print_status, placeholder_meshes=placeholder_meshes, run_pre_merge=run_pre_merge, redrawing=redrawing)
+        bricks_created = make_bricks(cm, bricksdict, keys_dict, keys, parent, ref_logo, dimensions, action, bcoll, num_source_mats=len(source_dup.data.materials), split=split, brick_scale=brick_scale, merge_vertical=merge_vertical, clear_existing_collection=clear_existing_collection, frame_num=cur_frame, cursor_status=update_cursor, print_status=print_status, placeholder_meshes=placeholder_meshes, run_pre_merge=run_pre_merge, force_post_merge=force_post_merge, redrawing=redrawing)
     # select bricks
     if select_created and len(bricks_created) > 0:
         select(bricks_created)
@@ -380,12 +382,10 @@ def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1
     """ returns arguments for make_bricksdict function """
     source = source or cm.source_obj
     split_model = cm.split_model
-    custom_data = [None] * 3
     if dimensions is None:
         dimensions = get_brick_dimensions(cm.brick_height, cm.zstep, cm.gap)
-    for i, custom_info in enumerate([[cm.has_custom_obj1, cm.custom_object1], [cm.has_custom_obj2, cm.custom_object2], [cm.has_custom_obj3, cm.custom_object3]]):
-        has_custom_obj, custom_obj = custom_info
-        if (i == 0 and cm.brick_type == "CUSTOM") or has_custom_obj:
+    for has_custom_obj, custom_obj, data_attr in ((cm.has_custom_obj1, cm.custom_object1, "custom_mesh1"), (cm.has_custom_obj2, cm.custom_object2, "custom_mesh2"), (cm.has_custom_obj3, cm.custom_object3, "custom_mesh3")):
+        if (data_attr == "custom_mesh1" and cm.brick_type == "CUSTOM") or has_custom_obj:
             scn = bpy.context.scene
             # duplicate custom object
             # TODO: remove this object on delete action
@@ -408,7 +408,7 @@ def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1
             # get custom object details
             cur_custom_obj_details = bounds(custom_obj0)
             # set brick scale
-            scale = cm.brick_height/cur_custom_obj_details.dist.z
+            scale = cm.brick_height / cur_custom_obj_details.dist.z
             brick_scale = cur_custom_obj_details.dist * scale + Vector([dimensions["gap"]] * 3)
             # get transformation matrices
             t_mat = Matrix.Translation(-cur_custom_obj_details.mid)
@@ -421,15 +421,15 @@ def get_arguments_for_bricksdict(cm, source=None, dimensions=None, brick_size=[1
             custom_obj0.data.transform(mathutils_mult(s_mat_x, s_mat_y, s_mat_z))
             # center mesh origin
             center_mesh_origin(custom_obj0.data, dimensions, brick_size)
-            # store fresh data to custom_data variable
-            custom_data[i] = custom_obj0.data
+            # store fresh data to custom_mesh1/2/3 variable
+            setattr(cm, data_attr, custom_obj0.data)
     if cm.brick_type != "CUSTOM":
         brick_scale = Vector((
             dimensions["width"] + dimensions["gap"],
             dimensions["width"] + dimensions["gap"],
             dimensions["height"]+ dimensions["gap"],
         ))
-    return brick_scale, custom_data
+    return brick_scale
 
 
 def transform_bricks(bcoll, cm, parent, source, source_dup_details, action):

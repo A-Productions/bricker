@@ -57,6 +57,7 @@ class VIEW3D_PT_bricker_merge_settings(BrickerPanel, Panel):
         layout.active = cm.instance_method != "POINT_CLOUD"
         layout.enabled = False
         layout.label(text="Unavailable in Demo Version")
+        internals_exist = check_if_internals_exist(cm)
 
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -64,17 +65,17 @@ class VIEW3D_PT_bricker_merge_settings(BrickerPanel, Panel):
         if cm.merge_type == "RANDOM":
             col = layout.column(align=True)
             col.prop(cm, "merge_seed")
-            internals_exist = cm.shell_thickness > 1 and cm.calc_internals
-            row = col.row()
-            row.prop(cm, "connect_thresh")
-            if bpy.props.bricker_developer_mode > 0:
-                col = layout.column(align=False)
-                col.prop(cm, "post_merging")
-                col.prop(cm, "post_hollowing")
-                if cm.post_hollowing:
-                    col.prop(cm, "post_hollow_subgraph_radius")
-                right_align(col)
-        if cm.shell_thickness > 1:
+            if internals_exist:
+                row = col.row()
+                row.prop(cm, "connect_thresh")
+                if bpy.props.bricker_developer_mode > 0:
+                    col = layout.column(align=False)
+                    col.prop(cm, "post_merging")
+                    col.prop(cm, "post_hollowing")
+                    if cm.post_hollowing:
+                        col.prop(cm, "post_hollow_subgraph_radius")
+                    right_align(col)
+        if internals_exist:
             col = layout.column(align=True)
             col.label(text="Merge Shell with Internals:")
             col.prop(cm, "merge_internals", text="")

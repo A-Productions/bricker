@@ -28,6 +28,7 @@ from bpy.props import *
 
 # Module imports
 from ..functions import *
+from ..functions.property_callbacks import get_build_order_items
 
 
 class BRICKER_OT_export_ldraw(Operator, ExportHelper):
@@ -61,6 +62,12 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         description="Author name for the file's metadata",
         default="",
     )
+    build_order = EnumProperty(
+        name="Build Order",
+        description="Build order for the model steps",
+        # options={"HIDDEN"},
+        items=get_build_order_items,
+    )
 
     ################################################
     # initialization method
@@ -86,6 +93,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         self.offset_brick_layers = cm.offset_brick_layers
         self.gap = cm.gap
         self.zstep = get_zstep(cm)
+        self.brick_materials_installed = brick_materials_installed()
 
     #############################################
     # class variables
@@ -96,7 +104,7 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
     # class methods
 
     @timed_call()
-    def write_ldraw_file(self, context):
+    def write_ldraw_file_conn_comps(self, context):
         """ create and write Ldraw file """
         pass
 

@@ -117,7 +117,7 @@ class CMLIST_OT_list_action(Operator):
         prefs = get_addon_preferences()
         if prefs.brick_height_default == "ABSOLUTE":
             # set absolute brick height
-            item.brick_height = prefs.absolute_brick_height
+            item.brick_height = prefs.absolute_brick_height / 1e3
         else:
             # set brick height based on model height
             source = item.source_obj
@@ -195,7 +195,7 @@ class CMLIST_OT_copy_settings_to_others(Operator):
             scn, cm0, _ = get_active_context_info(context)
             for cm1 in scn.cmlist:
                 if cm0 != cm1:
-                    match_properties(cm1, cm0, override_idx=cm1.idx)
+                    match_properties(cm1, cm0)
         except:
             bricker_handle_exception()
         return{"FINISHED"}

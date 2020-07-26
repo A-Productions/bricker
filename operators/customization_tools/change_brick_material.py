@@ -80,7 +80,7 @@ class BRICKER_OT_change_brick_material(Operator):
                     keys_in_brick = get_keys_in_brick(bricksdict, bricksdict[dkey]["size"], cm.zstep, key=dkey)
                     for k in keys_in_brick:
                         bricksdict[k]["mat_name"] = target_mat_name
-                        bricksdict[k]["custom_mat_name"] = True
+                        bricksdict[k]["custom_mat_name"] = bricksdict[k]["val"] == 1  # only force the material if loc is on shell
                     # delete the object that was split
                     keys_to_update.add(dkey)
 

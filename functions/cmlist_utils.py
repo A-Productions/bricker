@@ -66,11 +66,70 @@ def load_cm_props(cm, prop_dict, pointer_dict):
         data = getattr(bpy.data, typ.lower() + "s")[name]
         setattr(cm, item, data)
 
-def get_cm_props():
-    """ returns list of important cmlist properties """
-    return [
-        "shell_thickness",
+def match_properties(cm_to, cm_from):
+    scn = bpy.context.scene
+    # get list of properties that should not be matched
+    props_to_match = [
+        # ANIMATION SETTINGS
+        "use_animation",
+        "start_frame",
+        "stop_frame",
+        "step_frame",
+        # BASIC MODEL SETTINGS
         "brick_height",
+        "gap",
+        "split_model",
+        "random_loc",
+        "random_rot",
+        "shell_thickness",
+        # MERGE SETTINGS
+        "merge_type",
+        "legal_bricks_only",
+        "merge_seed",
+        "connect_thresh",
+        "post_merging",
+        "post_hollowing",
+        "post_hollow_subgraph_radius",
+        "align_bricks",
+        "offset_brick_layers",
+        # SMOKE SETTINGS
+        "smoke_density",
+        "smoke_quality",
+        "smoke_brightness",
+        "smoke_saturation",
+        "flame_color",
+        "flame_intensity",
+        # BRICK TYPE SETTINGS
+        "brick_type",
+        "max_width",
+        "max_depth",
+        "custom_object1",
+        "custom_object2",
+        "custom_object3",
+        "dist_offset",
+        # MATERIAL & COLOR SETTINGS
+        "material_type",
+        "custom_mat",
+        "internal_mat",
+        "mat_shell_depth",
+        "merge_internals",
+        "random_mat_seed",
+        "use_uv_map",
+        "uv_image",
+        "color_snap",
+        "color_depth",
+        "blur_radius",
+        "color_snap_specular",
+        "color_snap_roughness",
+        "color_snap_sss",
+        "color_snap_sss_saturation",
+        "color_snap_ior",
+        "color_snap_transmission",
+        "color_snap_displacement",
+        "use_abs_template",
+        "include_transparency",
+        "transparent_weight",
+        # BRICK DETAIL SETTINGS
         "stud_detail",
         "logo_type",
         "logo_resolution",
@@ -81,68 +140,33 @@ def get_cm_props():
         "hidden_underside_detail",
         "exposed_underside_detail",
         "circle_verts",
-        "gap",
-        "merge_seed",
-        "connect_thresh",
-        "random_loc",
-        "random_rot",
-        "brick_type",
-        "align_bricks",
-        "offset_brick_layers",
-        "dist_offset",
-        "custom_object1",
-        "custom_object2",
-        "custom_object3",
-        "max_width",
-        "max_depth",
-        "merge_type",
-        "legal_bricks_only",
-        "split_model",
+        # INTERNAL SUPPORTS SETTINGS
         "internal_supports",
-        "mat_shell_depth",
         "lattice_step",
+        "lattice_height",
         "alternate_xy",
         "col_thickness",
-        "color_snap",
-        "color_depth",
-        "transparent_weight",
         "col_step",
-        "smoke_density",
-        "smoke_saturation",
-        "smoke_brightness",
-        "flame_color",
-        "flame_intensity",
-        "material_type",
-        "custom_mat",
-        "internal_mat",
-        "mat_shell_depth",
-        "random_mat_seed",
-        "use_uv_map",
-        "uv_image",
-        "use_normals",
+        # ADVANCED SETTINGS
         "insideness_ray_cast_dir",
-        "start_frame",
-        "stop_frame",
-        "step_frame",
-        "use_animation",
         "brick_shell",
         "calculation_axes",
+        "use_normals",
+        "grid_offset",
+        "calc_internals",
         "use_local_orient",
-        "brick_height",
-        "bevel_width",
-        "bevel_segments",
-        "bevel_profile",
+        "instance_method",
     ]
-
-
-def match_properties(cm_to, cm_from, override_idx=-1):
-    scn = bpy.context.scene
-    cm_attrs = get_cm_props()
-    # remove properties that should not be matched
     if not cm_from.bevel_added or not cm_to.bevel_added:
-        cm_attrs.remove("bevel_width")
-        cm_attrs.remove("bevel_segments")
-        cm_attrs.remove("bevel_profile")
+        props_to_match.append("bevel_width")
+        props_to_match.append("bevel_segments")
+        props_to_match.append("bevel_profile")
+    # get all properties from cm_from
+    cm_from_props = get_collection_props(cm_from)
+    # remove properties that shouldn't be matched
+    for k in list(cm_from_props.keys()):
+        if k not in props_to_match:
+            cm_from_props.pop(k)
     # match material properties for Random/ABS Plastic Snapping
     mat_obj_names_from = ["Bricker_{}_RANDOM_mats".format(cm_from.id), "Bricker_{}_ABS_mats".format(cm_from.id)]
     mat_obj_names_to   = ["Bricker_{}_RANDOM_mats".format(cm_to.id), "Bricker_{}_ABS_mats".format(cm_to.id)]
@@ -155,11 +179,4 @@ def match_properties(cm_to, cm_from, override_idx=-1):
         for mat in mat_obj_from.data.materials:
             mat_obj_to.data.materials.append(mat)
     # match properties from 'cm_from' to 'cm_to'
-    if override_idx >= 0:
-        orig_idx = scn.cmlist_index
-        scn.cmlist_index = override_idx
-    for attr in cm_attrs:
-        old_val = getattr(cm_from, attr)
-        setattr(cm_to, attr, old_val)
-    if override_idx >= 0:
-        scn.cmlist_index = orig_idx
+    set_collection_props(cm_to, cm_from_props)
