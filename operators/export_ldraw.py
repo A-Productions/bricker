@@ -188,17 +188,17 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
                         starting_keys[z].add(key)
                         # # if low enough on model, may want to skip this starting key
                         # if len(sorted_z_vals) > 3 and z < sorted_z_vals[-6]:
-                        # # accumulate keys connected below starter keys
-                        # last_keys = starting_keys[z]
-                        # for i in range(3):
-                        #     lowest_conn_keys = set()
-                        #     for k0 in last_keys:
-                        #         lowest_conn_keys |= get_connected_keys(bricksdict, k0, self.zstep, check_above=False)
-                        #     last_keys = lowest_conn_keys
-                        # # skip this starter key if no connected keys below
-                        # if len(lowest_conn_keys) == 0:
-                        #     starter_keys_to_skip.add(key)
-                        #     continue
+                        # accumulate keys connected below starter keys
+                        last_keys = starting_keys[z]
+                        for i in range(3):
+                            lowest_conn_keys = set()
+                            for k0 in last_keys:
+                                lowest_conn_keys |= get_connected_keys(bricksdict, k0, self.zstep, check_above=False)
+                            last_keys = lowest_conn_keys
+                        # skip this starter key if no connected keys below
+                        if len(lowest_conn_keys) == 0:
+                            starter_keys_to_skip.add(key)
+                            continue
                         # reset starting keys for 2 layers above active layer
                         starting_keys[z + 1] = set()
                         starting_keys[z + 2] = set()
@@ -366,22 +366,44 @@ class BRICKER_OT_export_ldraw(Operator, ExportHelper):
         #         continue
         #     starting_keys[z] = set()
         # iterate downwards from starting keys
-        while starting_keys[z0] and z0 - 1 in p_keys_dict.keys():  # and p_keys_dict[z0 - 1]:
+        while z0 - 1 in p_keys_dict.keys():  # and p_keys_dict[z0 - 1]:
             # skip this layer if no starting keys here
             if not starting_keys[z0]:
+                z0 -= 1
                 continue
             # add bricks below the z0 layer
             self.iterate_connections(bricksdict, z0, starting_keys, p_keys_dict, cm, offset, direction="DOWN", append_by_lowest_z=True)
             z_vals = {z0 - 1}  # all down connections from above iter fall into this z val
+
             # get keys above those that are isolated above
             for i in range(2):  # NOTE: bricks could be missed here, since we only go up twice but there could be unconnected bricks stacked up another layer higher than that (just holding off on switching to 3 for a use case)
-                isolated_keys_above = self.get_isolated_keys(bricksdict, starting_keys[z0 - 1], p_keys_dict, direction="UP", ensure_unchosen=True)
+                isolated_keys_above = self.get_isolated_keys(bricksdict, starting_keys[z0 - 1 + i], p_keys_dict, direction="UP", ensure_unchosen=True)
                 # check if keys above not connected above found
                 if isolated_keys_above:
                     # add the keys found to their appropriate starting_keys level
                     z_vals |= self.add_based_on_lowest_z(bricksdict, isolated_keys_above, starting_keys)
                     # add build step for the keys found
                     self.add_build_step(bricksdict, p_keys_dict, isolated_keys_above, cm, offset, direction="UP")
+
+            # # get keys above those that aren't connected above
+            # conn_keys = set()
+            # for k0 in starting_keys[z0 - 1]:
+            #     conn_keys |= get_connected_keys(bricksdict, k0, self.zstep, check_below=False)
+            #     conn_keys = self.get_unchosen(bricksdict, conn_keys, p_keys_dict)
+            # keys_above_last_iteration_to_build = set()
+            # for k1 in conn_keys:
+            #     conn_keys_2 = get_connected_keys(bricksdict, k1, self.zstep, check_below=False)
+            #     conn_keys_2 = self.get_unchosen(bricksdict, conn_keys_2, p_keys_dict)
+            #     if not conn_keys_2:
+            #         keys_above_last_iteration_to_build.add(k1)
+            # # check if keys above not connected above found
+            # if keys_above_last_iteration_to_build:
+            #     # add build step for the keys found
+            #     z_vals.add(z0)
+            #     starting_keys[z0 - 1] |= keys_above_last_iteration_to_build
+            #     self.add_build_step(bricksdict, p_keys_dict, keys_above_last_iteration_to_build, cm, offset, direction="UP")
+            #     # NOTE: bricks could be missed here, since we don't check for unconnected bricks connected above these
+
             # next iter should be maximum among bricks found (if no isolated_keys_above found, goes down 1 layer)
             z0 = max(z_vals)
 
