@@ -90,7 +90,9 @@ def key_in_bounds(bricksdict, key, bounds):
     )
 
 
-def get_connected_keys(bricksdict:dict, key:str, zstep:int, check_above:bool=True, check_below:bool=True):
+def get_connected_keys(bricksdict:dict, key:str, zstep:int, direction:str="BOTH"):
+    check_above = direction in ("UP", "BOTH")
+    check_below = direction in ("DOWN", "BOTH")
     # get locs in current brick
     brick_size = bricksdict[key]["size"]
     loc = get_dict_loc(bricksdict, key)
