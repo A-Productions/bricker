@@ -57,6 +57,8 @@ class BRICKER_OT_select_components(bpy.types.Operator):
 
         # get connected components & weak points
         conn_comps, weak_points, weak_point_neighbors, parent_keys = get_connectivity_data(bricksdict, zstep)
+        cm.disconnected_components = len(conn_comps) - 1
+        cm.weak_points = len(weak_points)
 
         # select specified components
         objs_to_select = []

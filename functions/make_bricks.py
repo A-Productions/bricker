@@ -115,9 +115,16 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
         # initialize progress bar around cursor
         old_percent = update_progress_bars(0.0, -1, "Merging", print_status, cursor_status)
 
-        # set all keys as available for merge
+        # reset relevant bricksdict info
         for key0 in target_keys:
-            bricksdict[key0]["available_for_merge"] = True
+            brick_d0 = bricksdict[key0]
+            # set all keys as available for merge
+            brick_d0["available_for_merge"] = True
+            # reset material info for internal keys
+            if brick_d0["val"] < 1:
+                brick_d0["mat_name"] = ""
+                brick_d0["custom_mat_name"] = False
+
 
         # run merge operations (twice if flat brick type)
         for time_through in range(num_iters):

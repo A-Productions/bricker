@@ -293,7 +293,7 @@ def get_material(bricksdict, key, size, zstep, material_type, custom_mat, random
     mat = None
     highest_val = 0
     mats_L = []
-    if bricksdict[key]["custom_mat_name"]:
+    if bricksdict[key]["custom_mat_name"] and bricksdict[key]["val"] == 1:
         mat = bpy.data.materials.get(bricksdict[key]["mat_name"])
     elif material_type == "CUSTOM":
         mat = custom_mat

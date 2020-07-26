@@ -353,7 +353,6 @@ def create_new_bricks(source_dup, parent, source_details, dimensions, action, sp
     bcoll = get_brick_collection(model_name, clear_existing_collection)
     merge_vertical = (redrawing and "PLATES" in cm.brick_type) or cm.brick_type == "BRICKS_AND_PLATES"
     # store some key as active key
-    print(1)
     if cm.active_key[0] == -1 and len(keys) > 0:
         loc = get_dict_loc(bricksdict, next(iter(keys)))
         cm.active_key = loc
