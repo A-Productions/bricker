@@ -270,9 +270,14 @@ def merge_bricks(bricksdict, keys, cm, target_type="BRICK", any_height=False, me
             keys = list(keys)
         keys.sort(key=sort_fn)
 
-    # set all keys as to be merged
+    # set bricksdict info for all keys passed
     for key in keys:
-        bricksdict[key]["available_for_merge"] = True
+        brick_d = bricksdict[key]
+        # set all keys as to be merged
+        brick_d["available_for_merge"] = True
+        # reset mat_name for internal keys
+        if brick_d["val"] < 1:
+            brick_d["mat_name"] == ""
 
     # attempt to merge all keys together
     for key in keys:
