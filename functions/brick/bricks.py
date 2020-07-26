@@ -53,7 +53,7 @@ def new_brick_mesh(dimensions:list, brick_type:str, size:list=[1,1,3], type:str=
         else:
             brick_bm = make_slope(dimensions, size, brick_type, circle_verts=circle_verts, direction=directions[max_idx], detail=underside_detail, stud=stud)
     else:
-        raise ValueError("'new_mesh' function received unrecognized value for parameter 'type': '" + str(type) + "'")
+        raise ValueError(f"'new_brick_mesh' function received unrecognized value for parameter 'type': '{str(type)}'")
 
     # send brick mesh to junk edit mesh
     junk_m = junk_mesh("Bricker_junk_mesh")

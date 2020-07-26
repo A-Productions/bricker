@@ -125,6 +125,7 @@ class CMLIST_OT_list_action(Operator):
                 source_details = bounds(source, use_adaptive_domain=False)
                 h = max(source_details.dist)
                 item.brick_height = h / prefs.relative_brick_height
+        item.brick_type = "BRICKS_AND_PLATES"
         # set other item properties
         item.id = max([cm.id for cm in scn.cmlist]) + 1
         item.idx = scn.cmlist_index
