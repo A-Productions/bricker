@@ -96,7 +96,8 @@ class VIEW3D_PT_bricker_materials(BrickerPanel, Panel):
             row = col.row(align=True)
             row.prop(cm, "color_snap", expand=True)
             if cm.color_snap == "RGB":
-                col.prop(cm, "blur_radius")
+                if bpy.props.bricker_developer_mode > 0:
+                    col.prop(cm, "blur_radius")
                 col.prop(cm, "color_depth")
             if cm.color_snap == "ABS":
                 # col.prop(cm, "blur_radius")

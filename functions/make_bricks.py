@@ -82,6 +82,7 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     stud_detail = cm.stud_detail
     zstep = cm.zstep
     brick_type_can_be_merged = mergable_brick_type(brick_type, up=cm.zstep == 1) and (max_depth != 1 or max_width != 1)
+    model_subdivisions = cm.model_subdivisions
     internals_exist = check_if_internals_exist(cm)
     run_post_sturdy = internals_exist and brick_type_can_be_merged and not redrawing
     run_post_merge = cm.post_merging and brick_type_can_be_merged and (not redrawing or force_post_merge)
@@ -92,7 +93,7 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     rand_s3 = None if placeholder_meshes else np.random.RandomState(cm.merge_seed + 2)
     # initialize other variables
     lowest_z = -1
-    connect_thresh = cm.connect_thresh if mergable_brick_type(brick_type) and merge_type == "RANDOM" else 0
+    stability_iters = cm.stability_iters if mergable_brick_type(brick_type) and merge_type == "RANDOM" else 0
     denom = sum([len(keys_dict[z0]) for z0 in keys_dict.keys()])
     # set number of times to run through all keys
     num_iters = 2 if brick_type == "BRICKS_AND_PLATES" else 1
@@ -173,7 +174,7 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     # if there are internal bricks, improve the sturdiness
     if run_post_sturdy:
         # improve sturdiness
-        improve_sturdiness(bricksdict, target_keys, cm, zstep, brick_type, merge_seed, iterations=connect_thresh)
+        improve_sturdiness(bricksdict, target_keys, cm, zstep, brick_type, merge_seed, iterations=stability_iters, model_subdivisions=model_subdivisions)
 
     # run post-merge
     if run_post_merge:
@@ -221,7 +222,7 @@ def make_bricks(cm, bricksdict, keys_dict, target_keys, parent, logo, dimensions
     # set sturdiness of connected components
     if run_post_sturdy or run_post_merge or run_post_hollow:# and len(parent_keys) not in (0, len(weak_points)) and len(conn_comps) != 0:
         conn_comps = get_connected_components(bricksdict, zstep, parent_keys)
-        weak_points = get_bridges(conn_comps)
+        weak_points = get_bridges(conn_comps, bricksdict)
         cm.disconnected_components = len(conn_comps) - 1
         cm.weak_points = len(weak_points)
 

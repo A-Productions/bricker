@@ -177,12 +177,19 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         min=0,
         default=1000,
     )
-    connect_thresh = IntProperty(
-        name="Connectivity",
+    stability_iters = IntProperty(
+        name="Stability Iterations",
         description="Max number of iterations to improve structural stability (higher numbers are slower but bricks will be more interconnected)",
         update=dirty_build,
         min=0, soft_max=100,
         default=42,
+    )
+    model_subdivisions = IntProperty(
+        name="Model Subdivisions",
+        description="Subdivide the model on the Z axis during the structural stability calculation (higher numbers increase stability, but also may increase number of disconnected components)",
+        update=dirty_build,
+        min=0, soft_max=100,
+        default=0,
     )
     post_merging = BoolProperty(
         name="Post-Merging",
@@ -274,7 +281,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirty_build,
         step=1,
         min=1, soft_max=100,
-        default=2,
+        default=4,
     )
     max_depth = IntProperty(
         name="Max Depth",
@@ -282,7 +289,7 @@ class CreatedModelProperties(bpy.types.PropertyGroup):
         update=dirty_build,
         step=1,
         min=1, soft_max=100,
-        default=10,
+        default=12,
     )
     custom_object1 = PointerProperty(
         type=bpy.types.Object,

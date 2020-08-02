@@ -22,6 +22,7 @@
 import bpy
 
 # Module imports
+from .other_utils import *
 from ..common import *
 from ..general import *
 from ..brick import *
@@ -71,10 +72,10 @@ def iterative_get_connected(bricksdict, starting_key, zstep, subgraph_bounds=Non
     return cur_conn_comp
 
 
-def get_subgraph_bounds(bricksdict, starting_key, radius):
+def get_subgraph_bounds(bricksdict, starting_key, xy_radius:int, z_radius:int):
     starting_loc = Vector(get_dict_loc(bricksdict, starting_key))
     ending_loc = starting_loc + Vector(bricksdict[starting_key]["size"]) - Vector((1, 1, 1))
-    max_dist_vec = Vector((radius, radius, radius))
+    max_dist_vec = Vector((xy_radius, xy_radius, z_radius))
     bounds = lambda: None
     bounds.min = starting_loc - max_dist_vec
     bounds.max = ending_loc + max_dist_vec
@@ -82,11 +83,13 @@ def get_subgraph_bounds(bricksdict, starting_key, radius):
 
 
 def key_in_bounds(bricksdict, key, bounds):
+    if bounds is None:
+        return True
     loc = Vector(get_dict_loc(bricksdict, key))
     max_loc = loc + Vector(bricksdict[key]["size"]) - Vector((1, 1, 1))
     return (
-        max_loc[0] > bounds.min[0] and max_loc[1] > bounds.min[1] and max_loc[2] > bounds.min[2] and
-        loc[0] < bounds.max[0] and loc[1] < bounds.max[1] and loc[2] < bounds.max[2]
+        max_loc[0] >= bounds.min[0] and max_loc[1] >= bounds.min[1] and max_loc[2] >= bounds.min[2] and
+        loc[0] <= bounds.max[0] and loc[1] <= bounds.max[1] and loc[2] <= bounds.max[2]
     )
 
 
@@ -123,7 +126,7 @@ def get_connected_keys(bricksdict:dict, key:str, zstep:int, direction:str="BOTH"
 
 
 # adapted from code written by Dr. Jon Denning
-def get_bridges(conn_comps:list):
+def get_bridges(conn_comps:list, bricksdict:dict, stud_connection_threshold:int=6, bounds=None):
     # TODO: Add check for long strings of bricks with single connected component
     # bridges = []
     weak_points = set()
@@ -144,6 +147,8 @@ def get_bridges(conn_comps:list):
             order.append((node_prev, node_current, not visited[node_current]))
             # check if already visited here
             if visited[node_current]:
+                continue
+            elif not key_in_bounds(bricksdict, node_current, bounds):
                 continue
             # add to visited
             visited[node_current] = True
@@ -172,7 +177,9 @@ def get_bridges(conn_comps:list):
                 # we visited node_next from node_current during DFS
                 node_infos[node_current]["low_link"] = min(node_infos[node_current]["low_link"], node_infos[node_next]["low_link"])
                 if node_infos[node_current]["id"] < node_infos[node_next]["low_link"] and len(conn_comp[node_next]) > 1:
-                    # found the bridge!
+                    # num_studs_connecting = get_connecting_stud_count(bricksdict, node_current, node_next)
+                    # if num_studs_connecting < stud_connection_threshold:
+                    # found a bridge!
                     # weak_points.add(node_current)
                     weak_points.add(node_next)
             else:
@@ -181,6 +188,20 @@ def get_bridges(conn_comps:list):
 
     # done processing
     return weak_points
+
+
+def get_connecting_stud_count(bricksdict, key1, key2):
+    """ get number of overlapping studs (assumes bricks are connected) """
+    loc1 = get_dict_loc(bricksdict, key1)
+    loc2 = get_dict_loc(bricksdict, key2)
+    bounds_min_1 = loc1[:2]
+    bounds_max_1 = (loc1[0] + bricksdict[key1]["size"][0] - 1, loc1[1] + bricksdict[key1]["size"][1] - 1)
+    bounds_min_2 = loc2[:2]
+    bounds_max_2 = (loc2[0] + bricksdict[key2]["size"][0] - 1, loc2[1] + bricksdict[key2]["size"][1] - 1)
+    min_overlap_bound = (max(bounds_min_1[0], bounds_min_2[0]), max(bounds_min_1[1], bounds_min_2[1]))
+    max_overlap_bound = (min(bounds_max_1[0], bounds_max_2[0]), min(bounds_max_1[1], bounds_max_2[1]))
+    return (max_overlap_bound[0] - min_overlap_bound[0] + 1) * (max_overlap_bound[1] - min_overlap_bound[1] + 1)
+
 
 
 def get_bridges_recursive(conn_comps:list):
@@ -269,12 +290,14 @@ def get_component_interfaces(bricksdict:dict, conn_comps:list, parent_keys:list,
             neighboring_bricks = get_neighboring_bricks(bricksdict, bricksdict[k]["size"], zstep, get_dict_loc(bricksdict, k), check_vertically=False)
             for k0 in neighboring_bricks:
                 pkey = get_parent_key(bricksdict, k0)
-                if pkey not in conn_comp and pkey is not None:
+                if pkey not in conn_comp and pkey is not None and mats_are_mergable(bricksdict[pkey], bricksdict[k]["mat_name"], True):
                     component_interfaces.add(k)
                     component_interfaces.add(pkey)
                     # also add neighbors to this neighbor brick in another conn_comp
                     neighboring_bricks_1 = get_neighboring_bricks(bricksdict, bricksdict[pkey]["size"], zstep, get_dict_loc(bricksdict, pkey), check_vertically=False)
                     for k1 in neighboring_bricks_1:
+                        if not mats_are_mergable(bricksdict[pkey], bricksdict[k]["mat_name"], True):
+                            continue
                         component_interfaces.add(k1)
 
     # ensure all interfaces are in parent_keys

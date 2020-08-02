@@ -148,7 +148,7 @@ def get_duplicate_objects(scn, cm, action, start_frame, stop_frame, updated_fram
         # store duplicate to dictionary of dupes
         duplicates[cur_frame] = source_dup
         # update progress bar
-        percent = (cur_frame - start_frame + 1) / (denom + 2)
+        percent = (cur_frame - start_frame + 1) / (denom + 1)
         if percent < 1:
             update_progress("Applying Modifiers", percent)
     # update progress bar
@@ -216,7 +216,7 @@ def should_brickify_in_background(cm, r, action):
                     # accounts for merging algorithm
                     * (1.5 if mergable_brick_type(cm.brick_type) else 1)
                     # accounts for additional merging calculations for connectivity
-                    * (math.sqrt(cm.connect_thresh) if mergable_brick_type(cm.brick_type) and cm.merge_type == "RANDOM" else 1)
+                    * (math.sqrt(cm.stability_iters) if mergable_brick_type(cm.brick_type) and cm.merge_type == "RANDOM" else 1)
                     # accounts for source object resolution
                     * len(source.data.vertices)**(1/20)
                     # multiplies per frame
@@ -439,7 +439,7 @@ def transform_bricks(bcoll, cm, parent, source, source_dup_details, action):
         source_details = bounds(source)
         last_mode = source.rotation_mode
         obj.rotation_mode = "XYZ"
-        source.rotation_mode = obj.rotation_mode
+        source.rotation_mode = "XYZ"
         obj.rotation_euler = source.rotation_euler
         obj.rotation_mode = last_mode
         source["local_orient_offset"] = source_details.mid - source_dup_details.mid

@@ -3,8 +3,13 @@
 # System imports
 import numpy as np
 from colorsys import rgb_to_hsv, hsv_to_rgb
-# from scipy import signal
-# from scipy import ndimage
+from ..reporting import b280
+try:
+    from scipy import signal
+    from scipy import ndimage
+except ModuleNotFoundError if b280() else ImportError:
+    pass
+    # print("'scipy' python module not installed")
 
 # Blender imports
 # NONE!
@@ -12,7 +17,6 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 # Module imports
 from .pixel_effects_reshape import *
 from .pixel_effects_median_cut import *
-from ..reporting import b280
 from ..maths import *
 # try:
 #     from .pixel_effects_numba import *

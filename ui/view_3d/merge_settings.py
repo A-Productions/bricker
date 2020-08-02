@@ -64,8 +64,12 @@ class VIEW3D_PT_bricker_merge_settings(BrickerPanel, Panel):
             col = layout.column(align=True)
             col.prop(cm, "merge_seed")
             if internals_exist:
-                row = col.row()
-                row.prop(cm, "connect_thresh")
+                col = layout.column(align=True)
+                row = col.row(align=True)
+                row.prop(cm, "stability_iters")
+                if cm.stability_iters > 0:
+                    row = col.row(align=True)
+                    row.prop(cm, "model_subdivisions")
                 if bpy.props.bricker_developer_mode > 0:
                     col = layout.column(align=False)
                     col.prop(cm, "post_merging")

@@ -473,6 +473,10 @@ class ArchipelagoSequence:
         assert isinstance(arch, Archipelago)
         return self._archipelagos.append(arch)
 
+    def get_outline_island(self):
+        assert len(self._archipelagos) > 0
+        return self._archipelagos[0].get_outline_island()
+
     def dilate_erode(self, dist):
         for archipelago in self._archipelagos:
             archipelago.dilate_erode(dist)

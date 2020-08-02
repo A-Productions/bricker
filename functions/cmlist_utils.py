@@ -29,11 +29,12 @@ from .common import *
 
 # Conditional imports
 if b280():
-    from bpy.types import Material, Image, Object, Collection
-    types = {Material:"Material", Image:"Image", Object:"Object", Collection:"Collection"}
+    from bpy.types import Material, Image, Object, Mesh, Collection
+    # NOTE: 'Meshe' used because the plural of Mesh is 'Meshes'
+    types = {Material:"Material", Image:"Image", Object:"Object", Mesh:"Meshe", Collection:"Collection"}
 else:
-    from bpy.types import Material, Image, Object, Group
-    types = {Material:"Material", Image:"Image", Object:"Object", Group:"Group"}
+    from bpy.types import Material, Image, Object, Mesh, Group
+    types = {Material:"Material", Image:"Image", Object:"Object", Mesh:"Meshe", Group:"Group"}
 
 
 def dump_cm_props(cm, skip_keys=[]):
@@ -86,7 +87,7 @@ def match_properties(cm_to, cm_from):
         "merge_type",
         "legal_bricks_only",
         "merge_seed",
-        "connect_thresh",
+        "stability_iters",
         "post_merging",
         "post_hollowing",
         "post_hollow_subgraph_radius",

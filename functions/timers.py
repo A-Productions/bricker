@@ -57,21 +57,22 @@ def handle_selections(junk=None):
     if obj and len(scn.cmlist) > 0 and obj.name not in cm_obj_names and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and obj.type == "MESH":
         if obj.name.startswith("Bricker_"):
             using_source = False
-            frame_loc = obj.name.rfind("_bricks")
-            if frame_loc == -1:
-                frame_loc = obj.name.rfind("_parent")
-                if frame_loc == -1:
-                    frame_loc = obj.name.rfind("_instancer")
-                    if frame_loc == -1:
-                        frame_loc = obj.name.rfind("_brick__")  # for backwards compatibility
-                        if frame_loc == -1:
-                            frame_loc = obj.name.rfind("__")
-            if frame_loc != -1:
-                scn.bricker_active_object_name = obj.name[len("Bricker_"):frame_loc]
+            end_idx = obj.name.rfind("_bricks")
+            if end_idx == -1:
+                end_idx = obj.name.rfind("_parent")
+                if end_idx == -1:
+                    end_idx = obj.name.rfind("_instancer")
+                    if end_idx == -1:
+                        end_idx = obj.name.rfind("_brick__")  # for backwards compatibility
+                        if end_idx == -1:
+                            end_idx = obj.name.rfind("__")
+            if end_idx != -1:
+                scn.bricker_active_object_name = obj.name[len("Bricker_"):end_idx]
         else:
             using_source = True
             scn.bricker_active_object_name = obj.name
         for i, cm0 in enumerate(scn.cmlist):
+            # print(get_source_name(cm0), scn.bricker_active_object_name, using_source, cm0.model_created)
             if get_source_name(cm0) != scn.bricker_active_object_name or (using_source and cm0.model_created):
                 continue
             try:

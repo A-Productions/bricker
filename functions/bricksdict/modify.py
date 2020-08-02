@@ -24,6 +24,7 @@ import bpy
 # Module imports
 from .connected_components import *
 from .exposure import *
+from .other_utils import *
 from ..mat_utils import *
 from ..matlist_utils import *
 from ..brick import *
@@ -184,7 +185,6 @@ def attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, me
     short_type = get_short_type(bricksdict[key], target_type)
     brick_sizes = [starting_size]
 
-    # go in the x direction
     for axis in range(3 if brick_type == "BRICKS_AND_PLATES" else 2):
         cur_size = starting_size.copy()
         brick_mat_name = bricksdict[key]["mat_name"]
@@ -207,9 +207,10 @@ def attempt_post_merge(bricksdict, key, zstep, brick_type, legal_bricks_only, me
             # enforce max width/depth cap, and for Z axis enforce max height of 3
             if axis == 2 and cur_size[axis] > 3:
                 break
-            elif (not (cur_size[axis] <= max(max_width, max_depth) and cur_size[other_h_axis] >= min(max_width, max_depth)) and
-                  not (cur_size[axis] >= min(max_width, max_depth) and cur_size[other_h_axis] <= max(max_width, max_depth))
-                 ):
+            elif not (
+                (cur_size[axis] <= max(max_width, max_depth) and cur_size[other_h_axis] <= max(max_width, max_depth)) and
+                (cur_size[axis] <= min(max_width, max_depth) or cur_size[other_h_axis] <= min(max_width, max_depth))
+            ):
                 break
             # make sure materials can be merged
             merge_internals = merge_internals_v if axis == 2 else merge_internals_h

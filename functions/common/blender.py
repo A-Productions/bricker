@@ -367,11 +367,11 @@ def new_mesh_from_object(obj:Object):
 @blender_version_wrapper(">=", "2.80")
 def new_mesh_from_object(obj:Object):
     unlink_later = False
-    depsgraph = bpy.context.evaluated_depsgraph_get()
+    depsgraph = bpy.context.view_layer.depsgraph
     # link the object if it's not in the scene, because otherwise the evaluated data may be outdated (e.g. after file is reopened)
     if obj.name not in bpy.context.scene.objects:
         link_object(obj)
-        depsgraph_update()
+        depsgraph_update(depsgraph)
         unlink_later = True
     obj_eval = obj.evaluated_get(depsgraph)
     if unlink_later:
@@ -676,7 +676,7 @@ def depsgraph_update(scene=None):
     scene.update()
 @blender_version_wrapper(">=","2.80")
 def depsgraph_update(depsgraph=None):
-    depsgraph = depsgraph or bpy.context.evaluated_depsgraph_get()
+    depsgraph = depsgraph or bpy.context.view_layer.depsgraph
     depsgraph.update()
 
 

@@ -42,7 +42,7 @@ def run_post_hollowing(bricksdict, keys, parent_keys, cm, zstep, brick_type, rem
     num_removed_bricks = 0
     # # DEBUGGING LINES
     # last_conn_comps_full = get_connected_components(bricksdict, zstep, parent_keys)
-    # last_weak_points_full = get_bridges(last_conn_comps_full)
+    # last_weak_points_full = get_bridges(last_conn_comps_full, bricksdict)
     # initialize progress bar
     old_percent = update_progress_bars(0.0, -1, "Post-Hollowing")
     # iterate through internal keys and attempt to remove
@@ -56,16 +56,16 @@ def run_post_hollowing(bricksdict, keys, parent_keys, cm, zstep, brick_type, rem
         conn_keys = get_connected_keys(bricksdict, k, zstep)
         if len(conn_keys) > 1:
             # get connectivity data starting at current key
-            bounds = get_subgraph_bounds(bricksdict, k, radius=subgraph_radius)
+            bounds = get_subgraph_bounds(bricksdict, k, xy_radius=subgraph_radius, z_radius=subgraph_radius)
             internal_keys_in_bounds = set(k2 for k2 in parent_keys if bricksdict[k2]["draw"] and key_in_bounds(bricksdict, k2, bounds))
             last_conn_comps = get_connected_components(bricksdict, zstep, internal_keys_in_bounds, bounds)
-            last_weak_points = get_bridges(last_conn_comps)
+            last_weak_points = get_bridges(last_conn_comps, bricksdict)
             # reset entries in bricksdict and remove key from evaluated keys
             reset_bricksdict_entries(bricksdict, keys_in_brick)
             internal_keys_in_bounds.remove(k)
             # get connectivity data again starting at current key
             conn_comps = get_connected_components(bricksdict, zstep, internal_keys_in_bounds, bounds)
-            weak_points = get_bridges(conn_comps)
+            weak_points = get_bridges(conn_comps, bricksdict)
         else:
             # reset entries in bricksdict without needing to analyze connectivity data
             reset_bricksdict_entries(bricksdict, keys_in_brick)
@@ -88,7 +88,7 @@ def run_post_hollowing(bricksdict, keys, parent_keys, cm, zstep, brick_type, rem
     # # DEBUGGING LINES
     # parent_keys = get_parent_keys(bricksdict)
     # cur_conn_comps_full = get_connected_components(bricksdict, zstep, parent_keys)
-    # cur_weak_points_full = get_bridges(cur_conn_comps_full)
+    # cur_weak_points_full = get_bridges(cur_conn_comps_full, bricksdict)
     # print(len(last_conn_comps_full), len(cur_conn_comps_full))
     # print(len(last_weak_points_full), len(cur_weak_points_full))
     # return all removed keys (including all keys in brick) along with num removed bricks

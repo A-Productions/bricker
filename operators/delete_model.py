@@ -139,7 +139,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             scn.frame_set(cm.model_created_on_frame)
         bricks = get_bricks()
         # store pivot point for model
-        if cm.last_split_model or cm.animated:
+        if (cm.last_split_model or cm.animated) and cm.parent_obj is not None:
             pivot_point = cm.parent_obj.matrix_world.to_translation()
         else:
             pivot_obj = bricks[0] if len(bricks) > 0 else cm.source_obj

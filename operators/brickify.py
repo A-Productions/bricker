@@ -220,6 +220,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             return {"RUNNING_MODAL"}
         else:
             self.finish(context, cm)
+            # update visible frame of bricker anim
+            if cm.animated:
+                handle_animation(context.scene)
             return {"FINISHED"}
 
     def cancel(self, context):
@@ -332,9 +335,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 set_layers(source_layers)
 
         if "ANIM" not in self.action:
-            self.brickify_model(scn, cm, n, matrix_dirty)
+            self.brickify_model(context, scn, cm, n, matrix_dirty)
         else:
-            self.brickify_animation(scn, cm, n, matrix_dirty)
+            self.brickify_animation(context, scn, cm, n, matrix_dirty)
             cm.anim_is_dirty = False
 
         # set cmlist_id for all created objects
@@ -382,7 +385,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         return True
 
-    def brickify_model(self, scn, cm, n, matrix_dirty):
+    def brickify_model(self, context, scn, cm, n, matrix_dirty):
         """ create brick model """
         # set up variables
         source = None
@@ -469,7 +472,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         cm.last_source_mid = vec_to_str(parent_loc)
 
-    def brickify_animation(self, scn, cm, n, matrix_dirty):
+    def brickify_animation(self, context, scn, cm, n, matrix_dirty):
         """ create brick animation """
         # set up variables
         objs_to_select = []

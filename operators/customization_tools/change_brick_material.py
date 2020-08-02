@@ -128,6 +128,7 @@ class BRICKER_OT_change_brick_material(Operator):
     mat_name = bpy.props.EnumProperty(
         name="Material Name",
         description="Choose material to apply to selected bricks",
-        items=get_items)
+        items=get_items,
+    )
 
     #############################################
